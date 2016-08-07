@@ -3,6 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -16,7 +17,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
@@ -48,8 +49,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\DesktopBuildClient.cs">
       <Link>DesktopBuildClient.cs</Link>
@@ -63,14 +64,13 @@
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
     <Compile Include="DesktopCompilerServerHost.cs" />
+    <Compile Include="DesktopBuildServerController.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
     <Compile Include="VBCSCompiler.cs" />
     <Compile Include="MemoryHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

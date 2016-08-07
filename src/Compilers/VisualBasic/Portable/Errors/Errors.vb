@@ -1605,6 +1605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicKeyContainerFailure = 36981
 
         ERR_InvalidAssemblyCulture = 36982
+        ERR_EncUpdateFailedMissingAttribute = 36983
 
         ERR_CantAwaitAsyncSub1 = 37001
         ERR_ResumableLambdaInExpressionTree = 37050
@@ -1683,6 +1684,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicSignNoKey = 37254
         ERR_TooManyUserStrings = 37255
         ERR_PeWritingFailure = 37256
+
+        ERR_OptionMustBeAbsolutePath = 37257
+        ERR_SourceLinkRequiresPortablePdb = 37258
 
         ERR_LastPlusOne
 
@@ -1918,7 +1922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_ProjectSettingsLocationName = 56000
         IDS_FunctionReturnType = 56001
         IDS_TheSystemCannotFindThePathSpecified = 56002
-        IDS_UnrecognizedFileFormat = 56003
+        ' available: 56003
         IDS_MSG_ADDMODULE = 56004
         IDS_MSG_ADDLINKREFERENCE = 56005
         IDS_MSG_ADDREFERENCE = 56006
@@ -1954,5 +1958,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
+        FEATURE_IOperation
     End Enum
 End Namespace

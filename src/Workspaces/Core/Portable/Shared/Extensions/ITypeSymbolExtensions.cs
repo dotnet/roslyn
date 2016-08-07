@@ -4,14 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -69,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsDelegateType(this ITypeSymbol symbol)
         {
             return symbol?.TypeKind == TypeKind.Delegate;
+        }
+
+        public static bool IsStructType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Struct;
         }
 
         public static bool IsAnonymousType(this INamedTypeSymbol symbol)
@@ -575,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static string GetParameterName(ITypeSymbol type)
         {
-            if (type == null || type.IsAnonymousType())
+            if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
             }

@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -150,8 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -213,8 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -404,8 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -538,6 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var flags = DkmClrCompilationResultFlags.None;
 
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
+
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
@@ -596,7 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true });
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
@@ -620,13 +619,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundStatement BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
+
             var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
             }
 
-            return new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true });
         }
 
         private static Binder CreateBinderChain(
@@ -832,6 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
             }
 
+            binder = new ExecutableCodeBinder(syntax, binder.ContainingMemberOrLambda, binder);
             return binder;
         }
 
@@ -1406,6 +1410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert(instance.Fields.Count() >= 1); // greater depth
                     Debug.Assert((variableKind == DisplayClassVariableKind.Parameter) ||
                         (variableKind == DisplayClassVariableKind.This));
+
+                    if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
+                    {
+                        displayClassVariablesBuilder[variableName] = instance.ToVariable(variableName, variableKind, field);
+                    }
                 }
                 else if (variableKind != DisplayClassVariableKind.This || GeneratedNames.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {

@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = document.Project.Solution.Workspace.Options;
             string diagnosticId;
-            var node = GetNodeToSimplify(root, model, span, optionSet, out diagnosticId, cancellationToken);
+            var node = GetNodeToSimplify(root, model, span, document.Options, out diagnosticId, cancellationToken);
             if (node == null)
             {
                 return;
@@ -88,13 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
-                    return string.Format(CSharpFeaturesResources.SimplifyName, nodeText);
+                    return string.Format(CSharpFeaturesResources.Simplify_name_0, nodeText);
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
-                    return string.Format(CSharpFeaturesResources.SimplifyMemberAccess, nodeText);
+                    return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    return CSharpFeaturesResources.RemoveThisQualification;
+                    return CSharpFeaturesResources.Remove_this_qualification;
 
                 default:
                     throw ExceptionUtilities.Unreachable;

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -20,16 +21,19 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     [ExportLanguageSpecificOptionSerializer(
         LanguageNames.CSharp,
         OrganizerOptions.FeatureName,
+        SplitStringLiteralOptions.FeatureName,
+        AddImportOptions.FeatureName,
         CompletionOptions.FeatureName,
         CSharpCompletionOptions.FeatureName,
         CSharpCodeStyleOptions.FeatureName,
+        CodeStyleOptions.PerLanguageCodeStyleOption,
         SimplificationOptions.PerLanguageFeatureName,
         ExtractMethodOptions.FeatureName,
         CSharpFormattingOptions.IndentFeatureName,
@@ -42,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal sealed class CSharpSettingsManagerOptionSerializer : AbstractSettingsManagerOptionSerializer
     {
         [ImportingConstructor]
-        public CSharpSettingsManagerOptionSerializer(SVsServiceProvider serviceProvider, IOptionService optionService)
-            : base(serviceProvider, optionService)
+        public CSharpSettingsManagerOptionSerializer(VisualStudioWorkspaceImpl workspace)
+            : base(workspace)
         {
         }
 
@@ -51,9 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string SpaceAroundBinaryOperator = nameof(AutomationObject.Space_AroundBinaryOperator);
         private const string UnindentLabels = nameof(AutomationObject.Indent_UnindentLabels);
         private const string FlushLabelsLeft = nameof(AutomationObject.Indent_FlushLabelsLeft);
-        private const string Style_UseVarForIntrinsicTypes = nameof(AutomationObject.Style_UseVarForIntrinsicTypes);
-        private const string Style_UseVarWhenTypeIsApparent = nameof(AutomationObject.Style_UseVarWhenTypeIsApparent);
-        private const string Style_UseVarWherePossible = nameof(AutomationObject.Style_UseVarWherePossible);
+        private const string Style_QualifyFieldAccess = nameof(AutomationObject.Style_QualifyFieldAccess);
+        private const string Style_QualifyPropertyAccess = nameof(AutomationObject.Style_QualifyPropertyAccess);
+        private const string Style_QualifyMethodAccess = nameof(AutomationObject.Style_QualifyMethodAccess);
+        private const string Style_QualifyEventAccess = nameof(AutomationObject.Style_QualifyEventAccess);
+        private const string Style_UseImplicitTypeForIntrinsicTypes = nameof(AutomationObject.Style_UseImplicitTypeForIntrinsicTypes);
+        private const string Style_UseImplicitTypeWhereApparent = nameof(AutomationObject.Style_UseImplicitTypeWhereApparent);
+        private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -72,26 +80,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             result.AddRange(new[]
                 {
-                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.IncludeKeywords), CompletionOptions.IncludeKeywords),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnDeletion), CompletionOptions.TriggerOnDeletion),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.ShowCompletionItemFilters), CompletionOptions.ShowCompletionItemFilters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems), CompletionOptions.HighlightMatchingPortionsOfCompletionListItems),
                 });
 
             Type[] types = new[]
                 {
                     typeof(OrganizerOptions),
+                    typeof(AddImportOptions),
+                    typeof(SplitStringLiteralOptions),
                     typeof(CSharpCompletionOptions),
                     typeof(SimplificationOptions),
                     typeof(CSharpCodeStyleOptions),
                     typeof(ExtractMethodOptions),
                     typeof(ServiceFeatureOnOffOptions),
-                    typeof(CSharpFormattingOptions)
+                    typeof(CSharpFormattingOptions),
+                    typeof(CodeStyleOptions)
                 };
 
             var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-            result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfo));
+            result.AddRange(GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfo));
 
             types = new[] { typeof(FeatureOnOffOptions) };
-            result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfoForOnOffOptions, this.ShouldIncludeOnOffOption));
+            result.AddRange(GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfoForOnOffOptions, this.ShouldIncludeOnOffOption));
 
             return result.ToImmutable();
         }
@@ -100,12 +113,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         protected override string SettingStorageRoot { get { return "TextEditor.CSharp.Specific."; } }
 
+        protected override string GetStorageKeyForOption(IOption option)
+        {
+            var name = option.Name;
+            if (option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+            {
+                // ClosedFileDiagnostics has been deprecated in favor of CSharpClosedFileDiagnostics.
+                // ClosedFileDiagnostics had a default value of 'true', while CSharpClosedFileDiagnostics has a default value of 'false'.
+                // We want to ensure that we don't fetch the setting store value for the old flag, as that can cause the default value for this option to change.
+                name = nameof(AutomationObject.CSharpClosedFileDiagnostics);
+            }
+
+            return SettingStorageRoot + name;
+        }
+
         protected override bool SupportsOption(IOption option, string languageName)
         {
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
-                option == OrganizerOptions.WarnOnBuildErrors ||
-                option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
-                option == CSharpCompletionOptions.IncludeSnippets ||
+                option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
+                option == AddImportOptions.SuggestForTypesInNuGetPackages ||
+                option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
                 option.Feature == CSharpFormattingOptions.WrappingFeatureName ||
                 option.Feature == CSharpFormattingOptions.IndentFeatureName ||
@@ -116,8 +143,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
             else if (languageName == LanguageNames.CSharp)
             {
-                if (option == CompletionOptions.IncludeKeywords ||
-                    option == CompletionOptions.TriggerOnTypingLetters ||
+                if (option == CompletionOptions.TriggerOnTypingLetters ||
+                    option == CompletionOptions.TriggerOnDeletion ||
+                    option == CompletionOptions.ShowCompletionItemFilters ||
+                    option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
+                    option == CompletionOptions.EnterKeyBehavior ||
+                    option == CompletionOptions.SnippetsBehavior ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||
@@ -144,6 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                    option == FeatureOnOffOptions.KeywordHighlighting ||
                    option == FeatureOnOffOptions.FormatOnPaste ||
                    option == FeatureOnOffOptions.AutoXmlDocCommentGeneration ||
+                   option == FeatureOnOffOptions.AutoInsertBlockCommentStartString ||
                    option == FeatureOnOffOptions.RefactoringVerification ||
                    option == FeatureOnOffOptions.RenameTracking ||
                    option == FeatureOnOffOptions.RenameTrackingPreview;
@@ -203,26 +235,157 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return true;
             }
 
+            // code style: use this.
+            if (optionKey.Option == CodeStyleOptions.QualifyFieldAccess)
+            {
+                return FetchStyleBool(Style_QualifyFieldAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyPropertyAccess)
+            {
+                return FetchStyleBool(Style_QualifyPropertyAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyMethodAccess)
+            {
+                return FetchStyleBool(Style_QualifyMethodAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyEventAccess)
+            {
+                return FetchStyleBool(Style_QualifyEventAccess, out value);
+            }
+
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarForIntrinsicTypes);
-                return FetchUseVarOption(useVarValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeForIntrinsicTypes, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWhenTypeIsApparent);
-                return FetchUseVarOption(useVarValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeWhereApparent, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWherePossible);
-                return FetchUseVarOption(useVarValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
+            }
+
+            if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
+            {
+                return FetchEnterKeyBehavior(optionKey, out value);
+            }
+
+            if (optionKey.Option == CompletionOptions.SnippetsBehavior)
+            {
+                return FetchSnippetsBehavior(optionKey, out value);
+            }
+
+            if (optionKey.Option == CompletionOptions.TriggerOnDeletion)
+            {
+                return FetchTriggerOnDeletion(optionKey, out value);
             }
 
             return base.TryFetch(optionKey, out value);
         }
 
+        private bool FetchTriggerOnDeletion(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (value == null)
+            {
+                // The default behavior for c# is to not trigger completion on deletion.
+                value = (bool?)false;
+            }
+
+            return true;
+        }
+
+        private bool FetchStyleBool(string settingName, out object value)
+        {
+            var typeStyleValue = Manager.GetValueOrDefault<string>(settingName);
+            return FetchStyleOption<bool>(typeStyleValue, out value);
+        }
+
+        /// <summary>
+        /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.
+        /// We need to maintain the meaning of the serialized legacy setting.
+        /// </summary>
+        private bool FetchSnippetsBehavior(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (!value.Equals(SnippetsRule.Default))
+            {
+                return true;
+            }
+
+            // if the SnippetsBehavior setting cannot be loaded, then attempt to load and upgrade the legacy setting
+
+#pragma warning disable CS0618 // IncludeSnippets is obsolete
+            if (base.TryFetch(CSharpCompletionOptions.IncludeSnippets, out value))
+#pragma warning restore CS0618
+            {
+                if ((bool)value)
+                {
+                    value = SnippetsRule.AlwaysInclude;
+                }
+                else
+                {
+                    value = SnippetsRule.NeverInclude;
+                }
+
+                return true;
+            }
+
+            value = SnippetsRule.AlwaysInclude;
+            return true;
+        }
+
+
+        /// <summary>
+        /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.
+        /// We need to maintain the meaning of the serialized legacy setting.
+        /// </summary>
+        private bool FetchEnterKeyBehavior(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (!value.Equals(EnterKeyRule.Default))
+            {
+                return true;
+            }
+
+            // if the EnterKeyBehavior setting cannot be loaded, then attempt to load and upgrade the legacy AddNewLineOnEnterAfterFullyTypedWord setting
+
+#pragma warning disable CS0618 // AddNewLineOnEnterAfterFullyTypedWord is obsolete
+            if (base.TryFetch(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, out value))
+#pragma warning restore CS0618
+            {
+                int intValue = (int)value;
+                switch (intValue)
+                {
+                    case 1:
+                        value = EnterKeyRule.AfterFullyTypedWord;
+                        break;
+                    case 0:
+                    default:
+                        value = EnterKeyRule.Never;
+                        break;
+                }
+
+                return true;
+            }
+
+            value = EnterKeyRule.Never;
+            return true;
+        }
 
         public override bool TryPersist(OptionKey optionKey, object value)
         {
@@ -289,39 +452,57 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 }
             }
 
+            // code style: use this.
+            if (optionKey.Option == CodeStyleOptions.QualifyFieldAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyFieldAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyPropertyAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyPropertyAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyMethodAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyMethodAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyEventAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyEventAccess, value);
+            }
+
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                return PersistUseVarOption(Style_UseVarForIntrinsicTypes, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeForIntrinsicTypes, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                return PersistUseVarOption(Style_UseVarWhenTypeIsApparent, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeWhereApparent, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                return PersistUseVarOption(Style_UseVarWherePossible, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
 
             return base.TryPersist(optionKey, value);
         }
 
-        private bool PersistUseVarOption(string option, object value)
+        private bool PersistStyleOption<T>(string option, object value)
         {
-            var serializedValue = ((SimpleCodeStyleOption)value).ToXElement().ToString();
+            var serializedValue = ((CodeStyleOption<T>)value).ToXElement().ToString();
             this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
             return true;
         }
 
-        private static bool FetchUseVarOption(string useVarOptionValue, out object value)
+        private static bool FetchStyleOption<T>(string typeStyleOptionValue, out object value)
         {
-            if (string.IsNullOrEmpty(useVarOptionValue))
+            if (string.IsNullOrEmpty(typeStyleOptionValue))
             {
-                value = SimpleCodeStyleOption.Default;
+                value = CodeStyleOption<T>.Default;
             }
             else
             {
-                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(useVarOptionValue));
+                value = CodeStyleOption<T>.FromXElement(XElement.Parse(typeStyleOptionValue));
             }
 
             return true;

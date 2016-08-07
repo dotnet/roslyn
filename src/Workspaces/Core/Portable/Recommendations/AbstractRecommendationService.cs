@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal abstract class AbstractRecommendationService : IRecommendationService
     {
-        protected abstract Task<Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
+        protected abstract Task<Tuple<IEnumerable<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
 
         public async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
@@ -29,14 +29,56 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return symbols;
         }
 
+        protected static IEnumerable<ISymbol> GetRecommendedNamespaceNameSymbols(
+            SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+        {
+            if (declarationSyntax == null)
+            {
+                throw new ArgumentNullException(nameof(declarationSyntax));
+            }
+
+            var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
+                semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
+
+            var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
+                                       .Where(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
+
+            return symbols;
+        }
+
+        protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
+        {
+            //
+            // Apart from filtering out non-namespace symbols, this also filters out the symbol
+            // currently being declared. For example...
+            //
+            //     namespace X$$
+            //
+            // ...X won't show in the completion list (unless it is also declared elsewhere).
+            //
+            // In addition, in VB, it will filter out Bar from the sample below...
+            //
+            //     Namespace Foo.$$
+            //         Namespace Bar
+            //         End Namespace
+            //     End Namespace
+            //
+            // ...unless, again, it's also declared elsewhere.
+            //
+            return recommendationSymbol.IsNamespace() &&
+                   recommendationSymbol.Locations.Any(
+                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
-            private readonly AbstractSyntaxContext _context;
+            private readonly SyntaxContext _context;
             private readonly CancellationToken _cancellationToken;
             private IEnumerable<INamedTypeSymbol> _lazyOuterTypesAndBases;
             private IEnumerable<INamedTypeSymbol> _lazyEnclosingTypeBases;
 
-            internal ShouldIncludeSymbolContext(AbstractSyntaxContext context, CancellationToken cancellationToken)
+            internal ShouldIncludeSymbolContext(SyntaxContext context, CancellationToken cancellationToken)
             {
                 _context = context;
                 _cancellationToken = cancellationToken;

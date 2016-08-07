@@ -2962,7 +2962,7 @@ public unsafe struct S
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "Alias*").WithArguments("S"));
         }
 
-        [Fact]
+        [Fact()]
         public void ERR_ManagedAddr_Members()
         {
             var text = @"
@@ -2999,6 +2999,19 @@ public unsafe struct S
                 // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     public S* s; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"));
+        }
+
+        [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
+        [Fact]
+        public void PointerToStructInPartialMethodSignature()
+        {
+            string text =
+@"unsafe partial struct S
+{
+    partial void M(S *p) { }
+    partial void M(S *p);
+}";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion IsManagedType
@@ -7667,6 +7680,27 @@ class C
         #endregion stackalloc semantic model tests
 
         #region PointerTypes tests
+
+        [WorkItem(5712, "https://github.com/dotnet/roslyn/issues/5712")]
+        [Fact]
+        public void PathalogicalRefStructPtrMultiDimensionalArray()
+        {
+            var text = @"
+class C
+{
+  class Foo3 { 
+     internal struct Struct1<U> {} 
+  }
+
+  unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Foo3.Struct1<int>')
+                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Foo3.Struct1<int>*").WithArguments("C.Foo3.Struct1<int>").WithLocation(8, 67));
+        }
+
 
         [WorkItem(543990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543990")]
         [Fact]

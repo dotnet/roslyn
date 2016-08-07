@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)node;
 
-                        if (Binder.AccessingAutopropertyFromConstructor(propAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.currentMethodOrLambda))
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             var backingField = (propSymbol as SourcePropertySymbol)?.BackingField;
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutopropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.currentMethodOrLambda))
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbol)?.BackingField;
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ForEachStatement:
                     {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariable;
+                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
                         Debug.Assert((object)iterationVariable != null);
                         int slot = GetOrCreateSlot(iterationVariable);
                         if (slot > 0) SetSlotState(slot, written);
@@ -1329,27 +1329,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Assign(pat, null, RefKind.None, false);
                         break;
                     }
-                case BoundKind.PropertyPattern:
-                    {
-                        var pat = (BoundPropertyPattern)pattern;
-                        foreach (var prop in pat.Subpatterns)
-                        {
-                            AssignPatternVariables(prop.Pattern);
-                        }
-                        break;
-                    }
-                case BoundKind.RecursivePattern:
-                    {
-                        var pat = (BoundRecursivePattern)pattern;
-                        foreach (var prop in pat.Patterns)
-                        {
-                            AssignPatternVariables(prop);
-                        }
-                        break;
-                    }
-
                 case BoundKind.WildcardPattern:
+                    break;
                 case BoundKind.ConstantPattern:
+                    {
+                        var pat = (BoundConstantPattern)pattern;
+                        this.VisitRvalue(pat.Value);
+                        break;
+                    }
                 default:
                     break;
             }
@@ -1384,15 +1371,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
-        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        protected override void VisitGuardedPattern(DecisionTree.Guarded guarded)
         {
-            CreateSlots(node.Pattern);
-            return base.VisitLetStatement(node);
+            AssignPatternVariables(guarded.Label.Pattern);
+            base.VisitGuardedPattern(guarded);
         }
 
         private void CreateSlots(BoundPattern pattern)
@@ -1404,26 +1390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int slot = GetOrCreateSlot(((BoundDeclarationPattern)pattern).LocalSymbol);
                         break;
                     }
-                case BoundKind.PropertyPattern:
-                    {
-                        var pat = (BoundPropertyPattern)pattern;
-                        foreach (var prop in pat.Subpatterns)
-                        {
-                            CreateSlots(prop.Pattern);
-                        }
-                        break;
-                    }
-                case BoundKind.RecursivePattern:
-                    {
-                        var pat = (BoundRecursivePattern)pattern;
-                        foreach (var prop in pat.Patterns)
-                        {
-                            CreateSlots(prop);
-                        }
-                        break;
-                    }
-
-                case BoundKind.WildcardPattern:
                 case BoundKind.ConstantPattern:
                 default:
                     break;
@@ -1509,16 +1475,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (LocalSymbol local in localsOpt)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
+                switch (local.DeclarationKind)
                 {
-                    ReportIfUnused(local, assigned: true);
-                }
-                else
-                {
-                    NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+                    case LocalDeclarationKind.RegularVariable:
+                        ReportIfUnused(local, assigned: true);
+                        break;
+
+                    case LocalDeclarationKind.UsingVariable:
+                        NoteRead(local); // At the end of the statement, there's an implied read when the local is disposed
+                        break;
                 }
             }
-            Debug.Assert(localsOpt.All(_usedVariables.Contains));
+
+            Debug.Assert(localsOpt.Where(l => l.DeclarationKind != LocalDeclarationKind.PatternVariable).All(_usedVariables.Contains));
 
             return result;
         }
@@ -1527,14 +1496,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (LocalSymbol local in node.Locals)
             {
-                if (local.DeclarationKind == LocalDeclarationKind.RegularVariable)
+                switch (local.DeclarationKind)
                 {
-                    DeclareVariable(local);
-                }
-                else
-                {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
-                    // TODO: should something be done about this local?
+                    case LocalDeclarationKind.RegularVariable:
+                    case LocalDeclarationKind.PatternVariable:
+                        DeclareVariable(local);
+                        break;
+
+                    default:
+                        Debug.Assert(local.DeclarationKind == LocalDeclarationKind.FixedVariable);
+                        break;
                 }
             }
 
@@ -1618,8 +1589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
-            // an assignment (if a simple variable or this-qualified) or an out parameter.  That's
-            // because this code assumes the variable is being read, not written.
+            // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
+            // That's because this code assumes the variable is being read, not written.
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
             if (localSymbol.IsFixed &&
@@ -1759,6 +1730,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitAssignmentOperator(node);
             Assign(node.Left, node.Right, refKind: node.RefKind);
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            base.VisitDeconstructionAssignmentOperator(node);
+
+            foreach (BoundExpression variable in node.LeftVariables)
+            {
+                Assign(variable, value: null, refKind: RefKind.None);
+            }
+
             return null;
         }
 
@@ -1971,10 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitCatchBlockInternal(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
-            if ((object)catchBlock.LocalOpt != null)
-            {
-                DeclareVariable(catchBlock.LocalOpt);
-            }
+            DeclareVariables(catchBlock.Locals);
 
             var exceptionSource = catchBlock.ExceptionSourceOpt;
             if (exceptionSource != null)
@@ -1984,9 +1964,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             base.VisitCatchBlock(catchBlock, ref finallyState);
 
-            if ((object)catchBlock.LocalOpt != null)
+            foreach (var local in catchBlock.Locals)
             {
-                ReportIfUnused(catchBlock.LocalOpt, assigned: false);
+                ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
         }
 
@@ -2045,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            if (Binder.AccessingAutopropertyFromConstructor(node, this.currentMethodOrLambda))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.currentMethodOrLambda))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
@@ -2085,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
+            var local = node.IterationVariableOpt;
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);

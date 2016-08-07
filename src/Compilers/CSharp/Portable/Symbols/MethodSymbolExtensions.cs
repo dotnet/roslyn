@@ -54,19 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];
-            var argumentTypes = new TypeSymbol[paramCount];
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
                 arguments[i] = argument;
-                argumentTypes[i] = argument.Type;
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
                 conversions,
                 method,
-                argumentTypes.AsImmutableOrNull(),
-                arguments.AsImmutableOrNull(),
+                arguments.AsImmutable(),
                 ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)
@@ -279,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                && method.ReturnType.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -288,9 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && (object)method.ReturnType != null
-                && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                && method.ReturnType.IsGenericTaskType(compilation);
         }
     }
 }

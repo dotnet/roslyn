@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case UnmanagedType.Interface:
                     case UnmanagedType.IUnknown:
-                    case UnmanagedType.IDispatch:
+                    case Cci.Constants.UnmanagedType_IDispatch:
                         return true;
                 }
 

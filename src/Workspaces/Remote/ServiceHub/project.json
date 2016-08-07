@@ -1,0 +1,9 @@
+﻿{
+  "dependencies": {
+    "StreamJsonRpc": "0.14.3-alpha",
+    "System.Collections.Immutable": "1.2.0"
+  },
+  "frameworks": {
+    "net46": {}
+  }
+}

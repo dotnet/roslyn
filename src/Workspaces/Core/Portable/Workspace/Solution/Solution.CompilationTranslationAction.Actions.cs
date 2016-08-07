@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis
 
             private class AddDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
-                [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
                 private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.AddSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
 

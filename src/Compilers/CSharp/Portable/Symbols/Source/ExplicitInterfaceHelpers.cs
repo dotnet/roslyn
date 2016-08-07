@@ -260,6 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
+            {
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
+                return null;
+            }
+
             // In constructed types, it is possible that two method signatures could differ by only ref/out
             // after substitution.  We look for this as part of explicit implementation because, if someone
             // tried to implement the ambiguous interface implicitly, we would separately raise an error about

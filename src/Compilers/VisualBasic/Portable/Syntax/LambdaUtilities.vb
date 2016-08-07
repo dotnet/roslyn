@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -457,12 +456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
-            For Each variable In variables
-                Yield variable.Expression
-            Next
-        End Function
-
-        Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
             For Each variable In variables
                 Yield variable.Expression
             Next

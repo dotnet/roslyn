@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstructors;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class GenerateDefaultConstructorsTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new GenerateDefaultConstructorsCodeRefactoringProvider();
         }
@@ -197,6 +196,28 @@ index: 0);
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program : [||]Exception { public Program ( string message , Exception innerException ) : base ( message , innerException ) { } protected Program ( System . Runtime . Serialization . SerializationInfo info , System . Runtime . Serialization . StreamingContext context ) : base ( info , context ) { } static void Main ( string [ ] args ) { } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program : Exception { public Program ( ) { } public Program ( ) { } public Program ( string message ) : base ( message ) { } public Program ( string message , Exception innerException ) : base ( message , innerException ) { } protected Program ( System . Runtime . Serialization . SerializationInfo info , System . Runtime . Serialization . StreamingContext context ) : base ( info , context ) { } static void Main ( string [ ] args ) { } } ",
 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C : [||]B { } class B { public B((int, string) x) { } }",
+@"class C : B { public C((int, string) x) : base(x) { } } class B { public B((int, string) x) { } }",
+index: 0,
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C : [||]B { } class B { public B((int a, string b) x) { } }",
+@"class C : B { public C((int a, string b) x) : base(x) { } } class B { public B((int a, string b) x) { } }",
+index: 0,
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
         }
     }
 }

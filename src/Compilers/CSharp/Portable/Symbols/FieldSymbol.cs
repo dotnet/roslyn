@@ -373,6 +373,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        /// <summary>
+        /// Is this a field of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleField
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a field of a tuple type, return corresponding underlying field from the
+        /// tuple underlying type. Otherwise, null. In case of a malformed underlying type
+        /// the corresponding underlying field might be missing, return null in this case too.
+        /// </summary>
+        public virtual FieldSymbol TupleUnderlyingField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// If this is a field representing a tuple element,
+        /// returns the index of the element (zero-based).
+        /// Otherwise, a negative number.
+        /// </summary>
+        public virtual int TupleElementIndex
+        {
+            get
+            {
+                return -1;
+            }
+        }
+
         #region IFieldSymbol Members
 
         ISymbol IFieldSymbol.AssociatedSymbol

@@ -166,14 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _statements.Add(statement);
             }
 
-            internal void AddStatements(ImmutableArray<BoundStatement> statements)
-            {
-                foreach (var statement in statements)
-                {
-                    AddStatement(statement);
-                }
-            }
-
             internal void AddExpressions(ImmutableArray<BoundExpression> expressions)
             {
                 foreach (var expression in expressions)
@@ -854,14 +846,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder,
                 node.Update(
                     operand,
-                    node.ConversionKind,
-                    node.ResultKind,
+                    node.Conversion,
                     isBaseConversion: node.IsBaseConversion,
-                    symbolOpt: node.SymbolOpt,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
-                    isExtensionMethod: node.IsExtensionMethod,
-                    isArrayIndex: node.IsArrayIndex,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }

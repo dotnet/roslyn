@@ -9,6 +9,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -414,6 +415,281 @@ class C
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttribute()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public void Method([DateTimeConstant(-1)]DateTime p1) { }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .param[1]
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+            //         01 00 ff ff ff ff ff ff ff ff 00 00
+            // )
+            Action<IModuleSymbol> verifier = (module) =>
+                {
+                    var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
+                    var method = (MethodSymbol)bar.GetMember("Method");
+                    var parameters = method.GetParameters();
+                    var theParameter = (PEParameterSymbol)parameters[0];
+                    var peModule = (PEModuleSymbol)module;
+
+                    Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
+
+                    // let's find the attribute in the PE metadata
+                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    Assert.True(attributeInfo.HasValue);
+
+                    long attributeValue;
+                    Assert.True(peModule.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, out attributeValue));
+                    Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
+
+                    // check .param has no value
+                    var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
+                    Assert.Equal(ConstantValue.Null, constantValue);
+                };
+
+            var comp = CompileAndVerify(source, symbolValidator: verifier);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeReferencedViaRef()
+        {
+            #region "Source"
+            var source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public void Method([DateTimeConstant(-1)]DateTime p1) { }
+}
+";
+
+            var source2 = @"
+public class Consumer
+{
+    public static void M()
+    {
+        new Bar().Method();
+    }
+}
+";
+            #endregion
+
+            var libComp = CreateCompilationWithMscorlib(source1);
+            var libCompRef = new CSharpCompilationReference(libComp);
+
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { libCompRef });
+            comp2.VerifyDiagnostics(
+                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                //         new Bar().Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
+                );
+
+            // The native compiler also gives an error: error CS1501: No overload for method 'Method' takes 0 arguments
+            var libAssemblyRef = libComp.EmitToImageReference();
+            var comp3 = CreateCompilationWithMscorlib(source2, new[] { libAssemblyRef });
+            comp3.VerifyDiagnostics(
+                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                //         new Bar().Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithBadDefaultValue()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
+    public static void Main()
+    {
+        Console.WriteLine(new Bar().M1().Ticks);
+    }
+}
+";
+            #endregion
+
+            // The native C# compiler would succeed and emit this:
+            // .method public hidebysig instance void M1([opt] valuetype[mscorlib] System.DateTime x) cil managed
+            // {
+            // .param [1] = nullref
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,60): error CS8017: The parameter has multiple distinct default values.
+                //     public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "default(DateTime)").WithLocation(7, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithValidDefaultValue()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
+    public static void Main()
+    {
+        Console.WriteLine(new Bar().M1().Ticks);
+    }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .param [1] = nullref
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (01 00 2A 00 00 00 00 00 00 00 00 00 )
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,60): error CS8017: The parameter has multiple distinct default values.
+                //     public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "default(DateTime)").WithLocation(7, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithBadDefaultValueOnField()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+   [DateTimeConstant(-1)]
+   public DateTime F = default(DateTime);
+
+   public static void Main()
+   {
+     System.Console.WriteLine(new C().F.Ticks);
+   }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .field public valuetype[mscorlib] System.DateTime F
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+
+            // using the native compiler, this code outputs 0
+            var comp = CompileAndVerify(source, expectedOutput: "0");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithValidDefaultValueOnField()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+   [DateTimeConstant(42)]
+   public DateTime F = default(DateTime);
+
+   public static void Main()
+   {
+      System.Console.WriteLine(new C().F.Ticks);
+   }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .field public valuetype[mscorlib] System.DateTime F
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 2A 00 00 00 00 00 00 00 00 00 )
+
+            // Using the native compiler, the code executes to output 0
+            var comp = CompileAndVerify(source, expectedOutput: "0");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void LoadingDateTimeConstantWithBadValue()
+        {
+            var ilsource = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance valuetype [mscorlib]System.DateTime
+          Method([opt] valuetype [mscorlib]System.DateTime p) cil managed
+  {
+    .param [1]
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init (valuetype [mscorlib]System.DateTime V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method C::Method
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+
+} // end of class C
+
+";
+
+            var cssource = @"
+public class D
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new C().Method().Ticks);
+    }
+}
+";
+
+            var ilReference = CompileIL(ilsource);
+            CompileAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
+            // The native compiler would produce a working exe, but that exe would fail at runtime
         }
 
         [Fact]
@@ -2207,12 +2483,12 @@ public class C
                 Assert.Equal(true, info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
-                    Cci.PInvokeAttributes.NoMangle |
-                    Cci.PInvokeAttributes.CharSetUnicode |
-                    Cci.PInvokeAttributes.SupportsLastError |
-                    Cci.PInvokeAttributes.CallConvCdecl |
-                    Cci.PInvokeAttributes.BestFitEnabled |
-                    Cci.PInvokeAttributes.ThrowOnUnmappableCharEnabled, ((Cci.IPlatformInvokeInformation)info).Flags);
+                    MethodImportAttributes.ExactSpelling |
+                    MethodImportAttributes.CharSetUnicode |
+                    MethodImportAttributes.SetLastError |
+                    MethodImportAttributes.CallingConventionCDecl |
+                    MethodImportAttributes.BestFitMappingEnable |
+                    MethodImportAttributes.ThrowOnUnmappableCharEnable, ((Cci.IPlatformInvokeInformation)info).Flags);
             });
         }
 
@@ -3176,7 +3452,7 @@ public class MainClass
 
             // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify:false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
@@ -7426,7 +7702,7 @@ class Class6
         }
 
         [Fact]
-        public void TestDeprecatedAttribute1()
+        public void TestDeprecatedAttributeTH1()
         {
             var source1 = @"
 using System;
@@ -7441,6 +7717,8 @@ namespace Windows.Foundation.Metadata
         {
         }
 
+        // this signature is only used in TH1 metadata
+        // see: https://github.com/dotnet/roslyn/issues/10630
         public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version, Type contract)
         {
         }
@@ -7456,6 +7734,93 @@ namespace Windows.Foundation.Metadata
 public class Test
 {
         [Deprecated(""hello"", DeprecationType.Deprecate, 1, typeof(int))]
+        public static void Foo()
+        {
+
+        }
+
+        [Deprecated(""hi"", DeprecationType.Deprecate, 1)]
+        public static void Bar()
+        {
+
+        }
+}
+";
+            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1);
+
+            var source2 = @"
+namespace ConsoleApplication74
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test.Foo();
+            Test.Bar();
+        }
+    }
+}
+
+
+";
+            var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
+
+
+            compilation2.VerifyDiagnostics(
+    // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
+    //             Test.Foo();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Foo()").WithArguments("Test.Foo()", "hello").WithLocation(8, 13),
+    // (9,13): warning CS0618: 'Test.Bar()' is obsolete: 'hi'
+    //             Test.Bar();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
+);
+
+            var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
+
+
+            compilation3.VerifyDiagnostics(
+    // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
+    //             Test.Foo();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Foo()").WithArguments("Test.Foo()", "hello").WithLocation(8, 13),
+    // (9,13): warning CS0618: 'Test.Bar()' is obsolete: 'hi'
+    //             Test.Bar();
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
+);
+        }
+
+        [Fact]
+        public void TestDeprecatedAttributeTH2()
+        {
+            var source1 = @"
+using System;
+using Windows.Foundation.Metadata;
+
+namespace Windows.Foundation.Metadata
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true)]
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+
+        // this signature is only used in TH2 metadata and onwards
+        // see: https://github.com/dotnet/roslyn/issues/10630
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version, String contract)
+        {
+        }
+    }
+
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}
+
+public class Test
+{
+        [Deprecated(""hello"", DeprecationType.Deprecate, 1, ""hello"")]
         public static void Foo()
         {
 

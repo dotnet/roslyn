@@ -112,22 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static Symbol GetLocalOrParameterSymbol(BoundExpression expr)
-        {
-            if (expr != null)
-            {
-                switch (expr.Kind)
-                {
-                    case BoundKind.Local:
-                        return ((BoundLocal)expr).LocalSymbol;
-                    case BoundKind.Parameter:
-                        return ((BoundParameter)expr).ParameterSymbol;
-                }
-            }
-
-            return null;
-        }
-
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             CheckForAssignmentToSelf(node);
@@ -357,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }
-                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
@@ -387,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }
-                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }

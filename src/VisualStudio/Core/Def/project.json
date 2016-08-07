@@ -1,16 +1,61 @@
 ﻿{
   "dependencies": {
-    "ManagedEsent": "1.9.2.0",
-    "Microsoft.Composition": "1.0.27",
-    "Microsoft.DiaSymReader": "1.0.7",
-    "System.Collections": "4.0.10",
-    "System.Diagnostics.Debug": "4.0.10",
-    "System.Globalization": "4.0.10",
-    "System.Runtime": "4.0.20",
-    "System.Runtime.Extensions": "4.0.10",
-    "System.Threading": "4.0.10",
+    "ManagedEsent": "1.9.2",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
-    "NuGet.VisualStudio": { "version": "3.3.0", "suppressParent": "all" },
+    "Microsoft.VisualStudio.Shell.14.0": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Editor": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+	"Microsoft.VisualStudio.Language.Intellisense": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.Internal.Performance.CodeMarkers.DesignTime": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Progression": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
+    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+		"version": "14.3.25420",
+		"suppressParent": "all"
+	},
+    "Microsoft.VisualStudio.Shell.Design": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
+    "Roslyn.Microsoft.Build": "0.0.2",
+    "NuGet.VisualStudio": {
+      "version": "3.3.0",
+      "suppressParent": "all"
+    }
   },
   "frameworks": {
     "net46": {}

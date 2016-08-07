@@ -1,5 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,16 +21,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent> eventQueue = null)
             : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
         {
-            _wellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
+            WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);
@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csdest = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return Conversions.ClassifyConversion(cssource, csdest, ref useSiteDiagnostics);
+            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -1673,11 +1673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal Binder GetBinder(SyntaxReference reference)
-        {
-            return GetBinderFactory(reference.SyntaxTree).GetBinder((CSharpSyntaxNode)reference.GetSyntax());
-        }
-
         internal Binder GetBinder(CSharpSyntaxNode syntax)
         {
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
@@ -1709,15 +1704,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         // if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                        EventQueue.PromiseNotToEnqueue();
-                        EventQueue.TryComplete();
+                        CompleteCompilationEventQueue_NoLock();
                     }
                 }
             }
         }
 
-        internal void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null)
+        internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null)
             {
@@ -1740,6 +1733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            CompleteTrees(filterTree);
+        }
+
+        internal override void CompleteTrees(SyntaxTree filterTree)
+        {
             // By definition, a tree is complete when all of its compiler diagnostics have been reported.
             // Since unused imports are the last thing we compute and report, a tree is complete when
             // the unused imports have been reported.
@@ -1869,6 +1867,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal MergedNamespaceDeclaration MergedRootDeclaration
+        {
+            get
+            {
+                return Declarations.GetMergedRoot(this);
+            }
+        }
+
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage of a compilation. There are no diagnostics for declarations or accessor or
         /// method bodies, for example.
@@ -1950,6 +1956,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken.ThrowIfCancellationRequested();
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+
+                if (EventQueue != null && SyntaxTrees.Length == 0)
+                {
+                    EnsureCompilationEventQueueCompleted();
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2000,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken);
-            this.ReportUnusedImports(diagnostics, cancellationToken);
+            this.ReportUnusedImports(null, diagnostics, cancellationToken);
         }
 
         private static bool IsDefinedOrImplementedInSourceTree(Symbol symbol, SyntaxTree tree, TextSpan? span)
@@ -2047,51 +2058,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
             if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
             {
-                ReportUnusedImports(diagnostics, cancellationToken, tree);
+                ReportUnusedImports(tree, diagnostics, cancellationToken);
             }
 
             return diagnostics.ToReadOnlyAndFree();
-        }
-
-        /// <summary>
-        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
-        /// 'incoming' is freed.
-        /// </summary>
-        /// <returns>True when there is no error or warning treated as an error.</returns>
-        internal override bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
-        {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution());
-            incoming.Free();
-            incoming = null;
-            return result;
-        }
-
-        /// <summary>
-        /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
-        /// </summary>
-        /// <returns>True when there is no error.</returns>
-        private bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming)
-        {
-            bool hasError = false;
-            bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
-
-            foreach (Diagnostic d in incoming)
-            {
-                var filtered = _options.FilterDiagnostic(d);
-                if (filtered == null ||
-                    (!reportSuppressedDiagnostics && filtered.IsSuppressed))
-                {
-                    continue;
-                }
-                else if (filtered.Severity == DiagnosticSeverity.Error)
-                {
-                    hasError = true;
-                }
-
-                accumulator.Add(filtered);
-            }
-
-            return !hasError;
         }
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -2251,6 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -2296,6 +2267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBeingBuilt.SetDebugEntryPoint((MethodSymbol)debugEntryPoint, diagnostics);
             }
 
+            moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream;
+
             // testData is only passed when running tests.
             if (testData != null)
             {
@@ -2306,10 +2279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return moduleBeingBuilt;
         }
 
-        internal override bool CompileImpl(
+        internal override bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
-            Stream win32Resources,
-            Stream xmlDocStream,
             bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
@@ -2323,8 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(this)
 
             var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
+            var emitOptions = moduleBeingBuilt.EmitOptions;
 
-            if (moduleBeingBuilt.EmitOptions.EmitMetadataOnly)
+            if (emitOptions.EmitMetadataOnly)
             {
                 if (hasDeclarationErrors)
                 {
@@ -2342,7 +2314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
                     return false;
                 }
@@ -2362,14 +2334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
-
-                ReportManifestResourceDuplicates(
-                    moduleBeingBuilt.ManifestResources,
-                    SourceAssembly.Modules.Skip(1).Select((m) => m.Name),   //all modules except the first one
-                    AddedModulesResourceNames(methodBodyDiagnosticBag),
-                    methodBodyDiagnosticBag);
-
                 bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
                 if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
@@ -2378,30 +2342,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            return true;
+        }
+
+        internal override bool GenerateResourcesAndDocumentationComments(
+            CommonPEModuleBuilder moduleBuilder,
+            Stream xmlDocStream,
+            Stream win32Resources,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(!moduleBuilder.EmitOptions.EmitMetadataOnly);
+
+            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            var resourceDiagnostics = DiagnosticBag.GetInstance();
+
+            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
+
+            ReportManifestResourceDuplicates(
+                moduleBuilder.ManifestResources,
+                SourceAssembly.Modules.Skip(1).Select(m => m.Name),   //all modules except the first one
+                AddedModulesResourceNames(resourceDiagnostics),
+                resourceDiagnostics);
+
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics))
+            {
+                return false;
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
+            var xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension: null);
+            string assemblyName = FileNameUtilities.ChangeExtension(moduleBuilder.EmitOptions.OutputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics))
-            {
-                return false;
-            }
-
-            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag importDiagnostics = DiagnosticBag.GetInstance();
-            this.ReportUnusedImports(importDiagnostics, cancellationToken);
-
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref importDiagnostics))
-            {
-                Debug.Assert(false, "Should never produce an error");
-                return false;
-            }
-
-            return true;
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
         }
 
         // TODO: consider unifying with VB
@@ -2634,25 +2611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp, () => tree.GetChecksumAndAlgorithm());
         }
 
-        private void SetupWin32Resources(PEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
-        {
-            if (win32Resources == null)
-                return;
-
-            switch (DetectWin32ResourceForm(win32Resources))
-            {
-                case Win32ResourceForm.COFF:
-                    moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
-                    break;
-                case Win32ResourceForm.RES:
-                    moduleBeingBuilt.Win32Resources = MakeWin32ResourceList(win32Resources, diagnostics);
-                    break;
-                default:
-                    diagnostics.Add(ErrorCode.ERR_BadWin32Res, NoLocation.Singleton, "Unrecognized file format.");
-                    break;
-            }
-        }
-
         internal override bool HasCodeToEmit()
         {
             foreach (var syntaxTree in this.SyntaxTrees)
@@ -2789,6 +2747,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("elementType"));
         }
 
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames)
+        {
+            if (elementTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
+
+            if (elementTypes.Length <= 1)
+            {
+                throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
+            }
+
+            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
+
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
+            for (int i = 0; i < elementTypes.Length; i++)
+            {
+                if (elementTypes[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(elementTypes)}[{i}]");
+                }
+
+                typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
+            }
+
+            return TupleTypeSymbol.Create(null, // no location for the type declaration
+                                          typesBuilder.ToImmutableAndFree(), default(ImmutableArray<Location>), elementNames, this);
+        }
+
+        /// <summary>
+        /// Check that if any names are provided, and their number matches the expected cardinality.
+        /// Returns a normalized version of the element names (empty array if all the names are null).
+        /// </summary>
+        private static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        {
+            if (!elementNames.IsDefault)
+            {
+                if (elementNames.Length != cardinality)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
+                }
+
+                if (elementNames.All(n => n == null))
+                {
+                    return default(ImmutableArray<string>);
+                }
+            }
+
+            return elementNames;
+        }
+
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
+        {
+            if ((object)underlyingType == null)
+            {
+                throw new ArgumentNullException(nameof(underlyingType));
+            }
+
+            var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
+
+            int cardinality;
+            if (!csharpUnderlyingTuple.IsTupleCompatible(out cardinality))
+            {
+                throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
+            }
+
+            elementNames = CheckTupleElementNames(cardinality, elementNames);
+
+            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+        }
+
+        protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
+            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+        {
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
+            }
+
+            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
+
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
+        }
+
         protected override ITypeSymbol CommonDynamicType
         {
             get { return DynamicType; }
@@ -2833,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return this.Declarations.ContainsName(predicate, filter, cancellationToken);
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, predicate, filter, cancellationToken);
         }
 
         /// <summary>
@@ -2868,14 +2911,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
         }
 
+        internal bool HasTupleNamesAttributes =>
+            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) != null;
+
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
         /// </summary>
         /// <returns>Returns true if Boolean is present and healthy.</returns>
-        internal bool CanEmitBoolean()
+        internal bool CanEmitBoolean() => CanEmitSpecialType(SpecialType.System_Boolean);
+
+        internal bool CanEmitSpecialType(SpecialType type)
         {
-            var boolType = GetSpecialType(SpecialType.System_Boolean);
-            var diagnostic = boolType.GetUseSiteDiagnostic();
+            var typeSymbol = GetSpecialType(type);
+            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
@@ -2908,6 +2956,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
         }
+        
+        internal override bool IsIOperationFeatureEnabled()
+        {
+            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
+            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
+        }
 
         private class SymbolSearcher
         {
@@ -2925,7 +2979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new HashSet<ISymbol>();
                 var spine = new List<MergedNamespaceOrTypeDeclaration>();
 
-                AppendSymbolsWithName(spine, _compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken);
 
                 return result;
             }

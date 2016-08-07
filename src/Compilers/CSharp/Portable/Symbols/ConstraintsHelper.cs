@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -496,16 +497,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
 
                 default:
-                    var set = new HashSet<NamedTypeSymbol>(ReferenceEqualityComparer.Instance);
+                    var set = PooledHashSet<object>.GetInstance();
                     foreach (var i in array)
                     {
                         if (!set.Add(i.OriginalDefinition))
                         {
+                            set.Free();
                             goto hasRelatedInterfaces;
                         }
                     }
 
                     // all interfaces are unrelated
+                    set.Free();
                     return false;
             }
             
@@ -513,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
         }
 
         public static bool CheckConstraints(

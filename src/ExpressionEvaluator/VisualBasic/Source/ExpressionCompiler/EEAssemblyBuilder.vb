@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports Roslyn.Utilities
 Imports System.Runtime.InteropServices
+Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
+        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
             If method IsNot Nothing AndAlso _methods.Contains(method) Then
                 Dim defs = GetLocalDefinitions(method.Locals)
@@ -105,9 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 local.Name,
                 DirectCast(local.Type, ITypeReference),
                 slot:=index,
-                synthesizedKind:=CType(local.SynthesizedKind, SynthesizedLocalKind),
+                synthesizedKind:=local.SynthesizedKind,
                 id:=Nothing,
-                pdbAttributes:=Cci.PdbWriter.DefaultLocalAttributesValue,
+                pdbAttributes:=LocalVariableAttributes.None,
                 constraints:=constraints,
                 isDynamic:=False,
                 dynamicTransformFlags:=ImmutableArray(Of TypedConstant).Empty)
@@ -138,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 nameOpt As String,
                 synthesizedKind As SynthesizedLocalKind,
                 id As LocalDebugId,
-                pdbAttributes As UInteger,
+                pdbAttributes As LocalVariableAttributes,
                 constraints As LocalSlotConstraints,
                 isDynamic As Boolean,
                 dynamicTransformFlags As ImmutableArray(Of TypedConstant)) As LocalDefinition

@@ -237,6 +237,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
         }
 
+        public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
+        {
+            // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
+            return _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null).Values;
+        }
+
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             BaseDiagnosticIncrementalAnalyzer analyzer;

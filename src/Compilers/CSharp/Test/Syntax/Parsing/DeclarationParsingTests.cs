@@ -14,17 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text);
-        }
-
-        private CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
-        }
-
-        private CompilationUnitSyntax ParseFileExperimental(string text)
-        {
-            return ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            return SyntaxFactory.ParseSyntaxTree(text, options);
         }
 
         [Fact]
@@ -1960,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReturnType()
         {
             var text = "delegate ref a b();";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1970,9 +1960,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.ReturnType);
-            Assert.Equal("a", ds.ReturnType.ToString());
+            Assert.Equal("ref a", ds.ReturnType.ToString());
             Assert.NotNull(ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
             Assert.NotNull(ds.ParameterList.OpenParenToken);
@@ -2432,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReturn()
         {
             var text = "class a { ref b X() { } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2457,10 +2446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
-            Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.RefKeyword);
             Assert.NotNull(ms.ReturnType);
-            Assert.Equal("b", ms.ReturnType.ToString());
+            Assert.Equal("ref b", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -2478,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3797,7 +3784,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReturn()
         {
             var text = "class a { ref b c { get; set; } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3823,9 +3810,8 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
@@ -3979,7 +3965,7 @@ class Class1<T>{
         public void TestClassAutoPropertyWithInitializer()
         {
             var text = "class a { b c { get; set; } = d; }";
-            var file = this.ParseFile(text, TestOptions.ExperimentalParseOptions);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4035,7 +4021,7 @@ class Class1<T>{
         public void InitializerOnNonAutoProp()
         {
             var text = "class C { int P { set {} } = 0; }";
-            var file = this.ParseFile(text, TestOptions.ExperimentalParseOptions);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
@@ -4673,7 +4659,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReturn()
         {
             var text = "class a { ref b this[c d] { get; set; } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4699,9 +4685,8 @@ class Class1<T>{
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
@@ -5538,6 +5523,48 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+        }
+
+        [Fact]
+        public void TupleArgument01()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test1<T>(int a, (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    static (T, T) Test2<T>(ref (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            Assert.Equal(0, file.Errors().Length);
+        }
+
+        [Fact]
+        public void TupleArgument02()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test3<T>((byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    (T, T) Test3<T>((byte a, byte b)[] arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            Assert.Equal(0, file.Errors().Length);
         }
     }
 }

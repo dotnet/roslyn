@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.Scripting</id>
+    <summary>Microsoft .NET Compiler Platform ("Roslyn") CSharp and VB scripting package.</summary>
+    <description>
+      Microsoft .NET Compiler Platform ("Roslyn") CSharp and VB scripting package.
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.CSharp.Scripting" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Scripting.Common" version="[$version$]" />
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="$thirdPartyNoticesPath$" target="" />
+  </files>
+</package>

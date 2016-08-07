@@ -9,6 +9,7 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -191,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
 
-            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
+            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader3)
             Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
 
             If IsDteeEntryPoint(currentFrame) Then
@@ -276,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             For Each readers In assemblyReaders
                 Dim metadataReader = readers.MetadataReader
-                Dim symReader = DirectCast(readers.SymReader, ISymUnmanagedReader)
+                Dim symReader = DirectCast(readers.SymReader, ISymUnmanagedReader3)
 
                 ' Ignore assemblies for which we don't have PDBs.
                 If symReader Is Nothing Then Continue For
@@ -397,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -442,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -487,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then

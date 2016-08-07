@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -504,10 +504,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             .Skip(skip)
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
-                            .Select(t =>
-                                t == null ?
-                                compilation.GetSpecialType(SpecialType.System_Object) :
-                                t)
+                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
                             .ToArray();
                         return functionType.Construct(types);
                     }
@@ -939,82 +936,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // void GetResult() || T GetResult()
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
-        }
-
-        public static IList<SymbolDisplayPart> ToAwaitableParts(this ISymbol symbol, string awaitKeyword, string initializedVariableName, SemanticModel semanticModel, int position)
-        {
-            var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-            var parts = new List<SymbolDisplayPart>();
-
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage}\r\n  "));
-
-            var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
-            returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;
-            if (returnType != null)
-            {
-                if (semanticModel.Language == "C#")
-                {
-                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
-                }
-                else
-                {
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "Dim"));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "as"));
-                    parts.Add(spacePart);
-                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
-                }
-
-                parts.Add(spacePart);
-                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "="));
-                parts.Add(spacePart);
-            }
-
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, awaitKeyword));
-            parts.Add(spacePart);
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, symbol.GetParameters().Any() ? "..." : ""));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, semanticModel.Language == "C#" ? ";" : ""));
-
-            return parts;
-        }
-
-        public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
-        {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol == null)
-            {
-                return null;
-            }
-
-            var returnType = methodSymbol.ReturnType;
-            if (returnType == null)
-            {
-                return null;
-            }
-
-            var potentialGetAwaiters = semanticModel.LookupSymbols(position, container: returnType, name: WellKnownMemberNames.GetAwaiter, includeReducedExtensionMethods: true);
-            var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
-            if (!getAwaiters.Any())
-            {
-                return null;
-            }
-
-            var getResults = getAwaiters.SelectMany(g => semanticModel.LookupSymbols(position, container: g.ReturnType, name: WellKnownMemberNames.GetResult));
-
-            var getResult = getResults.OfType<IMethodSymbol>().FirstOrDefault(g => !g.IsStatic);
-            if (getResult == null)
-            {
-                return null;
-            }
-
-            return getResult.ReturnType;
         }
 
         /// <summary>

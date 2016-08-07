@@ -5,21 +5,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -2922,6 +2917,147 @@ class Program{
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task UsingStatementWithNestedFixedStatement()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        fixed (void* ptr = &i)
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            fixed (void* ptr = &i)
+            {
+            }
+    }
+}";
+
+            await AutoFormatTokenAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task FixedStatementWithNestedUsingStatement()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr = &i)
+        using (null)$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr = &i)
+            using (null)
+    }
+}";
+
+            await AutoFormatTokenAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task FixedStatementWithNestedFixedStatement()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr1 = &i)
+            fixed (void* ptr2 = &i)
+            {
+            }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr1 = &i)
+        fixed (void* ptr2 = &i)
+        {
+        }
+    }
+}";
+
+            await AutoFormatTokenAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task FixedStatementWithNestedNotFixedStatement()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr = &i)
+        if (false)
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        fixed (void* ptr = &i)
+            if (false)
+            {
+            }
+    }
+}";
+
+            await AutoFormatTokenAsync(code, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task NotFixedStatementWithNestedFixedStatement()
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        if (false)
+        fixed (void* ptr = &i)
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        if (false)
+            fixed (void* ptr = &i)
+            {
+            }
+    }
+}";
+
+            await AutoFormatTokenAsync(code, expected);
+        }
+
+        [WpfFact]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task FormattingRangeForFirstStatementOfBlock()
@@ -3093,7 +3229,6 @@ class Program{
             {
                 var subjectDocument = workspace.Documents.Single();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
                 var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
                 var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
                 var editorOperations = new Mock<IEditorOperations>();

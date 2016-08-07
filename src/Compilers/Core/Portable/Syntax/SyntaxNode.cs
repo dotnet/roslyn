@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(slot);
                 if (green != null)
                 {
-                    result = green.CreateRed(this, this.GetChildPosition(slot));
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, green.CreateRed(this, this.GetChildPosition(slot)), null);
+                    result = field;
                 }
             }
 
@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(0);
                 if (green != null)
                 {
-                    result = green.CreateRed(this, this.Position);
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, green.CreateRed(this, this.Position), null);
+                    result = field;
                 }
             }
 
@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(slot);
                 if (green != null)
                 {
-                    result = (T)green.CreateRed(this, this.GetChildPosition(slot));
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, (T)green.CreateRed(this, this.GetChildPosition(slot)), null);
+                    result = field;
                 }
             }
 
@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(0);
                 if (green != null)
                 {
-                    result = (T)green.CreateRed(this, this.Position);
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, (T)green.CreateRed(this, this.Position), null);
+                    result = field;
                 }
             }
 
@@ -216,11 +216,9 @@ namespace Microsoft.CodeAnalysis
             if (result == null)
             {
                 var green = this.Green.GetSlot(slot);
-                result = green.CreateRed(this.Parent, this.GetChildPosition(slot)); // <- passing list's parent
-                if (Interlocked.CompareExchange(ref element, result, null) != null)
-                {
-                    result = element;
-                }
+                // passing list's parent
+                Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(slot)), null);
+                result = element;
             }
 
             return result;
@@ -240,11 +238,9 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(1);
                 if (!green.IsToken)
                 {
-                    result = green.CreateRed(this.Parent, this.GetChildPosition(1)); // <- passing list's parent
-                    if (Interlocked.CompareExchange(ref element, result, null) != null)
-                    {
-                        result = element;
-                    }
+                    // passing list's parent
+                    Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(1)), null);
+                    result = element;
                 }
             }
 

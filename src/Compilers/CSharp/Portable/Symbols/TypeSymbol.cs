@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
         /// <summary>
-        /// A comparator that treats dynamic and object as "the same" types.
+        /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicComparer = new EqualsIgnoringComparer(ignoreDynamic: true, ignoreCustomModifiersAndArraySizesAndLowerBounds: false);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type derives from a given type.
         /// </summary>
-        internal bool IsDerivedFrom(TypeSymbol type, bool ignoreDynamic, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsTypeParameter());
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
-                if (type.Equals(t, ignoreDynamic: ignoreDynamic))
+                if (type.Equals(t, comparison))
                 {
                     return true;
                 }
@@ -286,9 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type is equal or derives from a given type.
         /// </summary>
-        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamic, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return this.Equals(type, ignoreDynamic: ignoreDynamic) || this.IsDerivedFrom(type, ignoreDynamic, ref useSiteDiagnostics);
+            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -296,10 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// semantics.
         /// </summary>
         /// <param name="t2">The other type.</param>
-        /// <param name="ignoreCustomModifiersAndArraySizesAndLowerBounds">True to compare without regard to custom modifiers, false by default.</param>
-        /// <param name="ignoreDynamic">True to ignore the distinction between object and dynamic, false by default.</param>
+        /// <param name="compareKind">
+        /// What kind of comparison to use? 
+        /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
+        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind = TypeCompareKind.ConsiderEverything)
         {
             return ReferenceEquals(this, t2);
         }
@@ -308,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, false, false);
+            return this.Equals(t2, TypeCompareKind.ConsiderEverything);
         }
 
         /// <summary>
@@ -320,14 +322,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        internal sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic, _ignoreCustomModifiersAndArraySizesAndLowerBounds;
+            public static EqualsIgnoringComparer InstanceIgnoringTupleNames { get; } = new EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames);
 
-            public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            private readonly TypeCompareKind _comparison;
+
+            public EqualsIgnoringComparer(TypeCompareKind comparison)
             {
-                _ignoreDynamic = ignoreDynamic;
-                _ignoreCustomModifiersAndArraySizesAndLowerBounds = ignoreCustomModifiersAndArraySizesAndLowerBounds;
+                _comparison = comparison;
             }
 
             public override int GetHashCode(TypeSymbol obj)
@@ -339,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return
                     (object)x == null ? (object)y == null :
-                    x.Equals(y, ignoreCustomModifiersAndArraySizesAndLowerBounds: _ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic: _ignoreDynamic);
+                    x.Equals(y, _comparison);
             }
         }
 
@@ -554,6 +557,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Is this a symbol for a Tuple.
+        /// </summary>
+        public virtual bool IsTupleType => false;
+
+        /// <summary>
+        /// Verify if the given type can be used to back a tuple type 
+        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// </summary>
+        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        /// <returns></returns>
+        public virtual bool IsTupleCompatible(out int tupleCardinality)
+        {
+            tupleCardinality = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// Verify if the given type can be used to back a tuple type. 
+        /// </summary>
+        public bool IsTupleCompatible()
+        {
+            int countOfItems;
+            return IsTupleCompatible(out countOfItems);
+        }
+
+        /// <summary>
+        /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
+        /// with the given cardinality. 
+        /// </summary>
+        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        {
+            if (IsTupleType)
+            {
+                return TupleElementTypes.Length == targetCardinality;
+            }
+
+            int countOfItems;
+            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
+        }
+
+        /// <summary>
+        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// Otherwise, returns null.
+        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
+        /// which is at the 8th (one based) position is always a symbol for another tuple, 
+        /// rather than its underlying type.
+        /// </summary>
+        public virtual NamedTypeSymbol TupleUnderlyingType
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the types of the tuple's elements.
+        /// </summary>
+        public virtual ImmutableArray<TypeSymbol> TupleElementTypes => default(ImmutableArray<TypeSymbol>);
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the names of the tuple's elements.
+        /// </summary>
+        public virtual ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the fields for the tuple's elements.
+        /// Otherwise, returns default.
+        /// </summary>
+        public virtual ImmutableArray<FieldSymbol> TupleElementFields => default(ImmutableArray<FieldSymbol>);
+
+        /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
         /// </summary>
@@ -626,6 +701,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? FindImplementationForInterfaceMember((Symbol)interfaceMember)
                 : null;
         }
+
+        /// <summary>
+        /// Is this a symbol for a Tuple.
+        /// </summary>
+        bool ITypeSymbol.IsTupleType => this.IsTupleType;
 
         #endregion
 
@@ -998,6 +1078,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics);
                     }
                 }
+            }
+
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
+            {
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.

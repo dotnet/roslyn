@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding defaultEncoding)
         {
-            FilePathUtilities.RequireAbsolutePath(path, "path");
+            CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
             _path = path;
             _defaultEncoding = defaultEncoding;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                var message = string.Format(WorkspacesResources.FileWasExternallyModified, _path);
+                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
                 throw new IOException(message);
             }
 

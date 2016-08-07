@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -38,9 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Property
 
         Private Sub DisableLineCommit(workspace As Workspace)
-            ' Disable line commit
-            Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-            optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False))
+            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
         End Sub
 
         Private Async Function VerifyTypedCharAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),

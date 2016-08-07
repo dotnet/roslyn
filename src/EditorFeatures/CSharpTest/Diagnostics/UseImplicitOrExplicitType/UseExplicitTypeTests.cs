@@ -5,53 +5,54 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitTyping
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
     public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseExplicitTypingDiagnosticAnalyzer(), new UseExplicitTypingCodeFixProvider());
+                new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
-        private readonly SimpleCodeStyleOption onWithNone = new SimpleCodeStyleOption(true, NotificationOption.None);
-        private readonly SimpleCodeStyleOption offWithNone = new SimpleCodeStyleOption(false, NotificationOption.None);
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption offWithInfo = new SimpleCodeStyleOption(false, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption onWithWarning = new SimpleCodeStyleOption(true, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption offWithWarning = new SimpleCodeStyleOption(false, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption onWithError = new SimpleCodeStyleOption(true, NotificationOption.Error);
-        private readonly SimpleCodeStyleOption offWithError = new SimpleCodeStyleOption(false, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ExplicitTypingEverywhere() =>
+        private IDictionary<OptionKey, object> ExplicitTypeEverywhere() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
-        private IDictionary<OptionKey, object> ExplicitTypingExceptWhereApparent() =>
+        private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
-        private IDictionary<OptionKey, object> ExplicitTypingForBuiltInTypesOnly() =>
+        private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
-        private IDictionary<OptionKey, object> ExplicitTypingEnforcements() =>
+        private IDictionary<OptionKey, object> ExplicitTypeEnforcements() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
 
-        private IDictionary<OptionKey, object> ExplicitTypingNoneEnforcement() =>
+        private IDictionary<OptionKey, object> ExplicitTypeNoneEnforcement() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone);
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         #region Error Cases
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnFieldDeclaration()
         {
             await TestMissingAsync(
@@ -73,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 class Program
 {
     [|var|] _myfield = 5;
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnFieldLikeEvents()
         {
             await TestMissingAsync(
@@ -84,10 +85,10 @@ class Program
 class Program
 {
     public event [|var|] _myevent;
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnAnonymousMethodExpression()
         {
             await TestMissingAsync(
@@ -100,10 +101,10 @@ class Program
             return value != ""0"";
         };
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnLambdaExpression()
         {
             await TestMissingAsync(
@@ -114,10 +115,10 @@ class Program
     {
         [|var|] x = y => y * y;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnDeclarationWithMultipleDeclarators()
         {
             await TestMissingAsync(
@@ -128,10 +129,10 @@ class Program
     {
         [|var|] x = 5, y = x;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnDeclarationWithoutInitializer()
         {
             await TestMissingAsync(
@@ -142,10 +143,10 @@ class Program
     {
         [|var|] x;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotDuringConflicts()
         {
             await TestMissingAsync(
@@ -161,10 +162,10 @@ class Program
     {
 
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotIfAlreadyExplicitlyTyped()
         {
             await TestMissingAsync(
@@ -175,10 +176,10 @@ class Program
     {
          [|Program|] p = new Program();
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnRHS()
         {
             await TestMissingAsync(
@@ -198,7 +199,7 @@ class var
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnErrorSymbol()
         {
             await TestMissingAsync(
@@ -209,12 +210,12 @@ class Program
     {
         [|var|] x = new Foo();
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
         #endregion
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnDynamic()
         {
             await TestMissingAsync(
@@ -225,10 +226,10 @@ class Program
     {
         [|dynamic|] x = 1;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnAnonymousType()
         {
             await TestMissingAsync(
@@ -239,10 +240,10 @@ class Program
     {
         [|var|] x = new { Amount = 108, Message = ""Hello"" };
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnArrayOfAnonymousType()
         {
             await TestMissingAsync(
@@ -253,10 +254,10 @@ class Program
     {
         [|var|] x = new[] { new { name = ""apple"", diam = 4 }, new { name = ""grape"", diam = 1 }};
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnEnumerableOfAnonymousTypeFromAQueryExpression()
         {
             await TestMissingAsync(
@@ -281,7 +282,7 @@ class Product
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeString()
         {
             await TestAsync(
@@ -300,10 +301,10 @@ class C
     {
         string s = ""hello"";
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnIntrinsicType()
         {
             await TestAsync(
@@ -322,10 +323,10 @@ class C
     {
         int s = 5;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnFrameworkType()
         {
             await TestAsync(
@@ -344,10 +345,10 @@ class C
     {
         List<int> c = new List<int>();
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnUserDefinedType()
         {
             await TestAsync(
@@ -366,10 +367,10 @@ class C
     {
         C c = new C();
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnGenericType()
         {
             await TestAsync(
@@ -388,10 +389,10 @@ class C<T>
     {
         C<int> c = new C<int>();
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator()
         {
             await TestAsync(
@@ -410,10 +411,10 @@ class C
     {
         int[] n1 = new int[4] {2, 4, 6, 8};
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator2()
         {
             await TestAsync(
@@ -432,10 +433,10 @@ class C
     {
         int[] n1 = new[] {2, 4, 6, 8};
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnSingleDimensionalJaggedArrayType()
         {
             await TestAsync(
@@ -462,10 +463,10 @@ class C
             new[]{5,6,7,8}
         };
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnDeclarationWithObjectInitializer()
         {
             await TestAsync(
@@ -492,10 +493,10 @@ class C
     {
         public string City { get; set; }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnDeclarationWithCollectionInitializer()
         {
             await TestAsync(
@@ -516,10 +517,10 @@ class C
     {
         List<int> digits = new List<int> { 1, 2, 3 };
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnDeclarationWithCollectionAndObjectInitializers()
         {
             await TestAsync(
@@ -554,10 +555,10 @@ class C
     {
         public string City { get; set; }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnForStatement()
         {
             await TestAsync(
@@ -582,10 +583,10 @@ class C
 
         }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnForeachStatement()
         {
             await TestAsync(
@@ -614,10 +615,10 @@ class C
 
         }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnQueryExpression()
         {
             await TestAsync(
@@ -660,10 +661,10 @@ class C
             public string City { get; set; }
         }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeInUsingStatement()
         {
             await TestAsync(
@@ -702,10 +703,10 @@ class C
             throw new NotImplementedException();
         }
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnInterpolatedString()
         {
             await TestAsync(
@@ -724,10 +725,10 @@ class Program
     {
         string s = $""Hello, {name}""
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnExplicitConversion()
         {
             await TestAsync(
@@ -748,10 +749,10 @@ class C
         double x = 1234.7;
         int a = (int)x;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task SuggestExplicitTypeOnConditionalAccessExpression()
         {
             await TestAsync(
@@ -780,10 +781,10 @@ class C
     {
         return this;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInCheckedExpression()
         {
             await TestAsync(
@@ -804,10 +805,10 @@ class C
        long number1 = int.MaxValue + 20L;
        int intNumber = checked((int)number1);
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInAwaitExpression()
         {
             await TestAsync(
@@ -838,10 +839,10 @@ class C
     {
         return string.Empty;
     }
-}", options: ExplicitTypingEverywhere());
+}", options: ExplicitTypeEverywhere());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInBuiltInNumericType()
         {
             await TestAsync(
@@ -860,10 +861,10 @@ class C
     {
         int text = 1;
     }
-}", options: ExplicitTypingForBuiltInTypesOnly());
+}", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInBuiltInCharType()
         {
             await TestAsync(
@@ -886,10 +887,10 @@ class C
     }
 
     public char GetChar() => 'c';
-}", options: ExplicitTypingForBuiltInTypesOnly());
+}", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInBuiltInType_string()
         {
             // though string isn't an intrinsic type per the compiler
@@ -910,10 +911,10 @@ class C
     {
         string text = string.Empty;
     }
-}", options: ExplicitTypingForBuiltInTypesOnly());
+}", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeInBuiltInType_object()
         {
             // object isn't an intrinsic type per the compiler
@@ -936,10 +937,10 @@ class C
         object j = new C();
         object text = j;
     }
-}", options: ExplicitTypingForBuiltInTypesOnly());
+}", options: ExplicitTypeForBuiltInTypesOnly());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelNone()
         {
             var source =
@@ -951,10 +952,10 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestMissingAsync(source, ExplicitTypingNoneEnforcement());
+            await TestMissingAsync(source, ExplicitTypeNoneEnforcement());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelInfo()
         {
             var source =
@@ -967,13 +968,13 @@ class C
     }
 }";
             await TestDiagnosticSeverityAndCountAsync(source,
-                options: ExplicitTypingEnforcements(),
+                options: ExplicitTypeEnforcements(),
                 diagnosticCount: 1,
-                diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelWarning()
         {
             var source =
@@ -986,13 +987,13 @@ class C
     }
 }";
             await TestDiagnosticSeverityAndCountAsync(source,
-                options: ExplicitTypingEnforcements(),
+                options: ExplicitTypeEnforcements(),
                 diagnosticCount: 1,
-                diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task SuggestExplicitTypeNotificationLevelError()
         {
             var source =
@@ -1005,10 +1006,43 @@ class C
     }
 }";
             await TestDiagnosticSeverityAndCountAsync(source,
-                options: ExplicitTypingEnforcements(),
+                options: ExplicitTypeEnforcements(),
                 diagnosticCount: 1,
-                diagnosticId: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
+                diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (1, ""hello""); } }",
+@"class C { static void M() { (int, string) s = (1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
+@"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
+@"class C { static void M() { (int a, string) s = (a: 1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
         }
     }
 }

@@ -20,18 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            var result = RewriteIfStatement(syntax, node.Locals, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                rewrittenCondition = _instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+            }
+
+            var result = RewriteIfStatement(syntax, node.Locals, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement
-            if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
+            if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = new BoundSequencePointWithSpan(
-                    syntax,
-                    result,
-                    TextSpan.FromBounds(
-                        syntax.IfKeyword.SpanStart,
-                        syntax.CloseParenToken.Span.End),
-                    node.HasErrors);
+                result = _instrumenter.InstrumentIfStatement(node, result);
             }
 
             return result;

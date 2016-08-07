@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class D { int X; }",
 @"class C { void M(int X) { new D(X); } } class D { int X; public D(int x) { this.X = x; } }",
-                options: Option(SimplificationOptions.QualifyFieldAccess, true));
+                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { protected int X; } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { protected int X; } class D : B { public D(int x) { this.X = x; } }",
-                options: Option(SimplificationOptions.QualifyFieldAccess, true));
+                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class D { public int X { get; private set; } }",
 @"class C { void M(int X) { new D(X); } } class D { public D(int x) { this.X = x; } public int X { get; private set; } }",
-                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -187,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { public int X { get; protected set; } } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { public int X { get; protected set; } } class D : B { public D(int x) { this.X = x; } }",
-                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
             await TestAsync(
 @"class C { void M(int X) { new [|D|](X); } } class B { protected int X { get; set; } } class D : B { }",
 @"class C { void M(int X) { new D(X); } } class B { protected int X { get; set; } } class D : B { public D(int x) { this.X = x; } }",
-                options: Option(SimplificationOptions.QualifyPropertyAccess, true));
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -765,6 +764,269 @@ class Derived : Base
             await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { void M ( ) { new X ( new [|string|] ( ) ) ; } } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { private string v ; public X ( string v ) { this . v = v ; } void M ( ) { new X ( new string ( ) ) ; } } } ");
+        }
+
+        [WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingOnMethodCall()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(int arg)
+    {
+    }
+
+    public bool M(string s, int i, bool b)
+    {
+        return [|M|](i, b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|]((1, ""hello""), true); } }",
+@"class C { private (int, string) p; private bool v; public C((int, string) p, bool v) { this.p = p; this.v = v; } void M() { new C((1, ""hello""), true); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|]((a: 1, b: ""hello"")); } }",
+@"class C { private (int a, string b) p; public C((int a, string b) p) { this.p = p; } void M() { new C((a: 1, b: ""hello"")); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithOneName()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|]((a: 1, ""hello"")); } }",
+@"class C { private (int a, string) p; public C((int a, string) p) { this.p = p; } void M() { new C((a: 1, ""hello"")); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (1, ""hello""))|]; } } class D { private (int, string) existing; }",
+@"class C { void M() { new D(existing: (1, ""hello"")); } } class D { private (int, string) existing; public D((int, string) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNamesAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (a: 1, b: ""hello""))|]; } } class D { private (int a, string b) existing; }",
+@"class C { void M() { new D(existing: (a: 1, b: ""hello"")); } } class D { private (int a, string b) existing; public D((int a, string b) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithDifferentNamesAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (a: 1, b: ""hello""))|]; } } class D { private (int c, string d) existing; }",
+@"class C { void M() { new D(existing: (a: 1, b: ""hello"")); } } class D { private (int c, string d) existing; public D((int a, string b) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((1, ""hello"")); } } class B { protected B((int, string) x) { } } class D : B { }",
+@"class C { void M() { new D((1, ""hello"")); } } class B { protected B((int, string) x) { } } class D : B { public D((int, string) x) : base(x) { } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNamesAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((a: 1, b: ""hello"")); } } class B { protected B((int a, string b) x) { } } class D : B { }",
+@"class C { void M() { new D((a: 1, b: ""hello"")); } } class B { protected B((int a, string b) x) { } } class D : B { public D((int a, string b) x) : base(x) { } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithDifferentNamesAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((a: 1, b: ""hello"")); } } class B { protected B((int c, string d) x) { } } class D : B { }",
+@"class C { void M() { new D((a: 1, b: ""hello"")); } } class B { protected B((int c, string d) x) { } } class D : B { public D((int c, string d) x) : base(x) { } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        public async Task StripUnderscoresFromParameterNames()
+        {
+            await TestAsync(
+@"class C { 
+    int _i;
+    string _s;
+    void M() {
+        new [|D|](_i, _s);
+    }
+}
+
+class D {
+}",
+@"class C { 
+    int _i;
+    string _s;
+
+    void M() {
+        new D(_i, _s);
+    }
+}
+
+class D {
+    private int _i;
+    private string _s;
+
+    public D(int i, string s) {
+        _i = i;
+        _s = s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        public async Task DoNotStripSingleUnderscore()
+        {
+            await TestAsync(
+@"class C { 
+    int _;
+    void M() {
+        new [|D|](_);
+    }
+}
+
+class D {
+}",
+@"class C { 
+    int _;
+
+    void M() {
+        new D(_);
+    }
+}
+
+class D {
+    private int _;
+
+    public D(int _) {
+        this._ = _;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out var a); } }",
+@"class C { public C(out object a) { a = null; } void M() { new C(out var a); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out var a); } }",
+@"class C { public C(out object b) { b = null; } void M() { new C(b: out var a); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out int a); } }",
+@"class C { public C(out int a) { a = 0; } void M() { new C(out int a); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out int a); } }",
+@"class C { public C(out int b) { b = 0; } void M() { new C(b: out int a); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out var a); } }",
+@"class C { public C(out object a) { a = null; } void M() { new C(out var a); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out var a); } }",
+@"class C { public C(out object b) { b = null; } void M() { new C(b: out var a); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|](out int a); } }",
+@"class C { public C(out int a) { a = 0; } void M() { new C(out int a); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
+        {
+            await TestAsync(
+@"class C { void M() { new C([|b|]: out int a); } }",
+@"class C { public C(out int b) { b = 0; } void M() { new C(b: out int a); } }",
+parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6),
+withScriptOption: true);
         }
     }
 }

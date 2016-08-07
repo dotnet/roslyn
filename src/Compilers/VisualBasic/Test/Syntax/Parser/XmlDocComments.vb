@@ -466,16 +466,13 @@ End Module
 
     <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <WorkItem(547297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547297")>
-    <Fact(Skip:="547297")>
+    <Fact>
     Public Sub ParseOpenBracket()
         ParseAndVerify(<![CDATA[
 ''' < 
 Module M
 End Module
-]]>,
-        <errors>
-            <error id="42304" warning="True"/>
-        </errors>)
+]]>)
     End Sub
 
     <WorkItem(697115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697115")>

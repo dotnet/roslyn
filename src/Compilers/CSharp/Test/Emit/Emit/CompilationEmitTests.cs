@@ -519,10 +519,10 @@ public class Test
     {
         switch (val)
         {
-            case (int)int.MinValue: 
-            case (int)int.MinValue + 1: 
-            case (int)short.MinValue: 
-            case (int)short.MinValue + 1: 
+            case (int)int.MinValue:
+            case (int)int.MinValue + 1:
+            case (int)short.MinValue:
+            case (int)short.MinValue + 1:
             case (int)sbyte.MinValue: return 0;
             case (int)-1: return -1;
             case (int)0: return 0;
@@ -531,7 +531,7 @@ public class Test
             case (int)0xFE: return 0;
             case (int)0xFF: return 0;
             case (int)0x7FFE: return 0;
-            case (int)0xFFFE: 
+            case (int)0xFFFE:
             case (int)0x7FFFFFFF: return 0;
             default: return null;
         }
@@ -2559,6 +2559,7 @@ public interface ITestPlatform
             var refCompilation = CreateCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
+
             var imageRef = refCompilation.EmitToImageReference();
 
             string useSource = @"
@@ -2698,16 +2699,17 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
 
             var output = new BrokenStream();
+
+            output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
             var result = compilation.Emit(output);
             result.Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.
                 Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
-
+          
+            // Stream.Position is not called:
             output.BreakHow = BrokenStream.BreakHowType.ThrowOnSetPosition;
             result = compilation.Emit(output);
-            result.Diagnostics.Verify(    
-                // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(output.ThrownException.ToString()).WithLocation(1, 1));
+            result.Diagnostics.Verify();
 
             // disposed stream is not writable
             var outReal = new MemoryStream();

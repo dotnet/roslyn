@@ -603,6 +603,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt);
         }
 
+        public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            if (syntaxTree.IsScript() || syntaxTree.IsInNonUserCode(position, cancellationToken))
+            {
+                return false;
+            }
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                  .GetPreviousTokenIfTouchingWord(position);
+
+            var declaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+
+            return declaration != null && (declaration.Name.Span.IntersectsWith(position) || declaration.NamespaceKeyword == token);
+        }
+
+        public static bool IsPartialTypeDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, out TypeDeclarationSyntax declarationSyntax)
+        {
+            if (!syntaxTree.IsInNonUserCode(position, cancellationToken))
+            {
+                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                      .GetPreviousTokenIfTouchingWord(position);
+
+                if ((token.IsKind(SyntaxKind.ClassKeyword) ||
+                     token.IsKind(SyntaxKind.StructKeyword) ||
+                     token.IsKind(SyntaxKind.InterfaceKeyword)) &&
+                     token.GetPreviousToken().IsKind(SyntaxKind.PartialKeyword))
+                {
+                    declarationSyntax = token.GetAncestor<TypeDeclarationSyntax>();
+                    return declarationSyntax != null && declarationSyntax.Keyword == token;
+                }
+            }
+
+            declarationSyntax = null;
+            return false;
+        }
+
         public static bool IsDefinitelyNotTypeContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return
@@ -1183,6 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // cases:
             //  const var
+            //  out var
             //  for (var
             //  foreach (var
             //  using (var
@@ -1194,6 +1231,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.ConstKeyword) &&
                 token.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.OutKeyword) &&
+                token.Parent.IsKind(SyntaxKind.Argument) &&
+                ((ArgumentSyntax)token.Parent).RefOrOutKeyword == token)
             {
                 return true;
             }
@@ -1839,11 +1883,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Foo(|
             // Foo(expr, |
             // this[|
+            // var t = (1, |
+            // var t = (| , 2)
             if (token.IsKind(SyntaxKind.OpenParenToken) ||
                 token.IsKind(SyntaxKind.OpenBracketToken) ||
                 token.IsKind(SyntaxKind.CommaToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList))
+                if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.TupleExpression))
                 {
                     return true;
                 }
@@ -1964,7 +2010,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
             {
-                if (token.Parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.FromClause, SyntaxKind.JoinClause))
+                if (token.Parent.IsKind(SyntaxKind.ForEachStatement,
+                                        SyntaxKind.ForEachComponentStatement,
+                                        SyntaxKind.FromClause,
+                                        SyntaxKind.JoinClause))
                 {
                     return true;
                 }

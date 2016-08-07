@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -51,21 +51,17 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeTests.cs" />
@@ -78,6 +74,7 @@
     <Compile Include="Attributes\AttributeTests_Security.cs" />
     <Compile Include="Attributes\AttributeTests_StructLayout.cs" />
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
+    <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
@@ -91,6 +88,7 @@
     <Compile Include="CodeGen\CodeGenConditionalOperatorTests.cs" />
     <Compile Include="CodeGen\CodeGenConstructorInitTests.cs" />
     <Compile Include="CodeGen\CodeGenConversionTests.cs" />
+    <Compile Include="CodeGen\CodeGenDeconstructTests.cs" />
     <Compile Include="CodeGen\CodeGenDynamicTests.cs" />
     <Compile Include="CodeGen\CodeGenExplicitImplementationTests.cs" />
     <Compile Include="CodeGen\CodeGenExprLambdaTests.cs" />
@@ -114,6 +112,7 @@
     <Compile Include="CodeGen\CodeGenTests.cs" />
     <Compile Include="CodeGen\CodeGenThrowTests.cs" />
     <Compile Include="CodeGen\CodeGenTryFinally.cs" />
+    <Compile Include="CodeGen\CodeGenTupleTest.cs" />
     <Compile Include="CodeGen\CodeGenTypeofTests.cs" />
     <Compile Include="CodeGen\CodeGenUsingStatementTests.cs" />
     <Compile Include="CodeGen\CompoundAssignmentForDelegate.cs" />
@@ -129,8 +128,10 @@
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />
     <Compile Include="CodeGen\WinMdDelegateTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />

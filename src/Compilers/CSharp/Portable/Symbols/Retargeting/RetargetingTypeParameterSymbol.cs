@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
     internal sealed class RetargetingTypeParameterSymbol
-        : TypeParameterSymbol
+        : WrappedTypeParameterSymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.
@@ -27,23 +27,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly RetargetingModuleSymbol _retargetingModule;
 
         /// <summary>
-        /// The underlying TypeParameterSymbol, cannot be another RetargetingTypeParameterSymbol.
-        /// </summary>
-        private readonly TypeParameterSymbol _underlyingTypeParameter;
-
-        /// <summary>
         /// Retargeted custom attributes
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         public RetargetingTypeParameterSymbol(RetargetingModuleSymbol retargetingModule, TypeParameterSymbol underlyingTypeParameter)
+            : base(underlyingTypeParameter)
         {
             Debug.Assert((object)retargetingModule != null);
-            Debug.Assert((object)underlyingTypeParameter != null);
             Debug.Assert(!(underlyingTypeParameter is RetargetingTypeParameterSymbol));
 
             _retargetingModule = retargetingModule;
-            _underlyingTypeParameter = underlyingTypeParameter;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
@@ -54,88 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public TypeParameterSymbol UnderlyingTypeParameter
-        {
-            get
-            {
-                return _underlyingTypeParameter;
-            }
-        }
-
-        public override bool IsImplicitlyDeclared
-        {
-            get { return _underlyingTypeParameter.IsImplicitlyDeclared; }
-        }
-
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return _underlyingTypeParameter.TypeParameterKind;
-            }
-        }
-
-        public override int Ordinal
-        {
-            get
-            {
-                return _underlyingTypeParameter.Ordinal;
-            }
-        }
-
-        public override bool HasConstructorConstraint
-        {
-            get
-            {
-                return _underlyingTypeParameter.HasConstructorConstraint;
-            }
-        }
-
-        public override bool HasReferenceTypeConstraint
-        {
-            get
-            {
-                return _underlyingTypeParameter.HasReferenceTypeConstraint;
-            }
-        }
-
-        public override bool HasValueTypeConstraint
-        {
-            get
-            {
-                return _underlyingTypeParameter.HasValueTypeConstraint;
-            }
-        }
-
-        public override VarianceKind Variance
-        {
-            get
-            {
-                return _underlyingTypeParameter.Variance;
-            }
-        }
-
         public override Symbol ContainingSymbol
         {
             get
             {
                 return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.ContainingSymbol);
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _underlyingTypeParameter.Locations;
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return _underlyingTypeParameter.DeclaringSyntaxReferences;
             }
         }
 
@@ -158,24 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 return _retargetingModule;
             }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return _underlyingTypeParameter.Name;
-            }
-        }
-
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
-
-        internal override void EnsureAllConstraintsAreResolved()
-        {
-            _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)

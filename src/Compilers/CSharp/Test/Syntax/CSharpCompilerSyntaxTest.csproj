@@ -19,7 +19,6 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
@@ -88,7 +87,9 @@
     <Compile Include="Parsing\AwaitParsingTests.cs" />
     <Compile Include="Parsing\CrefParsingTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
+    <Compile Include="Parsing\DeconstructionTest.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
+    <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
     <Compile Include="Parsing\StatementParsingTests.cs" />
     <Compile Include="Parsing\SyntaxExtensions.cs" />
+    <Compile Include="Parsing\ValueTupleTests.cs" />
     <Compile Include="Parsing\VerbatimCrefParsingTests.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>

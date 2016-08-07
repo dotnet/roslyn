@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
                 null, new GenerateVariableCodeFixProvider());
         }
 
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
@@ -108,7 +109,7 @@ index: 2);
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GeneratePropertyIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -133,7 +134,7 @@ index: 1);
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -149,7 +150,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string
         {
             await TestExactActionSetOfferedAsync(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -720,7 +721,7 @@ compareTokens: false);
         }
 
         [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "Tuples"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5538()
         {
             await TestAsync(
@@ -764,7 +765,7 @@ compareTokens: false);
         {
             await TestExactActionSetOfferedAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
-new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string.Format(FeaturesResources.GeneratePropertyIn, "p", "Program"), string.Format(FeaturesResources.GenerateLocal, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
 
             await TestAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
@@ -1861,7 +1862,7 @@ class C
 #line hidden
 }
 ";
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar") });
 
             await TestAsync(code,
 @"
@@ -2939,6 +2940,46 @@ class C
         [|_field|] = 42;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int, string) tuple; void Method((int, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int a, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int a, string) tuple; void Method((int a, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (1, ""hello""); } }",
+@"class Class { private (int, string) tuple; void Method() { tuple = (1, ""hello""); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (a: 1, ""hello""); } }",
+@"class Class { private (int a, string) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
+parseOptions: TestOptions.Regular,
+withScriptOption: true);
         }
     }
 }

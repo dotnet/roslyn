@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -16,19 +18,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected override TextSpan GetTextChangeSpan(SourceText text, int position)
+        protected override bool IsInstrinsic(ISymbol s)
         {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
+            var ts = s as ITypeSymbol;
+            return ts != null && ts.IsIntrinsicType();
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
+        {
+            string name;
+
+            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, out name))
+            {
+                // Cannot escape Attribute name with the suffix removed. Only use the name with
+                // the suffix removed if it does not need to be escaped.
+                if (name.Equals(name.EscapeIdentifier()))
+                {
+                    return name;
+                }
+            }
+
+            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+        }
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -63,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.Kind() != SyntaxKind.NumericLiteralToken;
         }
 
-        protected override async Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);
@@ -71,17 +91,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
-            var insertionText = ItemRules.GetInsertionText(symbol, context);
+            var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
 
             return ValueTuple.Create(displayText, insertionText);
         }
 
-        protected override CompletionItemRules GetCompletionItemRules()
+        private static CompletionItemRules s_importDirectiveRules =
+            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+        private static CompletionItemRules s_importDirectiveRules_preselect = s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+        // '<' should not filter the completion list, even though it's in generic items like IList<>
+        private static readonly CompletionItemRules s_itemRules = CompletionItemRules.Default.
+            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+
+        private static readonly CompletionItemRules s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            return ItemRules.Instance;
+            return context.IsInImportsDirective
+                ? preselect ? s_importDirectiveRules_preselect : s_importDirectiveRules
+                : preselect ? s_itemRules_preselect : s_itemRules;
         }
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)
+        {
+            // Unused
+            throw new NotImplementedException();
+        }
+
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
     }
 }

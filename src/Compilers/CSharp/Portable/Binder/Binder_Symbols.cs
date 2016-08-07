@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.RuntimeMembers;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -384,9 +385,154 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindTypeArgument((TypeSyntax)syntax, diagnostics, basesBeingResolved);
                     }
 
+                case SyntaxKind.TupleType:
+                    {
+                        return BindTupleType((TupleTypeSyntax)syntax, diagnostics);
+                    }
+
+                case SyntaxKind.RefType:
+                    {
+                        // ref needs to be handled by the caller
+                        var refTypeSyntax = (RefTypeSyntax)syntax;
+                        var refToken = refTypeSyntax.RefKeyword;
+                        if (!syntax.HasErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                        }
+
+                        return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
+        {
+            int numElements = syntax.Elements.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
+            var locations = ArrayBuilder<Location>.GetInstance(numElements);
+            ArrayBuilder<string> elementNames = null;
+
+            // set of names already used
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            bool hasExplicitNames = false;
+
+            for (int i = 0; i < numElements; i++)
+            {
+                var argumentSyntax = syntax.Elements[i];
+
+                var argumentType = BindType(argumentSyntax.Type, diagnostics);
+                types.Add(argumentType);
+
+                if (argumentType.IsRestrictedType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
+                }
+
+                string name =  null;
+                IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
+
+                if (nameSyntax != null)
+                {
+                    name = nameSyntax.Identifier.ValueText;
+
+                    // validate name if we have one
+                    hasExplicitNames = true;
+                    CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
+                    locations.Add(nameSyntax.Location);
+                }
+                else
+                {
+                    locations.Add(argumentSyntax.Location);
+                }
+
+                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+            }
+
+            uniqueFieldNames.Free();
+
+            if (hasExplicitNames)
+            {
+                // If the tuple type with names is bound in a declaration
+                // context then we must have the TupleElementNamesAttribute to emit
+                if (syntax.IsTypeInContextWhichNeedsTupleNamesAttribute())
+                {
+                    // Report diagnostics if System.String doesn't exist
+                    this.GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+
+                    if (!Compilation.HasTupleNamesAttributes)
+                    {
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                            AttributeDescription.TupleElementNamesAttribute.FullName);
+                        Error(diagnostics, info, syntax);
+                    }
+                }
+            }
+
+            ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
+            ImmutableArray<Location> locationsArray = locations.ToImmutableAndFree();
+
+            if (typesArray.Length < 2)
+            {
+                elementNames?.Free();
+                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
+            }
+
+            return TupleTypeSymbol.Create(syntax.Location,
+                                            typesArray,
+                                            locationsArray,
+                                            elementNames == null ?
+                                                default(ImmutableArray<string>) :
+                                                elementNames.ToImmutableAndFree(),
+                                            this.Compilation,
+                                            syntax,
+                                            diagnostics);
+        }
+
+        private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
+        {
+            // add the name to the list
+            // names would typically all be there or none at all
+            // but in case we need to handle this in error cases
+            if (elementNames != null)
+            {
+                elementNames.Add(name);
+            }
+            else
+            {
+                if (name != null)
+                {
+                    elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
+                    for (int j = 1; j < position; j++)
+                    {
+                        elementNames.Add(null);
+                    }
+                    elementNames.Add(name);
+                }
+            }
+        }
+
+        private static bool CheckTupleMemberName(string name, int index, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        {
+            int reserved = TupleTypeSymbol.IsElementNameReserved(name);
+            if (reserved == 0)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
+                return false;
+            }
+            else if (reserved > 0 && reserved != index + 1)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
+                return false;
+            }
+            else if (!uniqueFieldNames.Add(name))
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, syntax);
+                return false;
+            }
+            return true;
         }
 
         private Symbol BindPredefinedTypeSymbol(PredefinedTypeSyntax node, DiagnosticBag diagnostics)
@@ -955,6 +1101,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
+
+            type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
 
             return type;
         }

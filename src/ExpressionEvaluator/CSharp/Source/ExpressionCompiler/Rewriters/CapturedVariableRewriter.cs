@@ -113,14 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundConversion(
                 syntax,
                 rewrittenParameter,
-                conversion.Kind,
-                conversion.ResultKind,
+                conversion,
                 isBaseConversion: true,
-                symbolOpt: conversion.Method,
                 @checked: false,
                 explicitCastInCode: false,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
@@ -159,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var result = variable.ToBoundExpression(syntax);
             Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
+                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
+                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             return result;
         }
 

@@ -8,9 +8,16 @@ Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Microsoft.CodeAnalysis.Options
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Shared.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
-    <ExportLanguageSpecificOptionSerializer(LanguageNames.VisualBasic, FormattingOptions.TabFeatureName, BraceCompletionOptions.FeatureName, CompletionOptions.FeatureName, SignatureHelpOptions.FeatureName, NavigationBarOptions.FeatureName), [Shared]>
+    <ExportLanguageSpecificOptionSerializer(
+        LanguageNames.VisualBasic,
+        FormattingOptions.TabFeatureName,
+        BraceCompletionOptions.FeatureName,
+        CompletionOptions.FeatureName,
+        SignatureHelpOptions.FeatureName,
+        NavigationBarOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicLanguageSettingsSerializer
         Inherits AbstractLanguageSettingsSerializer
 

@@ -4,6 +4,7 @@
 # User-specific files
 *.suo
 *.user
+*.userprefs
 *.sln.docstates
 .vs/
 
@@ -18,11 +19,11 @@ x64/
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 
+# Prevent accidental re-checkin of NuGet.exe
+NuGet.exe
+
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
-
-# Toolset project lock json
-build/MSBuildToolset/project.lock.json
 
 # NuGet package
 src/Tools/UploadNugetZip/*.zip
@@ -36,6 +37,8 @@ UnitTestResults.html
 *-packages.config
 *.nuget.props
 *.nuget.targets
+project.lock.json
+*.project.lock.json
 
 *_i.c
 *_p.c
@@ -172,3 +175,6 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+# Visual Studio Code
+.vscode/

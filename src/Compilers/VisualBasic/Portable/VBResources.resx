@@ -818,6 +818,9 @@
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}'.</value>
   </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
+  </data>
   <data name="ERR_OverrideNotNeeded3" xml:space="preserve">
     <value>{0} '{1}' cannot be declared 'Overrides' because it does not override a {0} in a base class.</value>
   </data>
@@ -4913,9 +4916,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
-    <value>Unrecognized file format.</value>
-  </data>
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
@@ -5051,10 +5051,15 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
-/debug:portable                   Emit debugging information in the portable format.
-/debug:pdbonly                    Emit PDB file only.
+/debug:pdbonly                    Emit full debugging information.
+/debug:portable                   Emit cross-platform debugging information.
+/debug:embedded                   Emit cross-platform debugging information into 
+                                  the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/instrument:options               Sets instrumentation options.
+                                  If empty instrumentation is disabled.
+/sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5067,8 +5072,8 @@
                                   diagnostics.
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
-                                  - LANGUAGE -
 
+                                  - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
@@ -5076,15 +5081,15 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|15.0|default
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
                                   declarations.
 /optionstrict[+|-]                Enforce strict language semantics.
-/optionstrict:custom              Warn when strict language semantics are not 
+/optionstrict:custom              Warn when strict language semantics are not
                                   respected.
-/optioncompare:binary             Specifies binary-style string comparisons. 
+/optioncompare:binary             Specifies binary-style string comparisons.
                                   This is the default.
 /optioncompare:text               Specifies text-style string comparisons.
 
@@ -5357,5 +5362,11 @@
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
+  </data>
+  <data name="TuplesNotSupported" xml:space="preserve">
+    <value>Tuples are not supported in VB.</value>
+  </data>
+  <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
+    <value>Option '{0}' must be an absolute path.</value>
   </data>
 </root>

@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
@@ -238,7 +236,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End C
         Public Async Function TestExistingMethod() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Class \n Class C \n Public Sub u() \n End Sub \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Private u1 As Integer \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n Public Sub u() \n End Sub \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Private u1 As Integer \n Public Sub New(u As Integer) \n u1 = u \n End Sub \n Public Sub u() \n End Sub \n End Class"))
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -246,7 +244,7 @@ NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class 
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestAsync(
 NewLines("Class Program \n Sub Test() \n Dim x = New A([|P|]:=5) \n End Sub \n End Class \n Class A \n Shared Property P As Integer \n End Class"),
-NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Private P1 As Integer \n Public Sub New(P As Integer) \n Me.P1 = P \n End Sub \n Shared Property P As Integer \n End Class"))
+NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Private P1 As Integer \n Public Sub New(P As Integer) \n P1 = P \n End Sub \n Shared Property P As Integer \n End Class"))
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -254,7 +252,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End C
         Public Async Function TestExistingFieldWithSameNameButIncompatibleType() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New B([|x|]:=5) \n End Sub \n End Class \n Class B \n Private x As String \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New B(x:=5) \n End Sub \n End Class \n Class B \n Private x As String \n Private x1 As Integer \n Public Sub New(x As Integer) \n Me.x1 = x \n End Sub \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New B(x:=5) \n End Sub \n End Class \n Class B \n Private x As String \n Private x1 As Integer \n Public Sub New(x As Integer) \n x1 = x \n End Sub \n End Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
@@ -314,7 +312,7 @@ NewLines("Class C \n Inherits B \n Sub New \n MyBase.New([|1|]) \n End Sub \n En
         Public Async Function TestConflictingFieldNameInSubclass() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private x As String \n End Class \n Class B \n Protected u As String \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private u1 As Integer \n Private x As String \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n End Class \n Class B \n Protected u As String \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private u1 As Integer \n Private x As String \n Public Sub New(u As Integer) \n u1 = u \n End Sub \n End Class \n Class B \n Protected u As String \n End Class"))
         End Function
 
         <WorkItem(542442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542442")>
@@ -566,8 +564,8 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType_Crash() As Task
-            Await TestMissingAsync(
+        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
+            Await TestAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -578,6 +576,20 @@ End Class
 Public Class [|;;|]Derived
     Inherits Base
 
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class ;;Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
 End Class")
         End Function
 
@@ -597,6 +609,20 @@ Class X
         Dim x As X = New X(New [|String|]())
     End Sub
 End Class")
+        End Function
+
+        <WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestMissingOnMethodCall() As Task
+            Await TestMissingAsync(
+"class C
+    public sub new(int arg)
+    end sub
+
+    public function M(s as string, i as integer, b as boolean) as boolean
+        return [|M|](i, b)
+    end function
+end class")
         End Function
     End Class
 End Namespace

@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overridable Sub NoteBranch(pending As PendingBranch, stmt As BoundStatement, labelStmt As BoundLabelStatement)
         End Sub
 
-        Private Function GetBranchTargetLabel(branch As BoundStatement, gotoOnly As Boolean) As LabelSymbol
+        Private Shared Function GetBranchTargetLabel(branch As BoundStatement, gotoOnly As Boolean) As LabelSymbol
             Select Case branch.Kind
                 Case BoundKind.GotoStatement
                     Return DirectCast(branch, BoundGotoStatement).Label
@@ -1667,7 +1667,7 @@ lUnsplitAndFinish:
         End Function
 
         ''' <summary> Bound field access passed may require tracking if it is an access to a non-shared structure field </summary>
-        Protected Function FieldAccessMayRequireTracking(fieldAccess As BoundFieldAccess) As Boolean
+        Protected Shared Function FieldAccessMayRequireTracking(fieldAccess As BoundFieldAccess) As Boolean
             If fieldAccess.FieldSymbol.IsShared Then
                 Return False
             End If
@@ -2613,6 +2613,29 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitMethodDefIndex(node As BoundMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitMaximumMethodDefIndex(node As BoundMaximumMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionId(node As BoundModuleVersionId) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionIdString(node As BoundModuleVersionIdString) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInstrumentationPayloadRoot(node As BoundInstrumentationPayloadRoot) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitSourceDocumentIndex(node As BoundSourceDocumentIndex) As BoundNode
+            Return Nothing
+        End Function
 #End Region
 
     End Class

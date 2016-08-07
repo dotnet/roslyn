@@ -3,17 +3,18 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    static class LocalFunctionTestsExt
+    public static class LocalFunctionTestsUtil
     {
         public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
-            var methods = verifier.TestData.Methods;
+            var methods = verifier.TestData.GetMethodsByName();
             IMethodSymbol result = null;
             foreach (var kvp in methods)
             {
@@ -28,23 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 
-    public class LocalFunctionTests : CSharpTestBase
+    public class LocalFunctionsTestBase : CSharpTestBase
     {
-        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
 
-        CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        CompilationVerifier VerifyOutput(string source, string output)
+        internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
+        internal CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -62,16 +63,128 @@ class Program
             return VerifyOutput(source, output);
         }
 
-        void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
+        internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
-        void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
+        internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
+        }
+    }
+
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
+    public class LocalFunctionTests : LocalFunctionsTestBase
+    {
+        [Fact]
+        public void ForgotSemicolonLocalFunctionsMistake()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+    // forget closing brace
+
+    public void BadLocal1()
+    {
+        this.BadLocal2();
+    }
+
+    public void BadLocal2()
+    {
+    }
+
+    public int P => 0;
+}";
+            VerifyDiagnostics(src,
+                // (8,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public void BadLocal1()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(8, 5),
+                // (13,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public void BadLocal2()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(13, 5),
+                // (15,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
+                // (10,14): error CS1061: 'C' does not contain a definition for 'BadLocal2' and no extension method 'BadLocal2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         this.BadLocal2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BadLocal2").WithArguments("C", "BadLocal2").WithLocation(10, 14),
+                // (8,17): warning CS0168: The variable 'BadLocal1' is declared but never used
+                //     public void BadLocal1()
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "BadLocal1").WithArguments("BadLocal1").WithLocation(8, 17),
+                // (13,17): warning CS0168: The variable 'BadLocal2' is declared but never used
+                //     public void BadLocal2()
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
+
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicParameterLocalFunction()
+        {
+            var src = @"
+using System;
+
+class C
+{
+    static void Main(string[] args) => M(0);
+
+    static void M(int x)
+    {
+        dynamic y = x + 1;
+        Action a;
+        Action local(dynamic z) 
+        {
+            Console.Write(z);
+            Console.Write(y);
+            return () => Console.Write(y + z + 1);
+        }
+        a = local(x);
+        a();
+    }
+}";
+            VerifyOutput(src, "012");
+        }
+
+        [Fact]
+        public void VarLocalFunction()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        var local() => 0;
+        int x = local();
+   } 
+}";
+            VerifyDiagnostics(src,
+                // (6,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var local() => 0;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void VarLocalFunction2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    private class var
+    {
+    }
+
+    void M()
+    {
+        var local() => new var();
+        var x = local();
+   } 
+}", parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -96,6 +209,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBody()
         {
             var source = @"
@@ -122,6 +236,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void Params()
         {
             var source = @"
@@ -187,6 +302,7 @@ CallerMemberName();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void BadParams()
         {
             var source = @"
@@ -1261,6 +1377,7 @@ Console.Write(x);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorBasic()
         {
             var source = @"
@@ -1274,6 +1391,7 @@ Console.Write(string.Join("","", Local()));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorGeneric()
         {
             var source = @"
@@ -1287,6 +1405,7 @@ Console.Write(string.Join("","", LocalGeneric(2)));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorNonGeneric()
         {
             var source = @"
@@ -1303,6 +1422,7 @@ foreach (int x in LocalNongen())
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorEnumerator()
         {
             var source = @"
@@ -1315,187 +1435,6 @@ y.MoveNext();
 Console.Write(y.Current);
 ";
             VerifyOutputInMain(source, "2", "System", "System.Collections");
-        }
-
-        [Fact]
-        public void AsyncBasic()
-        {
-            var source = @"
-async Task<int> Local()
-{
-    return await Task.FromResult(2);
-}
-Console.Write(Local().Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncParam()
-        {
-            var source = @"
-async Task<int> LocalParam(int x)
-{
-    return await Task.FromResult(x);
-}
-Console.Write(LocalParam(2).Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncGeneric()
-        {
-            var source = @"
-async Task<T> LocalGeneric<T>(T x)
-{
-    return await Task.FromResult(x);
-}
-Console.Write(LocalGeneric(2).Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncVoid()
-        {
-            var source = @"
-// had bug with parser where 'async [keyword]' didn't parse.
-async void LocalVoid()
-{
-    Console.Write(2);
-    await Task.Yield();
-}
-LocalVoid();
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncAwaitAwait()
-        {
-            var source = @"
-Task<int> Fun(int x)
-{
-    return Task.FromResult(x);
-}
-async Task<int> AwaitAwait()
-{
-    var a = Fun(2);
-    await Fun(await a);
-    return await Fun(await a);
-}
-Console.WriteLine(AwaitAwait().Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncKeyword()
-        {
-            var source = @"
-using System;
-
-struct async
-{
-    public override string ToString() => ""2"";
-}
-struct await
-{
-    public override string ToString() => ""2"";
-}
-
-class Program
-{
-    static string A()
-    {
-        async async()
-        {
-            return new async();
-        }
-        return async().ToString();
-    }
-    static string B()
-    {
-        string async()
-        {
-            return ""2"";
-        }
-        return async();
-    }
-    static string C()
-    {
-        async Foo()
-        {
-            return new async();
-        }
-        return Foo().ToString();
-    }
-    static string D()
-    {
-        await Fun(await x)
-        {
-            return x;
-        }
-        return Fun(new await()).ToString();
-    }
-
-    static void Main(string[] args)
-    {
-        Console.WriteLine(A());
-        Console.WriteLine(B());
-        Console.WriteLine(C());
-        Console.WriteLine(D());
-    }
-}
-";
-            var output = @"
-2
-2
-2
-2
-";
-            VerifyOutput(source, output);
-        }
-
-        [Fact]
-        public void AsyncUnsafeKeyword()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-class Program
-{
-    static string A()
-    {
-        async unsafe Task<int> async()
-        {
-            return 2;
-        }
-        return async().Result.ToString();
-    }
-    static string B()
-    {
-        unsafe async Task<int> async()
-        {
-            return 2;
-        }
-        return async().Result.ToString();
-    }
-
-    static void Main(string[] args)
-    {
-        Console.WriteLine(A());
-        Console.WriteLine(B());
-    }
-}
-";
-            var output = @"
-2
-2
-";
-            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
         }
 
         [Fact]
@@ -2251,6 +2190,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicArgument()
         {
             var source = @"
@@ -2259,23 +2199,165 @@ class Program
 {
     static void Main()
     {
-        void Local(int x)
+        int capture1 = 0;
+        void L1(int x) => Console.Write(x);
+        void L2(int x)
         {
+            Console.Write(capture1);
             Console.Write(x);
         }
+        dynamic L4(int x)
+        {
+            Console.Write(capture1);
+            return x;
+        }
+        Action<int> L5(int x)
+        {
+            Console.Write(x);
+            return L1;
+        }
+
         dynamic val = 2;
-        Local(val);
+        Console.WriteLine();
+        L1(val);
+        L2(val);
+        Console.WriteLine();
+        L2(L4(val));
+        L5(val)(val);
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (12,9): error CS8098: Cannot invoke the local function 'Local' with dynamic parameters.
-    //         Local(val);
-    Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParameter, "Local(val)").WithArguments("Local").WithLocation(12, 9)
-    );
+            VerifyOutput(source, output: @"202
+00222");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
+        public void DynamicArgsAndParams()
+        {
+            var src = @"
+int capture1 = 0;
+void L1(int x, params int[] ys)
+{
+    Console.Write(capture1);
+    Console.Write(x);
+    foreach (var y in ys)
+    {
+        Console.Write(y);
+    }
+}
+
+dynamic val = 2;
+int val2 = 3;
+L1(val, val2);
+L1(val);
+L1(val, val, val);
+";
+            VerifyOutputInMain(src, "023020222", "System");
+        }
+
+        [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
+        [Fact]
+        public void DynamicArgumentToParams()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void L1(int x = 0, params int[] ys) => Console.Write(x);
+
+        dynamic val = 2;
+        L1(val, val);
+        L1(ys: val, x: val);
+        L1(ys: val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(val, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
+                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val, x: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
+                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgShadowing()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Shadow(int x) => Console.Write(x + 1);
+
+    static void Main()
+    {
+        void Shadow(int x) => Console.Write(x);
+
+        dynamic val = 2;
+        Shadow(val);
+    }
+}";
+            VerifyOutput(src, "2");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgOverload()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Overload(int i) => Console.Write(i);
+        void Overload(string s) => Console.Write(s);
+
+        dynamic val = 2;
+        Overload(val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,14): error CS0128: A local variable named 'Overload' is already defined in this scope
+                //         void Overload(string s) => Console.Write(s);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Overload").WithArguments("Overload").WithLocation(8, 14),
+                // (8,14): warning CS0168: The variable 'Overload' is declared but never used
+                //         void Overload(string s) => Console.Write(s);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Overload").WithArguments("Overload").WithLocation(8, 14));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWrongArity()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local(int i) => Console.Write(i);
+
+        dynamic val = 2;
+        Local(val, val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
+                //         Local(val, val);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameter()
         {
             var source = @"
@@ -2296,6 +2378,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicReturn()
         {
             var source = @"
@@ -2309,6 +2392,7 @@ Console.Write(RetDyn());
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicDelegate()
         {
             var source = @"
@@ -2321,12 +2405,24 @@ class Program
         {
             return x;
         }
+        dynamic L2(int x)
+        {
+            void L2_1(int y)
+            {
+                Console.Write(x);
+                Console.Write(y);
+            }
+            dynamic z = x + 1;
+            void L2_2() => L2_1(z);
+            return (Action)L2_2;
+        } 
         dynamic local = (Func<dynamic, dynamic>)Local;
         Console.Write(local(2));
+        L2(3)();
     }
 }
 ";
-            VerifyOutput(source, "2");
+            VerifyOutput(source, "234");
         }
 
         [Fact]
@@ -2354,6 +2450,7 @@ Console.Write(Local(x => x));
             VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
         }
 
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
         public void ExpressionTreeLocfuncUsage()
         {
@@ -2375,9 +2472,7 @@ class Program
         Console.Write(Local(() => Id(2)));
         Console.Write(Local<Func<int, int>>(() => Id));
         Console.Write(Local(() => new Func<int, int>(Id)));
-        // Disabled because of https://github.com/dotnet/roslyn/issues/3923
-        // Should produce a diagnostic once uncommented.
-        //Console.Write(Local(() => nameof(Id)));
+        Console.Write(Local(() => nameof(Id)));
     }
 }
 ";
@@ -3658,21 +3753,425 @@ class Program
 {
     static void Main(string[] args)
     {
-        void Local()
-        {
-        }
+        void Local() { }
         Local();
     }
 }
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-    //         void Local()
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
-        {
-        }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7").WithLocation(6, 14)
                 );
+        }
+
+        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        public void LocalFunctionInIf()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        if () // typing at this point
+        int Add(int x, int y) => x + y;
+    }
+}
+";
+            VerifyDiagnostics(source,
+                // (6,13): error CS1525: Invalid expression term ')'
+                //         if () // typing at this point
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 13),
+                // (7,9): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9)
+                );
+        }
+
+        [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Var)]
+        public sealed class VarTests : LocalFunctionsTestBase
+        {
+            [Fact]
+            public void IllegalAsReturn()
+            {
+                var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        var f() => 42;
+        Console.WriteLine(f());
+    }
+}";
+                var comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
+                comp.VerifyDiagnostics(
+                    // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                    //         var f() => 42;
+                    Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9));
+            }
+
+            [Fact]
+            public void RealTypeAsReturn()
+            {
+                var source = @"
+using System;
+class var 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        var f() => new var();
+        Console.WriteLine(f());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void RealTypeParameterAsReturn()
+            {
+                var source = @"
+using System;
+class test 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Test<var>(var x)
+    {
+        var f() => x;
+        Console.WriteLine(f());
+    }
+
+    static void Main()
+    {
+        Test(new test());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void IdentifierAndTypeNamedVar()
+            {
+                var source = @"
+using System;
+class var 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        int var = 42;
+        var f() => new var();
+        Console.WriteLine($""{f()}-{var}"");
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog-42");
+            }
+        }
+
+        [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Async)]
+        public sealed class AsyncTests : LocalFunctionsTestBase
+        {
+            [Fact]
+            public void RealTypeAsReturn()
+            {
+                var source = @"
+using System;
+class async 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        async f() => new async();
+        Console.WriteLine(f());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void RealTypeParameterAsReturn()
+            {
+                var source = @"
+using System;
+class test 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Test<async>(async x)
+    {
+        async f() => x;
+        Console.WriteLine(f());
+    }
+
+    static void Main()
+    {
+        Test(new test());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void ManyMeaningsType()
+            {
+                var source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class async 
+{
+    public override string ToString() => ""async"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        async Task<async> Test(Task<async> t)
+        {
+            async local = await t;
+            Console.WriteLine(local);
+            return local;
+        }
+
+        Test(Task.FromResult<async>(new async())).Wait();
+    }
+}";
+
+                var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+                CompileAndVerify(
+                    comp,
+                    expectedOutput: "async");
+            }
+
+            [Fact]
+            public void Basic()
+            {
+                var source = @"
+async Task<int> Local()
+{
+    return await Task.FromResult(2);
+}
+Console.Write(Local().Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            public void Param()
+            {
+                var source = @"
+async Task<int> LocalParam(int x)
+{
+    return await Task.FromResult(x);
+}
+Console.Write(LocalParam(2).Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Generic()
+            {
+                var source = @"
+async Task<T> LocalGeneric<T>(T x)
+{
+    return await Task.FromResult(x);
+}
+Console.Write(LocalGeneric(2).Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Void()
+            {
+                var source = @"
+// had bug with parser where 'async [keyword]' didn't parse.
+async void LocalVoid()
+{
+    Console.Write(2);
+    await Task.Yield();
+}
+LocalVoid();
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void AwaitAwait()
+            {
+                var source = @"
+Task<int> Fun(int x)
+{
+    return Task.FromResult(x);
+}
+async Task<int> AwaitAwait()
+{
+    var a = Fun(2);
+    await Fun(await a);
+    return await Fun(await a);
+}
+Console.WriteLine(AwaitAwait().Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Keyword()
+            {
+                var source = @"
+using System;
+
+struct async
+{
+    public override string ToString() => ""2"";
+}
+struct await
+{
+    public override string ToString() => ""2"";
+}
+
+class Program
+{
+    static string A()
+    {
+        async async()
+        {
+            return new async();
+        }
+        return async().ToString();
+    }
+    static string B()
+    {
+        string async()
+        {
+            return ""2"";
+        }
+        return async();
+    }
+    static string C()
+    {
+        async Foo()
+        {
+            return new async();
+        }
+        return Foo().ToString();
+    }
+    static string D()
+    {
+        await Fun(await x)
+        {
+            return x;
+        }
+        return Fun(new await()).ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+        Console.WriteLine(C());
+        Console.WriteLine(D());
+    }
+}
+";
+                var output = @"
+2
+2
+2
+2
+";
+                VerifyOutput(source, output);
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void UnsafeKeyword()
+            {
+                var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static string A()
+    {
+        async unsafe Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+    static string B()
+    {
+        unsafe async Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+    }
+}
+";
+                var output = @"
+2
+2
+";
+                VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
+            }
+
         }
     }
 }

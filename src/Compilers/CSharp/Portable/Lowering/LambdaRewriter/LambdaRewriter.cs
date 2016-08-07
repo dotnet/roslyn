@@ -909,28 +909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode RewriteCatch(BoundCatchBlock node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
         {
-            LocalSymbol newLocal;
-            if ((object)node.LocalOpt != null && TryRewriteLocal(node.LocalOpt, out newLocal))
-            {
-                newLocals.Add(newLocal);
-            }
-
-            LocalSymbol rewrittenCatchLocal;
-
-            if (newLocals.Count > 0)
-            {
-                // If the original LocalOpt was lifted into a closure,
-                // the newLocals will contain a frame reference. In this case, 
-                // instead of an actual local, catch will own the frame reference.
-
-                Debug.Assert((object)node.LocalOpt != null && newLocals.Count == 1);
-                rewrittenCatchLocal = newLocals[0];
-            }
-            else
-            {
-                Debug.Assert((object)node.LocalOpt == null);
-                rewrittenCatchLocal = null;
-            }
+            RewriteLocals(node.Locals, newLocals);
+            var rewrittenCatchLocals = newLocals.ToImmutableAndFree();
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
@@ -962,7 +942,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // done with this.
-            newLocals.Free();
             prologue.Free();
 
             // rewrite filter and body
@@ -971,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenBlock = (BoundBlock)this.Visit(node.Body);
 
             return node.Update(
-                rewrittenCatchLocal,
+                rewrittenCatchLocals,
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
                 rewrittenFilter,
@@ -1071,21 +1050,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.ConversionKind == ConversionKind.AnonymousFunction)
             {
                 var result = (BoundExpression)RewriteLambdaConversion((BoundLambda)conversion.Operand);
-                return _inExpressionLambda && conversion.ExplicitCastInCode
-                    ? new BoundConversion(
+
+                if (_inExpressionLambda && conversion.ExplicitCastInCode)
+                {
+                    result = new BoundConversion(
                         syntax: conversion.Syntax,
                         operand: result,
-                        conversionKind: conversion.ConversionKind,
-                        resultKind: conversion.ResultKind,
+                        conversion: conversion.Conversion,
                         isBaseConversion: false,
-                        symbolOpt: null,
                         @checked: false,
                         explicitCastInCode: true,
-                        isExtensionMethod: false,
-                        isArrayIndex: false,
                         constantValueOpt: conversion.ConstantValueOpt,
-                        type: conversion.Type)
-                    : result;
+                        type: conversion.Type);
+                }
+
+                return result;
             }
             else
             {
@@ -1492,6 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachComponentStatement:
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.DoStatement:
                     case SyntaxKind.SimpleLambdaExpression:

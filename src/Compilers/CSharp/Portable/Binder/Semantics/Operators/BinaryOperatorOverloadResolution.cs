@@ -653,10 +653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Return types must match exactly, parameters might match modulo identity conversion.
                     if (op.Signature.Kind == existingSignature.Kind && // Easy out
-                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, ignoreDynamic: false) &&
-                        op.Signature.LeftType.Equals(existingSignature.LeftType, ignoreDynamic: true) &&
-                        op.Signature.RightType.Equals(existingSignature.RightType, ignoreDynamic: true) &&
-                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, ignoreDynamic: true))
+                        op.Signature.ReturnType.Equals(existingSignature.ReturnType, TypeCompareKind.ConsiderEverything) &&
+                        op.Signature.LeftType.Equals(existingSignature.LeftType, TypeCompareKind.IgnoreDynamicAndTupleNames) &&
+                        op.Signature.RightType.Equals(existingSignature.RightType, TypeCompareKind.IgnoreDynamicAndTupleNames) &&
+                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
                         equivalentToExisting = true;
                         break;
@@ -872,13 +872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        private bool IsApplicable(BinaryOperatorSignature binaryOperator, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            return
-                Conversions.ClassifyImplicitConversionFromExpression(left, binaryOperator.LeftType, ref useSiteDiagnostics).Exists &&
-                Conversions.ClassifyImplicitConversionFromExpression(right, binaryOperator.RightType, ref useSiteDiagnostics).Exists;
         }
 
         private BetterResult BetterOperator(BinaryOperatorSignature op1, BinaryOperatorSignature op2, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

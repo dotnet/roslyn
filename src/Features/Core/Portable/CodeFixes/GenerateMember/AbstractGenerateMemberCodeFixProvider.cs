@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             return node;
         }
 
-        protected virtual bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
+        protected virtual bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
             return false;
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
                 yield break;
             }
 
-            var nodes = token.GetAncestors<SyntaxNode>().Where(n => IsCandidate(n, diagnostic));
+            var nodes = token.GetAncestors<SyntaxNode>().Where(n => IsCandidate(n, token, diagnostic));
             foreach (var node in nodes)
             {
                 var name = GetTargetNode(node);

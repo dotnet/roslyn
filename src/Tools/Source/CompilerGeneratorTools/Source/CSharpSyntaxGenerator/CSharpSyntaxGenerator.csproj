@@ -21,6 +21,8 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <NonShipping>true</NonShipping>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

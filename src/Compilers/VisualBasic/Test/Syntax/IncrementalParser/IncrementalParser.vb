@@ -2316,18 +2316,8 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    'Skip 66178
-    'TODO CaseBlockContext / Case or CaseElse Statement
-    'TODO SelectBlockContext / Case or CaseElse Statement
-    'TODO TryBlockContext / Catch or Finally Statement or Catch or Finally Part    
-    'TODO CatchPartContext / Catch or Finally Statement
-    'TODO FinallyPartBlock / Catch or Finally Statement    
-    'TODO IfPartContext / Elseif or Else Statement
-    'TODO IfBlockContext  / Elseif or Else part
-
-    <Fact(Skip:="66178")>
+    <Fact>
     Public Sub IncrementalParsing_CaseBlockContext_TryLinkSyntaxCase()
-        'TODO  CaseBlockContext  CaseBlock/CaseElse
         Dim source = ToText(<![CDATA[
 Module Module1
     Sub Foo()
@@ -2359,9 +2349,8 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <Fact(Skip:="66178")>
+    <Fact>
     Public Sub IncrementalParsing_CatchContext_TryLinkSyntaxCatch()
-        'TODO  CatchContext / Catch Or Finally Statement
         Dim source = ToText(<![CDATA[
 Module Module1
     Sub Foo()
@@ -2425,9 +2414,8 @@ End Namespace
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <Fact(Skip:="66178")>
+    <Fact>
     Public Sub IncrementalParsing_IfBlockContext_TryLinkSyntax()
-        'TODO IfBlockContext / IF ELSE Statement
         Dim source = ToText(<![CDATA[
 
 Module Module1

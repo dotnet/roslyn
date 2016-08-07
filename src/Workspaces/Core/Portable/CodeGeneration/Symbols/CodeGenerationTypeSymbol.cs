@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -73,6 +71,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
         }
+
+        public bool IsTupleType => false;
+
+        public ImmutableArray<ITypeSymbol> TupleElementTypes => default(ImmutableArray<ITypeSymbol>);
+
+        public ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
+
+        public INamedTypeSymbol TupleUnderlyingType => null;
 
         public new ITypeSymbol OriginalDefinition
         {

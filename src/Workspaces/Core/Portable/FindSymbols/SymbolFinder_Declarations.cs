@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
                     // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
-                    var editDistance = new WordSimilarityChecker(name);
+                    var editDistance = new WordSimilarityChecker(name, substringsAreSimilar: false);
                     _predicate = editDistance.AreSimilar;
                     break;
             }
@@ -282,17 +282,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
+            SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
                 if (referenceOpt != null)
                 {
-                    var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(solution, assembly, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                        solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {
-                        var symbols = await info.FindAsync(query, assembly, cancellationToken).ConfigureAwait(false);
-                        list.AddRange(FilterByCriteria(symbols, filter));
+                        var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
+                        list.AddRange(symbols);
                     }
                 }
             }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
     /// Track approximate solution size.
     /// </summary>
     [Export]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
     internal class SolutionSizeTracker : IIncrementalAnalyzerProvider
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return SpecializedTasks.EmptyTask;
             }
 
-            public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
@@ -110,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             }
 
             #region Not Used
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
@@ -135,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return false;
             }
 
-            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }

@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Semantic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
@@ -69,9 +69,12 @@
     <Compile Include="FlowAnalysis\FlowTestBase.cs" />
     <Compile Include="FlowAnalysis\FlowTests.cs" />
     <Compile Include="FlowAnalysis\IterationJumpYieldStatementTests.cs" />
+    <Compile Include="FlowAnalysis\PatternsVsRegions.cs" />
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />
     <Compile Include="Semantics\AccessCheckTests.cs" />
     <Compile Include="Semantics\AccessibilityTests.cs" />
@@ -95,6 +98,8 @@
     <Compile Include="Semantics\InheritanceBindingTests.cs" />
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
+    <Compile Include="Semantics\OutVarTests.cs" />
+    <Compile Include="Semantics\PatternSwitchTests.cs" />
     <Compile Include="Semantics\RefLocalsAndReturns.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
@@ -133,6 +138,7 @@
     <Compile Include="Semantics\UserDefinedConversionTests.cs" />
     <Compile Include="Semantics\UseSiteErrorTests.cs" />
     <Compile Include="Semantics\UsingStatementTests.cs" />
+    <Compile Include="Semantics\ValueTupleTests.cs" />
     <Compile Include="Semantics\VarianceTests.cs" />
   </ItemGroup>
   <ItemGroup>

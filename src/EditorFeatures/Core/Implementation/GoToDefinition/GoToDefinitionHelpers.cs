@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -64,10 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
             }
 
-            var options = project.Solution.Workspace.Options;
+            var options = project.Solution.Options;
 
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
-            var title = NavigableItemFactory.GetSymbolDisplayString(project, symbol);
+            var displayParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(project, symbol);
+            var title = displayParts.JoinText();
+
             if (!preferredSourceLocations.Any())
             {
                 // Attempt to find source locations from external definition providers.
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     var externalSourceDefinitions = FindExternalDefinitionsAsync(symbol, project, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken).ToImmutableArray();
                     if (externalSourceDefinitions.Length > 0)
                     {
-                        return TryGoToDefinition(externalSourceDefinitions, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
+                        return TryGoToDefinition(externalSourceDefinitions, title, options, presenters, throwOnHiddenDefinition);
                     }
                 }
 
@@ -92,8 +94,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     cancellationToken: cancellationToken);
             }
 
-            var navigableItems = preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToImmutableArray();
-            return TryGoToDefinition(navigableItems, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
+            var navigableItems = preferredSourceLocations.Select(location =>
+                NavigableItemFactory.GetItemFromSymbolLocation(
+                    solution, symbol, location,
+                    displayTaggedParts: null)).ToImmutableArray();
+            return TryGoToDefinition(navigableItems, title, options, presenters, throwOnHiddenDefinition);
         }
 
         private static bool TryGoToDefinition(
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     if (throwOnHiddenDefinition)
                     {
                         const int E_FAIL = -2147467259;
-                        throw new COMException(EditorFeaturesResources.TheDefinitionOfTheObjectIsHidden, E_FAIL);
+                        throw new COMException(EditorFeaturesResources.The_definition_of_the_object_is_hidden, E_FAIL);
                     }
                     else
                     {
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             if (externalDefinitions != null && externalDefinitions.Any())
             {
                 var itemsArray = externalDefinitions.ToImmutableArrayOrEmpty();
-                var title = itemsArray[0].DisplayString;
+                var title = itemsArray[0].DisplayTaggedParts.JoinText();
                 return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition: true);
             }
 

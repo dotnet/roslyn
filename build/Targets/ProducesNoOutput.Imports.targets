@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="VSL.Imports.targets"/>
+  
+  <PropertyGroup>
+    <TargetPath></TargetPath>    <!-- Prevent projects referencing this from trying to pass us to the compiler -->
+  </PropertyGroup>
+  
+  <Target Name="RuntimeImplementationProjectOutputGroup" />   <!-- Group always attempts resolve runtime, regardless of <CopyNuGetImplementations>-->
+</Project>

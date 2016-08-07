@@ -18,10 +18,32 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
+
+REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
+REM the build. The Jenkins script netci.groovy passes the time limit to this script.
+if /I "%1" == "/buildTimeLimit" set BuildTimeLimit=%2&&shift&&shift&& goto :ParseArguments
+
 call :Usage && exit /b 1
 :DoneParsing
 
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
+REM This script takes the presence of the /buildTimeLimit option as an indication that it
+REM should run the tests under the control of the ProcessWatchdog, which, if the tests
+REM exceed the time limit, will take a screenshot, obtain memory dumps from the test
+REM process and all its descendants, and shut those processes down.
+REM
+REM Developers building from the command line will presumably not pass /buildTimeLimit,
+REM and so the tests will not run under the ProcessWatchdog.
+if not "%BuildTimeLimit%" == "" (
+    set CurrentDate=%date%
+    set CurrentTime=%time: =0%
+    set BuildStartTime=!CurrentDate:~-4!-!CurrentDate:~-10,2!-!CurrentDate:~-7,2!T!CurrentTime!
+    set RunProcessWatchdog=true
+) else (
+    set RunProcessWatchdog=false
+)
+
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
@@ -36,10 +58,8 @@ REM Ensure the binaries directory exists because msbuild can fail when part of t
 set bindir=%RoslynRoot%Binaries
 if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
-REM Set the build version only so the assembly version is set to the semantic version,
-REM which allows analyzers to load because the compiler has binding redirects to the
-REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
+msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
@@ -57,21 +77,19 @@ if defined TestDeterminism (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+if defined TestPerfCorrectness (
+    msbuild %MSBuildAdditionalCommandLineArgs% Roslyn.sln /p:Configuration=%BuildConfiguration% /p:DeployExtension=false || goto :BuildFailed
+    .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --ci-test || goto :BuildFailed
+    exit /b 0
+)
+
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
-REM Verify that our project.lock.json files didn't change as a result of 
-REM restore.  If they do then the commit changed the dependencies without 
-REM updating the lock files.
-REM git diff --exit-code --quiet
-REM if ERRORLEVEL 1 (
-REM    echo Commit changed dependencies without updating project.lock.json
-REM    git diff --exit-code
-REM    exit /b 1
-REM )
-
+REM Verify the state of our project.jsons
+.\Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

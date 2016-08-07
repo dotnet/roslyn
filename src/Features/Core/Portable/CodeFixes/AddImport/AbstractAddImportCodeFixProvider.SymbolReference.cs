@@ -3,11 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                string description = GetDescription(document.Project, node, semanticModel);
+                string description = TryGetDescription(document.Project, node, semanticModel);
                 if (description == null)
                 {
                     return null;
@@ -102,9 +100,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return null;
             }
 
-            protected virtual string GetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
+            protected virtual string TryGetDescription(
+                Project project, SyntaxNode node, SemanticModel semanticModel)
             {
-                return provider.GetDescription(SymbolResult.Symbol, semanticModel, node, this.CheckForExistingImport(project));
+                return provider.TryGetDescription(SymbolResult.Symbol, semanticModel, node, this.CheckForExistingImport(project));
             }
         }
     }

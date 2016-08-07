@@ -58,6 +58,8 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
+    <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
@@ -88,55 +90,42 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\UseImplicitTyping\UseExplicitTypingCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\UseImplicitTyping\UseImplicitTypingCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructor\GenerateConstructorCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.InitializerRewriter.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.cs" />
-    <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
-    <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
-    <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
-    <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
-    <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
-    <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />
+    <Compile Include="CodeRefactorings\MoveType\CSharpMoveTypeService.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
-    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.ItemRules.cs" />
-    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.Item.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.ItemRules.cs" />
-    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialMethodCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.cs" />
-    <Compile Include="Completion\CSharpCompletionRules.cs" />
+    <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletionProvider.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AbstractSpecialTypePreselectingKeywordRecommender.cs" />
     <Compile Include="Completion\KeywordRecommenders\LoadKeywordRecommender.cs" />
     <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />
-    <Compile Include="Completion\CSharpCompletionOptionsProvider.cs" />
     <Compile Include="Completion\CSharpCompletionService.cs" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.cs" />
     <Compile Include="Completion\KeywordRecommenders\AbstractSyntacticSingleKeywordRecommender.cs" />
@@ -271,17 +260,18 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Diagnostics\Analyzers\CSharpTypingStyleDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpTypingStyleDiagnosticAnalyzerBase.State.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypingDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypingDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\CSharpRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />
@@ -312,7 +302,7 @@
     <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
     <Compile Include="ExtractMethod\Extensions.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\CSharpGenerateConstructorService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\CSharpGenerateConstructorFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
     <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
@@ -326,6 +316,7 @@
     <Compile Include="GenerateType\CSharpGenerateTypeService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassService.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceService.cs" />
+    <Compile Include="InternalUtilities\InternalExtensions.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.Rewriter.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceField.cs" />
@@ -364,6 +355,22 @@
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.cs" />
+    <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ElementAccessExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNamePartiallyWrittenSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_Method.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_NamedType.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_DelegateInvoke.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_MethodGroup.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_DelegateType.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -378,7 +385,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="CodeFixes\SpellCheck\CSharpSpellCheckCodeFixProvider.cs" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

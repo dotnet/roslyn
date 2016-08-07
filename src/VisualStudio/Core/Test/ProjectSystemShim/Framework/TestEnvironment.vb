@@ -7,8 +7,10 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Text
@@ -43,6 +45,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
                 New TestForegroundNotificationService(),
                 AggregateAsynchronousOperationListener.CreateEmptyListener())
+
+            Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
+            Dim documentProvider = New RoslynDocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
+            _projectTracker.DocumentProvider = documentProvider
 
             Dim workspaceHost = New WorkspaceHost(_workspace)
             _projectTracker.RegisterWorkspaceHost(workspaceHost)
@@ -85,8 +91,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _projectTracker.Dispose()
         End Sub
 
-        Public Function CreateHierarchy(projectName As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, projectCapabilities)
+        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectCapabilities As String) As IVsHierarchy
+            Return New MockHierarchy(projectName, projectBinPath, projectCapabilities)
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
@@ -146,7 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Sub
 
             Public Function AdviseSelectionEvents(pSink As IVsSelectionEvents, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> ByRef pdwCookie As UInteger) As Integer Implements IVsMonitorSelection.AdviseSelectionEvents
-                Throw New NotImplementedException()
+                Return VSConstants.S_OK
             End Function
 
             Public Function GetCmdUIContextCookie(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidCmdUI As Guid, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> ByRef pdwCmdUICookie As UInteger) As Integer Implements IVsMonitorSelection.GetCmdUIContextCookie
@@ -177,7 +183,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Class
 
         Private Class WorkspaceHost
-            Implements IVisualStudioWorkspaceHost
+            Implements IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2
 
             Private _workspace As TestWorkspace
 
@@ -190,19 +196,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Sub
 
             Public Sub OnAdditionalDocumentAdded(additionalDocument As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded
-                Throw New NotImplementedException()
+                _workspace.OnAdditionalDocumentAdded(additionalDocument)
             End Sub
 
             Public Sub OnAdditionalDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed
-                Throw New NotImplementedException()
+                _workspace.OnAdditionalDocumentClosed(documentId, loader)
             End Sub
 
             Public Sub OnAdditionalDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened
-                Throw New NotImplementedException()
+                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
             End Sub
 
             Public Sub OnAdditionalDocumentRemoved(additionalDocument As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved
-                Throw New NotImplementedException()
+                _workspace.OnAdditionalDocumentRemoved(additionalDocument)
             End Sub
 
             Public Sub OnAdditionalDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk
@@ -222,22 +228,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Sub
 
             Public Sub OnDocumentAdded(documentInfo As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnDocumentAdded
-                Throw New NotImplementedException()
+                _workspace.OnDocumentAdded(documentInfo)
             End Sub
 
             Public Sub OnDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader, updateActiveContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentClosed
-                Throw New NotImplementedException()
+                _workspace.OnDocumentClosed(documentId, loader, updateActiveContext)
             End Sub
 
             Public Sub OnDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentOpened
-                Throw New NotImplementedException()
+                _workspace.OnDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
             End Sub
 
             Public Sub OnDocumentRemoved(documentId As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentRemoved
-                Throw New NotImplementedException()
+                _workspace.OnDocumentRemoved(documentId)
             End Sub
 
             Public Sub OnDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
                 Throw New NotImplementedException()
             End Sub
 

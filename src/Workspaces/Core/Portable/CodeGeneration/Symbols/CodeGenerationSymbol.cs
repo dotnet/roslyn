@@ -273,11 +273,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             throw new NotImplementedException();
         }
 
-        public SymbolKey GetSymbolId()
-        {
-            return null;
-        }
-
         public virtual string MetadataName
         {
             get

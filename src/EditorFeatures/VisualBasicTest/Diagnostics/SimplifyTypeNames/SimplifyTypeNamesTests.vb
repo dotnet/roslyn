@@ -2,8 +2,8 @@
 
 Option Strict Off
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -119,7 +119,7 @@ fixAllActionEquivalenceKey:=actionId)
         End Function
 
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
             Await TestAsync(
@@ -276,7 +276,7 @@ index:=1)
         index:=0)
         End Function
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
             Await TestAsync(
@@ -361,7 +361,7 @@ index:=1)
         NewLines("[|Module M \n Sub Main() \n Dim x = (System.String).Equals("", "") \n End Sub \n End Module|]"))
         End Function
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
             Await TestAsync(
@@ -1703,5 +1703,16 @@ End Module")
 NewLines("Class C \n Dim x = 7 \n Sub M() \n [|Me|].x = Nothing \n End Sub \n End Class"),
 NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
+            Await TestDiagnosticSeverityAndCountAsync(
+                "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
+                options:=OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                diagnosticCount:=1,
+                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity:=DiagnosticSeverity.Error)
+        End Function
+
     End Class
 End Namespace

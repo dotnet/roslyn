@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         access = Accessibility.Protected
 
                     Case Else
-                        Debug.Assert(False, "Unexpected!!!")
+                        access = Accessibility.Private
                 End Select
 
                 Return access

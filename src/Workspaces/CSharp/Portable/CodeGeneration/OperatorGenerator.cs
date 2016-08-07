@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name), "method");
+                throw new ArgumentException(string.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
             }
 
             var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);

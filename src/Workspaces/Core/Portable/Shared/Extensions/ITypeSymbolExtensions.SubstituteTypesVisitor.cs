@@ -2,10 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
             {
-                return symbol;
+                return VisitType(symbol);
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
@@ -55,6 +52,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
+                var mapped = VisitType(symbol);
+                if (mapped != symbol)
+                {
+                    return mapped;
+                }
+
                 if (symbol.IsAnonymousType)
                 {
                     return symbol;
@@ -89,6 +92,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
+                var mapped = VisitType(symbol);
+                if (mapped != symbol)
+                {
+                    return mapped;
+                }
+
                 var elementType = symbol.ElementType.Accept(this);
                 if (elementType != null && elementType.Equals(symbol.ElementType))
                 {
@@ -100,6 +109,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitPointerType(IPointerTypeSymbol symbol)
             {
+                var mapped = VisitType(symbol);
+                if (mapped != symbol)
+                {
+                    return mapped;
+                }
+
                 var pointedAtType = symbol.PointedAtType.Accept(this);
                 if (pointedAtType != null && pointedAtType.Equals(symbol.PointedAtType))
                 {

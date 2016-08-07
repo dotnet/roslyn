@@ -83,7 +83,7 @@ namespace RunTests.Cache
 
                 try
                 {
-                    var currentPath = Path.Combine(binariesPath, Path.ChangeExtension(current.Name, "dll"));
+                    var currentPath = Path.Combine(binariesPath, $"{current.Name}.dll");
                     var currentAssembly = File.Exists(currentPath)
                         ? Assembly.ReflectionOnlyLoadFrom(currentPath)
                         : Assembly.ReflectionOnlyLoad(current.FullName);

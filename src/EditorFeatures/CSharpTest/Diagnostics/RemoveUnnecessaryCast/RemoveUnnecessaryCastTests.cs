@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3789,6 +3790,71 @@ class Program
         }
     }
 }");
+        }
+
+        [WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastThatChangesShapeOfAnonymousTypeObject()
+        {
+            await TestMissingAsync(
+            @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(int)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}
+");
+        }
+
+        [WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(Directions)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}
+",
+
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = Directions.South };
+    }
+    public enum Directions { North, East, South, West }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+            @" class C { void Main() { (int, string) tuple = [|((int, string))(1, ""hello"")|]; } }",
+            @" class C { void Main() { (int, string) tuple = (1, ""hello""); } }",
+            parseOptions: TestOptions.Regular,
+            withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TupleWithDifferentNames()
+        {
+            await TestAsync(
+            @" class C { void Main() { (int a, string) tuple = [|((int, string d))(1, f: ""hello"")|]; } }",
+            @" class C { void Main() { (int a, string) tuple = (1, f: ""hello""); } }",
+            parseOptions: TestOptions.Regular,
+            withScriptOption: true);
         }
     }
 }

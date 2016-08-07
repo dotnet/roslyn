@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -205,8 +206,13 @@ class C
 }
 
 class M<,> { }
-");
+", options: TestOptions.Regular);
 
+            CheckTypeArguments2();
+        }
+
+        void CheckTypeArguments2()
+        {
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -233,6 +239,14 @@ class M<,> { }
                     }
                     N(SyntaxKind.IncompleteMember);
                     {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
                         N(SyntaxKind.NewKeyword);
                         N(SyntaxKind.GenericName);
                         {
@@ -251,6 +265,14 @@ class M<,> { }
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -458,6 +480,26 @@ class M<,> { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+        }
+
+        [Fact]
+        public void TypeArguments2WithCSharp6()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    new C<>();
+    new C<, >();
+    C<C<>> a1;
+    C<A<>> a1;
+    object a1 = typeof(C<C<, >, int>);
+    object a2 = Swap<>(1, 1);
+}
+
+class M<,> { }
+", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+
+            CheckTypeArguments2();
         }
 
         [Fact]

@@ -13,47 +13,31 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
-            private readonly string _displayString;
 
             public SymbolLocationNavigableItem(
                 Solution solution,
                 ISymbol symbol,
                 Location location,
-                string displayString)
+                ImmutableArray<TaggedText>? displayTaggedParts)
             {
                 _solution = solution;
                 _symbol = symbol;
                 _location = location;
-                _displayString = displayString;
+                DisplayTaggedParts = displayTaggedParts.GetValueOrDefault();
             }
 
             public bool DisplayFileLocation => true;
 
-            public string DisplayString => _displayString;
+            public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
 
-            public Glyph Glyph
-            {
-                get
-                {
-                    return _symbol.GetGlyph();
-                }
-            }
+            public Glyph Glyph => _symbol.GetGlyph();
 
-            public Document Document
-            {
-                get
-                {
-                    return _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
-                }
-            }
+            public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
 
-            public TextSpan SourceSpan
-            {
-                get
-                {
-                    return _location.SourceSpan;
-                }
-            }
+            public Document Document =>
+                _location.IsInSource ? _solution.GetDocument(_location.SourceTree) : null;
+
+            public TextSpan SourceSpan => _location.SourceSpan;
 
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -278,14 +277,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new ProjectChanges(this, oldProject);
-        }
-
-        private void CheckContainsDocument(DocumentId documentId)
-        {
-            if (!this.ContainsDocument(documentId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.DocumentNotInProject);
-            }
         }
 
         /// <summary>

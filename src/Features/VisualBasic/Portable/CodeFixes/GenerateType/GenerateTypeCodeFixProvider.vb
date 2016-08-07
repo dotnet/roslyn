@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 Imports Microsoft.CodeAnalysis.GenerateType
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
             Return service.GenerateTypeAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
             Dim qualified = TryCast(node, QualifiedNameSyntax)
             If qualified IsNot Nothing Then
                 Return True

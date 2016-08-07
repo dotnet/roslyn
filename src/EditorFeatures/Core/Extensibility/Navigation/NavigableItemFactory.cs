@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
@@ -12,9 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 {
     internal static partial class NavigableItemFactory
     {
-        public static INavigableItem GetItemFromSymbolLocation(Solution solution, ISymbol symbol, Location location, string displayString = null)
+        public static INavigableItem GetItemFromSymbolLocation(
+            Solution solution, ISymbol symbol, Location location,
+            ImmutableArray<TaggedText>? displayTaggedParts)
         {
-            return new SymbolLocationNavigableItem(solution, symbol, location, displayString);
+            return new SymbolLocationNavigableItem(
+                solution, symbol, location, displayTaggedParts);
         }
 
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
@@ -22,14 +26,18 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
 
-
-        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol, string displayString = null)
+        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
+            Solution solution,
+            ISymbol symbol, 
+            ImmutableArray<TaggedText>? displayTaggedParts)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);
-            return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc, displayString));
+            return locations.Select(loc => GetItemFromSymbolLocation(
+                solution, symbol, loc, displayTaggedParts));
         }
 
-        public static IEnumerable<Location> GetPreferredSourceLocations(Solution solution, ISymbol symbol)
+        public static IEnumerable<Location> GetPreferredSourceLocations(
+            Solution solution, ISymbol symbol)
         {
             // Prefer non-generated source locations over generated ones.
 
@@ -69,21 +77,24 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document));
         }
 
-        public static string GetSymbolDisplayString(Project project, ISymbol symbol)
+        public static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(Project project, ISymbol symbol)
         {
             var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
+            return symbolDisplayService.ToDisplayParts(symbol, GetSymbolDisplayFormat(symbol)).ToTaggedText();
+        }
+
+        private static SymbolDisplayFormat GetSymbolDisplayFormat(ISymbol symbol)
+        {
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
-                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers);
+                    return s_shortFormatWithModifiers;
 
                 case SymbolKind.Method:
-                    return symbol.IsStaticConstructor()
-                        ? symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers)
-                        : symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+                    return symbol.IsStaticConstructor() ? s_shortFormatWithModifiers : s_shortFormat;
 
                 default:
-                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+                    return s_shortFormat;
             }
         }
 

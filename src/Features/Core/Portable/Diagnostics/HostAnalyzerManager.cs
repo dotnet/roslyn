@@ -161,14 +161,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer.IsCompilerAnalyzer())
+            if (options == null || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return false;
             }
 
+            // don't capture project
+            var projectId = project.Id;
+
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, project.Id);
+                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
         }

@@ -36,13 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.CSharp6,
+            LanguageVersion languageVersion = LanguageVersion.Latest,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
+            : this(languageVersion.MapLatestToVersion(), documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
         {
-            if (!languageVersion.IsValid())
+            // We test the mapped value, LanguageVersion, rather than the parameter, languageVersion,
+            // which has not had "Latest" mapped to the latest version yet.
+            if (!LanguageVersion.IsValid())
             {
                 throw new ArgumentOutOfRangeException(nameof(languageVersion));
             }
@@ -84,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
-            preprocessorSymbols: other.PreprocessorSymbols)
+            preprocessorSymbols: other.PreprocessorSymbols,
+            features: other.Features.ToImmutableDictionary())
         {
         }
 
@@ -119,6 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpParseOptions WithLanguageVersion(LanguageVersion version)
         {
+            version = version.MapLatestToVersion();
+
             if (version == this.LanguageVersion)
             {
                 return this;
@@ -210,31 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
-            switch (feature)
-            {
-                case MessageID.IDS_FeatureBinaryLiteral:
-                case MessageID.IDS_FeatureDigitSeparator:
-                case MessageID.IDS_FeatureLocalFunctions:
-                case MessageID.IDS_FeatureRefLocalsReturns:
-                case MessageID.IDS_FeaturePatternMatching:
-                    // in "demo" mode enable proposed new C# 7 language features.
-                    if (PreprocessorSymbols.Contains("__DEMO__") ||
-                        PreprocessorSymbols.Contains("__DEMO_EXPERIMENTAL__"))
-                    {
-                        return true;
-                    }
-                    break;
-                case MessageID.IDS_FeaturePatternMatching2:
-                    // in "experimental" mode enable experimental and proposed new C# 7 language features.
-                    if (PreprocessorSymbols.Contains("__DEMO_EXPERIMENTAL__"))
-                    {
-                        return true;
-                    }
-                    break;
-                default:
-                    break;
-            }
-
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {

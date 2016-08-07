@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -778,7 +779,7 @@ namespace N1
             await TestActionCountAsync(source, 1);
         }
 
-        [Fact(Skip = "1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName3()
         {
@@ -900,7 +901,7 @@ namespace N1
 }", index: 0);
         }
 
-        [Fact(Skip = "1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName7()
         {
@@ -1421,7 +1422,7 @@ index: 0);
 Options.Script);
         }
 
-        [Fact(Skip = "1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestConflicts()
         {
@@ -2758,7 +2759,7 @@ class C
         [|this|].x = 4;
     }
 }
-", Option(SimplificationOptions.QualifyFieldAccess, true));
+", Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3295,6 +3296,17 @@ class Program
             await TestAsync(
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { [|this|] . x = default(dynamic) ; } } ",
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { x = default(dynamic) ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAppropriateDiagnosticOnMissingQualifier()
+        {
+            await TestDiagnosticSeverityAndCountAsync(
+                @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
+                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning);
         }
     }
 }

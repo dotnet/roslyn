@@ -8,7 +8,6 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{73242A2D-6300-499D-8C15-FADF7ECB185C}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -19,9 +18,6 @@
     <RestorePackages>true</RestorePackages>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Source\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>

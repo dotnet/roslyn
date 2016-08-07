@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
             If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
-                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
+                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create(MetadataHelpers.SystemString, "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
 
                 Dim sourceModuleSymbol = DirectCast(Me.SourceModule, SourceModuleSymbol)
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
-            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last)
+            Debug.Assert(type.IsWellKnownType())
             Dim index As Integer = type - WellKnownType.First
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
@@ -639,15 +639,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected Overrides Function MatchTypeToTypeId(type As TypeSymbol, typeId As Integer) As Boolean
-                Dim result As Boolean = False
-
-                If typeId >= WellKnownType.First AndAlso typeId <= WellKnownType.Last Then
-                    result = (type Is _compilation.GetWellKnownType(CType(typeId, WellKnownType)))
-                Else
-                    result = MyBase.MatchTypeToTypeId(type, typeId)
+                Dim wellKnownId = CType(typeId, WellKnownType)
+                If wellKnownId.IsWellKnownType() Then
+                    Return type Is _compilation.GetWellKnownType(wellKnownId)
                 End If
 
-                Return result
+                Return MyBase.MatchTypeToTypeId(type, typeId)
             End Function
         End Class
     End Class

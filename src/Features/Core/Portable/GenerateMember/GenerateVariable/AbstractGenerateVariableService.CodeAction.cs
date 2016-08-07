@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _isConstant
-                        ? FeaturesResources.GenerateConstantIn
+                        ? FeaturesResources.Generate_constant_0_in_1
                         : _generateProperty
-                            ? _isReadonly ? FeaturesResources.GenerateReadonlyProperty : FeaturesResources.GeneratePropertyIn
-                            : _isReadonly ? FeaturesResources.GenerateReadonlyField : FeaturesResources.GenerateFieldIn;
+                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_1_0 : FeaturesResources.Generate_property_1_0
+                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_0_in_1;
 
                     return string.Format(
                         text,

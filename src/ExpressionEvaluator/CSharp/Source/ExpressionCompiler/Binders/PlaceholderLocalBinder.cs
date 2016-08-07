@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var local = SourceLocalSymbol.MakeLocal(
                         _containingMethod, 
                         this, 
-                        declaration.RefKeyword.Kind() == SyntaxKind.RefKeyword? RefKind.Ref: RefKind.None,
+                        true,
                         declaration.Declaration.Type, 
                         variable.Identifier, 
                         kind, 
@@ -122,6 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
             return builder.ToImmutableAndFree();
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

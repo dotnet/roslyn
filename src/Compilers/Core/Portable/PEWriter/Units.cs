@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Emit;
+using System.IO;
 
 namespace Microsoft.Cci
 {
@@ -29,7 +30,7 @@ namespace Microsoft.Cci
         /// A set of bits and bit ranges representing properties of the assembly. The value of <see cref="Flags"/> can be set
         /// from source code via the AssemblyFlags assembly custom attribute. The interpretation of the property depends on the target platform.
         /// </summary>
-        uint Flags { get; }
+        AssemblyFlags Flags { get; }
 
         /// <summary>
         /// The public part of the key used to encrypt the SHA1 hash over the persisted form of this assembly. Empty or null if not specified.
@@ -52,6 +53,7 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         AssemblyIdentity Identity { get; }
+        Version AssemblyVersionPattern { get; }
     }
 
     /// <summary>
@@ -76,9 +78,10 @@ namespace Microsoft.Cci
         bool GenerateVisualBasicStylePdb { get; }
 
         /// <summary>
-        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
+        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
+        /// followed by types forwarded to another assembly.
         /// </summary>
-        IEnumerable<ITypeReference> GetExportedTypes(EmitContext context);
+        ImmutableArray<ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
@@ -100,7 +103,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of named byte sequences persisted with the assembly and used during execution, typically via .NET Framework helper classes.
         /// </summary>
-        IEnumerable<ManagedResource> GetResources(EmitContext context);
+        ImmutableArray<ManagedResource> GetResources(EmitContext context);
 
         /// <summary>
         /// CorLibrary assembly referenced by this module.
@@ -204,6 +207,14 @@ namespace Microsoft.Cci
         // provide a basis for approximating the capacities of
         // various databases used during Emit.
         int HintNumberOfMethodDefinitions { get; }
+
+        /// <summary>
+        /// Number of debug documents in the module. 
+        /// Used to determine capacities of lists and indices when emitting debug info.
+        /// </summary>
+        int DebugDocumentCount { get; }
+
+        Stream SourceLinkStream { get; }
     }
 
     internal struct DefinitionWithLocation

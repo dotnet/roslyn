@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var endToken = root.FindToken(position);
             if (endToken.IsMissing)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         protected override void FormatAndApply(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var endToken = root.FindToken(position);
             if (endToken.IsMissing)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return;
             }
 
-            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, document.Project.Solution.Workspace, options: null, // use default
+            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, document.Project.Solution.Workspace, options: document.Options,
                 rules: null, // use default
                 cancellationToken: cancellationToken);
 
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         protected override string GetEndingString(Document document, int position, CancellationToken cancellationToken)
         {
             // prepare expansive information from document
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var root = tree.GetRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var text = tree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var root = tree.GetRoot(cancellationToken);
+            var text = tree.GetText(cancellationToken);
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
             // Go through the set of owning nodes in leaf to root chain.

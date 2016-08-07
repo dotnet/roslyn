@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis
             FactoryContextIsInQuery = 1 << 7,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
 
-            FactoryContextMask = FactoryContextIsInAsync | FactoryContextIsInQuery,
-            InheritMask = byte.MaxValue & ~FactoryContextMask,
+            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | IsNotMissing,
         }
 
         internal NodeFlags Flags

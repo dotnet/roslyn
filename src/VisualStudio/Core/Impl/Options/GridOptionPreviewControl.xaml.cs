@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Options;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var dataGrid = (DataGrid)sender;
             var codeStyleItem = (AbstractCodeStyleOptionViewModel)dataGrid.SelectedItem;
 
-            if (codeStyleItem != null && codeStyleItem.NotificationsAvailable)
+            if (codeStyleItem != null)
             {
                 ViewModel.UpdatePreview(codeStyleItem.GetPreview());
             }
@@ -56,9 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
 
-            // TODO: Use the first item's preview. This doesn't work yet.
-            // var firstItem = this.ViewModel.Items.OfType<AbstractCodeStyleOptionViewModel>().First();
-            // this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
+            var firstItem = this.ViewModel.CodeStyleItems.OfType<AbstractCodeStyleOptionViewModel>().First();
+            this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
 
             DataContext = ViewModel;
         }

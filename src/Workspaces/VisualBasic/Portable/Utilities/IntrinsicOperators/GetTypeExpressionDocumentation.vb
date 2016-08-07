@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.TypeToReturnObjectFor
+                    Return VBWorkspaceResources.The_type_name_to_return_a_System_Type_object_for
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Typename
+                    Return VBWorkspaceResources.typeName
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select
@@ -36,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return VBWorkspaceResources.ReturnsSystemTypeObject
+                Return VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name
             End Get
         End Property
 
-        Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
             Get
                 Return {
                     New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "GetType"),

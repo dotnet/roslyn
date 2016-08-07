@@ -1,12 +1,12 @@
 # Required Software
 
-1. [Visual Studio 2015 with Update 1](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 1_.
+1. [Visual Studio 2015 with Update 2](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 2_.
 2. Visual Studio 2015 Extensibility Tools.
  
     If you already installed Visual Studio, the Extensibility Tools can be added as follows: 
     - Open Control Panel -> Programs and Features
     - Select the entry for your installation of Microsoft Visual Studio. Depending on your version, it may appear as follows:
-        - Microsoft Visual Studio Community 2015 with Update 1
+        - Microsoft Visual Studio Community 2015 with Update 2
         - Microsoft Visual Studio Professional 2015
         - Microsoft Visual Studio Enterprise 2015
     - Press the 'Change' button
@@ -31,7 +31,7 @@ Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
 1. Run the "Developer Command Prompt for VS2015" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m BuildAndTest.proj` in the command prompt.
+3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 
 To debug through tests, you can right click the test project that contains your
 tests and choose **Set as Startup Project**. Then press F5. This will run the

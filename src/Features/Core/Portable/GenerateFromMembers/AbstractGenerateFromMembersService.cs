@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -81,18 +79,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsField(ISymbol symbol)
         {
             return symbol.Kind == SymbolKind.Field;
-        }
-
-        protected CodeRefactoring CreateCodeRefactoring(
-            IList<TMemberDeclarationSyntax> selectedDeclarations,
-            IEnumerable<CodeAction> actions)
-        {
-#if false
-            var lastDeclaration = selectedDeclarations.Last();
-            var endSpan = new TextSpan(lastDeclaration.Span.End - 1, 1);
-            return new CodeRefactoring(actions, endSpan);
-#endif
-            return new CodeRefactoring(null, actions);
         }
 
         protected List<IParameterSymbol> DetermineParameters(

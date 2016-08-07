@@ -10,33 +10,98 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    class PatternVariableFinder : CSharpSyntaxWalker
+    internal class PatternVariableFinder : CSharpSyntaxWalker
     {
-        ArrayBuilder<DeclarationPatternSyntax> declarationPatterns;
-        internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
-            CSharpSyntaxNode node = null,
-            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
+        private Binder _binder;
+        private ArrayBuilder<LocalSymbol> _localsBuilder;
+
+        internal static void FindPatternVariables(
+            Binder binder,
+            ArrayBuilder<LocalSymbol> builder,
+            CSharpSyntaxNode node)
         {
-            var finder = s_poolInstance.Allocate();
-            finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
-            finder.Visit(node);
-            if (!nodes.IsDefaultOrEmpty)
+            if (node == null)
             {
-                foreach (var n in nodes)
-                {
-                    finder.Visit(n);
-                }
+                return;
             }
 
-            var result = finder.declarationPatterns;
-            finder.declarationPatterns = null;
+            var finder = s_poolInstance.Allocate();
+            finder._binder = binder;
+            finder._localsBuilder = builder;
+
+            finder.Visit(node);
+
+            finder._binder = null;
+            finder._localsBuilder = null;
             s_poolInstance.Free(finder);
-            return result;
+        }
+
+        internal static void FindPatternVariables(
+            Binder binder,
+            ArrayBuilder<LocalSymbol> builder,
+            SeparatedSyntaxList<ExpressionSyntax> nodes)
+        {
+            if (nodes.Count == 0)
+            {
+                return;
+            }
+
+            var finder = s_poolInstance.Allocate();
+            finder._binder = binder;
+            finder._localsBuilder = builder;
+
+            foreach (var n in nodes)
+            {
+                finder.Visit(n);
+            }
+
+            finder._binder = null;
+            finder._localsBuilder = null;
+            s_poolInstance.Free(finder);
+        }
+
+        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            foreach (var decl in node.Declaration.Variables)
+            {
+                Visit(decl.Initializer?.Value);
+            }
+        }
+
+        public override void VisitSwitchSection(SwitchSectionSyntax node)
+        {
+            foreach (var label in node.Labels)
+            {
+                var match = label as CasePatternSwitchLabelSyntax;
+                if (match != null)
+                {
+                    Visit(match.Pattern);
+                    if (match.WhenClause != null)
+                    {
+                        Visit(match.WhenClause.Condition);
+                    }
+                }
+            }
+        }
+
+        public override void VisitWhileStatement(WhileStatementSyntax node)
+        {
+            Visit(node.Condition);
+        }
+
+        public override void VisitDoStatement(DoStatementSyntax node)
+        {
+            Visit(node.Condition);
+        }
+
+        public override void VisitLockStatement(LockStatementSyntax node)
+        {
+            Visit(node.Expression);
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            declarationPatterns.Add(node);
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
@@ -48,14 +113,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Variables declared in [in] expressions of top level from clause and 
             // join clauses are in scope 
             Visit(node.FromClause.Expression);
+            Visit(node.Body);
+        }
 
-            foreach (var clause in node.Body.Clauses)
+        public override void VisitQueryBody(QueryBodySyntax node)
+        {
+            // Variables declared in [in] expressions of top level from clause and 
+            // join clauses are in scope 
+            foreach (var clause in node.Clauses)
             {
                 if (clause.Kind() == SyntaxKind.JoinClause)
                 {
                     Visit(((JoinClauseSyntax)clause).InExpression);
                 }
             }
+
+            Visit(node.Continuation);
         }
 
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
@@ -84,9 +157,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             operands.Free();
         }
 
-        public override void VisitMatchExpression(MatchExpressionSyntax node)
+        public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            Visit(node.Left);
+            var contextKind = node?.Parent // ArgumentSyntax
+                                  ?.Parent // ArgumentListSyntax
+                                  ?.Parent // invocation/constructor initializer
+                                  ?.Kind();
+
+            switch (contextKind)
+            {
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                    break;
+                default:
+
+                    // It looks like we are deling with a syntax tree that has a shape that could never be
+                    // produced by the LanguageParser, including all error conditions. 
+                    // Out Variable declarations can only appear in an argument list of the syntax nodes mentioned above.
+                    throw ExceptionUtilities.UnexpectedValue(contextKind);
+            }
+
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, false, node.Type(), node.Identifier(), LocalDeclarationKind.RegularVariable));
         }
 
         #region pool

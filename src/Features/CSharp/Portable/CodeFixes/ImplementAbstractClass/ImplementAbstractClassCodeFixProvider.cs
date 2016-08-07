@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
                     node,
                     context.CancellationToken))
                 {
-                    var title = CSharpFeaturesResources.ImplementAbstractClass;
+                    var title = CSharpFeaturesResources.Implement_Abstract_Class;
                     var abstractType = model.GetTypeInfo(node, context.CancellationToken).Type;
                     var id = GetCodeActionId(abstractType.ContainingAssembly.Name, abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
                     context.RegisterCodeFix(
                         new MyCodeAction(title,
-                            (c) => ImplementAbstractClassAsync(context.Document, node, c),
+                            c => ImplementAbstractClassAsync(context.Document, node, c),
                             id),
                         context.Diagnostics);
                     return;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
         // internal for testing purposes.
         internal static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
         {
-            return CSharpFeaturesResources.ImplementAbstractClass + ";" +
+            return CSharpFeaturesResources.Implement_Abstract_Class + ";" +
                 assemblyName + ";" +
                 abstractTypeFullyQualifiedName;
         }

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private static readonly ObjectPool<KeyValueLogMessage> s_pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
 
+        public static readonly KeyValueLogMessage NoProperty = new KeyValueLogMessage();
+
         public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
             var logMessage = s_pool.Allocate();
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             get
             {
                 EnsureMap();
-                return _map.Count > 0;
+                return _map?.Count > 0;
             }
         }
 

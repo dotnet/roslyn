@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -9,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     /// <summary>
-    /// Decodes <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> applied to a specified metadata symbol and
+    /// Decodes System.Runtime.CompilerServices.DynamicAttribute applied to a specified metadata symbol and
     /// transforms the specified metadata type, using the decoded dynamic transforms attribute argument,
     /// by replacing each occurrence of <see cref="System.Object"/> type with dynamic type.
     /// </summary>
@@ -48,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// Decodes the attributes applied to the given <see paramref="targetSymbol"/> from metadata and checks if <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> is applied.
+        /// Decodes the attributes applied to the given <see paramref="targetSymbol"/> from metadata and checks if System.Runtime.CompilerServices.DynamicAttribute is applied.
         /// If so, it transforms the given <see paramref="metadataType"/>, using the decoded dynamic transforms attribute argument,
         /// by replacing each occurrence of <see cref="System.Object"/> type with dynamic type.
-        /// If no <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> is applied or the decoded dynamic transforms attribute argument is erroneous,
+        /// If no System.Runtime.CompilerServices.DynamicAttribute is applied or the decoded dynamic transforms attribute argument is erroneous,
         /// returns the unchanged <see paramref="metadataType"/>.
         /// </summary>
         /// <remarks>This method is a port of TypeManager::ImportDynamicTransformType from the native compiler.</remarks>
@@ -206,6 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
+            if (namedType.IsTupleType)
+            {
+                return TransformTupleType(namedType, isContaining);
+            }
+
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
@@ -262,6 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return namedType;
             }
+        }
+
+        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
+        {
+            Debug.Assert(tupleType.IsTupleType);
+
+            var underlying = tupleType.TupleUnderlyingType;
+            var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 
         private ImmutableArray<TypeSymbol> TransformTypeArguments(ImmutableArray<TypeSymbol> typeArguments)

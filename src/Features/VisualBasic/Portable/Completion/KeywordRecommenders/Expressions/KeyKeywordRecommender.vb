@@ -24,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                targetToken.Parent.IsKind(SyntaxKind.ObjectMemberInitializer) Then
                 ' We might be in an expression...
                 If targetToken.Parent.GetParentOrNull().IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Key", VBFeaturesResources.KeyKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Key", VBFeaturesResources.Identifies_a_key_field_in_an_anonymous_type_definition))
                 End If
 
                 ' Or we might be in an AsNew. In this case, we need to check to make sure the type is correct
                 If targetToken.Parent.GetParentOrNull().GetParentOrNull().IsKind(SyntaxKind.AsNewClause) Then
                     Dim asNewClause = DirectCast(targetToken.Parent.Parent.Parent, AsNewClauseSyntax)
                     If asNewClause.Type.IsMissing Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Key", VBFeaturesResources.KeyKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Key", VBFeaturesResources.Identifies_a_key_field_in_an_anonymous_type_definition))
                     End If
                 End If
             End If

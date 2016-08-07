@@ -626,7 +626,7 @@ namespace CSharpSyntaxGenerator
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
             WriteLine();
-            WriteLine("  internal class ContextAwareSyntax");
+            WriteLine("  internal partial class ContextAwareSyntax");
             WriteLine("  {");
 
             WriteLine();
@@ -695,24 +695,9 @@ namespace CSharpSyntaxGenerator
         {
             var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
-            bool anyList = false;
 
             Write("    public {0}{1} {2}(", withSyntaxFactoryContext ? "" : "static ", nd.Name, StripPost(nd.Name, "Syntax"));
-            if (nd.Kinds.Count > 1)
-            {
-                Write("SyntaxKind kind, ");
-            }
-            for (int i = 0, n = nd.Fields.Count; i < n; i++)
-            {
-                var field = nd.Fields[i];
-                if (i > 0)
-                    Write(", ");
-                anyList |= IsAnyList(field.Type);
-                var type = field.Type;
-                if (type == "SyntaxNodeOrTokenList")
-                    type = "SyntaxList<CSharpSyntaxNode>";
-                Write("{0} {1}", type, CamelCase(field.Name));
-            }
+            WriteGreenFactoryParameters(nd);
             WriteLine(")");
             WriteLine("    {");
 
@@ -771,8 +756,8 @@ namespace CSharpSyntaxGenerator
                     }
                 }
             }
-            WriteLine("#endif");
 
+            WriteLine("#endif");
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -828,6 +813,24 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine("    }");
+        }
+
+        private void WriteGreenFactoryParameters(Node nd)
+        {
+            if (nd.Kinds.Count > 1)
+            {
+                Write("SyntaxKind kind, ");
+            }
+            for (int i = 0, n = nd.Fields.Count; i < n; i++)
+            {
+                var field = nd.Fields[i];
+                if (i > 0)
+                    Write(", ");
+                var type = field.Type;
+                if (type == "SyntaxNodeOrTokenList")
+                    type = "SyntaxList<CSharpSyntaxNode>";
+                Write("{0} {1}", type, CamelCase(field.Name));
+            }
         }
 
         private void WriteCtorArgList(Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
@@ -904,7 +907,7 @@ namespace CSharpSyntaxGenerator
                         var fieldType = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), fieldType, field.Name);
+                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
                     }
                 }
 
@@ -913,7 +916,7 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                 }
 
                 WriteLine("  }");
@@ -961,7 +964,7 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public {0}{1} {2} ", OverrideOrNewModifier(field), field.Type, field.Name);
+                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
                         WriteLine("    {");
                         if (IsOptional(field))
                         {
@@ -983,7 +986,7 @@ namespace CSharpSyntaxGenerator
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public {0}SyntaxTokenList {1} ", OverrideOrNewModifier(field), field.Name);
+                        WriteLine("    {0} {1}SyntaxTokenList {2} ", "public", OverrideOrNewModifier(field), field.Name);
                         WriteLine("    {");
                         WriteLine("        get");
                         WriteLine("        {");
@@ -998,7 +1001,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public {0}{1} {2} ", OverrideOrNewModifier(field), field.Type, field.Name);
+                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
                         WriteLine("    {");
                         WriteLine("        get");
                         WriteLine("        {");
@@ -1040,8 +1043,8 @@ namespace CSharpSyntaxGenerator
                 {
                     var field = valueFields[i];
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    public {0}{1} {2} {{ get {{ return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{3})this.Green).{2}; }} }}",
-                        OverrideOrNewModifier(field), field.Type, field.Name, node.Name
+                    WriteLine("    {0} {1}{2} {3} {{ get {{ return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{4})this.Green).{3}; }} }}",
+                        "public", OverrideOrNewModifier(field), field.Type, field.Name, node.Name
                         );
                     WriteLine();
                 }
@@ -1181,7 +1184,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            Write("    public {0} Update(", node.Name);
+            Write("    {0} {1} Update(", "public", node.Name);
 
             // parameters
             for (int f = 0; f < node.Fields.Count; f++)
@@ -1280,10 +1283,8 @@ namespace CSharpSyntaxGenerator
                 var type = this.GetRedPropertyType(field);
 
                 WriteLine();
-                WriteLine("    public {0} With{1}({2} {3})", node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
+                WriteLine("    {0} {1} With{2}({3} {4})", "public", node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
                 WriteLine("    {");
-
-                //WriteLine("        return this.With({0}: {0});", CamelCase(field.Name));
 
                 // call update inside each setter
                 Write("        return this.Update(");
@@ -1531,21 +1532,8 @@ namespace CSharpSyntaxGenerator
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
 
-            Write("    public static {0} {1}(", nd.Name, StripPost(nd.Name, "Syntax"));
-            if (nd.Kinds.Count > 1)
-            {
-                Write("SyntaxKind kind, ");
-            }
-
-            for (int i = 0, n = nd.Fields.Count; i < n; i++)
-            {
-                var field = nd.Fields[i];
-                if (i > 0)
-                    Write(", ");
-                var type = this.GetRedPropertyType(field);
-
-                Write("{0} {1}", type, CamelCase(field.Name));
-            }
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            WriteRedFactoryParameters(nd);
 
             WriteLine(")");
             WriteLine("    {");
@@ -1644,6 +1632,26 @@ namespace CSharpSyntaxGenerator
 
             WriteLine(").CreateRed();");
             WriteLine("    }");
+
+            this.WriteLine();
+        }
+
+        private void WriteRedFactoryParameters(Node nd)
+        {
+            if (nd.Kinds.Count > 1)
+            {
+                Write("SyntaxKind kind, ");
+            }
+
+            for (int i = 0, n = nd.Fields.Count; i < n; i++)
+            {
+                var field = nd.Fields[i];
+                if (i > 0)
+                    Write(", ");
+                var type = this.GetRedPropertyType(field);
+
+                Write("{0} {1}", type, CamelCase(field.Name));
+            }
         }
 
         private string GetRedPropertyType(Field field)
@@ -1734,7 +1742,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    public static {0} {1}(", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -1855,7 +1863,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    public static {0} {1}(", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)

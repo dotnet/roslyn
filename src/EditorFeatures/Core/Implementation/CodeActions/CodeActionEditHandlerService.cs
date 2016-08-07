@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,14 +93,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)
+        public async Task ApplyAsync(
+            Workspace workspace, Document fromDocument,
+            IEnumerable<CodeActionOperation> operations,
+            string title, IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
             if (_renameService.ActiveSession != null)
             {
                 workspace.Services.GetService<INotificationService>()?.SendNotification(
-                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive,
+                    EditorFeaturesResources.Cannot_apply_operation_while_a_rename_session_is_active,
                     severity: NotificationSeverity.Error);
                 return;
             }
@@ -110,7 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.                    
+                    if (!await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(true))
                     {
                         documentErrorLookup.Add(document.Id);
                     }
@@ -146,7 +153,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 // can be undone at once.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
-                    updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.
+                    updatedSolution = await ProcessOperationsAsync(
+                        workspace, fromDocument, title, oldSolution,
+                        updatedSolution, operationsList, progressTracker,
+                        cancellationToken).ConfigureAwait(true);
 
                     // link current file in the global undo transaction
                     if (fromDocument != null)
@@ -159,7 +171,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
             else
             {
-                updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
+                updatedSolution = await ProcessOperationsAsync(
+                    workspace, fromDocument, title, oldSolution, updatedSolution, operationsList,
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
 #if DEBUG
@@ -178,7 +194,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
-        private static Solution ProcessOperations(Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, CancellationToken cancellationToken)
+        private static async Task<Solution> ProcessOperationsAsync(
+            Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, 
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             foreach (var operation in operationsList)
             {
@@ -196,10 +214,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
                     var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
                     var changedAdditionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
-                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments);
+                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments).ToList();
 
                     // 0 file changes
-                    if (!changedFiles.Any())
+                    if (changedFiles.Count == 0)
                     {
                         operation.Apply(workspace, cancellationToken);
                         continue;
@@ -207,15 +225,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     // 1 file change
                     SourceText text = null;
-                    if (!changedFiles.Skip(1).Any())
+                    if (changedFiles.Count == 1)
                     {
                         if (changedDocuments.Any())
                         {
-                            text = oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
+                            text = await oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                         else if (changedAdditionalDocuments.Any())
                         {
-                            text = oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            // ConfigureAwait(true) so we come back to the same thread as 
+                            // we do all application on the UI thread.
+                            text = await oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).ConfigureAwait(true);
                         }
                     }
 
@@ -231,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     // multiple file changes
                     using (var undoTransaction = workspace.OpenGlobalUndoTransaction(title))
                     {
-                        operation.Apply(workspace, cancellationToken);
+                        operation.Apply(workspace, progressTracker, cancellationToken);
 
                         // link current file in the global undo transaction
                         if (fromDocument != null)
@@ -260,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     continue;
                 }
 
-                var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
                 var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)
                                          .Where(s => s.IsToken)
@@ -277,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     var pathToRenameToken = new SyntaxPath(renameTokenOpt.Value);
                     var latestDocument = workspace.CurrentSolution.GetDocument(documentId);
-                    var latestRoot = latestDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var latestRoot = latestDocument.GetSyntaxRootSynchronously(cancellationToken);
 
                     SyntaxNodeOrToken resolvedRenameToken;
                     if (pathToRenameToken.TryResolve(latestRoot, out resolvedRenameToken) &&
@@ -288,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span))
                         {
                             var openDocument = workspace.CurrentSolution.GetDocument(documentId);
-                            var openRoot = openDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var openRoot = openDocument.GetSyntaxRootSynchronously(cancellationToken);
 
                             // NOTE: We need to resolve the syntax path again in case VB line commit kicked in
                             // due to the navigation.

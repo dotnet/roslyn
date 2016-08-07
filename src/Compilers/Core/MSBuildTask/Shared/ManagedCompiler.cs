@@ -60,6 +60,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
+        public string ChecksumAlgorithm
+        {
+            set { _store[nameof(ChecksumAlgorithm)] = value; }
+            get { return (string)_store[nameof(ChecksumAlgorithm)]; }
+        }
+        
+        /// <summary>
+        /// An instrument flag that specifies instrumentation settings.
+        /// </summary>
+        public string Instrument
+        {
+            set { _store[nameof(Instrument)] = value; }
+            get { return (string)_store[nameof(Instrument)]; }
+        }
+
         public string CodeAnalysisRuleSet
         {
             set { _store[nameof(CodeAnalysisRuleSet)] = value; }
@@ -83,6 +98,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(DebugType)] = value; }
             get { return (string)_store[nameof(DebugType)]; }
+        }
+
+        public string SourceLink
+        {
+            set { _store[nameof(SourceLink)] = value; }
+            get { return (string)_store[nameof(SourceLink)]; }
         }
 
         public string DefineConstants
@@ -228,6 +249,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(Resources)] = value; }
             get { return (ITaskItem[])_store[nameof(Resources)]; }
+        }
+
+        public string RuntimeMetadataVersion
+        {
+            set { _store[nameof(RuntimeMetadataVersion)] = value; }
+            get { return (string)_store[nameof(RuntimeMetadataVersion)]; }
         }
 
         public ITaskItem[] ResponseFiles
@@ -691,6 +718,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
+            commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
+            commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
+            commandLine.AppendSwitchIfNotNull("/instrument:", Instrument);
+            commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
 
             AddFeatures(commandLine, Features);
         }

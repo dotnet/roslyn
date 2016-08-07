@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)expressionType == null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
-                    node.IDisposableConversion.Kind,
+                    Conversion.GetTrivialConversion(node.IDisposableConversion.Kind),
                     _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
-            if (this.GenerateDebugInfo)
+            if (this.Instrument)
             {
-                expressionStatement = AddSequencePoint(usingSyntax, expressionStatement);
+                expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localType.IsDynamic())
             {
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
                     idisposableConversion,

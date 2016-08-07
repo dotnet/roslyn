@@ -8,7 +8,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -26,9 +25,6 @@
     </Compile>
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
     </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
@@ -65,9 +61,6 @@
     <Compile Include="AbstractTypeParameterChecker.cs" />
     <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Concord\Concord.csproj">

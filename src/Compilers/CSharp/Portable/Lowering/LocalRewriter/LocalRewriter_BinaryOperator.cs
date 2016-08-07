@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // false && right  ->  box(false)
                     // true || right   ->  box(true)
-                    return MakeConversion(loweredLeft, type, @checked: false);
+                    return MakeConversionNode(loweredLeft, type, @checked: false);
                 }
             }
 
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We might need to box.
                     BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, leftTruthOperator, negative: isAnd);
-                    var convertedLeft = MakeConversion(loweredLeft, type, @checked: false);
+                    var convertedLeft = MakeConversionNode(loweredLeft, type, @checked: false);
                     result = _factory.Conditional(leftTest, convertedLeft, op, type);
                 }
             }
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversion(loweredLeft, boolean, @checked: false);
+                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, LookupResultKind.Viable, boolean)
@@ -1712,11 +1712,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // This handles the case where we have a nullable user-defined struct type compared against null, eg:
             //
-            // struct S {} ... S? s = whatever; if (s != null) 
+            // struct S {} ... S? s = whatever; if (s != null)
             //
-            // If S does not define an overloaded != operator then this is lowered to s.HasValue.  
+            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
             //
-            // If the type already has a user-defined or built-in operator then comparing to null is 
+            // If the type already has a user-defined or built-in operator then comparing to null is
             // treated as a lifted equality operator.
 
             Debug.Assert(loweredLeft != null);
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: returnType);
             }
 
-            // arr?.Length == null   
+            // arr?.Length == null
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
             if (conditionalAccess != null &&
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
@@ -1831,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, method, default(LookupResultKind), method.ReturnType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
-                MakeConversion(syntax, call, ConversionKind.ExplicitReference, type, @checked: false) :
+                MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
                 call;
             return result;
         }
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (exprType.Kind == SymbolKind.TypeParameter)
                 {
                     // Box type parameters.
-                    rewrittenExpr = MakeConversion(syntax, rewrittenExpr, ConversionKind.Boxing, objectType, @checked: false);
+                    rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
                 }
                 else if (exprType.IsNullableType())
                 {

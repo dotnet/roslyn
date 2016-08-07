@@ -21,10 +21,17 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-rc\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.3-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
+    <ToolsetCompilerPackageVersion>1.3.2</ToolsetCompilerPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
+       Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
+  <PropertyGroup>
+    <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
   </PropertyGroup>
 
   <!-- 
@@ -76,19 +83,11 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
-    <DevEnvDir>$(VSINSTALLDIR)\Common7\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '12.0'">$(VS120COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '14.0'">$(VS140COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
-  </PropertyGroup>
-
   <PropertyGroup>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
 
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
     <VSLToolsPath Condition="'$(VSLToolsPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..'))</VSLToolsPath>
@@ -107,6 +106,15 @@
     <DebugType Condition="'$(OS)' == 'Windows_NT'">pdbonly</DebugType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(VSCOMNTOOLS)' == ''">
+    <VSCOMNTOOLS>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</VSCOMNTOOLS>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
+    <DevEnvDir>$(VSCOMNTOOLS)\..\IDE</DevEnvDir>
+    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
+  </PropertyGroup>
+  
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '12.0'">
       <PropertyGroup>
@@ -120,6 +128,22 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '15.0'">
+      <PropertyGroup>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <PropertyGroup>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25407</VisualStudioBuildToolsNuGetPackagePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.props" Condition="'$(OS)' == 'Windows_NT'" />
 
   <!-- Build reliability -->
   <PropertyGroup>
@@ -258,9 +282,8 @@
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
-
         -->
-        <NoWarn>1591</NoWarn>
+        <NoWarn>$(NoWarn);1591</NoWarn>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
@@ -285,18 +308,7 @@
   </Choose>
 
   <PropertyGroup>
-    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
-
-    <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
-
-  </PropertyGroup>
-
-  <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
-    <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
-    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 
   <!-- 

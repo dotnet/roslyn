@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -137,9 +136,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                // TODO: remove this once prototype is done
-                //       it is here just because it was convenient to add per workspace option change monitoring 
-                //       for incremental analyzer
+                // Changing the UseV2Engine option is a no-op as we have a single engine now.
                 if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
                 {
                     _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
@@ -330,9 +327,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnSolutionAdded(Solution solution)
             {
-                // first make sure full solution analysis is on.
-                _optionService.SetOptions(solution.Workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true));
-
                 var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
                 _eventProcessingQueue.ScheduleTask(() =>
                 {

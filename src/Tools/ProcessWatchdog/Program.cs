@@ -26,7 +26,7 @@ namespace ProcessWatchdog
         {
             if (_options.TimeLimit <= 0)
             {
-                ConsoleUtils.LogError(Resources.ErrorInvalidTimeLimit, _options.TimeLimit);
+                ConsoleUtils.LogError(ErrorCode.InvalidTimeLimit, Resources.ErrorInvalidTimeLimit, _options.TimeLimit);
                 return 1;
             }
 
@@ -34,20 +34,22 @@ namespace ProcessWatchdog
 
             if (_options.PollingInterval <= 0)
             {
-                ConsoleUtils.LogError(Resources.ErrorInvalidPollingInterval, _options.PollingInterval);
+                ConsoleUtils.LogError(ErrorCode.InvalidPollingInterval, Resources.ErrorInvalidPollingInterval, _options.PollingInterval);
                 return 1;
             }
 
             if (!File.Exists(_options.ProcDumpPath))
             {
-                ConsoleUtils.LogError(Resources.ErrorProcDumpNotFound, _options.ProcDumpPath);
+                ConsoleUtils.LogError(ErrorCode.ProcDumpNotFound, Resources.ErrorProcDumpNotFound, _options.ProcDumpPath);
                 return 1;
             }
 
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = _options.Executable,
-                Arguments = _options.Arguments
+                Arguments = _options.Arguments,
+                CreateNoWindow = true,
+                UseShellExecute = false
             };
 
             Process parentProcess = Process.Start(processStartInfo);
@@ -60,6 +62,7 @@ namespace ProcessWatchdog
                     if (DateTime.Now - parentProcess.StartTime > _timeLimit)
                     {
                         ConsoleUtils.LogError(
+                            ErrorCode.ProcessTimedOut,
                             Resources.ErrorProcessTimedOut,
                             _options.Executable,
                             parentProcess.Id,
@@ -67,7 +70,8 @@ namespace ProcessWatchdog
 
                         if (_options.Screenshot)
                         {
-                            ScreenshotSaver.SaveScreen(_options.Executable, _options.OutputFolder);
+                            string description = Path.GetFileNameWithoutExtension(_options.Executable);
+                            ScreenshotSaver.SaveScreen(description, _options.OutputFolder);
                         }
 
                         processTracker.TerminateAll();
@@ -90,8 +94,6 @@ namespace ProcessWatchdog
 
         private static void Main(string[] args)
         {
-            Banner();
-
             Parser.Default.ParseArguments<Options>(args)
                 .MapResult(
                     options => Run(options),
@@ -100,6 +102,12 @@ namespace ProcessWatchdog
 
         private  static int Run(Options options)
         {
+            // Don't display the banner until after the command line parser has
+            // validated the arguments, because when the command line arguments are
+            // invalid, the command line parse itself displays an banner. In that case,
+            // if we displayed our banner first, you would see two of them.
+            Banner();
+
             var program = new Program(options);
             return program.Run();
         }

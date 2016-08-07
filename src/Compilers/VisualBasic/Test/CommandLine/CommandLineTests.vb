@@ -5,6 +5,7 @@ Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
+Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Text.RegularExpressions
@@ -413,6 +414,38 @@ a.vb
                 args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
                 args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
             Next
+        End Sub
+
+        <Fact>
+        Public Sub ParseInstrumentTestNames()
+            Dim args As VisualBasicCommandLineArguments
+
+            args = DefaultParse({}, _baseDirectory)
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.Equal("", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+
+            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
         End Sub
 
         <Fact>
@@ -965,10 +998,26 @@ a.vb
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:15", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:15.0", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:default", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:latest", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "latest").WithLocation(1, 1))
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
+
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             ' overriding
             parsedArgs = DefaultParse({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, _baseDirectory)
@@ -978,23 +1027,23 @@ a.vb
             ' errors
             parsedArgs = DefaultParse({"/langVERSION", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("langversion", ":<number>"))
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/langVERSION+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("langversion", ":<number>"))
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION:8", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "8"))
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
 
             parsedArgs = DefaultParse({"/langVERSION:" & (LanguageVersion.VisualBasic12 + 1), "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", CStr(LanguageVersion.VisualBasic12 + 1)))
-            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+            Assert.Equal(LanguageVersion.VisualBasic15, parsedArgs.ParseOptions.LanguageVersion)
         End Sub
 
         <Fact>
@@ -2277,72 +2326,96 @@ a.vb
 
         <Fact>
         Public Sub Debug()
+            Dim platformPdbKind = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
+
             Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            Assert.False(parsedArgs.EmitPdb)
             parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb)
 
             parsedArgs = DefaultParse({"/debug:embedded", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded)
 
             parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
-            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
+            Assert.Equal(platformPdbKind, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
+
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", ""))
@@ -2359,6 +2432,98 @@ a.vb
             parsedArgs = DefaultParse({"/pdb:something", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pdb:something"))
         End Sub
+
+        <Fact>
+        Public Sub SourceLink()
+            Dim parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "sl.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:""s l.json""", "/debug:embedded", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink)
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+
+            parsedArgs = DefaultParse({"/sourcelink:sl.json", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_EndToEnd_EmbeddedPortable()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Class C 
+  Public Shared Sub Main()
+  End Sub
+End Class")
+
+            Dim sl = dir.CreateFile("sl.json")
+            sl.WriteAllText("{ ""documents"" : {} }")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:embedded", "/sourcelink:sl.json", "a.vb"})
+            Dim exitCode As Integer = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim peStream = File.OpenRead(Path.Combine(dir.Path, "a.exe"))
+
+            Using peReader = New PEReader(peStream)
+                Dim entry = peReader.ReadDebugDirectory().Single(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
+
+                Using mdProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry)
+                    Dim blob = mdProvider.GetMetadataReader().GetSourceLinkBlob()
+                    AssertEx.Equal(File.ReadAllBytes(sl.Path), blob)
+                End Using
+            End Using
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        <Fact>
+        Public Sub SourceLink_EndToEnd_Portable()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Class C 
+  Public Shared Sub Main()
+  End Sub
+End Class")
+
+            Dim sl = dir.CreateFile("sl.json")
+            sl.WriteAllText("{ ""documents"" : {} }")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/debug:portable", "/sourcelink:sl.json", "a.vb"})
+            Dim exitCode As Integer = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim pdbStream = File.OpenRead(Path.Combine(dir.Path, "a.pdb"))
+            Using mdProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+                Dim blob = mdProvider.GetMetadataReader().GetSourceLinkBlob()
+                AssertEx.Equal(File.ReadAllBytes(sl.Path), blob)
+            End Using
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
 
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
@@ -6650,12 +6815,12 @@ End Module"
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror.
             ' Promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
-            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror"}, expectedWarningCount:=0, expectedErrorCount:=1)
             Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror+.
-            ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
-            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
+            ' This doesn't work correctly currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
+            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedWarningCount:=0, expectedErrorCount:=1)
             Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror- keeps compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 as warnings.
@@ -6673,15 +6838,17 @@ End Module"
             Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 can be individually promoted to an error via /warnaserror+:.
-            ' This doesn't work correctly currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
-            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:bc42024"}, expectedWarningCount:=1, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:bc42024"}, expectedWarningCount:=3, expectedErrorCount:=1)
             Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
             Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom warning diagnostics Warning01 and Warning03 as well as compiler warning BC42024 can be individually promoted to errors via /warnaserror:.
-            ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
-            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=3)
             Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
             Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last flag on command line wins between /nowarn and /warnaserror.
@@ -6798,8 +6965,10 @@ End Module"
             Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
-            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=3)
             Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
             Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).

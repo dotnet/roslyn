@@ -543,6 +543,7 @@ class C : B
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""43"" />
         <entry offset=""0x27"" hidden=""true"" />
         <entry offset=""0x2d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
         <entry offset=""0x2e"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />

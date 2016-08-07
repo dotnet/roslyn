@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.Equal(2, output.Length);
             Assert.Equal("Microsoft (R) Roslyn C# Compiler version " + FileVersionInfo.GetVersionInfo(_host.GetType().Assembly.Location).FileVersion, output[0]);
             // "Type "#help" for more information."
-            Assert.Equal(FeaturesResources.TypeHelpForMoreInformation, output[1]);
+            Assert.Equal(FeaturesResources.Type_Sharphelp_for_more_information, output[1]);
 
             // remove logo:
             ClearOutput();
@@ -225,6 +226,8 @@ System.Console.Error.WriteLine(""error-\u7890!"");
                 return;
             }
 
+            var process = _host.TryGetProcess();
+
             Execute(@"
 int foo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
@@ -234,8 +237,10 @@ foo(0,1,2,3,4,5,6,7,8,9)
             ");
 
             Assert.Equal("", ReadOutputToEnd());
-            // Hosting process exited with exit code -1073741571.
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.HostingProcessExitedWithExitCode, -1073741571), ReadErrorOutputToEnd().Trim());
+
+            // Hosting process exited with exit code ###.
+            var errorOutput = ReadErrorOutputToEnd().Trim();
+            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.Hosting_process_exited_with_exit_code_0, process.ExitCode), errorOutput);
 
             Execute(@"1+1");
 
@@ -362,15 +367,14 @@ while(true) {}
         }
 
         [Fact]
-        public void AsyncExecuteFile_NonExistingFile()
+        public async Task AsyncExecuteFile_NonExistingFile()
         {
-            var task = _host.ExecuteFileAsync("non existing file");
-            task.Wait();
-            Assert.False(task.Result.Success);
+            var result = await _host.ExecuteFileAsync("non existing file");
+            Assert.False(result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.Contains(FeaturesResources.SpecifiedFileNotFound, errorOut, StringComparison.Ordinal);
-            Assert.Contains(FeaturesResources.SearchedInDirectory, errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.Specified_file_not_found, errorOut, StringComparison.Ordinal);
+            Assert.Contains(FeaturesResources.Searched_in_directory_colon, errorOut, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -1149,6 +1153,20 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
             Assert.True(error.StartsWith(new Exception().Message));
+        }
+
+        [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public void PreservingDeclarationsOnException()
+        {
+            Execute(@"int i = 100;");
+            Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
+            Execute(@"i + j + k");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
         }
 
         #region Submission result printing - null/void/value.

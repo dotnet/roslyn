@@ -2,9 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
@@ -898,7 +901,7 @@ class Program
     }
 }";
 
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5") });
 
             await TestAsync(code,
 @"
@@ -938,7 +941,7 @@ class Program
 }";
 
             await TestExactActionSetOfferedAsync(code,
-                new[] { string.Format(FeaturesResources.IntroduceLocalConstantFor, "5"), string.Format(FeaturesResources.IntroduceLocalConstantForAll, "5") });
+                new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
         }
 
         [WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
@@ -1696,7 +1699,7 @@ b
 c""|];
     }
 }",
-string.Format(FeaturesResources.IntroduceLocalConstantFor, @"@""a b c"""),
+string.Format(FeaturesResources.Introduce_local_constant_for_0, @"@""a b c"""),
 index: 2);
         }
 
@@ -2667,6 +2670,175 @@ class C
     Func<int, int> X { get; } = a => { const int {|Rename:V|} = 7; return V; };
 }";
             await TestAsync(code, expected, index: 2, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task Tuple_TuplesDisabled()
+        {
+            var code =
+@"class C
+{
+    var i = [|(1, ""hello"")|].ToString();
+}";
+
+            var expected =
+            @"class C
+{
+    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
+    var i = p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 0, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task ElementOfTuple()
+        {
+            var code =
+@"class C
+{
+    var i = (1, [|""hello""|]).ToString();
+}";
+
+var expected =
+@"class C
+{
+    private const string {|Rename:V|} = ""hello"";
+    var i = (1, V).ToString();
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task Tuple_IntroduceConstant()
+        {
+            var code =
+@"class C
+{
+    var i = [|(1, ""hello"")|].ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
+    var i = p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithNames_IntroduceConstant()
+        {
+            var code =
+@"class C
+{
+    var i = [|(a: 1, b: ""hello"")|].ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
+    var i = p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task Tuple_IntroduceConstantForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    var i = [|(1, ""hello"")|].ToString() + (1, ""hello"").ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
+    var i = p.ToString() + p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithNames_IntroduceConstantForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    var i = [|(a: 1, b: ""hello"")|].ToString() + (a: 1, b: ""hello"").ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
+    var i = p.ToString() + p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithDifferentNames_IntroduceConstantForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    var i = [|(a: 1, b: ""hello"")|].ToString() + (c: 1, d: ""hello"").ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
+    var i = p.ToString() + (c: 1, d: ""hello"").ToString();
+}";
+
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TupleWithOneName_IntroduceConstantForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    var i = [|(a: 1, ""hello"")|].ToString() + (a: 1, ""hello"").ToString();
+}";
+
+            var expected =
+@"class C
+{
+    private static readonly (int a, string) {|Rename:p|} = (a: 1, ""hello"");
+    var i = p.ToString() + p.ToString();
+}";
+
+            await TestAsync(code, expected, index: 1, compareTokens: false, parseOptions: TestOptions.Regular, withScriptOption: true);
+
+            // no third action available
+            await TestActionCountAsync(code, 2, parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task Tuple_IntroduceLocalForAllOccurrences()
+        {
+            // Cannot refactor tuple as local constant
+            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
+             TestAsync(
+                @"class C { void Foo() { Bar([|(1, ""hello"")|]); Bar((1, ""hello""); } }",
+                @"",
+                index: 3,
+                parseOptions: TestOptions.Regular,
+                withScriptOption: true)
+            );
         }
     }
 }

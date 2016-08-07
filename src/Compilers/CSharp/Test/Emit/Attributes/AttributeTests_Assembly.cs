@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -501,7 +500,7 @@ public class neutral
             string s = @"[assembly: System.Reflection.AssemblyInformationalVersion(""1.2.3garbage"")] public class C {}";
 
             var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
-            Assert.Empty(other.GetDiagnostics());
+            other.VerifyEmitDiagnostics();
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
 

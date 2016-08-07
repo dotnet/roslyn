@@ -1,13 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Tests
     Public Class OverrideCompletionProviderTests
@@ -17,8 +14,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
-            Return New OverrideCompletionProvider(TestWaitIndicator.Default)
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
+            Return New OverrideCompletionProvider()
         End Function
 
 #Region "CompletionItem tests"
@@ -569,7 +566,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -588,7 +585,9 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+            Await BaseVerifyWorkerAsync(
+                code, position, "[Class]", "Property CBase.Class As Integer",
+                SourceCodeKind.Regular, False, False, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1387,7 +1386,7 @@ End Class</a>
     End Function    
 End Class    
     
-Class Derived(Of X)
+Class Derived(Of X)    
     Inherits CFoo
     Public Overrides Function Something(Of X)(arg As X) As X
         Return MyBase.Something(arg)$$
@@ -1745,9 +1744,9 @@ public class C
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
 
-                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function

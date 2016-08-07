@@ -6,14 +6,17 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
-            ISymUnmanagedReader symReader,
+            ISymUnmanagedReader3 symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
             int methodToken,
             int methodVersion,
@@ -137,8 +140,61 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        /// <summary>
+        /// Get the (unprocessed) import strings for a given method.
+        /// </summary>
+        /// <remarks>
+        /// Doesn't consider forwarding.
+        /// 
+        /// CONSIDER: Dev12 doesn't just check the root scope - it digs around to find the best
+        /// match based on the IL offset and then walks up to the root scope (see PdbUtil::GetScopeFromOffset).
+        /// However, it's not clear that this matters, since imports can't be scoped in VB.  This is probably
+        /// just based on the way they were extracting locals and constants based on a specific scope.
+        /// 
+        /// Returns empty array if there are no import strings for the specified method.
+        /// </remarks>
+        private static ImmutableArray<string> GetImportStrings(ISymUnmanagedReader reader, int methodToken, int methodVersion)
+        {
+            var method = reader.GetMethodByVersion(methodToken, methodVersion);
+            if (method == null)
+            {
+                // In rare circumstances (only bad PDBs?) GetMethodByVersion can return null.
+                // If there's no debug info for the method, then no import strings are available.
+                return ImmutableArray<string>.Empty;
+            }
+
+            ISymUnmanagedScope rootScope = method.GetRootScope();
+            if (rootScope == null)
+            {
+                Debug.Assert(false, "Expected a root scope.");
+                return ImmutableArray<string>.Empty;
+            }
+
+            var childScopes = rootScope.GetChildren();
+            if (childScopes.Length == 0)
+            {
+                // It seems like there should always be at least one child scope, but we've
+                // seen PDBs where that is not the case.
+                return ImmutableArray<string>.Empty;
+            }
+
+            // As in NamespaceListWrapper::Init, we only consider namespaces in the first
+            // child of the root scope.
+            ISymUnmanagedScope firstChildScope = childScopes[0];
+
+            var namespaces = firstChildScope.GetNamespaces();
+            if (namespaces.Length == 0)
+            {
+                // It seems like there should always be at least one namespace (i.e. the global
+                // namespace), but we've seen PDBs where that is not the case.
+                return ImmutableArray<string>.Empty;
+            }
+
+            return ImmutableArray.CreateRange(namespaces.Select(n => n.GetName()));
+        }
+
         private static void ReadCSharpNativeImportsInfo(
-            ISymUnmanagedReader reader,
+            ISymUnmanagedReader3 reader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken,
             int methodVersion,
@@ -146,7 +202,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<ExternAliasRecord> externAliasRecords)
         {
             ImmutableArray<string> externAliasStrings;
-            var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
+
+            var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
+                methodToken,
+                KeyValuePair.Create(reader, methodVersion),
+                getMethodCustomDebugInfo: (token, arg) => arg.Key.GetCustomDebugInfoBytes(token, arg.Value),
+                getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
+                externAliasStrings: out externAliasStrings);
+
             Debug.Assert(importStringGroups.IsDefault == externAliasStrings.IsDefault);
 
             ArrayBuilder<ImmutableArray<ImportRecord>> importRecordGroupBuilder = null;
@@ -239,7 +302,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private static void ReadCSharpNativeCustomDebugInfo(
-            ISymUnmanagedReader reader,
+            ISymUnmanagedReader3 reader,
             int methodToken,
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> scopes,
@@ -264,13 +327,135 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     .SelectAsArray(s => new HoistedLocalScopeRecord(s.StartOffset, s.EndOffset - s.StartOffset + 1));
             }
 
-            CustomDebugInfoReader.GetCSharpDynamicLocalInfo(
+            GetCSharpDynamicLocalInfo(
                 customDebugInfoBytes,
                 methodToken,
                 methodVersion,
                 scopes,
                 out dynamicLocalMap,
                 out dynamicLocalConstantMap);
+        }
+
+        /// <exception cref="InvalidOperationException">Bad data.</exception>
+        private static void GetCSharpDynamicLocalInfo(
+            byte[] customDebugInfo,
+            int methodToken,
+            int methodVersion,
+            IEnumerable<ISymUnmanagedScope> scopes,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
+        {
+            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
+            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+
+            var record = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.DynamicLocals);
+            if (record.IsDefault)
+            {
+                return;
+            }
+
+            ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
+            ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
+
+            var dynamicLocals = RemoveAmbiguousLocals(CustomDebugInfoReader.DecodeDynamicLocalsRecord(record), scopes);
+            foreach (var dynamicLocal in dynamicLocals)
+            {
+                int slot = dynamicLocal.SlotId;
+                var flags = GetFlags(dynamicLocal);
+                if (slot < 0)
+                {
+                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
+                    constantBuilder[dynamicLocal.Name] = flags;
+                }
+                else
+                {
+                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
+                    localBuilder[slot] = flags;
+                }
+            }
+
+            if (localBuilder != null)
+            {
+                dynamicLocalMap = localBuilder.ToImmutable();
+            }
+
+            if (constantBuilder != null)
+            {
+                dynamicLocalConstantMap = constantBuilder.ToImmutable();
+            }
+        }
+
+        private static ImmutableArray<bool> GetFlags(DynamicLocalInfo bucket)
+        {
+            int flagCount = bucket.FlagCount;
+            ulong flags = bucket.Flags;
+            var builder = ArrayBuilder<bool>.GetInstance(flagCount);
+            for (int i = 0; i < flagCount; i++)
+            {
+                builder.Add((flags & (1u << i)) != 0);
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Dynamic CDI encodes slot id and name for each dynamic local variable, but only name for a constant. 
+        /// Constants have slot id set to 0. As a result there is a potential for ambiguity. If a variable in a slot 0
+        /// and a constant defined anywhere in the method body have the same name we can't say which one 
+        /// the dynamic flags belong to (if there is a dynamic record for at least one of them).
+        /// 
+        /// This method removes ambiguous dynamic records.
+        /// </summary>
+        private static ImmutableArray<DynamicLocalInfo> RemoveAmbiguousLocals(
+            ImmutableArray<DynamicLocalInfo> dynamicLocals,
+            IEnumerable<ISymUnmanagedScope> scopes)
+        {
+            const byte DuplicateName = 0;
+            const byte VariableName = 1;
+            const byte ConstantName = 2;
+
+            var localNames = PooledDictionary<string, byte>.GetInstance();
+
+            var firstLocal = scopes.SelectMany(scope => scope.GetLocals()).FirstOrDefault(variable => variable.GetSlot() == 0);
+            if (firstLocal != null)
+            {
+                localNames.Add(firstLocal.GetName(), VariableName);
+            }
+
+            foreach (var scope in scopes)
+            {
+                foreach (var constant in scope.GetConstants())
+                {
+                    string name = constant.GetName();
+                    localNames[name] = localNames.ContainsKey(name) ? DuplicateName : ConstantName;
+                }
+            }
+
+            var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance();
+            foreach (var dynamicLocal in dynamicLocals)
+            {
+                int slot = dynamicLocal.SlotId;
+                var name = dynamicLocal.Name;
+                if (slot == 0)
+                {
+                    byte localOrConstant;
+                    localNames.TryGetValue(name, out localOrConstant);
+                    if (localOrConstant == DuplicateName)
+                    {
+                        continue;
+                    }
+
+                    if (localOrConstant == ConstantName)
+                    {
+                        slot = -1;
+                    }
+                }
+
+                builder.Add(new DynamicLocalInfo(dynamicLocal.FlagCount, dynamicLocal.Flags, slot, name));
+            }
+
+            var result = builder.ToImmutableAndFree();
+            localNames.Free();
+            return result;
         }
 
         private static void ReadVisualBasicImportsDebugInfo(
@@ -282,7 +467,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             importRecordGroups = ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
 
-            var importStrings = reader.GetVisualBasicImportStrings(methodToken, methodVersion);
+            var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
+                methodToken,  
+                KeyValuePair.Create(reader, methodVersion),
+                (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
+
             if (importStrings.IsDefault)
             {
                 defaultNamespaceName = "";
@@ -302,7 +491,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     string alias = null;
                     string target = null;
                     ImportTargetKind kind = 0;
-                    ImportScope scope = 0;
+                    VBImportScopeKind scope = 0;
 
                     if (!CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out target, out kind, out scope))
                     {
@@ -327,17 +516,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 else
                 {
                     ImportRecord importRecord;
-                    ImportScope scope = 0;
+                    VBImportScopeKind scope = 0;
 
                     if (TryCreateImportRecordFromVisualBasicImportString(importString, out importRecord, out scope))
                     {
-                        if (scope == ImportScope.Project)
+                        if (scope == VBImportScopeKind.Project)
                         {
                             projectLevelImportRecords.Add(importRecord);
                         }
                         else
                         {
-                            Debug.Assert(scope == ImportScope.File || scope == ImportScope.Unspecified);
+                            Debug.Assert(scope == VBImportScopeKind.File || scope == VBImportScopeKind.Unspecified);
                             fileLevelImportRecords.Add(importRecord);
                         }
                     }
@@ -355,7 +544,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             defaultNamespaceName = defaultNamespaceName ?? "";
         }
 
-        private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out ImportScope scope)
+        private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out VBImportScopeKind scope)
         {
             ImportTargetKind targetKind;
             string alias;
@@ -397,7 +586,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     string name = constant.GetName();
                     object rawValue = constant.GetValue();
-                    var signature = constant.GetSignature();
+                    var signature = constant.GetSignature().ToImmutableArray();
 
                     TTypeSymbol type;
                     try

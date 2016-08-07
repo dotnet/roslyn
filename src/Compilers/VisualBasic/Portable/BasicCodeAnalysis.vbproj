@@ -16,6 +16,7 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -34,14 +35,14 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>false</Optimize>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <NoWarn>42014</NoWarn>
+    <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <NoWarn>42014</NoWarn>
+    <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
@@ -382,6 +383,7 @@
     <Compile Include="Emit\SpecializedNestedTypeReference.vb" />
     <Compile Include="Emit\SymbolAdapter.vb" />
     <Compile Include="Emit\SymbolTranslator.vb" />
+    <Compile Include="Emit\SynthesizedPrivateImplementationDetailsSharedConstructor.vb" />
     <Compile Include="Emit\SynthesizedStaticLocalBackingFieldAdapter.vb" />
     <Compile Include="Emit\TypeMemberReference.vb" />
     <Compile Include="Emit\TypeParameterSymbolAdapter.vb" />
@@ -420,6 +422,11 @@
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_ConditionalExpresion.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_Conversion.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter_UnaryOperator.vb" />
+    <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.vb" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector.vb" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.vb" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.vb" />
+    <Compile Include="Lowering\Instrumentation\Instrumenter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.IteratorMethodToClassRewriter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorStateMachine.vb" />
@@ -477,7 +484,6 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_RedimClause.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Return.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SelectCase.vb" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SyncLock.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Throw.vb" />

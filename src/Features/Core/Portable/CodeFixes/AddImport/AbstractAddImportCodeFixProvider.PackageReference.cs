@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public override string Title => _versionOpt == null
                     ? string.Format(FeaturesResources.Find_and_install_latest_version_of_0, _packageName)
                     : _isLocal
-                        ? string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_2, _packageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion))
+                        ? string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_colon_2, _packageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion))
                         : string.Format(FeaturesResources.Install_0_1, _packageName, _versionOpt);
 
                 internal override bool ApplyDuringTests => true;

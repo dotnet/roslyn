@@ -431,22 +431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the symbol information for the property of a sub-property pattern.
-        /// </summary>
-        public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetSymbolInfo(node, cancellationToken);
-            }
-            else
-            {
-                return SymbolInfo.None;
-            }
-        }
-
-        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -716,6 +700,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static ForEachStatementInfo GetForEachStatementInfo(this SemanticModel semanticModel, ForEachStatementSyntax forEachStatement)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetForEachStatementInfo(forEachStatement);
+            }
+            else
+            {
+                return default(ForEachStatementInfo);
+            }
+        }
+
+        public static ForEachStatementInfo GetForEachStatementInfo(this SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1220,6 +1217,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, SingleVariableDesignationSyntax designationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(designationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a variable declarator syntax, get the corresponding symbol.
+        /// </summary>
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1229,16 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a declaration pattern syntax, get the corresponding symbol.
         /// </summary>
-        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-        }
-
-        /// <summary>
-        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
-        /// </summary>
-        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public static ILocalSymbol GetDeclaredSymbol(this SemanticModel semanticModel, DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

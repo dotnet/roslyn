@@ -2232,7 +2232,7 @@ public class MyClass {
         return 1;
     }
 
-}")
+}", parseOptions: TestOptions.Regular6)
                 .VerifyDiagnostics(
                 // (7,22): error CS0118: 'myTest' is a 'variable' but is used like a 'type'
                 Diagnostic(ErrorCode.ERR_BadSKknown, "myTest").WithArguments("myTest", "variable", "type"));
@@ -4038,8 +4038,10 @@ public class iii
       }
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
+            DiagnosticsUtils.VerifyErrorCodes(
+                comp,
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
         }
 
         [Fact]
@@ -4069,9 +4071,10 @@ namespace x
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-    //             case 1:   // CS0152, two case 1 statements
-    Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13));
+                // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
+                //             case 1:   // CS0152, two case 1 statements
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13)
+                );
         }
 
         [Fact]
@@ -5333,7 +5336,10 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
     // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25)
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    // (13,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(1); 
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
                 );
         }
 
@@ -5364,6 +5370,39 @@ class Program
     // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (Exception) when (false) 
     Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    // (12,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(x);
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void CS0162WRN_UnreachableCode_Filter_ConstantCondition3()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void M()
+    {
+        int x;
+        try { }
+        catch (Exception) when (true) 
+        {
+            Console.WriteLine(x);
+        }
+    }
+}
+";
+            // Unlike an unreachable code in if statement block we don't allow using
+            // a variable that's not definitely assigned. The reason why we allow it in an if statement
+            // is to make conditional compilation easier. Such scenario doesn't apply to filters.
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    //         catch (Exception) when (true) 
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
@@ -7160,30 +7199,71 @@ public class MyList<T>
         [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
         public void CS0201ERR_IllegalStatement2()
         {
+            var text = @"
+class A
+{
+    public static int Main()
+    {
+        (a) => a;
+        (a, b) => { };
+        int x = 0; int y = 0;
+        x + y; x == 1;
+    }
+}";
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
+        }
+
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        public void CS0201ERR_IllegalStatement2WithCSharp6()
+        {
             var test = @"
 class A
 {
     public static int Main()
     {
         (a) => a;
-        (a, b) =>
-        {
-        };
+        (a, b) => { };
         int x = 0; int y = 0;
         x + y; x == 1;
     }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 6, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 7, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 16 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ReturnExpected, Line = 4, Column = 23 }
-                });
+            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
+            comp.VerifyDiagnostics(
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
         }
 
-        [Fact()]
+        [Fact]
         public void CS0202ERR_BadGetEnumerator()
         {
             var text = @"
@@ -11438,15 +11518,15 @@ class A
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?"),
-// (6,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var x = 0; // CS0822.cs
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var x = 0;"),
-// (7,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (int?)null + x;")
+                // (6,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var x = 0; // CS0822.cs
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var x = 0").WithLocation(6, 15),
+                // (7,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var y = (int?)null + x").WithLocation(7, 15),
+                // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23)
                 );
         }
 
@@ -22227,7 +22307,7 @@ class Test
         var p = null ?? null; //CS0019
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"));
         }
@@ -22251,7 +22331,7 @@ public class MyClass
         var test = new Top<int>.Outer<string>();
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (13,33): error CS0122: 'Top<int>.Outer<string>' is inaccessible due to its protection level
                 //          var test = new Top<int>.Outer<string>();
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Top<int>.Outer<string>()").WithArguments("Top<int>.Outer<string>"));
@@ -22277,7 +22357,7 @@ class Test
         Method1(10, 20); //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Method1(int, long)' and 'Test.Method1(long, int)'
                 //          Method1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method1").WithArguments("Test.Method1(int, long)", "Test.Method1(long, int)"));
@@ -22306,7 +22386,7 @@ class Test
         var i1 = new Class1(10, 20);  //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'Class1.Class1(int, long)' and 'Class1.Class1(long, int)'
                 //          new Class1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Class1").WithArguments("Class1.Class1(int, long)", "Class1.Class1(long, int)"));
@@ -22672,7 +22752,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
     //         var x = 123 ?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
@@ -22741,7 +22821,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
     //         var x1 = p.P1 ?.ToString;
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
@@ -22779,7 +22859,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22822,7 +22902,7 @@ class Program
 }
 
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
     //         var p = intPtr?.ToPointer();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
@@ -23044,7 +23124,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),

@@ -362,6 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifyConstantValueMatches(attribute.DecodeDecimalConstantValue(), ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         /// <summary>
@@ -457,8 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, 
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
+            }
+
+            if (Type.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));
             }
         }
 

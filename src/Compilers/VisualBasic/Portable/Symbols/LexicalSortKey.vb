@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Debug.Assert(location.PossiblyEmbeddedOrMySourceSpan.Start >= 0)
 
-                Dim tree = DirectCast(location.SourceTree, VisualBasicSyntaxTree)
+                Dim tree = DirectCast(location.PossiblyEmbeddedOrMySourceTree, VisualBasicSyntaxTree)
                 Debug.Assert(tree Is Nothing OrElse tree.GetEmbeddedKind = location.EmbeddedKind)
 
                 Dim treeKind As SyntaxTreeKind = GetEmbeddedKind(tree)

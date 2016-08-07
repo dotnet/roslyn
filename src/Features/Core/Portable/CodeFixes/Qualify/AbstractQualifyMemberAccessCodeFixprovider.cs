@@ -1,8 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -37,11 +35,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Qualify
             }
 
             var generator = document.GetLanguageService<SyntaxGenerator>();
-            var codeAction = new QualifyMemberAccessCodeAction(
-                FeaturesResources.AddQualification,
+            var codeAction = new CodeAction.DocumentChangeAction(
+                FeaturesResources.Add_qualification,
                 c => document.ReplaceNodeAsync(node, GetReplacementSyntax(node, generator), c),
-                FeaturesResources.AddQualification);
+                FeaturesResources.Add_qualification);
             context.RegisterCodeFix(codeAction, context.Diagnostics);
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            return BatchFixAllProvider.Instance;
         }
 
         private static SyntaxNode GetReplacementSyntax(SyntaxNode node, SyntaxGenerator generator)
@@ -52,14 +55,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Qualify
                     node.WithLeadingTrivia())
                 .WithLeadingTrivia(node.GetLeadingTrivia());
             return qualifiedAccess;
-        }
-
-        private class QualifyMemberAccessCodeAction : CodeAction.DocumentChangeAction
-        {
-            public QualifyMemberAccessCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-                : base(title, createChangedDocument, id)
-            {
-            }
         }
     }
 }

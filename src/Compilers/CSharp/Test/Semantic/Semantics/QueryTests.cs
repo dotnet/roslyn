@@ -580,7 +580,7 @@ class Program
                  select n1;
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
             // (6,29): error CS0103: The name 'nums' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nums").WithArguments("nums")
                 );
@@ -600,7 +600,7 @@ class Program
         var query = from int i in new int[]{ 1 } join null on true equals true select i; //CS1031
     }
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
                 // (8,55): error CS1031: Type expected
                 //         var query = from int i in new int[]{ 1 } join null on true equals true select i; //CS1031
                 Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
@@ -2093,6 +2093,153 @@ class Program
                 //             select x.ToString();
                 Diagnostic(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, "x").WithArguments("x", "int")
                 );
+        }
+
+        [Fact]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void Bug204561_01()
+        {
+            string sourceCode =
+@"
+class C
+{
+    public static void Main()
+    {
+        var x01 = from a in Test select a + 1;
+    }
+}
+
+public class Test
+{
+}
+
+public static class TestExtensions
+{
+    public static Test Select<T>(this Test x, System.Func<int, T> selector)
+    {
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+                
+            compilation.VerifyDiagnostics(
+                // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
+                //         var x01 = from a in Test select a + 1;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void Bug204561_02()
+        {
+            string sourceCode =
+@"
+class C
+{
+    public static void Main()
+    {
+        var y02 = from a in Test select a + 1;
+        var x02 = from a in Test where a > 0 select a + 1;
+    }
+}
+
+class Test
+{
+    public static Test Select<T>(System.Func<int, T> selector)
+    {
+        return null;
+    }
+}
+
+static class TestExtensions
+{
+    public static Test Where(this Test x, System.Func<int, bool> filter)
+    {
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+
+            compilation.VerifyDiagnostics(
+                // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
+                //         var x02 = from a in Test where a > 0 select a + 1;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34),
+                // (7,46): error CS0176: Member 'Test.Select<int>(Func<int, int>)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         var x02 = from a in Test where a > 0 select a + 1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "select a + 1").WithArguments("Test.Select<int>(System.Func<int, int>)").WithLocation(7, 46)
+                );
+        }
+        
+        [Fact]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void Bug204561_03()
+        {
+            string sourceCode =
+@"
+class C
+{
+    public static void Main()
+    {
+        var y03 = from a in Test select a + 1;
+        var x03 = from a in Test where a > 0 select a + 1;
+    }
+}
+
+class Test
+{
+}
+
+static class TestExtensions
+{
+    public static Test Select<T>(this Test x, System.Func<int, T> selector)
+    {
+        return null;
+    }
+
+    public static Test Where(this Test x, System.Func<int, bool> filter)
+    {
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+
+            compilation.VerifyDiagnostics(
+                // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
+                //         var y03 = from a in Test select a + 1;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(6, 34),
+                // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
+                //         var x03 = from a in Test where a > 0 select a + 1;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(204561, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=204561&_a=edit")]
+        public void Bug204561_04()
+        {
+            string sourceCode =
+@"
+class C
+{
+    public static void Main()
+    {
+        var x04 = from a in Test select a + 1;
+    }
+}
+
+class Test
+{
+    public static Test Select<T>(System.Func<int, T> selector)
+    {
+        System.Console.WriteLine(""Select"");
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: "Select");
         }
     }
 }

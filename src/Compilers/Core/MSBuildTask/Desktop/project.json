@@ -1,10 +1,11 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "Roslyn.Microsoft.Build": "0.0.2"
+  },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
-    "win7": { },
-    "win7-anycpu": { }
+    "win7": { }
   }
 }

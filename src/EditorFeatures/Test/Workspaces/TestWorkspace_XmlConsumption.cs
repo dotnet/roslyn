@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             public override bool Equals(object obj)
             {
-                return ReferenceEquals(this, obj);
+                return (object)this == obj;
             }
 
             public override int GetHashCode()

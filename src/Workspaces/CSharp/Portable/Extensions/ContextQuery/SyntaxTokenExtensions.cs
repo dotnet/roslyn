@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // using (expr)
             //   |
 
+            // fixed (void* v = &expr)
+            //   |
+
             // lock (expr)
             //   |
 
@@ -167,10 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 var parent = token.Parent;
                 if (parent.IsKind(SyntaxKind.ForStatement) ||
                     parent.IsKind(SyntaxKind.ForEachStatement) ||
+                    parent.IsKind(SyntaxKind.ForEachComponentStatement) ||
                     parent.IsKind(SyntaxKind.WhileStatement) ||
                     parent.IsKind(SyntaxKind.IfStatement) ||
                     parent.IsKind(SyntaxKind.LockStatement) ||
-                    parent.IsKind(SyntaxKind.UsingStatement))
+                    parent.IsKind(SyntaxKind.UsingStatement) ||
+                    parent.IsKind(SyntaxKind.FixedStatement))
                 {
                     return true;
                 }

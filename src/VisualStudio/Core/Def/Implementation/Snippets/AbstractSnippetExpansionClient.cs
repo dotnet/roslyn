@@ -174,8 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-                        var tabSize = optionService.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                        var tabSize = document.Options.GetOption(FormattingOptions.TabSize);
                         indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
                     }
                     else
@@ -525,8 +524,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var optionService = documentWithImports.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            var placeSystemNamespaceFirst = optionService.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, documentWithImports.Project.Language);
+            var placeSystemNamespaceFirst = documentWithImports.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst);
             documentWithImports = AddImports(documentWithImports, snippetNode, placeSystemNamespaceFirst, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
@@ -570,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine)
+                    string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
                     + Environment.NewLine + Environment.NewLine
                     + string.Join(Environment.NewLine, failedReferenceAdditions),
                     severity: NotificationSeverity.Warning);
