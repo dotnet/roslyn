@@ -374,7 +374,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within)
         {
             var systemAttributeType = compilation.AttributeType();
-
+            
+            HashSet<string> propertyNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (var type in attributeSymbol.GetBaseTypesAndThis())
             {
                 if (type.Equals(systemAttributeType))
@@ -385,8 +386,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var member in type.GetMembers())
                 {
                     var namedParameter = IsAttributeNamedParameter(member, within ?? compilation.Assembly);
-                    if (namedParameter != null)
+                    if (namedParameter != null && !propertyNames.Contains(namedParameter.Name))
                     {
+                        propertyNames.Add(namedParameter.Name);
                         yield return namedParameter;
                     }
                 }
