@@ -12,6 +12,8 @@ Imports Roslyn.Test.Utilities
 Public Class ParseErrorTests
     Inherits BasicTestBase
 
+    Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
+
 #Region "Targeted Error Tests - please arrange tests in the order of error code"
 
     <Fact()>
@@ -2532,17 +2534,40 @@ End Module
     End Sub
 
     <Fact()>
-    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue()
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
+        Dim useOpts = VisualBasicParseOptions.Default
+        If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) = False Then
+            Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
+        End If
         Dim code = <![CDATA[
                 Class C1
                     Function f1(Optional ByVal c1 )
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
-                                 <error id="30201"/>
-                             </errors>)
+        ParseAndVerify(code, useOpts, expectedErrors:=<errors>
+                                                          <error id="30812"/>
+                                                          <error id="30201"/>
+                                                      </errors>)
+    End Sub
+
+    <Fact()>
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
+
+        Dim useOpts = _ImplicitDefaultOptionalParameter_
+        If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is Not present")
+        End If
+        Dim code = <![CDATA[
+                Class C1
+                    Function f1(Optional ByVal c1 )
+                    End Function
+                End Class
+            ]]>.Value
+
+        Dim diags = Parse(code, useOpts).GetDiagnostics.ToImmutableArrayOrEmpty
+
+        AssertNoErrors(diags)
     End Sub
 
     <Fact()>
