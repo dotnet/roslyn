@@ -355,6 +355,31 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp),Trait("a","b")]
+        public async Task TestAttributeWithOverriddenProperty()
+        {
+            var markup = @"
+class BaseAttribute : System.Attribute
+{
+    public virtual int foo { get; set; }
+}
+class DerivedAttribute : BaseAttribute
+{
+    public override int foo { get; set; }
+}
+[[|Derived($$|])]
+class D
+{
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            // TODO: Bug 12319: Enable tests for script when this is fixed.
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithInvalidPropertyStatic()
         {
