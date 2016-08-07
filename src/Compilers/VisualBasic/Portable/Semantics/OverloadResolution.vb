@@ -1954,23 +1954,33 @@ ResolutionComplete:
                 End If
 
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
-                Select Case cmp
-                    Case ApplicabilityComparisonResult.LeftIsMoreApplicable
-                        leftHasMoreApplicableParameterType = True
-                        If rightHasMoreApplicableParameterType Then Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
-                        equallyApplicable = False
 
-                    Case ApplicabilityComparisonResult.RightIsMoreApplicable
-                        rightHasMoreApplicableParameterType = True
-                        If leftHasMoreApplicableParameterType Then Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
-                        equallyApplicable = False
+                If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
 
-                    Case ApplicabilityComparisonResult.Undefined
-                        equallyApplicable = False
+                    leftHasMoreApplicableParameterType = True
 
-                    Case Else
-                        Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
-                End Select
+                    If rightHasMoreApplicableParameterType Then
+                        Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
+                    End If
+
+                    equallyApplicable = False
+
+                ElseIf cmp = ApplicabilityComparisonResult.RightIsMoreApplicable Then
+                    rightHasMoreApplicableParameterType = True
+
+                    If leftHasMoreApplicableParameterType Then
+                        Return ApplicabilityComparisonResult.Undefined ' Neither is more applicable
+                    End If
+
+                    equallyApplicable = False
+
+                ElseIf cmp = ApplicabilityComparisonResult.Undefined Then
+                    equallyApplicable = False
+
+                Else
+                    Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
+                End If
+
             Next
 
             Debug.Assert(Not (leftHasMoreApplicableParameterType AndAlso rightHasMoreApplicableParameterType))
