@@ -109,7 +109,6 @@
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
-    <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\ImportChain.cs" />
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />

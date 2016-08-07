@@ -1639,6 +1639,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,28): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         var (x1, x2) = (1, x1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 28),
                 // (6,28): error CS0165: Use of unassigned local variable 'x1'
                 //         var (x1, x2) = (1, x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 28)
@@ -1659,6 +1662,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,25): error CS0841: Cannot use local variable 'x2' before it is declared
+                //         var (x1, x2) = (x2, 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 25),
                 // (6,25): error CS0165: Use of unassigned local variable 'x2'
                 //         var (x1, x2) = (x2, 2);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
@@ -1910,6 +1916,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,33): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         for (var (x1, x2) = (1, x1); ; ) { }
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 33),
                 // (6,33): error CS0165: Use of unassigned local variable 'x1'
                 //         for (var (x1, x2) = (1, x1); ; ) { }
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 33)
@@ -1930,6 +1939,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,30): error CS0841: Cannot use local variable 'x2' before it is declared
+                //         for (var (x1, x2) = (x2, 2); ; ) { }
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 30),
                 // (6,30): error CS0165: Use of unassigned local variable 'x2'
                 //         for (var (x1, x2) = (x2, 2); ; ) { }
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 30)
@@ -2185,6 +2197,30 @@ class C
 
             var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationWithCircularity3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var (x1, x2) = (M(out x2), M(out x1));
+    }
+    static T M<T>(out T x) { x = default(T); return x; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,31): error CS0841: Cannot use local variable 'x2' before it is declared
+                //         var (x1, x2) = (M(out x2), M(out x1));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 31),
+                // (6,42): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         var (x1, x2) = (M(out x2), M(out x1));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 42)
+                );
         }
     }
 }

@@ -116,9 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationExpressionSyntax declarationExpression;
                 if (identifierToken.IsIdentifierOfOutVariableDeclaration(out declarationExpression))
                 {
-                    if (declarationExpression.Type().IsVar)
+                    if (typeSyntax.IsVar)
                     {
-                        return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
+                        var invocation = declarationExpression
+                            .Parent // ArgumentSyntax
+                            .Parent // ArgumentListSyntax
+                            .Parent; // invocation of some kind
+                        return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind, invocation);
                     }
                 }
 
@@ -478,15 +482,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(parentBinder != null);
 #endif 
 
-                var newBinder = new ImplicitlyTypedLocalBinder(initializerBinder ?? this.binder, this);
+                var newBinder = initializerBinder ?? this.binder;
                 var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
-                if (initializerOpt != null)
-                {
-                    return initializerOpt.Type;
-                }
-
-                return null;
+                return initializerOpt?.Type;
             }
+
+            internal override SyntaxNode ForbiddenZone => _initializer;
 
             /// <summary>
             /// Determine the constant value of this local and the corresponding diagnostics.
@@ -575,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // in the factory method call for this symbol.
                 return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, _collection);
             }
+
+            internal override SyntaxNode ForbiddenZone => _collection;
         }
 
         /// <summary>
@@ -582,12 +585,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private class PossiblyImplicitlyTypedOutVarLocalSymbol : SourceLocalSymbol
         {
+            private readonly CSharpSyntaxNode _containingInvocation;
+
             public PossiblyImplicitlyTypedOutVarLocalSymbol(
                 Symbol containingSymbol,
                 Binder binder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
-                LocalDeclarationKind declarationKind)
+                LocalDeclarationKind declarationKind,
+                CSharpSyntaxNode containingInvocation)
             : base(containingSymbol, binder, true, typeSyntax, identifierToken, declarationKind)
             {
 #if DEBUG
@@ -597,40 +603,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                  binder.ScopeDesignator == declarationExpression.Parent.Parent :
                                  binder.ScopeDesignator.Contains(declarationExpression.Parent.Parent.Parent));
 #endif
+                _containingInvocation = containingInvocation;
             }
+
+            internal override SyntaxNode ForbiddenZone => _containingInvocation;
+
+            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 // Try binding immediately enclosing invocation expression, this should force the inference.
-
-                CSharpSyntaxNode invocation = (CSharpSyntaxNode)IdentifierToken.
-                                                                Parent. // SingleVariableDesignationSyntax
-                                                                Parent. // TypedVariableComponentSyntax
-                                                                Parent. // DeclarationExpressionSyntax
-                                                                Parent. // ArgumentSyntax
-                                                                Parent. // ArgumentListSyntax
-                                                                Parent; // invocation/constructor initializer
-
                 TypeSymbol result;
-
-                switch (invocation.Kind())
+                switch (_containingInvocation.Kind())
                 {
                     case SyntaxKind.InvocationExpression:
                     case SyntaxKind.ObjectCreationExpression:
-                        this.binder.BindExpression((ExpressionSyntax)invocation, diagnostics);
+                        this.binder.BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
 
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
-                        this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)invocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
+                        this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(invocation.Kind());
+                        throw ExceptionUtilities.UnexpectedValue(_containingInvocation.Kind());
                 }
             }
         }
@@ -669,15 +670,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         var localDecl = (DeconstructionDeclarationStatementSyntax)statement;
                         var localBinder = this.binder.GetBinder(localDecl);
-                        var newLocalBinder = new ImplicitlyTypedLocalBinder(localBinder, this);
-                        newLocalBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
+                        localBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)statement;
                         var forBinder = this.binder.GetBinder(forStatement);
-                        var newForBinder = new ImplicitlyTypedLocalBinder(forBinder, this);
-                        newForBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
+                        forBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachComponentStatement:
@@ -692,6 +691,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol result = this._type;
                 Debug.Assert((object)result != null);
                 return result;
+            }
+
+            internal override SyntaxNode ForbiddenZone
+            {
+                get
+                {
+                    SyntaxNode statement;
+                    bool isDeconstruction = SyntaxFacts.IsDeconstructionIdentifier(IdentifierToken, out statement);
+                    Debug.Assert(isDeconstruction);
+                    switch (statement.Kind())
+                    {
+                        case SyntaxKind.DeconstructionDeclarationStatement:
+                            var localDecl = (DeconstructionDeclarationStatementSyntax)statement;
+                            return localDecl.Assignment.Value;
+
+                        case SyntaxKind.ForStatement:
+                            var forStatement = (ForStatementSyntax)statement;
+                            return forStatement.Deconstruction;
+
+                        case SyntaxKind.ForEachComponentStatement:
+                            var forEachStatement = (ForEachComponentStatementSyntax)statement;
+                            return forEachStatement.Expression;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(statement.Kind());
+                    }
+                }
             }
         }
     }
