@@ -25,8 +25,6 @@ namespace Microsoft.Cci
             this.Visit(arrayTypeReference.GetElementType(Context));
         }
 
-        public abstract void Visit(IAssembly assembly);
-
         public void Visit(IEnumerable<IAssemblyReference> assemblyReferences)
         {
             foreach (IAssemblyReference assemblyReference in assemblyReferences)

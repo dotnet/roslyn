@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _additionalTypes;
         }
 
-        IEnumerable<Cci.IFileReference> Cci.IAssembly.GetFiles(EmitContext context)
+        public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
         {
             if (_lazyFiles.IsDefault)
             {

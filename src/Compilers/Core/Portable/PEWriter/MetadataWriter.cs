@@ -675,13 +675,8 @@ namespace Microsoft.Cci
         private void CreateInitialFileRefIndex()
         {
             Debug.Assert(!_tableIndicesAreComplete);
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly == null)
-            {
-                return;
-            }
-
-            foreach (IFileReference fileRef in assembly.GetFiles(Context))
+            
+            foreach (IFileReference fileRef in module.GetFiles(Context))
             {
                 string key = fileRef.FileName;
                 if (!_fileRefIndex.ContainsKey(key))

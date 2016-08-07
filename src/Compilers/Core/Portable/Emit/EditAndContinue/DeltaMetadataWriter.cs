@@ -1420,14 +1420,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
-            public override void Visit(IAssembly assembly)
-            {
-                this.Visit((CommonPEModuleBuilder)assembly);
-            }
-
             public override void Visit(CommonPEModuleBuilder module)
             {
-                this.module = module;
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
             }
 

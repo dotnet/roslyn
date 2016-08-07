@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me._additionalTypes
         End Function
 
-        Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
+        Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
             If _lazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try

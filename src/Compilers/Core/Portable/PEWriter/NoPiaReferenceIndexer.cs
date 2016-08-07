@@ -16,19 +16,10 @@ namespace Microsoft.Cci
         internal NoPiaReferenceIndexer(EmitContext context)
             : base(context)
         {
-            this.module = context.Module;
-        }
-
-        public override void Visit(IAssembly assembly)
-        {
-            Debug.Assert(assembly == module);
-            this.Visit((CommonPEModuleBuilder)assembly);
         }
 
         public override void Visit(CommonPEModuleBuilder module)
         {
-            Debug.Assert(this.module == module);
-
             //EDMAURER visit these assembly-level attributes even when producing a module.
             //They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
 
