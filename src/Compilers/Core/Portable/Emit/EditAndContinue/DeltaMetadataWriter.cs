@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _standAloneSignatureIndex.Rows;
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
         {
             return _changes.GetTopLevelTypes(this.Context);
         }
@@ -1422,10 +1422,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public override void Visit(IAssembly assembly)
             {
-                this.Visit((IModule)assembly);
+                this.Visit((CommonPEModuleBuilder)assembly);
             }
 
-            public override void Visit(IModule module)
+            public override void Visit(CommonPEModuleBuilder module)
             {
                 this.module = module;
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));

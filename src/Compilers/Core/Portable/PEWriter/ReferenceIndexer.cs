@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -20,13 +21,12 @@ namespace Microsoft.Cci
 
         public override void Visit(IAssembly assembly)
         {
-            this.module = assembly;
-            this.Visit((IModule)assembly);
+            this.Visit((CommonPEModuleBuilder)assembly);
             this.Visit(assembly.GetFiles(Context));
-            this.Visit(assembly.GetResources(Context));
+            this.Visit(((CommonPEModuleBuilder)assembly).GetResources(Context));
         }
 
-        public override void Visit(IModule module)
+        public override void Visit(CommonPEModuleBuilder module)
         {
             this.module = module;
 

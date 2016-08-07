@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -74,8 +75,7 @@ namespace Microsoft.Cci
 
             if (nativePdbWriterOpt != null)
             {
-                var assembly = mdWriter.Module.AsAssembly;
-                if (assembly != null && assembly.OutputKind == OutputKind.WindowsRuntimeMetadata)
+                if (mdWriter.Module.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
@@ -240,7 +240,7 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(IModule module)
+        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
@@ -297,7 +297,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private static int CalculateStrongNameSignatureSize(IModule module)
+        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
         {
             IAssembly assembly = module.AsAssembly;
             if (assembly == null)

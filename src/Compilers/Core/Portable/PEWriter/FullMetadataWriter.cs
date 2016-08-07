@@ -367,7 +367,7 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
         {
             return module.GetTopLevelTypes(this.Context);
         }

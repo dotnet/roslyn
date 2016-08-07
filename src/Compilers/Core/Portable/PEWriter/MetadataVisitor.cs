@@ -333,7 +333,7 @@ namespace Microsoft.Cci
             this.Visit(modifiedTypeReference.UnmodifiedType);
         }
 
-        public abstract void Visit(IModule module);
+        public abstract void Visit(CommonPEModuleBuilder module);
 
         public void Visit(IEnumerable<IModuleReference> moduleReferences)
         {

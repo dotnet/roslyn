@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -21,10 +22,10 @@ namespace Microsoft.Cci
         public override void Visit(IAssembly assembly)
         {
             Debug.Assert(assembly == module);
-            this.Visit((IModule)assembly);
+            this.Visit((CommonPEModuleBuilder)assembly);
         }
 
-        public override void Visit(IModule module)
+        public override void Visit(CommonPEModuleBuilder module)
         {
             Debug.Assert(this.module == module);
 

@@ -290,7 +290,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IModule Module => Context.Module;
+        private CommonPEModuleBuilder Module => Context.Module;
         private EmitContext Context => _metadataWriter.Context;
 
         public void SerializeDebugInfo(IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, CustomDebugInfoWriter customDebugInfoWriter)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -13,7 +14,7 @@ namespace Microsoft.Cci
         private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
         private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
         protected bool typeReferenceNeedsToken;
-        protected IModule module;
+        protected CommonPEModuleBuilder module;
 
         internal ReferenceIndexerBase(EmitContext context)
             : base(context)
@@ -168,7 +169,7 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(IModule module);
+        public override abstract void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {

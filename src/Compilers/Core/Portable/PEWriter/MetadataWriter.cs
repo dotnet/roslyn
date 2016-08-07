@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -370,7 +369,7 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles();
 
-        protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module);
+        protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module);
 
         protected abstract void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef);
 
@@ -404,7 +403,7 @@ namespace Microsoft.Cci
         // If true, it is allowed to have methods not have bodies (for emitting metadata-only
         // assembly)
         private readonly CancellationToken _cancellationToken;
-        protected readonly IModule module;
+        protected readonly CommonPEModuleBuilder module;
         public readonly EmitContext Context;
         protected readonly CommonMessageProvider messageProvider;
 
@@ -450,7 +449,7 @@ namespace Microsoft.Cci
         internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
         private readonly TypeReferenceHandle[,] _dummyAssemblyAttributeParent = { { default(TypeReferenceHandle), default(TypeReferenceHandle) }, { default(TypeReferenceHandle), default(TypeReferenceHandle) } };
 
-        internal IModule Module => module;
+        internal CommonPEModuleBuilder Module => module;
 
         private void CreateMethodBodyReferenceIndex()
         {
@@ -2038,7 +2037,7 @@ namespace Microsoft.Cci
             return _dummyAssemblyAttributeParent[iS, iM];
         }
 
-        private void AddModuleAttributesToTable(IModule module)
+        private void AddModuleAttributesToTable(CommonPEModuleBuilder module)
         {
             Debug.Assert(this.IsFullMetadata);
             foreach (ICustomAttribute customAttribute in module.GetSourceModuleAttributes())
@@ -2096,10 +2095,9 @@ namespace Microsoft.Cci
 
         private void PopulateDeclSecurityTableRows()
         {
-            IAssembly assembly = this.module.AsAssembly;
-            if (assembly != null)
+            if (module.AsAssembly != null)
             {
-                this.PopulateDeclSecurityTableRowsFor(EntityHandle.AssemblyDefinition, assembly.GetSourceAssemblySecurityAttributes());
+                this.PopulateDeclSecurityTableRowsFor(EntityHandle.AssemblyDefinition, module.GetSourceAssemblySecurityAttributes());
             }
 
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())

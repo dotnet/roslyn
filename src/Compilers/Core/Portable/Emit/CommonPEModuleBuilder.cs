@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal abstract class CommonPEModuleBuilder : Cci.IModule
+    internal abstract class CommonPEModuleBuilder : Cci.IUnit, Cci.IModuleReference
     {
         internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
@@ -81,16 +81,16 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
-        internal abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
-        internal abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
-        internal abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
+        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
+        public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
+        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
         public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
         public abstract bool GenerateVisualBasicStylePdb { get; }
-        protected abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
-        protected abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
-        protected abstract string DefaultNamespace { get; }
+        public abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
+        public abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
+        public abstract string DefaultNamespace { get; }
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
         protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
@@ -102,30 +102,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Builds symbol definition to location map used for emitting token -> location info
         /// into PDB to be consumed by WinMdExp.exe tool (only applicable for /t:winmdobj)
         /// </summary>
-        protected abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
+        public abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
 
-        IEnumerable<Cci.IWin32Resource> Cci.IModule.Win32Resources => Win32Resources;
-        Cci.ResourceSection Cci.IModule.Win32ResourceSection => Win32ResourceSection;
-        Cci.IMethodReference Cci.IModule.PEEntryPoint => PEEntryPoint;
-        Cci.IMethodReference Cci.IModule.DebugEntryPoint => DebugEntryPoint;
-        Stream Cci.IModule.SourceLinkStreamOpt => SourceLinkStreamOpt;
-        Cci.ModulePropertiesForSerialization Cci.IModule.SerializationProperties => SerializationProperties;
         public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
         string Cci.INamedEntity.Name => Name;
-        string Cci.IModule.ModuleName => ModuleName;
-        OutputKind Cci.IModule.OutputKind => OutputKind;
-
-        bool Cci.IModule.GenerateVisualBasicStylePdb => GenerateVisualBasicStylePdb;
-        IEnumerable<string> Cci.IModule.LinkedAssembliesDebugInfo => LinkedAssembliesDebugInfo;
-        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IModule.GetImports() => GetImports();
-        string Cci.IModule.DefaultNamespace => DefaultNamespace;
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.GetSourceAssemblyAttributes() => GetSourceAssemblyAttributes();
-        IEnumerable<Cci.SecurityAttribute> Cci.IModule.GetSourceAssemblySecurityAttributes() => GetSourceAssemblySecurityAttributes();
-        IEnumerable<Cci.ICustomAttribute> Cci.IModule.GetSourceModuleAttributes() => GetSourceModuleAttributes();
-        MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> Cci.IModule.GetSymbolToLocationMap() => GetSymbolToLocationMap();
-        Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context) => GetPlatformType(platformType, context);
-        bool Cci.IModule.IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType) => IsPlatformType(typeRef, platformType);
-        IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context) => GetTopLevelTypes(context);
 
         public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
 
@@ -187,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return method.ContainingModule == CommonSourceModule && method.IsDefinition;
         }
 
-        Cci.IAssemblyReference Cci.IModule.GetCorLibrary(EmitContext context)
+        public Cci.IAssemblyReference GetCorLibrary(EmitContext context)
         {
             return Translate(CommonCorLibrary, context.Diagnostics);
         }
@@ -202,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
         }
 
-        IEnumerable<string> Cci.IModule.GetStrings()
+        public IEnumerable<string> GetStrings()
         {
             return _stringsInILMap.GetAllItems();
         }
@@ -282,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return result.ToImmutableAndFree();
         }
 
-        IEnumerable<Cci.IAssemblyReference> Cci.IModule.GetAssemblyReferences(EmitContext context)
+        public IEnumerable<Cci.IAssemblyReference> GetAssemblyReferences(EmitContext context)
         {
             Cci.IAssemblyReference corLibrary = GetCorLibraryReferenceToEmit(context);
 
@@ -303,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
         
-        ImmutableArray<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
+        public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
             if (_lazyManagedResources.IsDefault)
             {

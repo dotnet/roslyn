@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
+        Public Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
             Get
                 ' NOTE: Dev12 does not seem to emit anything but the name (i.e. no version, token, etc).
                 ' See Builder::WriteNoPiaPdbList
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected NotOverridable Overrides Function GetImports() As ImmutableArray(Of Cci.UsedNamespaceOrType)
+        Public NotOverridable Overrides Function GetImports() As ImmutableArray(Of Cci.UsedNamespaceOrType)
             ' Imports should have been translated in code gen phase.
             Debug.Assert(Not _lazyTranslatedImports.IsDefault)
             Return _lazyTranslatedImports
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Sub
 
-        Protected NotOverridable Overrides ReadOnly Property DefaultNamespace As String
+        Public NotOverridable Overrides ReadOnly Property DefaultNamespace As String
             Get
                 If _lazyDefaultNamespace IsNot Nothing Then
                     Return _lazyDefaultNamespace
@@ -176,19 +176,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me.Compilation.TrySynthesizeAttribute(attributeConstructor)
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
+        Public NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
+        Public NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
             Return SourceModule.ContainingSourceAssembly.GetSecurityAttributes()
         End Function
 
-        Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
+        Public NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
             Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
         End Function
 
-        Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
+        Public Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
             Dim result As New MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)()
 
             Dim namespacesAndTypesToProcess As New Stack(Of NamespaceOrTypeSymbol)()
