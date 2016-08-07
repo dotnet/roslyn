@@ -11,7 +11,7 @@ Public Class ParseAsyncTests
 
     <Fact>
     Public Sub ParseAsyncModifier()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports Async = System.Threading.Tasks.Task
 
 Module Program
@@ -39,7 +39,7 @@ Class AsyncAttribute
     Sub New(p)
 
     End Sub
-End Class]]>)
+End Class")
 
         Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.AsyncKeyword Into Count())
 
@@ -50,7 +50,7 @@ End Class]]>)
 
     <Fact>
     Public Sub ParseAwaitExpressions()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System.Console
 
 Module Program
@@ -89,9 +89,9 @@ Module Program
 
     End Function
 
-End Module]]>,
+End Module",
 <errors>
-    <error id="30800" message="Method arguments must be enclosed in parentheses." start="206" end="208"/>
+    <error id="30800" message="Method arguments must be enclosed In parentheses." start="206" end="208"/>
     <error id="32017" message="Comma, ')', or a valid expression continuation expected." start="234" end="236"/>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="398" end="400"/>
     <error id="30198" message="')' expected." start="424" end="424"/>
@@ -125,14 +125,14 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseAwaitExpressionsWithPrecedence()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
     Async Function M(a As Task(Of Integer), x As Task(Of Integer), y As Task(Of Integer), b As Task(Of Integer)) As Task(Of Integer)
 
         Return Await a * Await x ^ Await y + Await b
         
     End Function
-End Module]]>)
+End Module")
 
         Dim returnStatement = tree.GetRoot().DescendantNodes.OfType(Of ReturnStatementSyntax).Single()
 
@@ -156,7 +156,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseAwaitStatements()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Imports System.Console
 
 Module Program
@@ -200,7 +200,7 @@ Module Program
 
     End Function    
 
-End Module]]>,
+End Module",
 <errors>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="177" end="179"/>
     <error id="30800" message="Method arguments must be enclosed in parentheses." start="407" end="409"/>
@@ -236,7 +236,7 @@ End Module]]>,
 
     <Fact>
     Public Sub ParseAsyncLambdas()
-        Dim tree = ParseAndVerify(<![CDATA[
+        Dim tree = ParseAndVerify("
 Module Program
 
     Private t1 As Task
@@ -272,7 +272,7 @@ Module Program
                                End Function
 
     End Sub
-End Module]]>)
+End Module")
 
         Dim lambdas = tree.GetRoot().DescendantNodes.OfType(Of LambdaExpressionSyntax)().ToArray()
 
@@ -297,7 +297,7 @@ End Module]]>)
 
     <Fact>
     Public Sub ParseAsyncWithNesting()
-        Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim tree = VisualBasicSyntaxTree.ParseText("
 Imports Async = System.Threading.Tasks.Task
 
 Class C
@@ -361,7 +361,7 @@ Class AsyncAttribute
     Sub New(p)
 
     End Sub
-End Class]]>.Value)
+End Class")
 
         ' Error BC30800: Method arguments must be enclosed in parentheses.
         Assert.True(Aggregate d In tree.GetDiagnostics() Into All(d.Code = ERRID.ERR_ObsoleteArgumentsNeedParens))

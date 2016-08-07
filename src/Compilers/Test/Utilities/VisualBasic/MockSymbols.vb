@@ -53,15 +53,15 @@ Friend Class MockNamespaceSymbol
     End Function
 
     Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-        Return _children.Where(Function(ns) IdentifierComparison.Equals(ns.Name, name)).ToArray().AsImmutableOrNull
+        Return _children.Where(Function(ns) IdentifierComparison.Equals(ns.Name, name)).AsImmutableOrNull
     End Function
 
     Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-        Return (From c In _children Where TypeOf c Is NamedTypeSymbol Select DirectCast(c, NamedTypeSymbol)).ToArray().AsImmutableOrNull()
+        Return (From c In _children Where TypeOf c Is NamedTypeSymbol Select DirectCast(c, NamedTypeSymbol)).AsImmutableOrNull()
     End Function
 
     Public Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-        Return (From c In _children Where TypeOf c Is NamedTypeSymbol AndAlso IdentifierComparison.Equals(c.Name, name) Select DirectCast(c, NamedTypeSymbol)).ToArray.AsImmutableOrNull
+        Return (From c In _children Where TypeOf c Is NamedTypeSymbol AndAlso IdentifierComparison.Equals(c.Name, name) Select DirectCast(c, NamedTypeSymbol)).AsImmutableOrNull
     End Function
 
     Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -226,15 +226,15 @@ Friend Class MockNamedTypeSymbol
     End Function
 
     Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-        Return (From sym In _children Where IdentifierComparison.Equals(sym.Name, name) Select sym).ToArray.AsImmutableOrNull
+        Return (From sym In _children Where IdentifierComparison.Equals(sym.Name, name) Select sym).AsImmutableOrNull
     End Function
 
     Public Overloads Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-        Return (From sym In _children Where TypeOf sym Is NamedTypeSymbol Select DirectCast(sym, NamedTypeSymbol)).ToArray().AsImmutableOrNull()
+        Return (From sym In _children Where TypeOf sym Is NamedTypeSymbol Select DirectCast(sym, NamedTypeSymbol)).AsImmutableOrNull()
     End Function
 
     Public Overloads Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-        Return (From sym In _children Where TypeOf sym Is NamedTypeSymbol AndAlso IdentifierComparison.Equals(sym.Name, name) Select DirectCast(sym, NamedTypeSymbol)).ToArray.AsImmutableOrNull()
+        Return (From sym In _children Where TypeOf sym Is NamedTypeSymbol AndAlso IdentifierComparison.Equals(sym.Name, name) Select DirectCast(sym, NamedTypeSymbol)).AsImmutableOrNull()
     End Function
 
     Public Overloads Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)

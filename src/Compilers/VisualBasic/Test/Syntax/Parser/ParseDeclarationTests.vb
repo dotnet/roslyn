@@ -12,15 +12,15 @@ Public Class ParseDeclarations
     <WorkItem(927366, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseModuleDeclaration()
-        ParseAndVerify(<![CDATA[
-            Module Module1
-            End Module
-        ]]>).
+        ParseAndVerify("
+ Module Module1
+ End Module
+").
         VerifyOccurrenceCount(SyntaxKind.EndOfFileToken, 1)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1 : End Module
-        ]]>).
+        ").
         VerifyOccurrenceCount(SyntaxKind.EndOfFileToken, 1)
 
         ParseAndVerify(<![CDATA[Module Module1
@@ -31,75 +31,75 @@ Public Class ParseDeclarations
 
     <Fact>
     Public Sub ParseNamespaceDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
              Namespace N1
              End Namespace
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Namespace N1 : End Namespace
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseNamespaceDeclarationWithGlobal()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
              Namespace Global.N1
              End Namespace
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseClassDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C1
             End Class
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Class C1 : End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseStructureDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Structure S1
             End Structure
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Structure S1 : End Structure
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseInterfaceDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface I1
             End Interface
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface I1 :  End Interface
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseClassInheritsDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class C1
                 End Class
                 Class C2
                     Inherits C1
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(927384, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseClassInheritsStatementWithSeparator()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class C1
                 End Class
                 Class C2 : Inherits C1
@@ -131,67 +131,67 @@ Public Class ParseDeclarations
                 Structure S2:
                        Implements I1
                 End Structure
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseClassImplementsDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                Interface I1
                 End Interface
                 Class C2
                     Implements I1
                 End Class
-           ]]>)
+           ")
     End Sub
 
     <Fact>
     Public Sub ParseGenericClassDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class C1(of T1, T2)
                 End Class
-             ]]>)
+             ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class C1(
                             of 
                                 T1, 
                                 T2
                         )
                 End Class
-             ]]>)
+             ")
     End Sub
 
     <Fact>
     Public Sub ParseGenericClassAsNewDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Base
                 End Class
                 Class C1(of T1 as new)
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseGenericClassAsTypeDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Base
                 End Class
                 Class C1(of T1 as Base)
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseGenericClassAsMultipleDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Base
                 End Class
                 Class C1(of T1 as {new, Base})
                 End Class
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Base  
                 End Class
                 Class C1(of 
@@ -200,12 +200,12 @@ Public Class ParseDeclarations
                                     Base
                                   })
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub ParseEnum()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     enum e1
                         member1
@@ -214,145 +214,145 @@ Public Class ParseDeclarations
                         member4
                    end enum
                 End Module
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub Bug8037()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Enum Y
     ::A ::B
 End Enum
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Enum Y::
     ::A::B:::
 End Enum
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Enum Y
     A::B:::  ' A: is parsed as a label
 End Enum
-            ]]>,
+            ",
                 Diagnostic(ERRID.ERR_InvInsideEnum, "A:"))
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Enum Y:::::
     A::B ' A: is parsed as a label
 End Enum
-            ]]>,
+            ",
                 Diagnostic(ERRID.ERR_InvInsideEnum, "A:"))
     End Sub
 
     <Fact>
     Public Sub Bug862490()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface I1 
                 End Interface
                 Interface I2
                     Inherits I1
                 End Interface
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub Bug863541()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Class1(Of Type)
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub Bug866559()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface IVariance1(Of Out)
                 End Interface
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub Bug866616()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
-            Dim x = from i in ""
+            Dim x = from i in """"
 
 
             End Module
-        ]]>).
+        ").
         VerifyOccurrenceCount(SyntaxKind.EmptyStatement, 0)
     End Sub
 
     <Fact>
     Public Sub Bug867063()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface IVariance(Of In T, Out R) : : End Interface
-            ]]>)
+            ")
     End Sub
 
     <Fact>
     Public Sub Bug868402()
         'Tree does not round-trip for generic type parameter list with newlines
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface IVariance1(Of Out
                 )
                 End Interface
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(873467, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseInterfaceBasesDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface I1 : End Interface
                 Interface I2 : End Interface
                 Interface I3
                     Inherits I1, I2
                 End Interface
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface I1 : End Interface
                 Interface I2 : End Interface
                 Class C1
                     Implements I1, I2
                 End Class
-            ]]>)
+            ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Interface I1 : End Interface
                 Interface I2 : End Interface
                 Structure S1
                     Implements I1, I2
                 End Structure
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(882976, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseLambdaInFieldInitializer()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Class Class1
                     Dim x = Sub() Console.WriteLine()
                     Dim y As Integer = 3
                 End Class
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(869140, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseInterfaceSingleLine()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface IVariance(Of Out T) : Function Foo() As T : End Interface
-        ]]>)
+        ")
     End Sub
 
     <WorkItem(889005, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseErrorsInvalidEndFunctionAndExecutableAsDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Class Class1
                         Dim x32 As Object = Sub() Call Function()
                                      Return New Exception
@@ -362,53 +362,52 @@ End Enum
                                   Return Nothing
                                End Function, Action(Of Long))
                      End Class
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(917197, "DevDiv/Personal")>
     <Fact>
     Public Sub TraverseEmptyBlocks()
         ParseAndVerify(
-            "Module M1" & vbCrLf &
-            "Sub Foo" & vbCrLf &
-            "Try" & vbCrLf &
-            "Catch" & vbCrLf &
-            "Finally" & vbCrLf &
-            "End Try" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module"
-        ).
+"Module M1
+Sub Foo
+Try
+Catch
+Finally
+End Try
+End Sub
+End Module").
         TraverseAllNodes()
     End Sub
 
-    <WorkItem(527076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527076")>
+    <WorkItem(527076, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527076")>
     <Fact>
     Public Sub ParseMustOverrideInsideModule()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Module M1
 Mustoverride Sub Foo()
 End Sub
 End Module
-        ]]>, <errors>
-                 <error id="30429" message="'End Sub' must be preceded by a matching 'Sub'." start="34" end="41"/>
-             </errors>)
+        ", <errors>
+               <error id="30429" message="'End Sub' must be preceded by a matching 'Sub'." start="34" end="41"/>
+           </errors>)
     End Sub
 
     <Fact>
     Public Sub ParseVariousOrderingOfDeclModifiers()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Public MustInherit Class A
     MustInherit Private Class B
         Public MustOverride Function Func() As Integer
         MustOverride Protected Property Prop As String
     End Class
 End Class
-        ]]>)
+        ")
     End Sub
 
     <Fact>
     Public Sub ParseIncompleteMemberBecauseOfAttributeAndOrModifiers()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Public Class C1
     <Obsolete1()> 
     foo
@@ -430,29 +429,29 @@ Public Class C1
     Public Shared Sub Main() 
     End Sub
 End Class
-        ]]>, <errors>
-                 <error id="32035"/>
-                 <error id="32035"/>
-                 <error id="30203"/>
-                 <error id="30203"/>
-                 <error id="32035"/>
-                 <error id="30183"/>
-                 <error id="30183"/>
-             </errors>)
+        ", <errors>
+               <error id="32035"/>
+               <error id="32035"/>
+               <error id="30203"/>
+               <error id="30203"/>
+               <error id="32035"/>
+               <error id="30183"/>
+               <error id="30183"/>
+           </errors>)
     End Sub
 
     <WorkItem(543607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543607")>
     <Fact()>
     Public Sub ParseInheritsAtInvalidLocation()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class Scen24
     Dim i = Sub(a as Integer, b as Long)
 Inherits Scen23
     End Sub
 End Class
-        ]]>, <errors>
-                 <error id="30024"/>
-             </errors>)
+        ", <errors>
+               <error id="30024"/>
+           </errors>)
     End Sub
 
 #Region "Parser Error Tests"
@@ -460,23 +459,23 @@ End Class
     <WorkItem(866455, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30001ERR_NoParseError()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Property Foo As Integer
              
                 Namespace Namespace1
                 End Namespace
-            ]]>)
+            ")
     End Sub
 
     <WorkItem(863086, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30025ERR_EndProp()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Structure Struct1
                     Default Public Property Foo(ByVal x) As Integer
                     End Function
                 End Structure
-            ]]>,
+            ",
              <errors>
                  <error id="30430"/>
                  <error id="30634"/>
@@ -484,13 +483,13 @@ End Class
              </errors>)
     End Sub
 
-    <WorkItem(527022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527022")>
+    <WorkItem(527022, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527022")>
     <Fact()>
     Public Sub BC30037ERR_IllegalChar_TypeParamMissingAsCommaOrRParen()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Class Class1(of ])
                      End Class
-            ]]>,
+            ",
             Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
             Diagnostic(ERRID.ERR_TypeParamMissingAsCommaOrRParen, ""),
             Diagnostic(ERRID.ERR_IllegalChar, "]"))
@@ -499,14 +498,14 @@ End Class
     <WorkItem(888046, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30184ERR_InvalidEndEnum()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                         Enum myenum
                          x
                          Shared Narrowing Operator CType(ByVal x As Integer) As c2
                             Return New c2
                          End Operator
                         End Enum
-            ]]>,
+            ",
                 Diagnostic(ERRID.ERR_MissingEndEnum, "Enum myenum"),
                 Diagnostic(ERRID.ERR_InvInsideEndsEnum, "Shared Narrowing Operator CType(ByVal x As Integer) As c2"),
                 Diagnostic(ERRID.ERR_InvalidEndEnum, "End Enum"))
@@ -516,12 +515,12 @@ End Class
     <Fact>
     Public Sub BC30185ERR_MissingEndEnum()
         ' Tree loses text when access modifier used on Enum member
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Enum Access1
                     Orange
                     Public Red = 2
                 End Enum
-            ]]>,
+            ",
             <errors>
                 <error id="30185"/>
                 <error id="30619"/>
@@ -532,60 +531,60 @@ End Class
     <WorkItem(863528, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30188ERR_ExpectedDeclaration()
-        ParseAndVerify(<![CDATA[
-             VERSION 1.0 CLASS
-                BEGIN
-                    MultiUse = -1 'True
-                    Persistable = 0 'NotPersistable
-                    DataBindingBehavior = 0 'vbNone
-                    DataSourceBehavior = 0 'vbNone
-                    MTSTransactionMode = 0 'NotAnMTSObject
-                END
-                Attribute VB_Name = "Class1"
-                Attribute VB_GlobalNameSpace = False
-                Attribute VB_Creatable = True
-                Attribute VB_PredeclaredId = False
-                Attribute VB_Exposed = True
-                Public v As Variant
-            ]]>,
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "VERSION 1.0 CLASS"),
-                Diagnostic(ERRID.ERR_ObsoleteArgumentsNeedParens, "1.0 CLASS"),
-                Diagnostic(ERRID.ERR_ArgumentSyntax, "CLASS"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "BEGIN"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "MultiUse = -1"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Persistable = 0"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "DataBindingBehavior = 0"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "DataSourceBehavior = 0"),
-                Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "MTSTransactionMode = 0"),
-                Diagnostic(ERRID.ERR_UnrecognizedEnd, "END"),
-                Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Name = ""Class1"""),
-                Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute"),
-                Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_GlobalNameSpace = False"),
-                Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute"),
-                Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Creatable = True"),
-                Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute"),
-                Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_PredeclaredId = False"),
-                Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute"),
-                Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Exposed = True"),
-                Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute"),
-                Diagnostic(ERRID.ERR_ObsoleteObjectNotVariant, "Variant"))
+        ParseAndVerify("
+         VERSION 1.0 CLASS
+            BEGIN
+                MultiUse = -1 'True
+                Persistable = 0 'NotPersistable
+                DataBindingBehavior = 0 'vbNone
+                DataSourceBehavior = 0 'vbNone
+                MTSTransactionMode = 0 'NotAnMTSObject
+            END
+            Attribute VB_Name = ""Class1""
+            Attribute VB_GlobalNameSpace = False
+            Attribute VB_Creatable = True
+            Attribute VB_PredeclaredId = False
+            Attribute VB_Exposed = True
+            Public v As Variant
+        ",
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "VERSION 1.0 CLASS").WithLocation(2, 10),
+    Diagnostic(ERRID.ERR_ObsoleteArgumentsNeedParens, "1.0 CLASS").WithLocation(2, 18),
+    Diagnostic(ERRID.ERR_ArgumentSyntax, "CLASS").WithLocation(2, 22),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "BEGIN").WithLocation(3, 13),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "MultiUse = -1").WithLocation(4, 17),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Persistable = 0").WithLocation(5, 17),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "DataBindingBehavior = 0").WithLocation(6, 17),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "DataSourceBehavior = 0").WithLocation(7, 17),
+    Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "MTSTransactionMode = 0").WithLocation(8, 17),
+    Diagnostic(ERRID.ERR_UnrecognizedEnd, "END").WithLocation(9, 13),
+    Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Name = ""Class1""").WithLocation(10, 23),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute").WithLocation(10, 13),
+    Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_GlobalNameSpace = False").WithLocation(11, 23),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute").WithLocation(11, 13),
+    Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Creatable = True").WithLocation(12, 23),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute").WithLocation(12, 13),
+    Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_PredeclaredId = False").WithLocation(13, 23),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute").WithLocation(13, 13),
+    Diagnostic(ERRID.ERR_ExpectedSpecifier, "VB_Exposed = True").WithLocation(14, 23),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "Attribute").WithLocation(14, 13),
+    Diagnostic(ERRID.ERR_ObsoleteObjectNotVariant, "Variant").WithLocation(15, 25))
     End Sub
 
     <Fact>
     Public Sub BC30193ERR_SpecifiersInvalidOnInheritsImplOpt()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class C
     <A> Inherits B
 End Class
-]]>,
+",
             <errors>
                 <error id="30193"/>
             </errors>)
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Class C
     <A> Implements I
 End Class
-]]>,
+",
             <errors>
                 <error id="30193"/>
             </errors>)
@@ -594,10 +593,10 @@ End Class
     <WorkItem(863112, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30193ERR_SpecifiersInvalidOnInheritsImplOpt_2()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             <System.Runtime.CompilerServices.Extension()> Namespace ExtensionAttributeNamespace01
             End Namespace
-        ]]>,
+        ",
         <errors>
             <error id="30193"/>
         </errors>)
@@ -606,11 +605,11 @@ End Class
     <WorkItem(887502, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30193_MismatchEndNoNamespace()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                          <System.Runtime.CompilerServices.CompilationRelaxations(Runtime.CompilerServices.CompilationRelaxations.NoStringInterning)> _
                          Namespace CompilerRelaxations02
                          End Namespace
-            ]]>,
+            ",
             <errors>
                 <error id="30193"/>
             </errors>)
@@ -618,11 +617,11 @@ End Class
 
     <Fact>
     Public Sub BC30193_ParseInterfaceInherits()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 interface i
                 public inherits i2
                 end interface
-            ]]>,
+            ",
             <errors>
                 <error id="30193"/>
             </errors>)
@@ -631,7 +630,7 @@ End Class
     <WorkItem(889075, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30201ERR_ExpectedExpression_InvInsideEndsEnumAndMissingEndEnum()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Module Module1
                       Enum byteenum As Byte
                         a = 200
@@ -642,7 +641,7 @@ End Class
                         d
                      End Enum
                      End Module
-            ]]>,
+            ",
             <errors>
                 <error id="30201"/>
             </errors>)
@@ -653,12 +652,12 @@ End Class
     Public Sub BC30203ERR_ExpectedIdentifier_ParasExtraError30213()
         ' Expected error 30203: Identifier expected.
         ' Was also reporting 30213.
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Friend Class cTest
                Sub Sub1 (0 To 10)
                End Sub
             End Class
-        ]]>,
+        ",
         <errors>
             <error id="30203"/>
         </errors>)
@@ -666,10 +665,10 @@ End Class
 
     <Fact>
     Public Sub BC30205ERR_ExpectedEOS_NamespaceDeclarationWithGeneric()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
              Namespace N1.N2(of T)
              End Namespace
-        ]]>,
+        ",
         <errors>
             <error id="30205"/>
         </errors>)
@@ -679,25 +678,25 @@ End Class
     <WorkItem(894067, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30213ERR_InvalidParameterSyntax_DollarAutoProp()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
 Property Scen4(
 p1 as vb$anonymous1
 ) a
-]]>,
+",
             Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
-            Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+            Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, "(
 p1 as vb$anonymous1
-)]]>.Value))
+)"))
     End Sub
 
     <Fact>
     Public Sub BC30363ERR_NewInInterface_InterfaceWithSubNew()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
         Interface i
             Sub new ()
 
         End Interface
-        ]]>,
+        ",
         <errors>
             <error id="30363"/>
         </errors>)
@@ -705,10 +704,10 @@ p1 as vb$anonymous1
 
     <WorkItem(887748, "DevDiv/Personal")>
     <WorkItem(889062, "DevDiv/Personal")>
-    <WorkItem(538919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
+    <WorkItem(538919, "http:         //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
     <Fact>
     Public Sub BC30602ERR_InterfaceMemberSyntax_TypeStatement()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             interface i1
                 dim i as integer
             End interface
@@ -721,7 +720,7 @@ p1 as vb$anonymous1
                _loc as object
             End Interface
 
-]]>,
+",
     <errors>
         <error id="30188"/>
         <error id="30602"/>
@@ -732,12 +731,12 @@ p1 as vb$anonymous1
     <WorkItem(887508, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30603ERR_InvInsideInterface_ParseInterfaceWithSubWithEndSub()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Interface i1
               Sub foo()
               end sub
             End Interface
-]]>,
+",
         <errors>
             <error id="30603"/>
         </errors>)
@@ -745,23 +744,23 @@ p1 as vb$anonymous1
 
     <Fact>
     Public Sub BC30618ERR_NamespaceNotAtNamespace_ModuleNamespaceClassDeclaration()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Namespace N1
                 Module M1
                     Class A
                     End Class
                End Module
             End Namespace
-        ]]>)
+        ")
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             Module Module1
                 Namespace N1
                     Class A
                     End Class
                 End Namespace
             End Module
-        ]]>,
+        ",
         <errors>
             <error id=<%= CInt(ERRID.ERR_ExpectedEndModule) %>/>
             <error id=<%= CInt(ERRID.ERR_NamespaceNotAtNamespace) %>/>
@@ -772,9 +771,9 @@ p1 as vb$anonymous1
     <WorkItem(862508, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30624ERR_ExpectedEndStructure()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Structure Struct1
-            ]]>,
+            ",
             <errors>
                 <error id="30624"/>
             </errors>)
@@ -792,12 +791,12 @@ p1 as vb$anonymous1
 
     <Fact>
     Public Sub BC30626ERR_ExpectedEndNamespace_ModuleNamespaceClassMissingEnd1()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Namespace N1
                         Class A
                 End Module
-            ]]>,
+            ",
             <errors>
                 <error id=<%= CInt(ERRID.ERR_ExpectedEndModule) %>/>
                 <error id=<%= CInt(ERRID.ERR_NamespaceNotAtNamespace) %>/>
@@ -809,11 +808,11 @@ p1 as vb$anonymous1
 
     <Fact>
     Public Sub NamespaceOutOfPlace()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Class C1
                         Namespace N1
-            ]]>,
+            ",
             <errors>
                 <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="17" end="31"/>
                 <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="52" end="60"/>
@@ -821,11 +820,11 @@ p1 as vb$anonymous1
                 <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="85" end="97"/>
             </errors>)
 
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Module Module1
                     Sub S1()
                         Namespace N1
-            ]]>,
+            ",
             <errors>
                 <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="17" end="31"/>
                 <error id="30026" message="'End Sub' expected." start="52" end="60"/>
@@ -837,14 +836,14 @@ p1 as vb$anonymous1
     <WorkItem(888556, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30984ERR_ExpectedAssignmentOperatorInInit_AndExpectedRbrace()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                         Module Module1
                          Sub Foo()
                             Dim scen2b = New With {.prop = 10, .321prop = 9, .567abc = -10}
                             Dim scen3 = New With {.$123prop=1}
                          End Sub
                         End Module
-            ]]>,
+            ",
             <errors>
                 <error id="36576"/>
                 <error id="36576"/>
@@ -858,7 +857,7 @@ p1 as vb$anonymous1
     <WorkItem(888560, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30987ERR_ExpectedLbrace_EndNoModuleAndModuleNotAtNamespaceAndExpectedEndClass()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                            Namespace scen8
                               Class customer
                               End Class
@@ -870,7 +869,7 @@ p1 as vb$anonymous1
                                 End Sub
                               End Module
                            End Namespace
-            ]]>,
+            ",
             <errors>
                 <error id="30987"/>
             </errors>)
@@ -879,7 +878,7 @@ p1 as vb$anonymous1
     <WorkItem(889038, "DevDiv/Personal")>
     <Fact>
     Public Sub BC31111ERR_ExitEventMemberNotInvalid_ExpectedExitKindAndSubOfFuncAndExpectedExitKind()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                      Friend Class cTest
                        Friend Delegate Sub fir()
                         Friend Custom Event e As fir
@@ -894,7 +893,7 @@ p1 as vb$anonymous1
                        End RaiseEvent
                        End Event
                      End Class
-            ]]>,
+            ",
             <errors>
                 <error id="31111"/>
                 <error id="31111"/>
@@ -905,13 +904,13 @@ p1 as vb$anonymous1
     <WorkItem(536278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536278")>
     <Fact>
     Public Sub BC31140ERR_InvalidUseOfCustomModifier_ExpectedSpecifierAndInvalidEndSub()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                       Module Module1
                        Custom sub foo()
                        End Sub
                       End Module
 
-            ]]>,
+            ",
             <errors>
                 <error id="30195"/>
                 <error id="31140"/>
@@ -921,10 +920,10 @@ p1 as vb$anonymous1
 
     <Fact>
     Public Sub BC32100ERR_TypeParamMissingAsCommaOrRParen_GenericClassMissingComma()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
             class B(of a b)
             end class
-        ]]>,
+        ",
         <errors>
             <error id="32100"/>
         </errors>)
@@ -932,12 +931,12 @@ p1 as vb$anonymous1
 
     <Fact>
     Public Sub Bug863497()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
                 Namespace $safeitemname$
                     Public Module $safeitemname$
                     End Module
                 End Namespace
-            ]]>,
+            ",
             <errors>
                 <error id="30203"/>
                 <error id="30037"/>
@@ -950,13 +949,13 @@ p1 as vb$anonymous1
     <WorkItem(538990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538990")>
     <Fact>
     Public Sub Bug4770()
-        ParseAndVerify(<![CDATA[
+        ParseAndVerify("
          interface i1
             dim i as integer
          End interface
-            ]]>, <errors>
-                     <error id="30602"/>
-                 </errors>)
+            ", <errors>
+                   <error id="30602"/>
+               </errors>)
     End Sub
 
     <WorkItem(539509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>

@@ -15,31 +15,31 @@ Imports Xunit
 
 Friend Module CompilationUtils
 
-    Public Function CreateCompilation(trees As IEnumerable(Of SyntaxTree),
-                                      Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                      Optional options As VisualBasicCompilationOptions = Nothing,
-                                      Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        If options Is Nothing Then
-            options = TestOptions.ReleaseDll
-        End If
+    Public Function CreateCompilation(
+                                       trees As IEnumerable(Of SyntaxTree),
+                              Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                              Optional options As VisualBasicCompilationOptions = Nothing,
+                              Optional assemblyName As String = Nothing
+                                     ) As VisualBasicCompilation
 
+        options = If(options, TestOptions.ReleaseDll)
         ' Using single-threaded build if debugger attached, to simplify debugging.
-        If Debugger.IsAttached Then
-            options = options.WithConcurrentBuild(False)
-        End If
-
+        If Debugger.IsAttached Then options = options.WithConcurrentBuild(False)
         Return VisualBasicCompilation.Create(
-                If(assemblyName, GetUniqueName()),
-                trees,
-                references,
-                options)
+                                               If(assemblyName, GetUniqueName()),
+                                               trees,
+                                               references,
+                                               options
+                                            )
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String),
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing,
-                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilationWithMscorlib(
+                                                   sourceTrees As IEnumerable(Of String),
+                                          Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                          Optional options As VisualBasicCompilationOptions = Nothing,
+                                          Optional assemblyName As String = Nothing,
+                                          Optional parseOptions As VisualBasicParseOptions = Nothing
+                                                 ) As VisualBasicCompilation
 
         Dim syntaxTrees = sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
         Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
@@ -52,9 +52,11 @@ Friend Module CompilationUtils
         Return VisualBasicCompilation.Create(If(assemblyName, "Test"), syntaxTrees, metadataReferences, options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),
-                                                  Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                  Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilationWithMscorlib(
+                                                   sourceTrees As IEnumerable(Of SyntaxTree),
+                                          Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                          Optional options As VisualBasicCompilationOptions = Nothing
+                                                 ) As VisualBasicCompilation
 
         Dim metadataReferences = If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references))
 
@@ -66,16 +68,21 @@ Friend Module CompilationUtils
         Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, metadataReferences, options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib45(sourceTrees As IEnumerable(Of SyntaxTree),
-                                                    Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                    Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilationWithMscorlib45(
+                                                     sourceTrees As IEnumerable(Of SyntaxTree),
+                                            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                            Optional options As VisualBasicCompilationOptions = Nothing
+                                                   ) As VisualBasicCompilation
         Dim additionalRefs = {MscorlibRef_v4_0_30316_17626}
         Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
 
-    Public Function CreateCompilationWithMscorlib45AndVBRuntime(sourceTrees As IEnumerable(Of SyntaxTree),
-                                                                Optional references As IEnumerable(Of MetadataReference) = Nothing,
-                                                                Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+    Public Function CreateCompilationWithMscorlib45AndVBRuntime(
+                                                                 sourceTrees As IEnumerable(Of SyntaxTree),
+                                                        Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                                        Optional options As VisualBasicCompilationOptions = Nothing
+                                                               ) As VisualBasicCompilation
+
         Dim additionalRefs = {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}
         Return VisualBasicCompilation.Create(GetUniqueName(), sourceTrees, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
     End Function
@@ -223,21 +230,20 @@ Friend Module CompilationUtils
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
                                                     Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
                                                     Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim assemblyName As String = sources.@name
-        If assemblyName Is Nothing Then
-            assemblyName = GetUniqueName()
-        End If
-
+        Dim assemblyName As String = If(sources.@name, GetUniqueName())
         Dim sourcesTreesAndSpans = From f In sources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Dim sourceTrees = From t In sourcesTreesAndSpans Select t.Item1
-        spans = From t In sourcesTreesAndSpans Select t.Item2
+        Dim sourceTrees = From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item1
+        spans = From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item2
 
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
 
-    Public Function ToSourceTrees(compilationSources As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxTree)
-        Dim sourcesTreesAndSpans = From f In compilationSources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
-        Return From t In sourcesTreesAndSpans Select t.Item1
+    Public Function ToSourceTrees(
+                                   compilationSources As XElement,
+                          Optional parseOptions As VisualBasicParseOptions = Nothing
+                                 ) As IEnumerable(Of SyntaxTree)
+        Dim sourcesTreesAndSpans = From f In compilationSources.<file>.AsParallel.AsOrdered Select CreateParseTreeAndSpans(f, parseOptions)
+        Return From t In sourcesTreesAndSpans.AsParallel.AsOrdered Select t.Item1
     End Function
 
     Public Function CreateCompilationWithReferences(sourceTree As SyntaxTree,
@@ -255,9 +261,7 @@ Friend Module CompilationUtils
             options = TestOptions.ReleaseDll
 
             ' Using single-threaded build if debugger attached, to simplify debugging.
-            If Debugger.IsAttached Then
-                options = options.WithConcurrentBuild(False)
-            End If
+            If Debugger.IsAttached Then options = options.WithConcurrentBuild(False)
         End If
 
 #If Test_IOperation_Interface Then
@@ -283,10 +287,11 @@ Friend Module CompilationUtils
     End Function
 
     Public Function CreateCompilation(
-            identity As AssemblyIdentity,
-            sources() As String,
-            references() As MetadataReference,
-            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+                                       identity As AssemblyIdentity,
+                                       sources() As String,
+                                       references() As MetadataReference,
+                              Optional options As VisualBasicCompilationOptions = Nothing
+                                     ) As VisualBasicCompilation
 
         Dim trees = If(sources Is Nothing, Nothing, sources.Select(AddressOf VisualBasicSyntaxTree.ParseText).ToArray())
         Dim c = VisualBasicCompilation.Create(identity.Name, trees, references, options)
@@ -347,36 +352,40 @@ Friend Module CompilationUtils
     ''' <param name="ilSource"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function CreateCompilationWithCustomILSource(sources As XElement,
-                                                        ilSource As String,
-                                                        Optional options As VisualBasicCompilationOptions = Nothing,
-                                                        Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
-                                                        Optional includeVbRuntime As Boolean = False,
-                                                        Optional includeSystemCore As Boolean = False,
-                                                        Optional appendDefaultHeader As Boolean = True,
-                                                        Optional parseOptions As VisualBasicParseOptions = Nothing,
-                                                        <Out> Optional ByRef ilReference As MetadataReference = Nothing,
-                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
-    ) As VisualBasicCompilation
-        Dim references As New List(Of MetadataReference)
-        If includeVbRuntime Then
-            references.Add(MsvbRef)
-        End If
-        If includeSystemCore Then
-            references.Add(SystemCoreRef)
-        End If
+    Public Function CreateCompilationWithCustomILSource(
+                                                         sources As XElement,
+                                                         ilSource As String,
+                                                Optional options As VisualBasicCompilationOptions = Nothing,
+                                          ByRef Optional spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
+                                                Optional includeVbRuntime As Boolean = False,
+                                                Optional includeSystemCore As Boolean = False,
+                                                Optional appendDefaultHeader As Boolean = True,
+                                                Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                    <Out> ByRef Optional ilReference As MetadataReference = Nothing,
+                                    <Out> ByRef Optional ilImage As ImmutableArray(Of Byte) = Nothing
+                                                       ) As VisualBasicCompilation
 
-        If ilSource Is Nothing Then
-            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
-        End If
+        Dim references As New List(Of MetadataReference)
+
+        If includeVbRuntime Then references.Add(MsvbRef)
+
+        If includeSystemCore Then references.Add(SystemCoreRef)
+
+        If ilSource Is Nothing Then Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
 
         ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
+
         references.Add(ilReference)
 
         Return CreateCompilationWithMscorlibAndReferences(sources, references, options, spans, parseOptions)
     End Function
 
-    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
+    Public Function CreateReferenceFromIlCode(
+                                               ilSource As String,
+                                      Optional appendDefaultHeader As Boolean = True,
+                          <Out> ByRef Optional ilImage As ImmutableArray(Of Byte) = Nothing
+                                             ) As MetadataReference
+
         Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader)
             ilImage = ImmutableArray.Create(File.ReadAllBytes(reference.Path))
         End Using
@@ -397,7 +406,12 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
+    Public Function FindBindingText(Of TNode As SyntaxNode)(
+                                                             compilation As Compilation,
+                                                             fileName As String,
+                                                    Optional which As Integer = 0
+                                                           ) As TNode
+
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
 
         Dim bindText As String = Nothing
@@ -426,8 +440,14 @@ Friend Module CompilationUtils
         Return DirectCast(node, TNode)
     End Function
 
-    Public Function FindBindingTextPosition(compilation As Compilation, fileName As String, ByRef bindText As String, Optional which As Integer = 0) As Integer
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingTextPosition(
+                                             compilation As Compilation,
+                                             fileName As String,
+                                       ByRef bindText As String,
+                                    Optional which As Integer = 0
+                                           ) As Integer
+
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindMarker As String
         If which > 0 Then
@@ -470,8 +490,13 @@ Friend Module CompilationUtils
         Return FindBindingTextPosition(compilation, fileName, bindText)
     End Function
 
-    Public Function FindBindingStartText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingStartText(Of TNode As SyntaxNode)(
+                                                                  compilation As Compilation,
+                                                                  fileName As String,
+                                                         Optional which As Integer = 0
+                                                                ) As TNode
+
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -503,42 +528,46 @@ Friend Module CompilationUtils
     End Class
 
     <Extension()>
-    Public Function GetSemanticInfoSummary(model As SemanticModel, node As SyntaxNode) As SemanticInfoSummary
+    Public Function GetSemanticInfoSummary(
+                                            model As SemanticModel,
+                                            node As SyntaxNode
+                                          ) As SemanticInfoSummary
+
         Dim summary As New SemanticInfoSummary
+        With summary
+            ' The information that is available varies by the type of the syntax node.
+            Dim semanticModel = DirectCast(model, VBSemanticModel)
+            Dim symbolInfo As SymbolInfo
+            If TypeOf node Is ExpressionSyntax Then
+                symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
+                .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, ExpressionSyntax))
+                .ConstantValue = semanticModel.GetConstantValue(DirectCast(node, ExpressionSyntax))
+                Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, ExpressionSyntax))
+                .Type = DirectCast(typeInfo.Type, TypeSymbol)
+                .ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
+                .ImplicitConversion = semanticModel.GetConversion(DirectCast(node, ExpressionSyntax))
+            ElseIf TypeOf node Is AttributeSyntax Then
+                symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
+                .MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, AttributeSyntax))
+                Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, AttributeSyntax))
+                .Type = DirectCast(typeInfo.Type, TypeSymbol)
+                .ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
+                .ImplicitConversion = semanticModel.GetConversion(DirectCast(node, AttributeSyntax))
+            ElseIf TypeOf node Is QueryClauseSyntax Then
+                symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, QueryClauseSyntax))
+            Else
+                Throw New NotSupportedException("Type of syntax node is not supported by GetSemanticInfo")
+            End If
+            Assert.NotNull(symbolInfo)
+            .Symbol = DirectCast(symbolInfo.Symbol, Symbol)
+            .CandidateReason = symbolInfo.CandidateReason
+            .CandidateSymbols = symbolInfo.CandidateSymbols
+            .AllSymbols = symbolInfo.GetAllSymbols()
 
-        ' The information that is available varies by the type of the syntax node.
-        Dim semanticModel = DirectCast(model, VBSemanticModel)
-        Dim symbolInfo As SymbolInfo
-        If TypeOf node Is ExpressionSyntax Then
-            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, ExpressionSyntax))
-            summary.MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, ExpressionSyntax))
-            summary.ConstantValue = semanticModel.GetConstantValue(DirectCast(node, ExpressionSyntax))
-            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, ExpressionSyntax))
-            summary.Type = DirectCast(typeInfo.Type, TypeSymbol)
-            summary.ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
-            summary.ImplicitConversion = semanticModel.GetConversion(DirectCast(node, ExpressionSyntax))
-        ElseIf TypeOf node Is AttributeSyntax Then
-            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, AttributeSyntax))
-            summary.MemberGroup = semanticModel.GetMemberGroup(DirectCast(node, AttributeSyntax))
-            Dim typeInfo = semanticModel.GetTypeInfo(DirectCast(node, AttributeSyntax))
-            summary.Type = DirectCast(typeInfo.Type, TypeSymbol)
-            summary.ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
-            summary.ImplicitConversion = semanticModel.GetConversion(DirectCast(node, AttributeSyntax))
-        ElseIf TypeOf node Is QueryClauseSyntax Then
-            symbolInfo = semanticModel.GetSymbolInfo(DirectCast(node, QueryClauseSyntax))
-        Else
-            Throw New NotSupportedException("Type of syntax node is not supported by GetSemanticInfo")
-        End If
-        Assert.NotNull(symbolInfo)
-        summary.Symbol = DirectCast(symbolInfo.Symbol, Symbol)
-        summary.CandidateReason = symbolInfo.CandidateReason
-        summary.CandidateSymbols = symbolInfo.CandidateSymbols
-        summary.AllSymbols = symbolInfo.GetAllSymbols()
-
-        If TypeOf node Is IdentifierNameSyntax Then
-            summary.Alias = semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax))
-        End If
-
+            If TypeOf node Is IdentifierNameSyntax Then
+                summary.Alias = semanticModel.GetAliasInfo(DirectCast(node, IdentifierNameSyntax))
+            End If
+        End With
         Return summary
     End Function
 
@@ -547,27 +576,27 @@ Friend Module CompilationUtils
         Dim summary As New SemanticInfoSummary
 
         ' The information that is available varies by the type of the syntax node.
+        With summary
+            Dim semanticModel = DirectCast(model, VBSemanticModel)
+            Dim symbolInfo As SymbolInfo
+            symbolInfo = semanticModel.GetSpeculativeSymbolInfo(position, expression, bindingOption)
+            .MemberGroup = semanticModel.GetSpeculativeMemberGroup(position, expression)
+            .ConstantValue = semanticModel.GetSpeculativeConstantValue(position, expression)
+            Dim typeInfo = semanticModel.GetSpeculativeTypeInfo(position, expression, bindingOption)
+            .Type = DirectCast(typeInfo.Type, TypeSymbol)
+            .ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
+            .ImplicitConversion = semanticModel.GetSpeculativeConversion(position, expression, bindingOption)
 
-        Dim semanticModel = DirectCast(model, VBSemanticModel)
-        Dim symbolInfo As SymbolInfo
-        symbolInfo = semanticModel.GetSpeculativeSymbolInfo(position, expression, bindingOption)
-        summary.MemberGroup = semanticModel.GetSpeculativeMemberGroup(position, expression)
-        summary.ConstantValue = semanticModel.GetSpeculativeConstantValue(position, expression)
-        Dim typeInfo = semanticModel.GetSpeculativeTypeInfo(position, expression, bindingOption)
-        summary.Type = DirectCast(typeInfo.Type, TypeSymbol)
-        summary.ConvertedType = DirectCast(typeInfo.ConvertedType, TypeSymbol)
-        summary.ImplicitConversion = semanticModel.GetSpeculativeConversion(position, expression, bindingOption)
+            Assert.NotNull(symbolInfo)
+            .Symbol = DirectCast(symbolInfo.Symbol, Symbol)
+            .CandidateReason = symbolInfo.CandidateReason
+            .CandidateSymbols = symbolInfo.CandidateSymbols
+            .AllSymbols = symbolInfo.GetAllSymbols()
 
-        Assert.NotNull(symbolInfo)
-        summary.Symbol = DirectCast(symbolInfo.Symbol, Symbol)
-        summary.CandidateReason = symbolInfo.CandidateReason
-        summary.CandidateSymbols = symbolInfo.CandidateSymbols
-        summary.AllSymbols = symbolInfo.GetAllSymbols()
-
-        If TypeOf expression Is IdentifierNameSyntax Then
-            summary.Alias = semanticModel.GetSpeculativeAliasInfo(position, DirectCast(expression, IdentifierNameSyntax), bindingOption)
-        End If
-
+            If TypeOf expression Is IdentifierNameSyntax Then
+                .Alias = semanticModel.GetSpeculativeAliasInfo(position, DirectCast(expression, IdentifierNameSyntax), bindingOption)
+            End If
+        End With
         Return summary
     End Function
 
@@ -590,7 +619,7 @@ Friend Module CompilationUtils
     End Function
 
     Public Function GetSemanticModel(compilation As Compilation, fileName As String) As VBSemanticModel
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
         Return DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
     End Function
 
@@ -616,7 +645,12 @@ Friend Module CompilationUtils
     ''' </param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function CreateParseTreeAndSpans(programElement As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As Tuple(Of SyntaxTree, IList(Of TextSpan))
+    Public Function CreateParseTreeAndSpans(
+                                             programElement As XElement,
+                                    Optional parseOptions As VisualBasicParseOptions = Nothing
+                                           ) As Tuple(Of SyntaxTree, IList(Of TextSpan))
+
+
         Dim codeWithMarker As String = FilterString(programElement.Value)
         Dim codeWithoutMarker As String = Nothing
         Dim spans As IList(Of TextSpan) = Nothing
@@ -657,7 +691,7 @@ Friend Module CompilationUtils
 
     ' Get the syntax tree with a given name.
     Public Function GetTree(compilation As Compilation, name As String) As SyntaxTree
-        Return (From t In compilation.SyntaxTrees Where t.FilePath = name).First()
+        Return (From t In compilation.SyntaxTrees Where t.FilePath = name).AsParallel.AsOrdered.First()
     End Function
 
     ' Get the symbol with a given full name. It must be unambiguous.
@@ -681,11 +715,11 @@ Friend Module CompilationUtils
         Dim currentSymbol As Symbol = compilation.GlobalNamespace
 
         For Each name In names
-            Assert.True(TypeOf currentSymbol Is NamespaceOrTypeSymbol, String.Format("{0} does not have members", currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)))
+            Assert.True(TypeOf currentSymbol Is NamespaceOrTypeSymbol, $"{currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)} does not have members")
             Dim currentContainer = DirectCast(currentSymbol, NamespaceOrTypeSymbol)
             Dim members = currentContainer.GetMembers(name)
-            Assert.True(members.Any(), String.Format("No members named {0} inside {1}", name, currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)))
-            Assert.True(members.Length() <= 1, String.Format("Multiple members named {0} inside {1}", name, currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)))
+            Assert.True(members.Any(), $"No members named {name} inside {currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)}")
+            Assert.True(members.Length() <= 1, $"Multiple members named {name} inside {currentSymbol.ToDisplayString(SymbolDisplayFormat.TestFormat)}")
             currentSymbol = members.First()
         Next
 
@@ -733,11 +767,11 @@ Friend Module CompilationUtils
     <Extension()>
     Public Sub AssertNoErrors(errors As ImmutableArray(Of Diagnostic))
         Dim diags As ImmutableArray(Of Diagnostic) = errors.WhereAsArray(Function(e) e.Severity = DiagnosticSeverity.Error)
-
-        If diags.Length > 0 Then
+        Dim diagCount = diags.Length
+        If diagCount > 0 Then
             Console.WriteLine("Unexpected errors found:")
-            For Each d In diags
-                Console.WriteLine(ErrorText(d))
+            For d = 0 To diagCount - 1
+                Console.WriteLine(ErrorText(diags(d)))
             Next
             Assert.True(False, "Should not have any errors")
         End If
@@ -755,7 +789,10 @@ Friend Module CompilationUtils
     Public Sub AssertTheseDeclarationDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(), errs, suppressInfos)
     End Sub
-
+    <Extension()>
+    Public Sub AssertTheseDeclarationDiagnostics(compilation As VisualBasicCompilation, errs As string, Optional suppressInfos As Boolean = True)
+        AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(), errs, suppressInfos)
+    End Sub
     <Extension()>
     Public Sub AssertTheseParseDiagnostics(compilation As VisualBasicCompilation, errs As XElement, Optional suppressInfos As Boolean = True)
         AssertTheseDiagnostics(compilation.GetParseDiagnostics(), errs, suppressInfos)
@@ -771,9 +808,7 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseCompileDiagnostics(compilation As Compilation, Optional errs As XElement = Nothing, Optional suppressInfos As Boolean = True)
-        If errs Is Nothing Then
-            errs = <errors/>
-        End If
+        errs = If(errs, <errors/>)
         AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
@@ -787,9 +822,8 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseEmitDiagnostics(compilation As Compilation, Optional errs As XElement = Nothing, Optional suppressInfos As Boolean = True)
-        If errs Is Nothing Then
-            errs = <errors/>
-        End If
+        errs = If(errs, <errors/>)
+
         Using assemblyStream As New MemoryStream()
             Using pdbStream As New MemoryStream()
                 Dim diagnostics = compilation.Emit(assemblyStream, pdbStream:=pdbStream).Diagnostics
@@ -813,9 +847,8 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseDiagnostics(compilation As Compilation, Optional errs As XElement = Nothing, Optional suppressInfos As Boolean = True)
-        If errs Is Nothing Then
-            errs = <errors/>
-        End If
+        errs = If(errs, <errors/>)
+
         AssertTheseDiagnostics(DirectCast(compilation, VisualBasicCompilation).GetDiagnostics(CompilationStage.Compile), errs, suppressInfos)
     End Sub
 
@@ -851,52 +884,58 @@ Friend Module CompilationUtils
         Dim actualText = DumpAllDiagnostics(errors.ToArray(), suppressInfos)
         If expectedText <> actualText Then
 
-            Dim messages As New StringBuilder
-            messages.AppendLine()
+            Static messages As StringBuilder = Nothing
+            messages = If(messages, New StringBuilder(256))
+            messages.Length = 0
+            With messages
+                .AppendLine()
 
-            If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
-                messages.AppendLine(actualText.Substring(expectedText.Length))
+                If actualText.StartsWith(expectedText, StringComparison.Ordinal) AndAlso actualText.Substring(expectedText.Length).Trim().Length > 0 Then
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    .AppendLine(actualText.Substring(expectedText.Length))
 
-                Assert.True(False, messages.ToString())
-            Else
-                Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-                Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
-
-                Dim appendedLines As Integer = 0
-
-                messages.AppendLine("MISSING ERROR MESSAGES:")
-                For Each l In expectedLines
-                    If Not actualLines.Contains(l) Then
-                        messages.AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                messages.AppendLine("UNEXPECTED ERROR MESSAGES:")
-                For Each l In actualLines
-                    If Not expectedLines.Contains(l) Then
-                        messages.AppendLine(l)
-                        appendedLines += 1
-                    End If
-                Next
-
-                If appendedLines > 0 Then
                     Assert.True(False, messages.ToString())
                 Else
-                    CompareLineByLine(expectedText, actualText)
-                End If
+                    Dim expectedLines = expectedText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
+                    Dim actualLines = actualText.Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries)
 
-            End If
+                    Dim appendedLines As Integer = 0
+
+                    .AppendLine("MISSING ERROR MESSAGES:")
+                    For Each l In expectedLines
+                        If Not actualLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    .AppendLine("UNEXPECTED ERROR MESSAGES:")
+                    For Each l In actualLines
+                        If Not expectedLines.Contains(l) Then
+                            .AppendLine(l)
+                            appendedLines += 1
+                        End If
+                    Next
+
+                    If appendedLines > 0 Then
+                        Assert.True(False, messages.ToString())
+                    Else
+                        CompareLineByLine(expectedText, actualText)
+                    End If
+
+                End If
+            End With
         End If
     End Sub
 
     Private Sub CompareLineByLine(expected As String, actual As String)
-        Dim expectedReader = New StringReader(expected)
-        Dim actualReader = New StringReader(actual)
+        Dim expectedReader As New StringReader(expected)
+        Dim actualReader As New StringReader(actual)
 
-        Dim expectedBuilder As New StringBuilder()
-        Dim actualBuilder As New StringBuilder()
+        Static expectedBuilder As StringBuilder = Nothing : expectedBuilder = If(expectedBuilder, New StringBuilder(64))
+        expectedBuilder.Length = 0
+        Dim actualBuilder As StringBuilder = Nothing : actualBuilder = If(actualBuilder, New StringBuilder(64))
+        actualBuilder.Length = 0
         Dim expectedLine = expectedReader.ReadLine()
         Dim actualLine = actualReader.ReadLine()
 
@@ -957,24 +996,81 @@ Friend Module CompilationUtils
         Return builder.ToString()
     End Function
 
+    Private Function WS(count As Integer) As String
+        Debug.Assert(count >= 0)
+        Select Case count
+            Case 0 : Return ""
+            Case 1 : Return " "
+            Case 2 : Return "  "
+            Case 3 : Return "   "
+            Case 4 : Return "    "
+            Case 5 : Return "     "
+            Case 6 : Return "      "
+            Case 7 : Return "       "
+            Case 8 : Return "        "
+            Case 9 : Return "         "
+            Case 10 : Return "          "
+            Case 11 : Return "           "
+            Case 12 : Return "            "
+            Case 13 : Return "             "
+            Case 14 : Return "              "
+            Case 15 : Return "               "
+            Case 16 : Return "                "
+            Case 17 : Return "                 "
+            Case 18 : Return "                  "
+            Case 19 : Return "                   "
+            Case 20 : Return "                    "
+        End Select
+        Return New String(" "c, count)
+    End Function
+    Private Function Tilde(count As Integer) As String
+        Debug.Assert(count >= 0)
+        Select Case count
+            Case 0 : Return ""
+            Case 1 : Return "~"
+            Case 2 : Return "~~"
+            Case 3 : Return "~~~"
+            Case 4 : Return "~~~~"
+            Case 5 : Return "~~~~~"
+            Case 6 : Return "~~~~~~"
+            Case 7 : Return "~~~~~~~"
+            Case 8 : Return "~~~~~~~~"
+            Case 9 : Return "~~~~~~~~~"
+            Case 10 : Return "~~~~~~~~~~"
+            Case 11 : Return "~~~~~~~~~~~"
+            Case 12 : Return "~~~~~~~~~~~~"
+            Case 13 : Return "~~~~~~~~~~~~~"
+            Case 14 : Return "~~~~~~~~~~~~~~"
+            Case 15 : Return "~~~~~~~~~~~~~~~"
+            Case 16 : Return "~~~~~~~~~~~~~~~~"
+            Case 17 : Return "~~~~~~~~~~~~~~~~~"
+            Case 18 : Return "~~~~~~~~~~~~~~~~~~"
+            Case 19 : Return "~~~~~~~~~~~~~~~~~~~"
+            Case 20 : Return "~~~~~~~~~~~~~~~~~~~~"
+        End Select
+        Return New String("~"c, count)
+    End Function
+
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
     ' span underlined.
     Private Function ErrorText(e As Diagnostic) As String
-        Dim message = e.Id + ": " + e.GetMessage(EnsureEnglishUICulture.PreferredOrNull)
+        Dim message = e.Id & ": " & e.GetMessage(EnsureEnglishUICulture.PreferredOrNull)
         If e.Location.IsInSource Then
             Dim sourceLocation = e.Location
             Dim offsetInLine As Integer = 0
             Dim lineText As String = GetLineText(sourceLocation.SourceTree.GetText(), sourceLocation.SourceSpan.Start, offsetInLine)
-            Return message + vbCrLf +
-                lineText + vbCrLf +
-                New String(" "c, offsetInLine) +
-                New String("~"c, Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1)) + vbCrLf
+            Return _
+$"{message}
+{lineText}
+{WS(offsetInLine)}{Tilde(Math.Max(Math.Min(sourceLocation.SourceSpan.Length, lineText.Length - offsetInLine + 1), 1))}
+"
         ElseIf e.Location.IsInMetadata Then
-            Return message + vbCrLf +
-                String.Format("in metadata assembly '{0}'" + vbCrLf,
-                              e.Location.MetadataModule.ContainingAssembly.Identity.Name)
+            Return _
+ $"{message}
+ in metadata assembly '{e.Location.MetadataModule.ContainingAssembly.Identity.Name}'
+"
         Else
-            Return message + vbCrLf
+            Return message & vbCrLf
         End If
     End Function
 
@@ -1115,9 +1211,9 @@ Friend Module CompilationUtils
         Loop
 
         If (isDistinct) Then
-            symType = (From temp In symType Distinct Select temp Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType.AsParallel.AsOrdered Distinct Order By temp.ToDisplayString()).ToList()
         Else
-            symType = (From temp In symType Select temp Order By temp.ToDisplayString()).ToList()
+            symType = (From temp In symType.AsParallel.AsOrdered Order By temp.ToDisplayString()).ToList()
         End If
         Return symType
 
@@ -1132,7 +1228,7 @@ Friend Module CompilationUtils
         Dim bindings1 = compilation.GetSemanticModel(tree)
         Dim symbols = GetTypeSymbol(compilation, treeName, symbolName, isDistinct)
         Assert.Equal(ExpectedDispName.Count, symbols.Count)
-        ExpectedDispName = (From temp In ExpectedDispName Select temp Order By temp).ToArray()
+        ExpectedDispName = (From temp In ExpectedDispName Order By temp).ToArray()
         Dim count = 0
         For Each item In symbols
             Assert.NotNull(item)
@@ -1152,11 +1248,7 @@ Friend Module CompilationUtils
     Public Function VerifyIsGlobal(globalNS1 As ISymbol, Optional expected As Boolean = True) As NamespaceSymbol
         Dim nsSymbol = DirectCast(globalNS1, NamespaceSymbol)
         Assert.NotNull(nsSymbol)
-        If (expected) Then
-            Assert.True(nsSymbol.IsGlobalNamespace)
-        Else
-            Assert.False(nsSymbol.IsGlobalNamespace)
-        End If
+        Assert.Equal(expected, nsSymbol.IsGlobalNamespace)
         Return nsSymbol
     End Function
 
@@ -1181,13 +1273,14 @@ Friend Module CompilationUtils
     End Sub
 
     Public Function SortAndMergeStrings(ParamArray strings As String()) As String
+        If strings Is Nothing OrElse strings.Count = 0 Then Return String.Empty
+        If strings.Length = 1 Then Return strings(0)
         Array.Sort(strings)
-        Dim builder = New StringBuilder
-        For Each str In strings
-            If builder.Length > 0 Then
-                builder.AppendLine()
-            End If
-            builder.Append(str)
+        Dim builder As New StringBuilder(strings(0))
+        Dim e = strings.Length - 1
+        For i = 1 To e
+            builder.AppendLine()
+            builder.Append(strings(i))
         Next
         Return builder.ToString
     End Function

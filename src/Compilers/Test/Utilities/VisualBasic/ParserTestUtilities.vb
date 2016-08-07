@@ -482,7 +482,7 @@ Public Module VerificationHelpers
 
         Public Overrides ReadOnly Property FilePath As String
             Get
-                Return ""
+                Return String.Empty
             End Get
         End Property
 

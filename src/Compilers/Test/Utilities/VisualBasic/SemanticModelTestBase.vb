@@ -39,7 +39,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -80,7 +80,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function FindBindingStartText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -99,21 +99,19 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     End Function
 
     Protected Function GetStartSpanErrorMessage(syntax As SyntaxNode, tpSymbol As ISymbol) As String
-        Return "    Syntax.SpanStart : " & syntax.SpanStart &
-               "    Location1.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start &
-               "    Location2.SourceSpan.Start : " & tpSymbol.Locations.Item(0).SourceSpan.Start
+        Return $"    Syntax.SpanStart : {syntax.SpanStart}    Location1.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}    Location2.SourceSpan.Start : {tpSymbol.Locations.Item(0).SourceSpan.Start}"
     End Function
 
     Friend Function GetAliasInfoForTest(compilation As Compilation, fileName As String, Optional which As Integer = 0) As AliasSymbol
         Dim node As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, fileName, which)
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
         Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
         Return DirectCast(semanticModel.GetAliasInfo(node), AliasSymbol)
     End Function
 
     Protected Function GetBlockOrStatementInfoForTest(Of StmtSyntax As SyntaxNode, ISM As SemanticModel)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional useParent As Boolean = False) As Object
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of StmtSyntax)(compilation, fileName, which)
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).AsParallel.AsOrdered.Single()
         Dim semanticModel = CType(compilation.GetSemanticModel(tree), VBSemanticModel)
 
         If useParent Then
@@ -139,7 +137,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
     Friend Function GetLookupSymbols(compilation As Compilation, filename As String, Optional container As NamespaceOrTypeSymbol = Nothing, Optional name As String = Nothing, Optional arity As Integer? = Nothing, Optional includeReducedExtensionMethods As Boolean = False, Optional mustBeStatic As Boolean = False) As List(Of ISymbol)
         Debug.Assert(Not includeReducedExtensionMethods OrElse Not mustBeStatic)
 
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = filename).Single()
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = filename).AsParallel.AsOrdered.Single()
         Dim binding = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
 
         Dim anyArity = Not arity.HasValue
@@ -148,7 +146,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
             mustBeStatic,
             binding.LookupStaticMembers(position, container, name),
             binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
-            ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
+            ).AsParallel.AsOrdered.Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
 
 End Class

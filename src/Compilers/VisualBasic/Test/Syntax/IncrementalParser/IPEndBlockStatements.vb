@@ -23,8 +23,10 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Sub Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf
+        Dim code As String =
+"Public Sub Foo()
+Dim i = 1
+"
         Dim change As String = "End Function"
 
         IncParseAndVerify(New IncParseNode With {
@@ -39,13 +41,17 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
-        Dim change = "End Function" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = 1
+End Module
+End Namespace
+"
+        Dim change =
+"End Function
+"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -60,14 +66,18 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = Sub()" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
-        Dim change = "End Function" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = Sub()
+End Sub
+End Module
+End Namespace
+"
+        Dim change =
+"End Function
+"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -86,9 +96,11 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Sub Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Function" & vbCrLf
+        Dim code As String =
+"Public Sub Foo()
+Dim i = 1
+End Function
+"
         Dim change As String = "End Function"
 
         IncParseAndVerify(New IncParseNode With {
@@ -104,13 +116,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = 1
+End Function
+End Module
+End Namespace
+"
         Dim change = "End Function" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -126,14 +140,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = Sub()" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = Sub()
+End Function
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End Function" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -153,8 +169,10 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Function Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf
+        Dim code As String =
+"Public Function Foo()
+Dim i = 1
+"
         Dim change As String = "End Sub"
 
         IncParseAndVerify(New IncParseNode With {
@@ -170,12 +188,14 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = 1
+End Module
+End Namespace
+"
         Dim change = "End Sub" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -192,13 +212,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = Function()" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = Function() 
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End Sub" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -217,9 +239,11 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Public Function Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Sub" & vbCrLf
+        Dim code As String =
+"Public Function Foo()
+Dim i = 1
+End Sub
+"
         Dim change As String = "End Sub"
 
         IncParseAndVerify(New IncParseNode With {
@@ -238,13 +262,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = 1" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = 1
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End Sub" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -263,14 +289,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "Dim i = Function()" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+Dim i = Function()
+End Sub
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End Sub" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -289,10 +317,12 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "While True" & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+While True
+"
         Dim change = "End If" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -310,13 +340,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "While True" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+While True
+End Function
+End Module
+End Namespace
+"
         Dim change = "End If" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -334,13 +366,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "If True Then" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+If True Then
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End Sub" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -359,11 +393,13 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "While True" & vbCrLf &
-            "End If" & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+While True
+End If
+"
         Dim change = "End If" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -382,14 +418,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "While True" & vbCrLf &
-            "End If" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+While True
+End If
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End If" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -408,14 +446,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: For a statement lambda
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Sub Foo()" & vbCrLf &
-            "If True Then" & vbCrLf &
-            "End If" & vbCrLf &
-            "End Sub" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Sub Foo()
+If True Then
+End If
+End Sub
+End Module
+End Namespace
+"
         Dim change = "End If" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -434,11 +474,13 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = From el in {1,2} " & vbCrLf &
-            "Select el " & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = From el In {1, 2} 
+Select el 
+"
         Dim change = "End Select" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -457,14 +499,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = From el in {1,2} " & vbCrLf &
-            "Select el " & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = From el in {1,2} 
+Select el 
+End Function
+End Module
+End Namespace
+"
         Dim change = "End Select" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -484,12 +528,14 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = From el in {1,2} " & vbCrLf &
-            "Select el " & vbCrLf &
-            "End Select" & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = From el in {1,2} 
+Select el 
+End Select
+"
         Dim change = "End Select" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -509,15 +555,17 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = From el in {1,2} " & vbCrLf &
-            "Select el " & vbCrLf &
-            "End Select" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = From el In {1, 2} 
+Select el 
+End Select
+End Function
+End Module
+End Namespace
+"
         Dim change = "End Select" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -537,10 +585,12 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "With New Integer " & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+With New Integer 
+"
         Dim change = "End Using" & vbCrLf
 
 
@@ -561,13 +611,15 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "With New Integer " & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+With New Integer 
+End Function
+End Module
+End Namespace
+"
         Dim change = "End Using" & vbCrLf
 
 
@@ -588,14 +640,16 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario3: Replacing In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "With New Integer " & vbCrLf &
-            "End With" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+With New Integer 
+End With
+End Function
+End Module
+End Namespace
+"
         Dim change = "Using" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -615,10 +669,12 @@ Public Class IPEndBlockStatements
         'Scenario1: At the end of file
         '===================================================================================================================
 
-        Dim code As String = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "With New Integer " & vbCrLf
+        Dim code As String =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+With New Integer 
+"
         Dim change = "End Using" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {
@@ -638,15 +694,17 @@ Public Class IPEndBlockStatements
         '===================================================================================================================
         'Scenario2: In the middle of the file
         '===================================================================================================================
-        Dim code = "Namespace n1" & vbCrLf &
-            "Public Module m1" & vbCrLf &
-            "Public Function Foo()" & vbCrLf &
-            "Dim i = From el in {1,2} " & vbCrLf &
-            "Select el " & vbCrLf &
-            "End Select" & vbCrLf &
-            "End Function" & vbCrLf &
-            "End Module" & vbCrLf &
-            "End Namespace" & vbCrLf
+        Dim code =
+"Namespace n1
+Public Module m1
+Public Function Foo()
+Dim i = From el In {1, 2} 
+Select el 
+End Select
+End Function
+End Module
+End Namespace
+"
         Dim change = "End Select" & vbCrLf
 
         IncParseAndVerify(New IncParseNode With {

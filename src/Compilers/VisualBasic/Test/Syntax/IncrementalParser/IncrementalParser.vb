@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Public Class IncrementalParser
 
-    Private ReadOnly _s As String = <![CDATA[
+    Private ReadOnly _s As String = "
 '-----------------------
 '
 '  Copyright (c)
@@ -28,24 +28,24 @@ Imports Roslyn.Compilers.Common
 Imports Roslyn.Compilers.VisualBasic
 
 Public Module ParseExprSemantics
-    Dim text = SourceText.From("")
+    Dim text = SourceText.From("""")
     Dim tree As SyntaxTree = Nothing
 
     #const x = 1
     ''' <summary>
     ''' This is just gibberish to test parser
     ''' </summary>
-    ''' <param name="ITERS"> haha </param>
+    ''' <param name=""ITERS""> haha </param>
     ''' <remarks></remarks>
     Public Sub Run(ByVal ITERS As Long)
         Console.WriteLine()
 
 #if BLAH       
-        Console.WriteLine("==== Parsing file: " & "Sample_ExpressionSemantics.vb")
-        Console.WriteLine("Iterations:" & ITERS)
+        Console.WriteLine(""==== Parsing file: "" & ""Sample_ExpressionSemantics.vb"")
+        Console.WriteLine(""Iterations:"" & ITERS)
 #end if
 
-        Dim str = IO.File.ReadAllText("Sample_ExpressionSemantics.vb")
+        Dim str = IO.File.ReadAllText(""Sample_ExpressionSemantics.vb"")
         Dim lineNumber = 28335
         Dim root As SyntaxNode = Nothing
 
@@ -57,7 +57,7 @@ Public Module ParseExprSemantics
         For i As Integer = 0 To ITERS - 1
             tree = SyntaxTree.Parse(text, Nothing)
             root = tree.Root
-            Console.Write(".")
+            Console.Write(""."")
             Dim highWater As Integer = Math.Max(highWater, System.GC.GetTotalMemory(False))
         Next
 
@@ -68,10 +68,10 @@ In root.GetNodesWhile(root.FullSpan, Function() True)
                         Order By Count Descending
                         Take 30
 
-        Console.WriteLine("Quick token cache-hits: {0} ({1:G2}%)", Stats.quickReturnedToken, 100.0 * Stats.quickReturnedToken / Stats.quickAttempts)
+        Console.WriteLine(""Quick token cache-hits: {0} ({1:G2}%)"", Stats.quickReturnedToken, 100.0 * Stats.quickReturnedToken / Stats.quickAttempts)
 
     End Sub
-End Module]]>.Value
+End Module"
 
     <Fact>
     Public Sub FakeEdits()
@@ -145,17 +145,18 @@ End Module]]>.Value
     Public Sub IncParseWithEventsFollowingProperty()
         'Unable to verify this using CDATA, since CDATA value only has Cr appended at end of each line, 
         'where as this bug is reproducible only with CrLf at the end of each line
-        Dim code As String = "Public Class HasPublicMembersToConflictWith" & vbCrLf &
-    "Public ConflictWithProp" & vbCrLf &
-    "" & vbCrLf &
-    "Public Property _ConflictWithBF() As String" & vbCrLf &
-    "    Get" & vbCrLf &
-    "    End Get" & vbCrLf &
-    "    Set(value As String)" & vbCrLf &
-    "    End Set" & vbCrLf &
-    "End Property" & vbCrLf &
-    "" & vbCrLf &
-    "Public WithEvents ConflictWithBoth As Ob"
+        Dim code As String =
+"Public Class HasPublicMembersToConflictWith
+Public ConflictWithProp
+
+Public Property _ConflictWithBF() As String
+    Get
+    End Get
+    Set(value As String)
+    End Set
+End Property
+
+Public WithEvents ConflictWithBoth As Ob"
 
         ParseAndVerify(code,
         <errors>
@@ -172,12 +173,12 @@ End Module]]>.Value
     <WorkItem(899596, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseClassFollowingDocComments()
-        Dim code As String = <![CDATA[Class VBQATestcase
-    '''-----------------------------------------------------------------------------
-    ''' <summary>
-    '''Text
-    ''' </summary>
-    '''-----------------------------------------------------------------------------]]>.Value
+        Dim code As String = "Class VBQATestcase
+'''-----------------------------------------------------------------------------
+''' <summary>
+'''Text
+''' </summary>
+'''-----------------------------------------------------------------------------"
 
         ParseAndVerify(code,
                        <errors>
@@ -194,11 +195,14 @@ End Module]]>.Value
     <WorkItem(899918, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseDirInElse()
-        Dim code As String = "Sub Sub1()" & vbCr &
-"If true Then" & vbCr &
-"foo("""")" & vbCr &
-"Else" & vbCr & vbCr &
-"#If Not ULTRAVIOLET Then" & vbCr
+        Dim code As String =
+"Sub Sub1()
+If True Then
+foo("""")
+Else
+
+#If Not ULTRAVIOLET Then
+"
 
         ParseAndVerify(code,
                        <errors>
@@ -217,11 +221,12 @@ End Module]]>.Value
     <WorkItem(899938, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseNamespaceFollowingEvent()
-        Dim code As String = "Class cls1" & vbCrLf &
-"Custom Event myevent As del" & vbCrLf &
-"End Event" & vbCrLf &
-"End Class" & vbCrLf &
-"Namespace r"
+        Dim code As String =
+"Class cls1
+Custom Event myevent As del
+End Event
+End Class
+Namespace r"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -233,14 +238,14 @@ End Module]]>.Value
     <WorkItem(900209, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseCaseElse()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
       Sub main()
          Select Case 5
             Case Else
                vvv = 6
             Case Else
                vvv = 7
-]]>).Value
+"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -252,10 +257,10 @@ End Module]]>.Value
     <WorkItem(901386, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExplicitOnGroupBy()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "[
 Option Explicit On
 Sub foo()
-Dim q2 = From x In col let y = x Group x, y By]]>).Value
+Dim q2 = From x In col let y = x Group x, y By"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -267,14 +272,15 @@ Dim q2 = From x In col let y = x Group x, y By]]>).Value
     <WorkItem(901639, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExprLambdaInSubContext()
-        Dim code As String = (<![CDATA[Function() NewTextPI.UnwrapObject().FileCodeModel)
+        Dim code As String =
+"Function() NewTextPI.UnwrapObject().FileCodeModel)
 If True Then
 End If
 End Sub
 Class WillHaveAnError
 End class
 Class willBeReused
-End class]]>).Value
+End class"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "(",
@@ -285,7 +291,8 @@ End class]]>).Value
 
     <Fact>
     Public Sub IncParseExprLambdaInSubContext2()
-        Dim code As String = (<![CDATA[Function() NewTextPI.UnwrapObject().FileCodeModel)
+        Dim code As String =
+"Function() NewTextPI.UnwrapObject().FileCodeModel)
 If True Then
 Else
 End If
@@ -293,7 +300,7 @@ End Sub
 Class WillHaveAnError
 End class
 Class willBeReused
-End class]]>).Value
+End class"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "(",
@@ -305,9 +312,10 @@ End class]]>).Value
     <WorkItem(901645, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExitFunction()
-        Dim code As String = (<![CDATA[Function
-If strSwitches <> "" Then strCLine = strCLine & " " & strSwitches
-End Sub]]>).Value
+        Dim code As String =
+"Function
+If strSwitches <> """" Then strCLine = strCLine & "" "" & strSwitches
+End Sub"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "Exit ",
@@ -330,7 +338,7 @@ End Sub]]>).Value
 
     <Fact>
     Public Sub IncParsePPElse()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Function foo() As Boolean
 
 #Else
@@ -341,7 +349,7 @@ Function foo() As Boolean
 
 
 End Function
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "#End If",
@@ -351,7 +359,7 @@ End Function
 
     <Fact>
     Public Sub IncParsePPElse1()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Function foo() As Boolean
 
 #Else
@@ -363,10 +371,10 @@ Function foo() As Boolean
 #End IF
 
 End Function
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
-        .changeText = "#If true " & vbCrLf,
+        .changeText = "#If True " & vbCrLf,
         .changeSpan = New TextSpan(code.IndexOf("#Else", StringComparison.Ordinal), 0),
         .changeType = ChangeType.Replace})
     End Sub
@@ -374,7 +382,7 @@ End Function
     <WorkItem(901669, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseXmlTagWithExprHole()
-        Dim code As String = (<![CDATA[e a=<%= b %>>]]>).Value
+        Dim code As String = "e a=<%= b %>"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "<",
@@ -385,9 +393,9 @@ End Function
     <WorkItem(901671, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseEndBeforeSubWithX()
-        Dim code As String = (<![CDATA[Sub
-        End Class
-    X]]>).Value
+        Dim code As String = "Sub
+    End Class
+X"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "End ",
@@ -398,16 +406,16 @@ End Function
     <WorkItem(901676, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseInterfaceFollByConstructs()
-        Dim code As String = (<![CDATA[
-        Public Interface I2
-        End Interface
-        Sub SEHIllegal501()
-            Try
-            Catch
-            End Try
-            Exit Sub
-        End Sub
-    X]]>).Value
+        Dim code As String = "
+    Public Interface I2
+    End Interface
+    Sub SEHIllegal501()
+        Try
+        Catch
+        End Try
+        Exit Sub
+    End Sub
+X"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "Interface",
@@ -418,11 +426,12 @@ End Function
     <WorkItem(901680, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseLCFunctionCompoundAsn()
-        Dim code As String = (<![CDATA[Public Function foo() As String
-            For i As Integer = 0 To  1
-                total += y(i)
-            Next
-End Function]]>).Value
+        Dim code As String =
+"Public Function foo() As String
+    For i As Integer = 0 To  1
+        total += y(i)
+    Next
+End Function"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "> _" & vbCrLf,
@@ -433,9 +442,10 @@ End Function]]>).Value
     <WorkItem(902710, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseInsertFunctionBeforeEndClass()
-        Dim code As String = (<![CDATA[End Class
+        Dim code As String =
+"End Class
 MustInherit Class C10
-End Class]]>).Value
+End Class"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "Function" & vbCrLf,
@@ -446,10 +456,11 @@ End Class]]>).Value
     <WorkItem(903134, "DevDiv/Personal")>
     <Fact>
     Public Sub InsertSubBeforeCustomEvent()
-        Dim code As String = (<![CDATA[            Custom Event e As del
-                AddHandler(ByVal value As del)
-                End AddHandler
-            End Event]]>).Value
+        Dim code As String = 
+"            Custom Event e As del
+    AddHandler(ByVal value As del)
+    End AddHandler
+End Event"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "Sub" & vbCrLf,
@@ -460,13 +471,14 @@ End Class]]>).Value
     <WorkItem(903555, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMergedForEachAndDecl()
-        Dim code As String = (<![CDATA[#Region "abc"
+        Dim code As String =
+"#Region ""abc""
 Function foo() As Boolean
 Dim roleName As Object
 For Each roleName In wbirFields
 Next roleName
 End Function
-#End Region]]>).Value
+#End Region"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = vbCrLf,
@@ -477,14 +489,15 @@ End Function
     <WorkItem(903805, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseEnumWithoutEnd()
-        Dim code As String = (<![CDATA[Public Class Class2
+        Dim code As String =
+"Public Class Class2
     Protected Enum e
         e1
         e2
 	End Enum
     Public Function Foo(ByVal arg1 As e) As e
     End Function
-End Class]]>).Value
+End Class"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = vbCrLf,
@@ -495,14 +508,15 @@ End Class]]>).Value
     <WorkItem(903826, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseWrongSelectFollByIf()
-        Dim code As String = (<![CDATA[        Sub foo()
-                Select Case lng
-                    Case 44
-                        int1 = 4
-                End Select
-                If true Then
-                End If
-        End Sub]]>).Value
+        Dim code As String =
+"        Sub foo()
+        Select Case lng
+            Case 44
+                int1 = 4
+        End Select
+        If true Then
+        End If
+End Sub"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "End ",
@@ -513,12 +527,13 @@ End Class]]>).Value
     <WorkItem(904768, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseDoLoop()
-        Dim code As String = (<![CDATA[        Sub AnonTConStmnt()
+        Dim code As String =
+"        Sub AnonTConStmnt()
                 Do
                     i += 1
                 Loop Until true
         End Sub
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = vbCrLf,
@@ -529,14 +544,14 @@ End Class]]>).Value
     <WorkItem(904771, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseClassWithOpDecl()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Friend Module m1
 Class Class1
 Shared Operator -(ByVal x As Class1) As Boolean
 End Operator
 End Class
 End Module
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = "Class ",
@@ -547,19 +562,20 @@ End Module
     <WorkItem(904782, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParsePropFollIncompleteLambda()
-        Dim code As String = (<![CDATA[        Class c1
+        Dim code As String =
+"        Class c1
 
-            Public Function foo() As Object
-                Dim res = Function(x As Integer) c1.Foo(x)
-            End Function
+    Public Function foo() As Object
+        Dim res = Function(x As Integer) c1.Foo(x)
+    End Function
 
-            Default Public Property Prop(ByVal y As String) As Integer
-                Get
-                End Get
-                Set(ByVal value As Integer)
-                End Set
-            End Property
-        End Class]]>).Value
+    Default Public Property Prop(ByVal y As String) As Integer
+        Get
+        End Get
+        Set(ByVal value As Integer)
+        End Set
+    End Property
+End Class"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = ")",
@@ -570,10 +586,11 @@ End Module
     <WorkItem(904792, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseErroneousGroupByQuery()
-        Dim code As String = (<![CDATA[        Sub foo() 
-                Dim q2 = From i In str Group i By key1 = x
-                Dim q3 =From j In str Group By key = i 
-        End Sub]]>).Value
+        Dim code As String =
+"        Sub foo() 
+        Dim q2 = From i In str Group i By key1 = x
+        Dim q3 =From j In str Group By key = i 
+End Sub"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = " By",
@@ -584,12 +601,13 @@ End Module
     <WorkItem(904804, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseSetAfterIncompleteSub()
-        Dim code As String = (<![CDATA[Sub foo()
+        Dim code As String =
+"Sub foo()
 End Sub
 Public WriteOnly Property bar() as short
 Set
 End Set
-End Property]]>).Value
+End Property"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = vbCrLf,
@@ -600,10 +618,12 @@ End Property]]>).Value
     <WorkItem(911100, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseEmbeddedIfsInsideCondCompile()
-        Dim code As String = "Sub bar() " & vbCrLf &
-"#If true Then" & vbCrLf &
-    "if true Then foo()" & vbCrLf &
- "If Command() <" & vbCrLf
+        Dim code As String =
+"Sub bar() 
+#If True Then
+If True Then foo()
+If Command() <
+"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = ">",
@@ -614,9 +634,10 @@ End Property]]>).Value
     <WorkItem(911103, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseErrorIfStatement()
-        Dim code As String = "Public Sub Run() " & vbCrLf &
-"If NewTextPI.DTE Is Nothing Then End" & vbCrLf &
- "End Sub"
+        Dim code As String =
+"Public Sub Run() 
+If NewTextPI.DTE Is Nothing Then End
+End Sub"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -628,9 +649,10 @@ End Property]]>).Value
     <WorkItem(537168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537168")>
     <Fact>
     Public Sub IncParseSubBeforePartialClass()
-        Dim code As String = (<![CDATA[End Class
+        Dim code As String =
+"End Class
 Partial Class class3
-End Class]]>).Value
+End Class"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -642,7 +664,7 @@ End Class]]>).Value
     <WorkItem(537172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537172")>
     <Fact>
     Public Sub IncParseInterfaceDeleteWithColon()
-        Dim code As String = (<![CDATA[Interface I : Sub Foo() : End Interface]]>).Value
+        Dim code As String = "Interface I : Sub Foo() : End Interface"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -654,18 +676,18 @@ End Class]]>).Value
     <WorkItem(537174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537174")>
     <Fact>
     Public Sub IncParseMissingEndAddHandler()
-        Dim code As String = (<![CDATA[
-                Class C
-                    Custom Event e As del
-                        AddHandler(ByVal value As del)
-                        End AddHandler
-                        RemoveHandler(ByVal value As del)
-                        End RemoveHandler
-                        RaiseEvent()
-                        End RaiseEvent
-                    End Event
-                End Class
-]]>).Value
+        Dim code As String = "
+Class C
+    Custom Event e As del
+        AddHandler(ByVal value As del)
+        End AddHandler
+        RemoveHandler(ByVal value As del)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
         Dim change = "End AddHandler"
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -677,8 +699,9 @@ End Class]]>).Value
     <WorkItem(539038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539038")>
     <Fact>
     Public Sub IncParseInvalidText()
-        Dim code As String = (<![CDATA[1. Verify that INT accepts an constant of each type as the
-        '                  argument.]]>).Value
+        Dim code As String =
+"1. Verify that INT accepts an constant of each type as the
+'                  argument."
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -690,11 +713,12 @@ End Class]]>).Value
     <WorkItem(539053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539053")>
     <Fact>
     Public Sub IncParseAddSubValid()
-        Dim code As String = (<![CDATA[Class CFoo
+        Dim code As String =
+"Class CFoo
     Public S()
         Dim x As Integer = 0
     End Sub
-End Class]]>).Value
+End Class"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -725,7 +749,7 @@ End Class]]>).Value
     <WorkItem(538577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538577")>
     <Fact>
     Public Sub IncParseAddSpaceAfterForNext()
-        Dim code As String = (<![CDATA[Module M
+        Dim code As String = "Module M
   Sub Main()
    Dim i(1) As Integer
    For i(0) = 1 To 10
@@ -733,7 +757,7 @@ End Class]]>).Value
    Next j, i(0) 
   End Sub
 End Module 
-]]>).Value
+"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -752,13 +776,13 @@ End Module
     <WorkItem(540667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540667")>
     Public Sub IncrementalParseAddSpaceInSingleLineIf()
         ' The code below intentionally is missing a space between the "Then" and "Console"
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Module M
   Sub Main()
-    If False ThenConsole.WriteLine("FIRST") : Console.WriteLine("TEST") Else Console.WriteLine("TRUE!") : 'comment
+    If False ThenConsole.WriteLine(""FIRST"") : Console.WriteLine(""TEST"") Else Console.WriteLine(""TRUE!"") : 'comment
   End Sub
 End Module 
-]]>).Value
+"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -777,8 +801,7 @@ End Module
     <WorkItem(543489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543489")>
     <Fact>
     Public Sub Bug11296()
-
-        Dim source As String = <![CDATA[    
+        Dim source As String = "
 Module M
     Sub Main()
         GoTo 100
@@ -789,13 +812,13 @@ Module M
         End If
     End Sub
 End Module
-]]>.Value
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Assert.Equal(1, oldTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", oldTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
-        Assert.Equal("[131..134)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
+        Assert.Equal("[134..137)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
 
         ' commenting out the goto
         Dim pos = source.IndexOf("GoTo 100", StringComparison.Ordinal)
@@ -806,17 +829,17 @@ End Module
         Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
         Assert.Equal(1, tmpTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", tmpTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
-        Assert.Equal("[132..135)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
+        Assert.Equal("[135..138)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
     End Sub
 
     <Fact>
     Public Sub IncParseTypeNewLine()
-        Dim code As String = (<![CDATA[
+        Dim code As String = "
 Module m
 Sub s
 End Sub
 End Module     
-]]>).Value
+"
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
@@ -828,11 +851,10 @@ End Module
     <WorkItem(545667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
     <Fact>
     Public Sub Bug14266()
-        Dim source = <![CDATA[
-Enum E
+        Dim source =
+"Enum E
     A
-End Enum
-]]>.Value.Trim()
+End Enum"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -845,13 +867,12 @@ End Enum
     <WorkItem(546680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546680")>
     <Fact>
     Public Sub Bug16533()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M()
         If True Then M() Else : 
     End Sub
-End Module
-]]>.Value
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Replace "True" with "True".
@@ -865,14 +886,13 @@ End Module
     <WorkItem(546685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
     <Fact>
     Public Sub MultiLineIf()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M(b As Boolean)
         If b Then
         End If
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -892,16 +912,15 @@ End Module
     ''' </summary>
     <Fact>
     Public Sub MultiLineIf_2()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M()
         Dim b = False
         b = True
         If b Then
         End If
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -921,16 +940,15 @@ End Module
     ''' </summary>
     <Fact>
     Public Sub MultiLineIf_3()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M(b As Boolean)
         If b Then
         End If
         While b
         End While
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -947,14 +965,14 @@ End Module
     <WorkItem(546692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546692")>
     <Fact>
     Public Sub Bug16575()
-        Dim source = <![CDATA[
+        Dim source = "
 Module M
     Sub M()
         If True Then Else Dim x = 1 : Dim y = x
         If True Then Else Dim x = 1 : Dim y = x
     End Sub
 End Module
-]]>.Value
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add newline after first single line If
@@ -968,7 +986,7 @@ End Module
     <WorkItem(546698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546698")>
     <Fact>
     Public Sub Bug16596()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M
     Sub M()
         If True Then
@@ -976,7 +994,7 @@ Module M
         End If
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Uncomment "Else".
@@ -989,14 +1007,14 @@ End Module
     <WorkItem(530662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530662")>
     <Fact>
     Public Sub Bug16662()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M
     Sub M()
         ''' <[
         1: X
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Remove "X".
@@ -1009,7 +1027,7 @@ End Module
     <WorkItem(546774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546774")>
     <Fact>
     Public Sub Bug16786()
-        Dim source = <![CDATA[
+        Dim source = "
 Namespace N
     ''' <summary/>
     Class A
@@ -1019,7 +1037,7 @@ Class B
 End Class
 Class C
 End Class
-]]>.Value.Trim()
+".Trim()
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1036,7 +1054,7 @@ End Class
     <WorkItem(530841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530841")>
     <Fact>
     Public Sub Bug17031()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M
     Sub M()
         If True Then
@@ -1045,7 +1063,7 @@ Module M
         End If
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert blank line at start of method.
@@ -1059,19 +1077,19 @@ End Module
     <WorkItem(531017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531017")>
     <Fact>
     Public Sub Bug17409()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M
     Sub M()
         Dim ch As Char
         Dim ch As Char
         Select Case ch
-            Case "~"c
+            Case ""~""c
 
             Case Else
         End Select
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Remove second instance of "Dim ch As Char".
@@ -1084,10 +1102,10 @@ End Module
 
     <Fact, WorkItem(547242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547242")>
     Public Sub IncParseAddRemoveStopAtAofAs()
-        Dim code As String = <![CDATA[
+        Dim code As String = "
 Module M
     Public obj0 As Object
-    Public obj1 A]]>.Value
+    Public obj1 A"
 
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldIText = tree.GetText()
@@ -1105,11 +1123,11 @@ Module M
 
     <Fact, WorkItem(547242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547242")>
     Public Sub IncParseAddRemoveStopAtAofAs02()
-        Dim code As String = <![CDATA[
+        Dim code As String = "
 Module M
     Sub M()
         Try
-        Catch ex A]]>.Value
+        Catch ex A"
 
         Dim fullTree = VisualBasicSyntaxTree.ParseText(code)
         Dim fullText = fullTree.GetText()
@@ -1121,9 +1139,9 @@ Module M
     <Fact, WorkItem(547251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547251")>
     Public Sub IncParseAddRemoveStopAtAofPropAs()
         Dim code As String =
-        <![CDATA[Class C
+"Class C
     Inherits Attribute
-]]>.Value
+"
         Dim code1 As String = <![CDATA[    Property foo() A]]>.Value
 
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
@@ -1148,11 +1166,11 @@ Module M
 
     <Fact, WorkItem(547303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547303")>
     Public Sub IncParseAddRemoveStopAtTofThen()
-        Dim code As String = <![CDATA[
+        Dim code As String = "
 Module M
     Sub M()
         If True Then
-        ElseIf False T]]>.Value
+        ElseIf False T"
 
         Dim fullTree = VisualBasicSyntaxTree.ParseText(code)
         Dim fullText = fullTree.GetText()
@@ -1164,13 +1182,13 @@ Module M
     <WorkItem(571105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571105")>
     <Fact()>
     Public Sub IncParseInsertLineBreakBeforeLambda()
-        Dim code As String = <![CDATA[
+        Dim code As String = "
 Module M
     Sub F()
         Dim a1 = If(Sub()
                     End Sub, Nothing)
     End Sub
-End Module]]>.Value
+End Module"
 
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
         Dim oldText = tree.GetText()
@@ -1185,11 +1203,11 @@ End Module]]>.Value
     <WorkItem(578279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578279")>
     <Fact()>
     Public Sub IncParseInsertLineBreakBetweenEndSub()
-        Dim code As String = <![CDATA[Class C
+        Dim code As String = "Class C
     Sub M()
     En Sub
     Private F = 1
-End Class]]>.Value
+End Class"
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' insert line break
@@ -1202,12 +1220,12 @@ End Class]]>.Value
 
     <Fact()>
     Public Sub InsertWithinLookAhead()
-        Dim code As String = <![CDATA[
+        Dim code As String = "
 Module M
     Function F(s As String)
         Return From c In s
     End Function
-End Module]]>.Value
+End Module"
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Insert "Select c" at end of method.
@@ -1221,7 +1239,7 @@ End Module]]>.Value
 #Region "Async & Iterator"
     <Fact>
     Public Sub AsyncToSyncMethod()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Async Function M(t As Task) As Task
         Await (t)
@@ -1231,7 +1249,7 @@ Class C
         Return Nothing
     End Function
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1245,7 +1263,7 @@ End Class
 
     <Fact>
     Public Sub AsyncToSyncLambda()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Function M(t As Task)
         Dim lambda = Async Function() Await(t)
@@ -1255,7 +1273,7 @@ Class C
         Return Nothing
     End Function
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1269,7 +1287,7 @@ End Class
 
     <Fact>
     Public Sub SyncToAsyncMethod()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Function M(t As Task) As Task
         Await (t)
@@ -1279,7 +1297,7 @@ Class C
         Return Nothing
     End Function
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1293,7 +1311,7 @@ End Class
 
     <Fact>
     Public Sub SyncToAsyncLambda()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Function M(t As Task)
         Dim lambda = Function() Await(t)
@@ -1303,7 +1321,7 @@ Class C
         Return Nothing
     End Function
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1317,7 +1335,7 @@ End Class
 
     <Fact>
     Public Sub AsyncToSyncMethodDecl()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Async Function M(a As Await, t As Task) As Task
         Await t
@@ -1326,7 +1344,7 @@ End Class
 
 Class Await
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1340,7 +1358,7 @@ End Class
 
     <Fact>
     Public Sub SyncToAsyncMethodDecl()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Function M(a As Await, t As Task) As Task
         Await t
@@ -1349,7 +1367,7 @@ End Class
 
 Class Await
 End Class
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1363,13 +1381,13 @@ End Class
 
     <Fact>
     Public Sub IteratorToNonIteratorMethod()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Iterator Function Foo() As IEnumerable
         Yield (1)
     End Function
 End Module
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1383,13 +1401,13 @@ End Module
 
     <Fact>
     Public Sub NonIteratorToIteratorMethod()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Function Foo() As IEnumerable
         Yield (1)
     End Function
 End Module
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1403,13 +1421,13 @@ End Module
 
     <Fact>
     Public Sub IteratorToNonIteratorMethodDecl()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Iterator Function Foo(Yield As Integer) As IEnumerable
         Yield (1)
     End Function
 End Module
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1423,13 +1441,13 @@ End Module
 
     <Fact>
     Public Sub NonIteratorToIteratorMethodDecl()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Function Foo(Yield As Integer) As IEnumerable
         Yield (1)
     End Function
 End Module
-]]>)
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -1446,7 +1464,7 @@ End Module
     <WorkItem(554442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554442")>
     <Fact>
     Public Sub SplitCommentAtPreprocessorSymbol()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M
     Function F()
         ' comment # 1 and # 2
@@ -1455,7 +1473,7 @@ Module M
         Return Nothing
     End Function
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Split comment at "#".
@@ -1468,7 +1486,7 @@ End Module
     <WorkItem(586698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586698")>
     <Fact>
     Public Sub SortUsings()
-        Dim oldSource = ToText(<![CDATA[
+        Dim oldSource = "
 Imports System.Linq
 Imports System
 Imports Microsoft.VisualBasic
@@ -1476,8 +1494,8 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-]]>)
-        Dim newSource = ToText(<![CDATA[
+"
+        Dim newSource = "
 Imports System
 Imports System.Linq
 Imports Microsoft.VisualBasic
@@ -1485,7 +1503,7 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(oldSource)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Changes:
@@ -1500,7 +1518,7 @@ End Module
 
     <Fact>
     Public Sub Reformat()
-        Dim oldSource = ToText(<![CDATA[
+        Dim oldSource = "
 Class C
     Sub Method()
                                 Dim i = 1
@@ -1509,8 +1527,8 @@ Select          Case            i
                                                     End             Select              
     End Sub
 End Class
-]]>)
-        Dim newSource = ToText(<![CDATA[
+"
+        Dim newSource = "
 Class C
     Sub Method()
         Dim i = 1
@@ -1519,7 +1537,7 @@ Class C
         End Select
     End Sub
 End Class
-]]>)
+"
         Dim oldText = SourceText.From(oldSource)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim startOfNew = newSource.IndexOf("Dim", StringComparison.Ordinal)
@@ -1534,7 +1552,7 @@ End Class
     <WorkItem(604044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604044")>
     <Fact>
     Public Sub BunchALabels()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Program
     Sub Main()
 &HF:
@@ -1550,7 +1568,7 @@ Module Program
     End Sub
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add enter after &HFFFFFFFFFF:.
@@ -1564,7 +1582,7 @@ End Module
     <Fact()>
     Public Sub LabelAfterColon()
         ' Label following another label on separate lines.
-        LabelAfterColonCore(True, <![CDATA[Module M
+        LabelAfterColonCore(True, "Module M
             Sub M()
         10:
         20:
@@ -1575,9 +1593,9 @@ End Module
         70:
             End Sub
         End Module
-        ]]>.Value)
+        ")
         ' Label following another label on separate lines.
-        LabelAfterColonCore(True, <![CDATA[Module M
+        LabelAfterColonCore(True, "Module M
             Sub M()
         10: : 
         20:
@@ -1588,9 +1606,9 @@ End Module
         70:
             End Sub
         End Module
-        ]]>.Value)
+        ")
         ' Label following on the same line as another label.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, "Module M
     Sub M()
 10: 20:
 30:
@@ -1600,9 +1618,9 @@ End Module
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following on the same line as another label.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, "Module M
     Sub M()
 10: : 20:
 30:
@@ -1612,9 +1630,9 @@ End Module
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following on the same line as another statement.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, "Module M
     Sub M()
 M() : 20:
 30:
@@ -1624,9 +1642,9 @@ M() : 20:
 70:
     End Sub
 End Module
-]]>.Value)
+")
         ' Label following a colon within a single-line statement.
-        LabelAfterColonCore(False, <![CDATA[Module M
+        LabelAfterColonCore(False, "Module M
     Sub M()
 If True Then M() : 20:
 30:
@@ -1636,7 +1654,7 @@ If True Then M() : 20:
 70:
     End Sub
 End Module
-]]>.Value)
+")
     End Sub
 
     Private Sub LabelAfterColonCore(valid As Boolean, code As String)
@@ -1652,15 +1670,15 @@ End Module
         VerifyEquivalent(newTree, VisualBasicSyntaxTree.ParseText(newText))
     End Sub
 
-    <WorkItem(529260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")>
+    <WorkItem(529260, "http:   //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529260")>
     <Fact()>
     Public Sub DoNotReuseAnnotatedNodes()
-        Dim text As String = <![CDATA[
+        Dim text As String = "
 Class C
 End Class
 Class D
 End Class
-]]>.Value.Replace(vbCr, vbCrLf)
+".Replace(vbCr, vbCrLf)
 
         ' NOTE: We're using the class statement, rather than the block, because the
         ' change region is expanded enough to impinge on the block.
@@ -1721,7 +1739,7 @@ End Class
         'Sub Block
         'Function Block
         'Property Block
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Namespace N
     Module M
         Function F() as Boolean
@@ -1736,7 +1754,7 @@ Namespace N
     End Module
 End Namespace
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1751,7 +1769,7 @@ End Namespace
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxClass()
         'Class Block         
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M        
     Sub M()
     End Sub
@@ -1763,7 +1781,7 @@ Module M
     Class C2        
     End Class
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1778,7 +1796,7 @@ End Module
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxStructure()
         'Structure Block
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module M        
     Sub M()
     End Sub
@@ -1792,7 +1810,7 @@ Module M
         Dim i as integer
     End Structure
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1807,12 +1825,12 @@ End Module
     <Fact()>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxOptionStatement()
         'Option Statement
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Option Strict Off
 Option Infer On
 Option Explicit On
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1827,11 +1845,11 @@ Option Explicit On
     <Fact()>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxImports()
         'Imports Statement
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Imports System
 Imports System.Collections
 Imports Microsoft.Visualbasic
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1847,7 +1865,7 @@ Imports Microsoft.Visualbasic
     <Fact>
     Public Sub IncrementalParsing_ExecutableStatementBlock_TryLinkSyntaxDelegateSub()
         'ExecutableStatementBlock -> DelegateSub
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
 
@@ -1857,7 +1875,7 @@ Module Module1
     Public Delegate Sub FooWithModifier()
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1871,7 +1889,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxOperatorBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
         Dim x As New SomeClass
@@ -1889,7 +1907,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1904,7 +1922,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxEventBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
         
@@ -1923,7 +1941,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -1938,7 +1956,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxPropertyBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()        
     End Sub
@@ -1954,7 +1972,7 @@ Module Module1
         End Property
     End Class
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Class SomeClass"
@@ -1968,7 +1986,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceModuleBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Namespace NS1
     Module Module1
@@ -1985,7 +2003,7 @@ Namespace NS1
         Dim x
     End Module
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
@@ -1999,7 +2017,7 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceNamespaceBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Namespace NS1
     Module Module1
@@ -2017,7 +2035,7 @@ Namespace NS1
 
     End Namespace
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "End Module 'Remove"
@@ -2031,12 +2049,12 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxItems()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
     Class SomeClass
         Dim member As Long = 2
         Sub abc() 'Remove
             Dim xyz as integer = 2
-            IF member = 1 then Console.writeline("TEST");
+            IF member = 1 then Console.writeline(""TEST"");
             Dim SingleLineDeclare as integer = 2
         End Sub
 
@@ -2047,7 +2065,7 @@ End Namespace
                 Item1
         End Enum
     End Class
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim TextToRemove As String = "Sub abc() 'Remove"
@@ -2062,7 +2080,7 @@ End Namespace
     <Fact>
     Public Sub IncrementalParsing_PropertyContextBlock_TryLinkSyntaxSetAccessor()
         'PropertyContextBlock -> SetAccessor 
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Class C
     Private _p As Integer = 0
 
@@ -2078,7 +2096,7 @@ Class C
     Private _d As Integer = 1
 End Class
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2093,7 +2111,7 @@ End Class
 
     <Fact>
     Public Sub IncrementalParsing_BlockContext_TryLinkSyntaxSelectBlock()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Private _p As Integer = 0
     Sub Bar()
@@ -2114,7 +2132,7 @@ Module Module1
         Catch ex As exception
         End Try
 
-        If y = 1 Then Console.WriteLine("Test")
+        If y = 1 Then Console.WriteLine(""Test"")
         Y = 1
 
         While y <= 10
@@ -2159,7 +2177,7 @@ End Module
 Class Foo
     Implements IDisposable
 
-#Region "IDisposable Support"
+#Region ""IDisposable Support""
     Private disposedValue As Boolean ' To detect redundant calls
     ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
@@ -2180,7 +2198,7 @@ End Class
 Class OtherClass
 
 End Class
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2195,7 +2213,7 @@ End Class
 
     <Fact>
     Public Sub IncrementalParsing_EventBlockContext_TryLinkSyntax1()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Public Custom Event AnyName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -2212,7 +2230,7 @@ Module Module1
     Sub Main()
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2227,7 +2245,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_EventBlockContext_TryLinkSyntax2()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Public Custom Event AnyName As EventHandler
         AddHandler(ByVal value As EventHandler)
@@ -2246,7 +2264,7 @@ Module Module1
     End Sub
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2261,7 +2279,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_InterfaceBlockContext_TryLinkSyntaxClass()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
     End Sub
@@ -2272,7 +2290,7 @@ Module Module1
     End Class
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2287,7 +2305,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_InterfaceBlockContext_TryLinkSyntaxEnum()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Main()
 
@@ -2303,7 +2321,7 @@ Module Module1
     End Enum
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2318,7 +2336,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_CaseBlockContext_TryLinkSyntaxCase()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Foo()
         Dim i As Integer
@@ -2337,7 +2355,7 @@ Module Module1
 
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2351,7 +2369,7 @@ End Module
 
     <Fact>
     Public Sub IncrementalParsing_CatchContext_TryLinkSyntaxCatch()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Module Module1
     Sub Foo()
         Dim x1 As Integer = 1
@@ -2373,7 +2391,7 @@ Module Module1
     End Function
 End Module
 
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2388,7 +2406,7 @@ End Module
 
     <Fact()>
     Public Sub IncrementalParsing_NamespaceBlockContext_TryLinkSyntaxModule()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 Namespace NS1
 Module ModuleTemp 'Remove
 End Module
@@ -2401,7 +2419,7 @@ Module Module1 'Remove
     End Function
 End Module
 End Namespace
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2416,7 +2434,7 @@ End Namespace
 
     <Fact>
     Public Sub IncrementalParsing_IfBlockContext_TryLinkSyntax()
-        Dim source = ToText(<![CDATA[
+        Dim source = "
 
 Module Module1
     Private _p As Integer = 0
@@ -2435,7 +2453,7 @@ Module Module1
         End If 
     End Sub
 End Module
-]]>)
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2451,16 +2469,15 @@ End Module
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact()>
     Public Sub Bug719787_EOF()
-        Dim source = <![CDATA[
-Namespace N
+        Dim source =
+"Namespace N
     Class C
         Property P As Integer
     End Class
     Structure S
         Private F As Object
     End Structure
-End Namespace
-]]>.Value.Trim()
+End Namespace"
         ' Add two line breaks at end.
         source += vbCrLf
         Dim position = source.Length
@@ -2479,8 +2496,8 @@ End Namespace
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact>
     Public Sub Bug719787_MultiLineIf()
-        Dim source = <![CDATA[
-Class C
+        Dim source =
+"Class C
     Sub M()
         If e1 Then
             If e2 Then
@@ -2515,8 +2532,7 @@ Class C
         End If
     End Sub
     ' Comment
-End Class
-]]>.Value.Trim()
+End Class"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim toReplace = "' Comment"
@@ -2566,21 +2582,21 @@ End Class
         Next
     End Sub
 
-    Private Shared Function ToText(code As XCData) As String
-        Dim str = code.Value.Trim()
-        ' Normalize line terminators.
-        Dim builder = ArrayBuilder(Of Char).GetInstance()
-        For i = 0 To str.Length - 1
-            Dim c = str(i)
-            If (c = vbLf(0)) AndAlso
-                ((i = str.Length - 1) OrElse (str(i + 1) <> vbCr(0))) Then
-                builder.AddRange(vbCrLf)
-            Else
-                builder.Add(c)
-            End If
-        Next
-        Return New String(builder.ToArrayAndFree())
-    End Function
+    'Private Shared Function ToText(code As XCData) As String
+    '    Dim str = code.Value.Trim()
+    '    ' Normalize line terminators.
+    '    Dim builder = ArrayBuilder(Of Char).GetInstance()
+    '    For i = 0 To str.Length - 1
+    '        Dim c = str(i)
+    '        If (c = vbLf(0)) AndAlso
+    '            ((i = str.Length - 1) OrElse (str(i + 1) <> vbCr(0))) Then
+    '            builder.AddRange(vbCrLf)
+    '        Else
+    '            builder.Add(c)
+    '        End If
+    '    Next
+    '    Return New String(builder.ToArrayAndFree())
+    'End Function
 #End Region
 
 End Class
