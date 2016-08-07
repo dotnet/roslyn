@@ -70,14 +70,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentLocation)) As List(Of FileNameAndSpans)
+        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentLocation)) As FileNameAndSpans
+        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 g.Key.Name,
                 g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
