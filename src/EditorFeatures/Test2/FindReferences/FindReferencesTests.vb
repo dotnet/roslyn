@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             _outputHelper = outputHelper
         End Sub
 
-        Private Async Function TestAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestFullAsync(definition, searchSingleFileOnly, uiVisibleOnly)
-            Await TestStreamingAsync(definition, searchSingleFileOnly, uiVisibleOnly)
+        Private Async Function TestAPIAndFeature(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly)
+            Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingAsync(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
+        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
             ' We don't support testing features htat only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Sub
         End Class
 
-        Private Async Function TestFullAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+        Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Using workspace = Await TestWorkspace.CreateAsync(definition)
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 

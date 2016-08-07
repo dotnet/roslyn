@@ -147,7 +147,7 @@ class {|Definition:$$C|}
     </Project>
 </Workspace>
 
-            Return TestAsync(definition)
+            Return TestAPIAndFeature(definition)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -183,7 +183,7 @@ public class D : [|$$C|]
     </Project>
 </Workspace>
 
-            Return TestAsync(definition)
+            Return TestAPIAndFeature(definition)
         End Function
     End Class
 End Namespace
