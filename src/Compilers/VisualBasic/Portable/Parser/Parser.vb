@@ -4630,14 +4630,7 @@ checkNullable:
                 End If
 
                 initializer = SyntaxFactory.EqualsValue(equals, value)
-                'ElseIf (equals Is Nothing) AndAlso (value Is Nothing) Then
-                '    If CheckFeatureAvailability(_scanner.Options, Feature.ImplicitDefaultValueOnOptionalParameter) Then
 
-                '        equals = New PunctuationSyntax(SyntaxKind.EqualsToken, "", Nothing, Nothing)
-                '        value = SyntaxFactory.NothingLiteralExpression(SyntaxToken.Create(SyntaxKind.NothingKeyword))
-                '        initializer = SyntaxFactory.EqualsValue(equals, value)
-
-                '    End If
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
