@@ -2727,8 +2727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             arguments,
                                             originalEffectiveParameters,
                                             out inferenceError,
-                                            ref useSiteDiagnostics,
-                                            _binder.Compilation);
+                                            ref useSiteDiagnostics);
                         if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
@@ -2805,8 +2804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             out MemberAnalysisResult error,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Compilation compilation)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var args = arguments.Arguments.ToImmutable();
 
