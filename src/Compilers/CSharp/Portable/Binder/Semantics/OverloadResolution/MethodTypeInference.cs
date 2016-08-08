@@ -210,9 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Compilation compilation
-            )
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -2734,8 +2732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionsBase conversions,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Compilation compilation)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(method.Arity > 0);
