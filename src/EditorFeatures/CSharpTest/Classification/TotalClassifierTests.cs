@@ -680,5 +680,60 @@ namespace N
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task XmlDocCref()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass.MyClass(int)""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+",
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("<"),
+                XmlDoc.Name("see"),
+                XmlDoc.AttributeName(" "),
+                XmlDoc.AttributeName("cref"),
+                XmlDoc.Delimiter("="),
+                XmlDoc.AttributeQuotes("\""),
+                Class("MyClass"),
+                Operators.Dot,
+                Identifier("MyClass"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Punctuation.CloseParen,
+                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.Delimiter("/>"),
+                XmlDoc.Delimiter("///"),
+                XmlDoc.Text(" "),
+                XmlDoc.Delimiter("</"),
+                XmlDoc.Name("summary"),
+                XmlDoc.Delimiter(">"),
+                Keyword("class"),
+                Class("MyClass"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Identifier("MyClass"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly
+
+                );
+        }
     }
 }

@@ -17,15 +17,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public Editor(
                 TService service,
                 State state,
+                string fileName,
                 CancellationToken cancellationToken)
             {
                 State = state;
                 Service = service;
+                FileName = fileName;
                 CancellationToken = cancellationToken;
             }
 
             protected State State { get; }
             protected TService Service { get; }
+            protected string FileName { get; }
             protected CancellationToken CancellationToken { get; }
             protected SemanticDocument SemanticDocument => State.SemanticDocument;
 

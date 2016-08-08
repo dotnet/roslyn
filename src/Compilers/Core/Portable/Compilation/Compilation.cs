@@ -1160,6 +1160,25 @@ namespace Microsoft.CodeAnalysis
             return resourceList;
         }
 
+        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
+        {
+            if (win32Resources == null)
+                return;
+
+            switch (DetectWin32ResourceForm(win32Resources))
+            {
+                case Win32ResourceForm.COFF:
+                    moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
+                    break;
+                case Win32ResourceForm.RES:
+                    moduleBeingBuilt.Win32Resources = MakeWin32ResourceList(win32Resources, diagnostics);
+                    break;
+                default:
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, CodeAnalysisResources.UnrecognizedResourceFileFormat));
+                    break;
+            }
+        }
+
         internal void ReportManifestResourceDuplicates(
             IEnumerable<ResourceDescription> manifestResources,
             IEnumerable<string> addedModuleNames,
@@ -1491,6 +1510,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -1573,6 +1593,7 @@ namespace Microsoft.CodeAnalysis
                         emitOptions: EmitOptions.Default,
                         debugEntryPoint: null,
                         manifestResources: null,
+                        sourceLinkStream: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
                         cancellationToken: cancellationToken);
@@ -1598,17 +1619,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Emit the IL for the compiled source code into the specified stream.
-        /// </summary>
-        /// <param name="peStream">Stream to which the compilation will be written.</param>
-        /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
-        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        /// <param name="options">Emit options.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
+        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public EmitResult Emit(
             Stream peStream,
@@ -1627,6 +1638,30 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 null,
+                cancellationToken);
+        }
+
+        // 1.3 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public EmitResult Emit(
+            Stream peStream,
+            Stream pdbStream,
+            Stream xmlDocumentationStream,
+            Stream win32Resources,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions options,
+            IMethodSymbol debugEntryPoint,
+            CancellationToken cancellationToken)
+        {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                debugEntryPoint,
+                default(Stream),
                 cancellationToken);
         }
 
@@ -1655,6 +1690,10 @@ namespace Microsoft.CodeAnalysis
         /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
         /// method other than having a method body (extern, interface, or abstract methods are not allowed).
         /// </param>
+        /// <param name="sourceLinkStream">
+        /// Stream containing information linking the compilation to a source control.
+        /// Only supported when emitting Portable PDBs.
+        /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
@@ -1664,6 +1703,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources = null,
             EmitOptions options = null,
             IMethodSymbol debugEntryPoint = null,
+            Stream sourceLinkStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -1676,9 +1716,40 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(peStream));
             }
 
-            if (pdbStream != null && !pdbStream.CanWrite)
+            if (pdbStream != null)
             {
-                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
+                if (options?.DebugInformationFormat == DebugInformationFormat.Embedded)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.PdbStreamUnexpectedWhenEmbedding, nameof(pdbStream));
+                }
+
+                if (!pdbStream.CanWrite)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
+                }
+            }
+
+            if (win32Resources != null)
+            {
+                if (!win32Resources.CanRead || !win32Resources.CanSeek)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(win32Resources));
+                }
+            }
+
+            if (sourceLinkStream != null)
+            {
+                if (options == null || 
+                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
+                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.SourceLinkRequiresPortablePdb, nameof(sourceLinkStream));
+                }
+
+                if (!sourceLinkStream.CanRead)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
+                }
             }
 
             return Emit(
@@ -1689,6 +1760,7 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
+                sourceLinkStream,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -1705,9 +1777,13 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
+            bool embedPdb = options?.DebugInformationFormat == DebugInformationFormat.Embedded;
+            Debug.Assert(!embedPdb || pdbStream == null);
+
             var diagnostics = DiagnosticBag.GetInstance();
 
             var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
@@ -1715,6 +1791,7 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
+                sourceLinkStream,
                 testData,
                 cancellationToken);
 
@@ -1726,8 +1803,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     success = CompileMethods(
                         moduleBeingBuilt,
-                        pdbStream != null,
-                        diagnostics,
+                        emittingPdb: pdbStream != null || embedPdb,
+                        diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
 
@@ -1862,6 +1939,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -1908,6 +1986,7 @@ namespace Microsoft.CodeAnalysis
             return this.CreateModuleBuilder(
                 options,
                 debugEntryPoint,
+                sourceLinkStream,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -1937,8 +2016,13 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
-            bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
-            string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
+            var debugFormat = moduleBeingBuilt.EmitOptions.DebugInformationFormat;
+
+            // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
+            Debug.Assert(debugFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+
+            string pdbPath = (pdbStreamProvider != null || debugFormat == DebugInformationFormat.Embedded) ? 
+                (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
             // builds that occur in different source directories.  To enable this we shave all path information from
@@ -1948,7 +2032,7 @@ namespace Microsoft.CodeAnalysis
             // tracks getting an official solution here.
             //
             // https://github.com/dotnet/roslyn/issues/9813
-            string pePdbPath = Feature("pdb-path-determinism") != null && !string.IsNullOrEmpty(pdbPath)
+            string pePdbPath = (debugFormat == DebugInformationFormat.Embedded || Feature("pdb-path-determinism") != null) && !string.IsNullOrEmpty(pdbPath)
                 ? Path.GetFileName(pdbPath)
                 : pdbPath;
 
@@ -1956,7 +2040,7 @@ namespace Microsoft.CodeAnalysis
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (!emitPortablePdb && pdbStreamProvider != null)
+                if (debugFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
@@ -1965,7 +2049,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Func<Stream> getPortablePdbStream;
-                if (emitPortablePdb && pdbStreamProvider != null)
+                if (debugFormat == DebugInformationFormat.PortablePdb && pdbStreamProvider != null)
                 {
                     getPortablePdbStream = () =>
                     {

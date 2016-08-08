@@ -34,9 +34,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
+        public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
+        {
+            return analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
+        }
+
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
-            return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer.IsCompilerAnalyzer();
+            return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
+        }
+
+        public static bool MustRunInProcess(this DiagnosticAnalyzer analyzer)
+        {
+            if (analyzer.IsWorkspaceDiagnosticAnalyzer())
+            {
+                return true;
+            }
+
+            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
+            if (builtInAnalyzer == null)
+            {
+                return false;
+            }
+
+            return builtInAnalyzer.RunInProcess;
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
@@ -60,9 +81,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
-            var type = analyzer.GetType();
-            var typeInfo = type.GetTypeInfo();
-            return ValueTuple.Create(GetAssemblyQualifiedName(type), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return ValueTuple.Create(analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
@@ -74,13 +94,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static OptionSet GetOptionSet(this AnalyzerOptions analyzerOptions)
         {
             return (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace.Options;
-        }
-
-        private static string GetAssemblyQualifiedName(Type type)
-        {
-            // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
-            // so we need to consider them.
-            return type.AssemblyQualifiedName;
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(

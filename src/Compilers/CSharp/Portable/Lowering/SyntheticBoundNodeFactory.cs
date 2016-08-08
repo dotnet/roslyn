@@ -380,7 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, ignoreDynamic: true) || right.Type.IsErrorType() || left.Type.IsErrorType());
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    right.Type.IsErrorType() || left.Type.IsErrorType());
+
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
         }
 
@@ -655,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };
@@ -1107,9 +1109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper that will use Array.Empty if available and elements have 0 length
-        /// NOTE: it is valid only if we know that the API that is being called will not 
+        /// NOTE: it is valid only if we know that the API that is being called will not
         ///       retain or use the array argument for any purpose (like locking or key in a hash table)
-        ///       Typical example of valid use is Linq.Expressions factories - they do not make any 
+        ///       Typical example of valid use is Linq.Expressions factories - they do not make any
         ///       assumptions about array arguments and do not keep them or rely on their identity.
         /// </summary>
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)
@@ -1196,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Takes an expression and returns the bound local expression "temp" 
+        /// Takes an expression and returns the bound local expression "temp"
         /// and the bound assignment expression "temp = expr".
         /// </summary>
         public BoundLocal StoreToTemp(

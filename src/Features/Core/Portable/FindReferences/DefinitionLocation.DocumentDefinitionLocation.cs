@@ -10,13 +10,14 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// Implementation of a <see cref="DefinitionLocation"/> that sits on top of a 
         /// <see cref="DocumentLocation"/>.
         /// </summary>
-        private sealed class DocumentDefinitionLocation : DefinitionLocation
+        // Internal for testing purposes only.
+        internal sealed class DocumentDefinitionLocation : DefinitionLocation
         {
-            private readonly DocumentLocation _location;
+            public readonly DocumentLocation Location;
 
             public DocumentDefinitionLocation(DocumentLocation location)
             {
-                _location = location;
+                Location = location;
             }
 
             /// <summary>
@@ -24,10 +25,10 @@ namespace Microsoft.CodeAnalysis.FindReferences
             /// Origination of this <see cref="DefinitionLocation"/>.
             /// </summary>
             public override ImmutableArray<TaggedText> OriginationParts =>
-                ImmutableArray.Create(new TaggedText(TextTags.Text, _location.Document.Project.Name));
+                ImmutableArray.Create(new TaggedText(TextTags.Text, Location.Document.Project.Name));
 
-            public override bool CanNavigateTo() => _location.CanNavigateTo();
-            public override bool TryNavigateTo() => _location.TryNavigateTo();
+            public override bool CanNavigateTo() => true;
+            public override bool TryNavigateTo() => Location.TryNavigateTo();
         }
     }
 }

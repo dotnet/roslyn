@@ -390,6 +390,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindTupleType((TupleTypeSyntax)syntax, diagnostics);
                     }
 
+                case SyntaxKind.RefType:
+                    {
+                        // ref needs to be handled by the caller
+                        var refTypeSyntax = (RefTypeSyntax)syntax;
+                        var refToken = refTypeSyntax.RefKeyword;
+                        if (!syntax.HasErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refToken.GetLocation(), refToken.ToString());
+                        }
+
+                        return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }

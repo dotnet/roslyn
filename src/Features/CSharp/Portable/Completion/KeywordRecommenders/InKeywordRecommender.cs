@@ -29,13 +29,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // cases:
             //   foreach (var v |
             //   foreach (var v i|
+            //   foreach (var (x, y) |
 
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                var statement = token.GetAncestor<ForEachStatementSyntax>();
+                var statement = token.Parent as ForEachStatementSyntax;
                 if (statement != null && token == statement.Identifier)
+                {
+                    return true;
+                }
+            }
+            else if (token.Kind() == SyntaxKind.CloseParenToken)
+            {
+                var statement = token.GetAncestor<ForEachComponentStatementSyntax>();
+                if (statement != null && token.Span.End == statement.VariableComponent.Span.End)
                 {
                     return true;
                 }

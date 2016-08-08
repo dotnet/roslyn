@@ -140,6 +140,7 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
+                    sourceLinkStream: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -171,6 +172,7 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
+                    sourceLinkStream: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new object() });
 
                 result.Diagnostics.Verify(
@@ -202,6 +204,7 @@ public class C
                     manifestResources: null,
                     options: null,
                     debugEntryPoint: null,
+                    sourceLinkStream: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -2184,6 +2187,89 @@ class Program
 );
         }
 
+        [Fact]
+        public void SwitchWithPattern()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    private static List<List<int>> l = new List<List<int>>();
+
+    static void Main(string[] args)
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);  
+    }
+
+    static string Operate(Person p)
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("Program.Operate", @"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""0"" offset=""51"" />
+          <slot kind=""21"" offset=""0"" />
+          <slot kind=""0"" offset=""155"" />
+          <slot kind=""0"" offset=""242"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
+        <entry offset=""0x45"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x6b"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x91"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xad"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xc1"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xc4"">
+        <scope startOffset=""0x2e"" endOffset=""0x66"">
+          <local name=""s"" il_index=""4"" il_start=""0x2e"" il_end=""0x66"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x66"" endOffset=""0x8c"">
+          <local name=""s"" il_index=""6"" il_start=""0x66"" il_end=""0x8c"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x8c"" endOffset=""0xad"">
+          <local name=""t"" il_index=""7"" il_start=""0x8c"" il_end=""0xad"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>"
+);
+        }
         #endregion
 
         #region DoStatement

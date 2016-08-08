@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBodyFactory = methodBodyFactory;
 
             // The first point indicates entry into the method and has the span of the method definition.
-            _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), methodBodyFactory);
+            CSharpSyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
+            _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -211,6 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
+        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentBoundPatternSwitchStatement(original, rewritten));
+        }
+
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
@@ -254,16 +260,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _debugDocumentProvider.Invoke(path, basePath: "");
         }
 
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
+        {
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory);
+        }
+
         private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            // Add an entry in the spans array.
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory);
+        }
 
-            FileLinePositionSpan spanPosition = syntaxForSpan.GetLocation().GetMappedLineSpan();
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
+        {
+            // Add an entry in the spans array.
             int spansIndex = _spansBuilder.Count;
-            _spansBuilder.Add(new SourceSpan(GetSourceDocument(syntaxForSpan, spanPosition), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
+            _spansBuilder.Add(new SourceSpan(GetSourceDocument(syntaxForSpan, span), span.StartLinePosition.Line, span.StartLinePosition.Character, span.EndLinePosition.Line, span.EndLinePosition.Character));
 
             // Generate "_payload[pointIndex] = true".
-
             BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
             return statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
         }
@@ -301,6 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.SwitchStatement:
                     syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
                     break;
+                case BoundKind.PatternSwitchStatement:
+                    syntaxForSpan = ((BoundPatternSwitchStatement)statement).Expression.Syntax;
+                    break;
                 default:
                     syntaxForSpan = statement.Syntax;
                     break;
@@ -328,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static CSharpSyntaxNode MethodDeclarationIfAvailable(CSharpSyntaxNode body)
         {
             CSharpSyntaxNode parent = body.Parent;
+
             if (parent != null)
             {
                 switch (parent.Kind())
@@ -336,11 +353,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.ConstructorDeclaration:
+                    case SyntaxKind.OperatorDeclaration:
+
                         return parent;
                 }
             }
 
             return body;
+        }
+
+        // If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
+        private static Text.TextSpan SkipAttributes(CSharpSyntaxNode syntax)
+        {
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    MethodDeclarationSyntax methodSyntax = (MethodDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, methodSyntax.AttributeLists, methodSyntax.Modifiers, default(SyntaxToken), methodSyntax.ReturnType);
+
+                case SyntaxKind.PropertyDeclaration:
+                    PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, default(SyntaxToken), propertySyntax.Type);
+
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                    AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
+
+                case SyntaxKind.ConstructorDeclaration:
+                    ConstructorDeclarationSyntax constructorSyntax = (ConstructorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, constructorSyntax.AttributeLists, constructorSyntax.Modifiers, constructorSyntax.Identifier, null);
+
+                case SyntaxKind.OperatorDeclaration:
+                    OperatorDeclarationSyntax operatorSyntax = (OperatorDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
+            }
+
+            return syntax.Span;
+        }
+        
+        private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
+        {
+            Text.TextSpan originalSpan = syntax.Span;
+            if (attributes.Count > 0)
+            {
+                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
+                return new Text.TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
+            }
+
+            return originalSpan;
         }
     }
 }

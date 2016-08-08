@@ -4,7 +4,7 @@
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <PackagesOutDir>$(OutDir)DevDivPackages\Dependencies</PackagesOutDir>
+    <PackagesOutDir>$(OutDir)DevDivPackages</PackagesOutDir>
   </PropertyGroup>
   <ItemGroup>
     <!-- 
@@ -19,14 +19,17 @@
     <NuSpec Include="Microsoft.VisualStudio.InteractiveWindow">
       <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</Version>
       <External>false</External>
+      <SubDirectory>ManagedDependencies</SubDirectory>
     </NuSpec>
     <NuSpec Include="System.Collections.Immutable">
       <Version>$(SystemCollectionsImmutableVersion)</Version>
       <External>true</External>
+      <SubDirectory>ManagedDependencies</SubDirectory>
     </NuSpec>
     <NuSpec Include="System.Reflection.Metadata">
       <Version>$(SystemReflectionMetadataVersion)</Version>
       <External>true</External>
+      <SubDirectory>ManagedDependencies</SubDirectory>
     </NuSpec>
     <NuSpec Include="ManagedEsent">
       <!-- 
@@ -35,29 +38,38 @@
       -->
       <Version>$(ManagedEsentVersion)</Version>
       <External>true</External>
+      <SubDirectory>ManagedDependencies</SubDirectory>
     </NuSpec>
   </ItemGroup>
   <ItemGroup>
     <!-- 
       Packages that exist on NuGet and already have structure compatible with DevDiv. 
     -->
-    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\$(MicrosoftDiaSymReaderVersion)\*.nupkg" />
-    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.PortablePdb\$(MicrosoftDiaSymReaderPortablePdbVersion)\*.nupkg" />
-    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\*.nupkg" />
-    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Elfie\$(MicrosoftCodeAnalysisElfieVersion)\*.nupkg" />
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\$(MicrosoftDiaSymReaderVersion)\*.nupkg">
+      <SubDirectory>ManagedDependencies</SubDirectory>
+    </NuPkg>
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.PortablePdb\$(MicrosoftDiaSymReaderPortablePdbVersion)\*.nupkg">
+      <SubDirectory>ManagedDependencies</SubDirectory>
+    </NuPkg>
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\*.nupkg">
+      <SubDirectory>NativeDependencies</SubDirectory>
+    </NuPkg>
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Elfie\$(MicrosoftCodeAnalysisElfieVersion)\*.nupkg">
+      <SubDirectory>ManagedDependencies</SubDirectory>
+    </NuPkg>
   </ItemGroup>
-  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\VS.ExternalAPIs.%(NuSpec.Identity).%(Version).nupkg">
-    <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\%(NuSpec.SubDirectory)\VS.ExternalAPIs.%(NuSpec.Identity).%(Version).nupkg">
+    <MakeDir Directories="$(PackagesOutDir)\%(NuSpec.SubDirectory)" />
     <PropertyGroup>
       <BaseDir Condition="'%(NuSpec.External)'=='true'">$(NuGetPackageRoot)\%(NuSpec.Identity)\%(NuSpec.Version)</BaseDir>
       <BaseDir Condition="'%(NuSpec.External)'!='true'">$(OutDir)\</BaseDir>
     </PropertyGroup>
     <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
-    <Exec Command='Pack.cmd "VS.ExternalAPIs.%(NuSpec.Identity).nuspec" %(NuSpec.Version) "$(BaseDir)" "$(PackagesOutDir)"'
+    <Exec Command='Pack.cmd "VS.ExternalAPIs.%(NuSpec.Identity).nuspec" %(NuSpec.Version) "$(BaseDir)" "$(PackagesOutDir)\%(NuSpec.SubDirectory)"'
           CustomErrorRegularExpression="pack: invalid arguments"/>
   </Target>
-  <Target Name="CopyFiles" Inputs="@(NuPkg)" Outputs="@(NuPkg->$(PackagesOutDir)\%(Filename)%(Extension))" AfterTargets="Build">
-    <Copy SourceFiles="%(NuPkg.Fullpath)" DestinationFolder="$(PackagesOutDir)"/>
+  <Target Name="CopyFiles" Inputs="@(NuPkg)" Outputs="@(NuPkg->$(PackagesOutDir)\%(NuPkg.SubDirectory)\%(Filename)%(Extension))" AfterTargets="Build">
+    <Copy SourceFiles="%(NuPkg.Fullpath)" DestinationFolder="$(PackagesOutDir)\%(NuPkg.SubDirectory)"/>
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(PackagesOutDir)" />

@@ -17,15 +17,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             private readonly TService _service;
             private readonly OperationKind _operationKind;
             private readonly string _title;
+            private readonly string _fileName;
 
             public MoveTypeCodeAction(
                 TService service,
                 State state,
-                OperationKind operationKind)
+                OperationKind operationKind,
+                string fileName)
             {
                 _state = state;
                 _service = service;
                 _operationKind = operationKind;
+                _fileName = fileName;
                 _title = CreateDisplayText();
             }
 
@@ -34,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 switch (_operationKind)
                 {
                     case OperationKind.MoveType:
-                        return string.Format(FeaturesResources.Move_type_to_0, _state.TargetFileNameCandidate);
+                        return string.Format(FeaturesResources.Move_type_to_0, _fileName);
                     case OperationKind.RenameType:
                         return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentName);
                     case OperationKind.RenameFile:
-                        return string.Format(FeaturesResources.Rename_file_to_0, _state.TargetFileNameCandidate);
+                        return string.Format(FeaturesResources.Rename_file_to_0, _fileName);
                 }
 
                 throw ExceptionUtilities.Unreachable;
@@ -57,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 switch (_operationKind)
                 {
                     case OperationKind.MoveType:
-                        return new MoveTypeEditor(_service, _state, cancellationToken);
+                        return new MoveTypeEditor(_service, _state, _fileName, cancellationToken);
                     case OperationKind.RenameType:
-                        return new RenameTypeEditor(_service, _state, cancellationToken);
+                        return new RenameTypeEditor(_service, _state, _fileName, cancellationToken);
                     case OperationKind.RenameFile:
-                        return new RenameFileEditor(_service, _state, cancellationToken);
+                        return new RenameFileEditor(_service, _state, _fileName, cancellationToken);
                 }
 
                 throw ExceptionUtilities.Unreachable;

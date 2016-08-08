@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             _serviceProvider = serviceProvider;
         }
 
-        protected override DefinitionItem GetThirdPartyDefinitionItem(
+        public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, ISymbol definition)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
@@ -40,14 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             }
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
-            var definitionLocation = new ExternalDefinitionLocation(
-                _serviceProvider, filePath, lineNumber, charOffset);
-
-            return new DefinitionItem(
+            return new ExternalDefinitionItem(
                 GlyphTags.GetTags(definition.GetGlyph()),
-                displayParts,
-                ImmutableArray.Create<DefinitionLocation>(definitionLocation),
-                displayIfNoReferences: true);
+                displayParts, _serviceProvider, filePath, lineNumber, charOffset);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts(
@@ -83,26 +78,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             }
         }
 
-        private class ExternalDefinitionLocation : DefinitionLocation
+        private class ExternalDefinitionItem : DefinitionItem
         {
             private readonly IServiceProvider _serviceProvider;
             private readonly string _filePath;
             private readonly int _lineNumber;
             private readonly int _charOffset;
 
-            public ExternalDefinitionLocation(
+            internal override bool IsExternal => true;
+
+            public ExternalDefinitionItem(
+                ImmutableArray<string> tags,
+                ImmutableArray<TaggedText> displayParts,
                 IServiceProvider serviceProvider,
                 string filePath,
                 int lineNumber,
-                int charOffset)
+                int charOffset) 
+                : base(tags, displayParts)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
                 _lineNumber = lineNumber;
                 _charOffset = charOffset;
             }
-
-            public override ImmutableArray<TaggedText> OriginationParts => ImmutableArray<TaggedText>.Empty;
 
             public override bool CanNavigateTo() => true;
 

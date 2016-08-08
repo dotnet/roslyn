@@ -32,7 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
             // AllInOneCSharpCode has no deconstruction or declaration expression
-            syntaxKindsMissing.Add(SyntaxKind.VariableDeconstructionDeclarator);
+            syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
+            syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
@@ -143,7 +149,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.GetDocumentState());
+                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
@@ -161,6 +167,8 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public bool RunInProcess => true;
+
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
                 return DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;

@@ -12019,15 +12019,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unrecognized file format..
-        '''</summary>
-        Friend ReadOnly Property IDS_UnrecognizedFileFormat() As String
-            Get
-                Return ResourceManager.GetString("IDS_UnrecognizedFileFormat", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to                   Visual Basic Compiler Options
         '''
         '''                                  - OUTPUT FILE -

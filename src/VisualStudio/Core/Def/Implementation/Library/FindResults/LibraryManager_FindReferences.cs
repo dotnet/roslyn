@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -24,49 +25,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         internal IList<AbstractTreeItem> CreateFindReferencesItems(
             DefinitionsAndReferences definitionsAndReferences)
         {
-            var documents = definitionsAndReferences.References.Select(r => r.Location.Document)
-                                                               .WhereNotNull()
-                                                               .ToSet();
-            var commonPathElements = CountCommonPathElements(documents);
+            var definitionDocuments =
+                definitionsAndReferences.Definitions.SelectMany(d => d.SourceSpans)
+                                        .Select(loc => loc.Document);
 
-            var query = from d in definitionsAndReferences.Definitions
-                        from i in CreateDefinitionItems(d, definitionsAndReferences, commonPathElements)
-                        select (AbstractTreeItem)i;
+            var referenceDocuments = 
+                definitionsAndReferences.References
+                                        .Select(r => r.SourceSpan.Document);
 
-            return query.ToList();
-        }
+            var allDocuments = definitionDocuments.Concat(referenceDocuments).WhereNotNull().ToSet();
+            var commonPathElements = CountCommonPathElements(allDocuments);
 
-        private ImmutableArray<DefinitionTreeItem> CreateDefinitionItems(
-            DefinitionItem definitionItem,
-            DefinitionsAndReferences definitionsAndReferences,
-            int commonPathElements)
-        {
-            var referenceItems = CreateReferenceItems(
-                definitionItem, definitionsAndReferences, commonPathElements);
+            var query =
+                from d in definitionsAndReferences.Definitions
+                let referenceItems = CreateReferenceItems(d, definitionsAndReferences, commonPathElements)
+                select new DefinitionTreeItem(d, referenceItems);
 
-            return ConvertToDefinitionTreeItems(definitionItem, referenceItems);
-        }
-
-        private ImmutableArray<DefinitionTreeItem> ConvertToDefinitionTreeItems(
-            DefinitionItem definitionItem,
-            ImmutableArray<SourceReferenceTreeItem> referenceItems)
-        {
-            var result = ImmutableArray.CreateBuilder<DefinitionTreeItem>();
-
-            for (int i = 0, n = definitionItem.Locations.Length; i < n; i++)
-            {
-                var location = definitionItem.Locations[i];
-
-                // Each definition item may end up as several top nodes (because of partials).
-                // Add the references to the last item actually in the list.
-                var childItems = i == n - 1
-                    ? referenceItems
-                    : ImmutableArray<SourceReferenceTreeItem>.Empty;
-
-                result.Add(new DefinitionTreeItem(definitionItem, location, childItems));
-            }
-
-            return result.ToImmutable();
+            return query.ToList<AbstractTreeItem>();
         }
 
         private ImmutableArray<SourceReferenceTreeItem> CreateReferenceItems(
@@ -76,14 +51,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         {
             var result = ImmutableArray.CreateBuilder<SourceReferenceTreeItem>();
 
-            var referenceItems = definitionsAndReferences.References.Where(r => r.Definition == definitionItem);
-            foreach (var referenceItem in referenceItems)
+            var definitionGlyph = definitionItem.Tags.GetGlyph();
+
+            // Skip the first definition.  We'll present it in the definition item.
+            var definitionLocationsAndGlyphs =
+                from loc in definitionItem.SourceSpans.Skip(1)
+                select ValueTuple.Create(loc, definitionGlyph);
+
+            var referenceLocationsAndGlyphs =
+                from r in definitionsAndReferences.References
+                where r.Definition == definitionItem
+                select ValueTuple.Create(r.SourceSpan, Glyph.Reference);
+
+            var allLocationsAndGlyphs = definitionLocationsAndGlyphs.Concat(referenceLocationsAndGlyphs);
+
+            foreach (var locationAndGlyph in allLocationsAndGlyphs)
             {
-                var documentLocation = referenceItem.Location;
+                var documentLocation = locationAndGlyph.Item1;
+                var glyph = locationAndGlyph.Item2;
                 result.Add(new SourceReferenceTreeItem(
                     documentLocation.Document,
                     documentLocation.SourceSpan,
-                    Glyph.Reference.GetGlyphIndex(),
+                    glyph.GetGlyphIndex(),
                     commonPathElements));
             }
 

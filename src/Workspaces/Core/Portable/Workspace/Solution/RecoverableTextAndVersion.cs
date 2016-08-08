@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
+        public ITemporaryTextStorage Storage => _text?.Storage;
+
         public override bool TryGetValue(out TextAndVersion value)
         {
             SourceText text;
@@ -117,8 +119,14 @@ namespace Microsoft.CodeAnalysis
             public RecoverableText(RecoverableTextAndVersion parent, SourceText text)
                 : base(new ConstantValueSource<SourceText>(text))
             {
+                // TODO: refactor recoverable text like recoverable tree so that
+                //       we can have tree/node concept in recoverable text as well.
+                //       basically tree is handle that can live in memory and node is
+                //       data that come and go.
                 _parent = parent;
             }
+
+            public ITemporaryTextStorage Storage => _storage;
 
             protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
             {
@@ -140,12 +148,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            protected override Task SaveAsync(SourceText text, CancellationToken cancellationToken)
+            protected override async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
-                _storage = _parent._storageService.CreateTemporaryTextStorage(CancellationToken.None);
-                return _storage.WriteTextAsync(text);
+                var storage = _parent._storageService.CreateTemporaryTextStorage(cancellationToken);
+                await storage.WriteTextAsync(text).ConfigureAwait(false);
+
+                // make sure write is done before setting _storage field
+                Interlocked.CompareExchange(ref _storage, storage, null);
             }
         }
     }

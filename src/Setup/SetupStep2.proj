@@ -5,16 +5,12 @@
 
   <Target Name="Build">
 
-    <!-- Build the Roslyn NuGet packages -->
-    <MSBuild Projects="..\Nuget\NuGet.proj" />
-
     <!-- Build CoreXT packages for insertion into DevDiv (order of the following actions matters) -->
     <MSBuild Projects="DevDivPackages\Dependencies.proj" />
     <MSBuild Projects="DevDivInsertionFiles\DevDivInsertionFiles.sln" />
     <MSBuild Projects="DevDivPackages\Roslyn.proj" />
-    <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
-    <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
-    <MSBuild Projects="DevDivVsix\MicrosoftVisualStudioInteractiveWindow\Microsoft.VisualStudio.InteractiveWindow.vsmanproj" Condition="'$(RunningInMicroBuild)' == 'true'" />
+    <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" />
+    <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" />
 
     <!-- Dependencies -->
     <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->

@@ -415,14 +415,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal ImmutableArray<byte> GetChecksum(bool useDefaultEncodingIfNull = false)
+        public ImmutableArray<byte> GetChecksum()
         {
             if (_lazyChecksum.IsDefault)
             {
-                // we shouldn't be asking for a checksum of encoding-less source text, except for SourceText comparison.
-                Debug.Assert(this.Encoding != null || useDefaultEncodingIfNull);
-
-                using (var stream = new SourceTextStream(this, useDefaultEncodingIfNull: useDefaultEncodingIfNull))
+                using (var stream = new SourceTextStream(this, useDefaultEncodingIfNull: true))
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyChecksum, CalculateChecksum(stream, _checksumAlgorithm));
                 }

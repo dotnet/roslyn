@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Snippet = nameof(Snippet);
         public const string Error = nameof(Error);
         public const string Warning = nameof(Warning);
+        internal const string StatusInformation = nameof(StatusInformation);
 
         // Currently needed, but removed from Dev15.  Internal so no one accidently takes a 
         // dependency on them.
