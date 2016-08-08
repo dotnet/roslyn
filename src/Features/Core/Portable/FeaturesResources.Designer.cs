@@ -108,15 +108,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add attribute.
-        /// </summary>
-        internal static string Add_attribute {
-            get {
-                return ResourceManager.GetString("Add_attribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
@@ -158,6 +149,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_optional_parameters_to_0_1 {
             get {
                 return ResourceManager.GetString("Add_optional_parameters_to_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add param node for &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_param_node_for_0 {
+            get {
+                return ResourceManager.GetString("Add_param_node_for_0", resourceCulture);
             }
         }
         

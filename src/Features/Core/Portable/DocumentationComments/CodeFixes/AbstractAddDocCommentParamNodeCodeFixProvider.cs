@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        c => AddParamTagAsync(context.Document, context.Span, c)),
+                        c => AddParamTagAsync(context.Document, context.Span, c), GetParameterName(parameter)),
                     context.Diagnostics);
             }
         }
@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_attribute, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string parameterName)
+                : base(string.Format(FeaturesResources.Add_param_node_for_0, parameterName), createChangedDocument)
             {
             }
         }
