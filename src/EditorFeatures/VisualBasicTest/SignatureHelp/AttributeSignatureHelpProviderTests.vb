@@ -191,6 +191,38 @@ End Class
             Await VerifyCurrentParameterNameAsync(markupWithPosition:=markup, expectedParameterName:="y")
         End Function
 
+        <WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAttributePropertiesIncludingOverloadedAndOverriddenProperties() As Task
+            Dim markup = <Text><![CDATA[
+Class BaseAttribute
+    Inherits System.Attribute
+    Public Overridable Property Name As String
+    Public Property Name2 As Int16
+End Class
+
+Class DerivedAttribute
+    Inherits BaseAttribute
+    Public Overrides Property Name As String
+    Public Overloads Property Name2 As Int32
+End Class
+
+
+<Derived($$)>
+Class D
+
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems As New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("DerivedAttribute(Properties: [Name:=String], [Name2:=Int32])",
+                                                               String.Empty,
+                                                               String.Empty,
+                                                               currentParameterIndex:=0))
+            Await TestAsync(markupWithPositionAndOptSpan:=markup, expectedOrderedItemsOrNull:=expectedOrderedItems)
+
+        End Function
+
         <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
