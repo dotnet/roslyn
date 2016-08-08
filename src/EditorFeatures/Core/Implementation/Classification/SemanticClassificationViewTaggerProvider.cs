@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
@@ -92,14 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
-            var document = spanToTag.Document;
 
-            if (document == null)
+            _classificationService = _classificationService ?? 
+                spanToTag.Document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+            if (_classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
-
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
 
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
         }
