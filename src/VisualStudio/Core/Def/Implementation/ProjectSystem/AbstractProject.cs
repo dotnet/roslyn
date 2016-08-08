@@ -25,8 +25,6 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-using VsHierarchyPropID = Microsoft.VisualStudio.Shell.VsHierarchyPropID;
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
