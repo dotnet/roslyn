@@ -32,7 +32,7 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(538886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
@@ -63,7 +63,7 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
@@ -85,7 +85,7 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539022")>
@@ -107,7 +107,7 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
@@ -140,7 +140,7 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
@@ -173,7 +173,7 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
@@ -206,7 +206,7 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539047")>
@@ -239,7 +239,7 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539523")>
@@ -264,7 +264,7 @@ public class A : DD
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539523")>
@@ -289,7 +289,7 @@ public class A : DD
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -326,7 +326,7 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -363,7 +363,7 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -400,7 +400,7 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -437,7 +437,7 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -474,7 +474,7 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(540440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540440")>
@@ -495,7 +495,7 @@ End Module]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(540440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540440")>
@@ -516,7 +516,7 @@ End Module]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
@@ -539,7 +539,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
@@ -562,7 +562,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
@@ -585,7 +585,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(543125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543125")>
@@ -608,7 +608,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
@@ -632,7 +632,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
@@ -656,7 +656,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542881")>
@@ -680,7 +680,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
@@ -700,7 +700,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
@@ -720,7 +720,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
@@ -753,7 +753,7 @@ class B : A
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
@@ -786,7 +786,7 @@ class B : A
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
@@ -819,7 +819,7 @@ class B : A
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(665876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665876")>
@@ -855,7 +855,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(665876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665876")>
@@ -891,7 +891,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

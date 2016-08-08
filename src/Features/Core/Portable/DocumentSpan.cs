@@ -5,17 +5,17 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindReferences
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal struct DocumentLocation : IEquatable<DocumentLocation>
+    internal struct DocumentSpan : IEquatable<DocumentSpan>
     {
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
 
-        public DocumentLocation(Document document, TextSpan sourceSpan)
+        public DocumentSpan(Document document, TextSpan sourceSpan)
         {
             Document = document;
             SourceSpan = sourceSpan;
@@ -23,20 +23,20 @@ namespace Microsoft.CodeAnalysis.FindReferences
 
         public override bool Equals(object obj)
         {
-            return Equals((DocumentLocation)obj);
+            return Equals((DocumentSpan)obj);
         }
 
-        public bool Equals(DocumentLocation obj)
+        public bool Equals(DocumentSpan obj)
         {
             return this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
         }
 
-        public static bool operator ==(DocumentLocation d1, DocumentLocation d2)
+        public static bool operator ==(DocumentSpan d1, DocumentSpan d2)
         {
             return d1.Equals(d2);
         }
 
-        public static bool operator !=(DocumentLocation d1, DocumentLocation d2)
+        public static bool operator !=(DocumentSpan d1, DocumentSpan d2)
         {
             return !(d1 == d2);
         }
