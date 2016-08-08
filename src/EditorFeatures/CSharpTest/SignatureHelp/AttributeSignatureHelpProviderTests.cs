@@ -363,7 +363,7 @@ class D
 class BaseAttribute : System.Attribute
 {
     public virtual int foo { get; set; }
-    public int bar { get; set; }
+    public bool bar { get; set; }
 }
 class DerivedAttribute : BaseAttribute
 {
@@ -379,7 +379,6 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [bar = int], [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
