@@ -19,14 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
-        {
-            get
-            {
-                return ConsList<LocalSymbol>.Empty;
-            }
-        }
-
         internal override ImportChain ImportChain
         {
             get
