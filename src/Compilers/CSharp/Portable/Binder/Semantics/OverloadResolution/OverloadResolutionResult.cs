@@ -1072,31 +1072,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
-                var first = worseResult1.LeastOverriddenMember.OriginalDefinition;
-                var second = worseResult2.LeastOverriddenMember.OriginalDefinition;
-
-                if (first.ContainingNamespace != second.ContainingNamespace)
-                {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_AmbigCall,
-                        new object[]
-                            {
-                                new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                                new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                            },
-                        symbols), location);
-                }
-                else
-                {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_AmbigCall,
-                        new object[]
-                            {
-                                first,
-                                second
-                            },
-                        symbols), location);
-                }
+                diagnostics.Add(
+                    CreateAmbiguousCallDiagnosticInfo(
+                        worseResult1.LeastOverriddenMember.OriginalDefinition,
+                        worseResult2.LeastOverriddenMember.OriginalDefinition,
+                        symbols),
+                    location);
             }
 
             return true;
@@ -1144,31 +1125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // error CS0121: The call is ambiguous between the following methods or properties:
             // 'P.Ambiguous(object, string)' and 'P.Ambiguous(string, object)'
-            var first = validResult1.LeastOverriddenMember.OriginalDefinition;
-            var second = validResult2.LeastOverriddenMember.OriginalDefinition;
-
-            if (first.ContainingNamespace != second.ContainingNamespace)
-            {
-                diagnostics.Add(new DiagnosticInfoWithSymbols(
-                ErrorCode.ERR_AmbigCall,
-                new object[]
-                    {
-                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                    },
-                symbols), location);
-            }
-            else
-            {
-                diagnostics.Add(new DiagnosticInfoWithSymbols(
-                ErrorCode.ERR_AmbigCall,
-                new object[]
-                    {
-                        first,
-                        second
-                    },
-                symbols), location);
-            }
+            diagnostics.Add(
+                CreateAmbiguousCallDiagnosticInfo(
+                    validResult1.LeastOverriddenMember.OriginalDefinition,
+                    validResult2.LeastOverriddenMember.OriginalDefinition,
+                    symbols),
+                location);
 
             return true;
         }
@@ -1200,6 +1162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return count;
+        }
+
+        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
+        {
+            var arguments = (first.ContainingNamespace != second.ContainingNamespace) ?
+                new object[]
+                    {
+                            new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                            new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
+                    } :
+                new object[]
+                    {
+                            first,
+                            second
+                    };
+            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, arguments, symbols);
         }
 
         [Conditional("DEBUG")]

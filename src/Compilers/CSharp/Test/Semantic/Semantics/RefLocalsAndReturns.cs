@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class RefLocalsAndReturnsTeats : CompilingTestBase
+    public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         internal static CSharpCompilation CreateCompilationRef(
             string text,

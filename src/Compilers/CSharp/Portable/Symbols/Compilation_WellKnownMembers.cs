@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public partial class CSharpCompilation
     {
-        private readonly WellKnownMembersSignatureComparer _wellKnownMemberSignatureComparer;
+        internal readonly WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer;
 
         /// <summary>
         /// An array of cached well known types available for use in this Compilation.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
+                    result = GetRuntimeMember(type, ref descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
                 Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class WellKnownMembersSignatureComparer : SpecialMembersSignatureComparer
+        internal sealed class WellKnownMembersSignatureComparer : SpecialMembersSignatureComparer
         {
             private readonly CSharpCompilation _compilation;
 
