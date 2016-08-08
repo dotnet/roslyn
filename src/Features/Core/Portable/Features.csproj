@@ -224,6 +224,7 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\AbstractAddDocCommentParamNodeCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="FindReferences\DefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionItem.DocumentLocationDefinitionItem.cs" />

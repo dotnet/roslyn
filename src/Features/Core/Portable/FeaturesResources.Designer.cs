@@ -108,6 +108,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add attribute.
+        /// </summary>
+        internal static string Add_attribute {
+            get {
+                return ResourceManager.GetString("Add_attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
