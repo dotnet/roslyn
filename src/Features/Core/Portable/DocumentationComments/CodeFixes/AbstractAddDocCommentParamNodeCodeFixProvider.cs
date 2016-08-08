@@ -21,19 +21,21 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         where TMethodDeclarationSyntax : SyntaxNode
         where TXmlTextSyntax : SyntaxNode
     {
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => AddParamTagAsync(context.Document, context.Span, c)),
-                context.Diagnostics);
+            var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var parameter = root.FindNode(context.Span) as TParameterSyntax;
 
-            return SpecializedTasks.EmptyTask;
+            var parentMethod = parameter.FirstAncestorOrSelf<TMethodDeclarationSyntax>();
+            if (parentMethod != null)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        c => AddParamTagAsync(context.Document, context.Span, c)),
+                    context.Diagnostics);
+            }
         }
         
         protected abstract List<TXmlNameAttributeSyntax> GetNameAttributes(TXmlElementSyntax node);
@@ -51,12 +53,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var parameter = root.FindNode(span) as TParameterSyntax;
 
             var parentMethod = parameter.FirstAncestorOrSelf<TMethodDeclarationSyntax>();
-            if (parentMethod == null)
-            {
-                // todo bug
-                throw new Exception();
-            }
-
             var docCommentNode = GetDocCommentNode(parentMethod.GetLeadingTrivia());
             var docCommentChildNodes = docCommentNode.ChildNodes().ToList();
 
