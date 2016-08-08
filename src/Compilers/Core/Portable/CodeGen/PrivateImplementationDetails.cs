@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
-            var isNetModule = moduleBuilder.AsAssembly == null;
+            var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
             _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
         }
 

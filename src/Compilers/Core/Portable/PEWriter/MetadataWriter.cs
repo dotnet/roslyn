@@ -124,7 +124,7 @@ namespace Microsoft.Cci
         /// NetModules and EnC deltas don't have AssemblyDef record.
         /// We don't emit it for EnC deltas since assembly identity has to be preserved across generations (CLR/debugger get confused otherwise).
         /// </summary>
-        private bool EmitAssemblyDefinition => module.AsAssembly != null && !IsMinimalDelta;
+        private bool EmitAssemblyDefinition => module.OutputKind != OutputKind.NetModule && !IsMinimalDelta;
 
         /// <summary>
         /// Returns metadata generation ordinal. Zero for
@@ -1314,7 +1314,7 @@ namespace Microsoft.Cci
             var mref = (IModuleReference)unitReference;
             aref = mref.GetContainingAssembly(Context);
 
-            if (aref != null && aref != module.AsAssembly)
+            if (aref != null && aref != module.GetContainingAssembly(Context))
             {
                 return GetAssemblyReferenceHandle(aref);
             }
@@ -1914,15 +1914,23 @@ namespace Microsoft.Cci
                 return;
             }
 
-            IAssembly assembly = this.module.AsAssembly;
+            var sourceAssembly = module.SourceAssemblyOpt;
+            Debug.Assert(sourceAssembly != null);
+
+            var flags = sourceAssembly.AssemblyFlags & ~AssemblyFlags.PublicKey;
+
+            if (!sourceAssembly.Identity.PublicKey.IsDefaultOrEmpty)
+            {
+                flags |= AssemblyFlags.PublicKey;
+            }
 
             metadata.AddAssembly(
-                flags: assembly.Flags,
-                hashAlgorithm: assembly.HashAlgorithm,
-                version: assembly.Identity.Version,
-                publicKey: metadata.GetOrAddBlob(assembly.PublicKey),
-                name: GetStringHandleForPathAndCheckLength(assembly.Name, assembly),
-                culture: metadata.GetOrAddString(assembly.Identity.CultureName));
+                flags: flags,
+                hashAlgorithm: sourceAssembly.HashAlgorithm,
+                version: sourceAssembly.Identity.Version,
+                publicKey: metadata.GetOrAddBlob(sourceAssembly.Identity.PublicKey),
+                name: GetStringHandleForPathAndCheckLength(module.Name, module),
+                culture: metadata.GetOrAddString(sourceAssembly.Identity.CultureName));
         }
         
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
@@ -1974,7 +1982,7 @@ namespace Microsoft.Cci
 
         private void AddAssemblyAttributesToTable()
         {
-            bool writingNetModule = (null == this.module.AsAssembly);
+            bool writingNetModule = module.OutputKind == OutputKind.NetModule;
             if (writingNetModule)
             {
                 // When writing netmodules, assembly security attributes are not emitted by PopulateDeclSecurityTableRows().
@@ -2090,7 +2098,7 @@ namespace Microsoft.Cci
 
         private void PopulateDeclSecurityTableRows()
         {
-            if (module.AsAssembly != null)
+            if (module.OutputKind != OutputKind.NetModule)
             {
                 this.PopulateDeclSecurityTableRowsFor(EntityHandle.AssemblyDefinition, module.GetSourceAssemblySecurityAttributes());
             }
@@ -2346,7 +2354,7 @@ namespace Microsoft.Cci
 
         private void PopulateFileTableRows()
         {
-            IAssembly assembly = this.module.AsAssembly;
+            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
             if (assembly == null)
             {
                 return;

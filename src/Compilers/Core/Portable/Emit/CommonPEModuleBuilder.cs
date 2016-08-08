@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return this;
         }
 
-        public Cci.IAssembly AsAssembly => this as Cci.IAssembly;
+        public abstract ISourceAssemblySymbolInternal SourceAssemblyOpt { get; }
 
         public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
 
@@ -179,14 +179,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate(CommonCorLibrary, context.Diagnostics);
         }
 
-        public Cci.IAssembly GetContainingAssembly(EmitContext context)
+        public Cci.IAssemblyReference GetContainingAssembly(EmitContext context)
         {
-            return OutputKind.IsNetModule() ? null : (Cci.IAssembly)this;
-        }
-
-        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
-        {
-            return OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
+            return OutputKind == OutputKind.NetModule ? null : (Cci.IAssemblyReference)this;
         }
 
         public IEnumerable<string> GetStrings()

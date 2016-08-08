@@ -22,7 +22,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IAssemblyReference assemblyReference)
         {
-            if (assemblyReference != Context.Module.AsAssembly)
+            if (assemblyReference != Context.Module.GetContainingAssembly(Context))
             {
                 RecordAssemblyReference(assemblyReference);
             }
@@ -204,7 +204,7 @@ namespace Microsoft.Cci
                     // If this is a module from a referenced multi-module assembly,
                     // the assembly should be used as the resolution scope. 
                     assemblyReference = moduleReference.GetContainingAssembly(Context);
-                    if (assemblyReference != null && assemblyReference != Context.Module.AsAssembly)
+                    if (assemblyReference != null && assemblyReference != Context.Module.GetContainingAssembly(Context))
                     {
                         this.Visit(assemblyReference);
                     }

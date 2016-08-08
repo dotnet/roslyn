@@ -299,7 +299,7 @@ namespace Microsoft.Cci
 
         private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
         {
-            IAssembly assembly = module.AsAssembly;
+            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
             if (assembly == null)
             {
                 return 0;
@@ -310,7 +310,7 @@ namespace Microsoft.Cci
 
             if (keySize == 0)
             {
-                keySize = assembly.PublicKey.Length;
+                keySize = assembly.Identity.PublicKey.Length;
             }
 
             if (keySize == 0)

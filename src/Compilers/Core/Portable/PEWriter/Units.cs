@@ -11,32 +11,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 namespace Microsoft.Cci
 {
     /// <summary>
-    /// Represents a .NET assembly.
-    /// </summary>
-    internal interface IAssembly : IAssemblyReference
-    {
-        /// <summary>
-        /// A set of bits and bit ranges representing properties of the assembly. The value of <see cref="Flags"/> can be set
-        /// from source code via the AssemblyFlags assembly custom attribute. The interpretation of the property depends on the target platform.
-        /// </summary>
-        AssemblyFlags Flags { get; }
-
-        /// <summary>
-        /// The public part of the key used to encrypt the SHA1 hash over the persisted form of this assembly. Empty or null if not specified.
-        /// This value is used by the loader to decrypt an encrypted hash value stored in the assembly, which it then compares with a freshly computed hash value
-        /// in order to verify the integrity of the assembly.
-        /// </summary>
-        ImmutableArray<byte> PublicKey { get; }
-
-        /// <summary>
-        /// The contents of the AssemblySignatureKeyAttribute
-        /// </summary>
-        string SignatureKey { get; }
-
-        AssemblyHashAlgorithm HashAlgorithm { get; }
-    }
-
-    /// <summary>
     /// A reference to a .NET assembly.
     /// </summary>
     internal interface IAssemblyReference : IModuleReference

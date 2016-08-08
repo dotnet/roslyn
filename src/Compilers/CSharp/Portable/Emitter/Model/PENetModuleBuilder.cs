@@ -26,5 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override int CurrentGenerationOrdinal => 0;
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
+        public override ISourceAssemblySymbolInternal SourceAssemblyOpt => null;
     }
 }
