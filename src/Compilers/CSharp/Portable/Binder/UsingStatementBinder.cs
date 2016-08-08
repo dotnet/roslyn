@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expressionSyntax != null)
             {
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                PatternVariableFinder.FindPatternVariables(this, locals, expressionSyntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, expressionSyntax);
                 return locals.ToImmutableAndFree();
             }
             else
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (declarator.Initializer != null)
                     {
-                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator.Initializer.Value);
                     }
                 }
 

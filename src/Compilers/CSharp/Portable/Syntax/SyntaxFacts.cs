@@ -388,34 +388,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
         }
 
-        /// <summary>
-        /// Figures out if this token is an identifier in a deconstruction-declaration.
-        /// Outputs the top-level statement if that is the case.
-        /// </summary>
-        internal static bool IsDeconstructionIdentifier(SyntaxToken identifier, out SyntaxNode parent)
-        {
-            for (parent = identifier.Parent; parent != null; parent = parent.Parent)
-            {
-                switch (parent.Kind())
-                {
-                    case SyntaxKind.ForEachComponentStatement:
-                    case SyntaxKind.DeconstructionDeclarationStatement:
-                    case SyntaxKind.ForStatement:
-                        return true;
-                    case SyntaxKind.ParenthesizedVariableComponent:
-                    case SyntaxKind.TypedVariableComponent:
-                    case SyntaxKind.SingleVariableDesignation:
-                    case SyntaxKind.ParenthesizedVariableDesignation:
-                    case SyntaxKind.VariableComponentAssignment:
-                        continue;
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
-        }
-
         internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
         {
             var component = node.Parent as TypedVariableComponentSyntax;

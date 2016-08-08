@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class DeconstructionTextx : CompilingTestBase
+    public class DeconstructionTests : CompilingTestBase
     {
         const string commonSource =
 @"public class Pair<T1, T2>
