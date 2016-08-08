@@ -496,25 +496,25 @@ End Class
 Module Program
     Private x As Integer
 
-    Public Sub Main()                       ' Method 0
+    Public Sub Main()                           ' Method 0
         TestMain()
     End Sub
 
-    Sub TestMain()                          ' Method 1
-        Dim local As New C()
+    Sub TestMain()                              ' Method 1
+        Dim local As New C() : local = New C(1, 2)
     End Sub
 End Module
 
 Class C
-    Shared Function Init() As Integer       ' Method 2
+    Shared Function Init() As Integer           ' Method 2
         Return 33
     End Function
 
-    Sub New()                               ' Method 3
+    Sub New()                                   ' Method 3
         _z = 12
     End Sub
 
-    Shared Sub New()                        ' Method 4
+    Shared Sub New()                            ' Method 4
         s_z = 123
     End Sub
 
@@ -524,6 +524,14 @@ Class C
     Private Shared s_x As Integer = Init()
     Private Shared s_y As Integer = Init() + 153
     Private Shared s_z As Integer
+
+    Sub New(x As Integer)                       ' Method 5
+        _z = x
+    End Sub
+
+    Sub New(a As Integer, b As Integer)         ' Method 6
+        _z = a + b
+    End Sub
 End Class
 ]]>
                                          </file>
@@ -547,7 +555,8 @@ End Class
 
             VerifySpans(reader, reader.Methods(1), sourceLines,
                         New SpanResult(7, 4, 9, 11, "Sub TestMain()"),
-                        New SpanResult(8, 21, 8, 28, "New C()"))
+                        New SpanResult(8, 21, 8, 28, "New C()"),
+                        New SpanResult(8, 31, 8, 50, "local = New C(1, 2)"))
 
             VerifySpans(reader, reader.Methods(2), sourceLines,
                         New SpanResult(13, 4, 15, 16, "Shared Function Init() As Integer"),
@@ -555,15 +564,27 @@ End Class
 
             VerifySpans(reader, reader.Methods(3), sourceLines,
                         New SpanResult(17, 4, 19, 11, "Sub New()"),
-                        New SpanResult(25, 26, 25, 34, "= Init()"),
-                        New SpanResult(26, 26, 26, 39, "= Init() + 12"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
                         New SpanResult(18, 8, 18, 15, "_z = 12"))
 
             VerifySpans(reader, reader.Methods(4), sourceLines,
                         New SpanResult(21, 4, 23, 11, "Shared Sub New()"),
-                        New SpanResult(28, 34, 28, 42, "= Init()"),
-                        New SpanResult(29, 34, 29, 48, "= Init() + 153"),
+                        New SpanResult(28, 36, 28, 42, "Init()"),
+                        New SpanResult(29, 36, 29, 48, "Init() + 153"),
                         New SpanResult(22, 8, 22, 17, "s_z = 123"))
+
+            VerifySpans(reader, reader.Methods(5), sourceLines,
+                        New SpanResult(32, 4, 34, 11, "Sub New(x As Integer)"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
+                        New SpanResult(33, 8, 33, 14, "_z = x"))
+
+            VerifySpans(reader, reader.Methods(6), sourceLines,
+                        New SpanResult(36, 4, 38, 11, "Sub New(a As Integer, b As Integer)"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
+                        New SpanResult(37, 8, 37, 18, "_z = a + b"))
         End Sub
 
         <Fact>

@@ -1230,26 +1230,26 @@ True
 Module Program
     Private x As Integer
 
-    Public Sub Main()                       ' Method 1
+    Public Sub Main()                           ' Method 1
         TestMain()
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
     End Sub
 
-    Sub TestMain()                          ' Method 2
-        Dim local As New C()
+    Sub TestMain()                              ' Method 2
+        Dim local As New C() : local = New C(1, 2)
     End Sub
 End Module
 
 Class C
-    Shared Function Init() As Integer       ' Method 3
+    Shared Function Init() As Integer           ' Method 3
         Return 33
     End Function
 
-    Sub New()                               ' Method 4
+    Sub New()                                   ' Method 4
         _z = 12
     End Sub
 
-    Shared Sub New()                        ' Method 5
+    Shared Sub New()                            ' Method 5
         s_z = 123
     End Sub
 
@@ -1259,6 +1259,14 @@ Class C
     Private Shared s_x As Integer = Init()
     Private Shared s_y As Integer = Init() + 153
     Private Shared s_z As Integer
+
+    Sub New(x As Integer)                       ' Method 6
+        _z = x
+    End Sub
+
+    Sub New(a As Integer, b As Integer)         ' Method 7
+        _z = a + b
+    End Sub
 End Class
 ]]>
                                          </file>
@@ -1277,6 +1285,7 @@ Method 2
 File 1
 True
 True
+True
 Method 3
 File 1
 True
@@ -1293,7 +1302,13 @@ True
 True
 True
 True
-Method 8
+Method 7
+File 1
+True
+True
+True
+True
+Method 10
 File 1
 True
 True

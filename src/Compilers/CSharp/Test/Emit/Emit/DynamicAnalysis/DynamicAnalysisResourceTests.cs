@@ -446,7 +446,7 @@ public class C
 
     static void TestMain()                                      // Method 1
     {
-        C local = new C();
+        C local = new C(); local = new C(1, 2);
     }
 
     static int Init() => 33;                                    // Method 2
@@ -467,6 +467,19 @@ public class C
     static int s_x = Init();
     static int s_y = Init() + 153;
     static int s_z;
+
+    C(int x)                                                    // Method 5
+    {
+        _z = x;
+    }
+
+    C(int a, int b)                                             // Method 6
+    {
+        _z = a + b;
+    }
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
 }
 ";
 
@@ -484,7 +497,8 @@ public class C
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
                 new SpanResult(10, 4, 13, 5, "static void TestMain()"),
-                new SpanResult(12, 8, 12, 26, "C local = new C()"));
+                new SpanResult(12, 8, 12, 26, "C local = new C()"),
+                new SpanResult(12, 27, 12, 47, "local = new C(1, 2)"));
 
             VerifySpans(reader, reader.Methods[2], sourceLines,
                 new SpanResult(15, 4, 15, 28, "static int Init() => 33"),
@@ -492,11 +506,31 @@ public class C
 
             VerifySpans(reader, reader.Methods[3], sourceLines,
                 new SpanResult(17, 4, 20, 5, "C()"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
                 new SpanResult(19, 8, 19, 16, "_z = 12"));
 
             VerifySpans(reader, reader.Methods[4], sourceLines,
                 new SpanResult(22, 4, 25, 5, "static C()"),
+                new SpanResult(30, 21, 30, 27, "Init()"),
+                new SpanResult(31, 21, 31, 33, "Init() + 153"),
+                new SpanResult(45, 32, 45, 35, "255"),
                 new SpanResult(24, 8, 24, 18, "s_z = 123"));
+
+            VerifySpans(reader, reader.Methods[5], sourceLines,
+                new SpanResult(34, 4, 37, 5, "C(int x)"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(36, 8, 36, 15, "_z = x"));
+
+            VerifySpans(reader, reader.Methods[6], sourceLines,
+                new SpanResult(39, 4, 42, 5, "C(int a, int b)"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(41, 8, 41, 19, "_z = a + b"));
         }
 
         [Fact]

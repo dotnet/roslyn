@@ -719,6 +719,7 @@ True
 True
 True
 True
+True
 Method 6
 File 1
 True
@@ -1563,7 +1564,7 @@ public class C
 
     static void TestMain()                                      // Method 2
     {
-        C local = new C();
+        C local = new C(); local = new C(1, 2);
     }
 
     static int Init() => 33;                                    // Method 3
@@ -1584,6 +1585,19 @@ public class C
     static int s_x = Init();
     static int s_y = Init() + 153;
     static int s_z;
+
+    C(int x)                                                    // Method 6
+    {
+        _z = x;
+    }
+
+    C(int a, int b)                                             // Method 7
+    {
+        _z = a + b;
+    }
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
 }
 ";
             string expectedOutput = @"
@@ -1597,6 +1611,7 @@ Method 2
 File 1
 True
 True
+True
 Method 3
 File 1
 True
@@ -1607,13 +1622,22 @@ True
 True
 True
 True
+True
 Method 5
 File 1
 True
 True
 True
 True
+True
 Method 7
+File 1
+True
+True
+True
+True
+True
+Method 11
 File 1
 True
 True
