@@ -459,8 +459,8 @@ End Class</File>
         End Function
 
         <WorkItem(908322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908322")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestTestObjectConstruction() As Task
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        Public Async Function TestObjectConstruction() As Task
             Await TestAsync(
 NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New [|AwesomeClas()|] \n End Sub \n End Class"),
 NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New AwesomeClass() \n End Sub \n End Class"),
@@ -468,10 +468,26 @@ index:=0)
         End Function
 
         <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTestMissingName() As Task
             Await TestMissingAsync(
 NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        Public Async Function TestTrivia1() As Task
+            Await TestAsync(
+"Class AwesomeClass
+    Sub M()
+        Dim foo = New [|AwesomeClas|] ' trailing trivia
+    End Sub
+End Class",
+"Class AwesomeClass
+    Sub M()
+        Dim foo = New AwesomeClass ' trailing trivia
+    End Sub
+End Class",
+compareTokens:=False)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
@@ -484,7 +500,7 @@ NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
             End Function
 
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
             Public Async Function TestIncompleteStatement() As Task
                 Await TestAsync(
 NewLines("Class AwesomeClass \n Inherits System.Attribute \n End Class \n Module Program \n <[|AwesomeClas|]> \n End Module"),
