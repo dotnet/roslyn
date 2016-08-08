@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private IList<SymbolDisplayPart> _displayParts;
-        internal IList<SymbolDisplayPart> DisplayParts => InitializedThis._displayParts;
+        private IList<TaggedText> _displayParts;
+        internal IList<TaggedText> DisplayParts => InitializedThis._displayParts;
 
         public ITrackingSpan ApplicableToSpan { get; }
 
@@ -92,27 +92,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private IList<SymbolDisplayPart> _prettyPrintedDisplayParts;
-        internal IList<SymbolDisplayPart> PrettyPrintedDisplayParts
-        {
-            get
-            {
-                return InitializedThis._prettyPrintedDisplayParts;
-            }
-
-            set
-            {
-                _prettyPrintedDisplayParts = value;
-            }
-        }
+        private IList<TaggedText> _prettyPrintedDisplayParts;
+        internal IList<TaggedText> PrettyPrintedDisplayParts => InitializedThis._prettyPrintedDisplayParts;
 
         private void Initialize()
         {
             var content = new StringBuilder();
             var prettyPrintedContent = new StringBuilder();
 
-            var parts = new List<SymbolDisplayPart>();
-            var prettyPrintedParts = new List<SymbolDisplayPart>();
+            var parts = new List<TaggedText>();
+            var prettyPrintedParts = new List<TaggedText>();
 
             var parameters = new List<IParameter>();
 
@@ -125,9 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             var separatorParts = _signatureHelpItem.SeparatorDisplayParts;
             var separatorContent = separatorParts.GetFullText();
 
-            var newLinePart = new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
+            var newLinePart = new TaggedText(TextTags.LineBreak, "\r\n");
             var newLineContent = newLinePart.ToString();
-            var spacerPart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', signaturePrefixContent.Length));
+            var spacerPart = new TaggedText(TextTags.Space, new string(' ', signaturePrefixContent.Length));
             var spacerContent = spacerPart.ToString();
 
             var paramColumnCount = 0;
@@ -139,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var parameterPrefixParts = sigHelpParameter.PrefixDisplayParts;
                 var parameterPrefixContext = sigHelpParameter.PrefixDisplayParts.GetFullText();
 
-                var parameterParts = AddOptionalBrackets(sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts);
+                var parameterParts = AddOptionalBrackets(
+                    sigHelpParameter.IsOptional, sigHelpParameter.DisplayParts);
                 var parameterContent = parameterParts.GetFullText();
 
                 var parameterSuffixParts = sigHelpParameter.SuffixDisplayParts;
@@ -206,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _parameters = parameters.ToReadOnlyCollection();
         }
 
-        private void AddRange(IList<SymbolDisplayPart> values, List<SymbolDisplayPart> parts, List<SymbolDisplayPart> prettyPrintedParts)
+        private void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
         {
             parts.AddRange(values);
             prettyPrintedParts.AddRange(values);
@@ -218,14 +208,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             prettyPrintedContent.Append(text);
         }
 
-        private IList<SymbolDisplayPart> AddOptionalBrackets(bool isOptional, IList<SymbolDisplayPart> list)
+        private IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
         {
             if (isOptional)
             {
-                var result = new List<SymbolDisplayPart>();
-                result.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "["));
+                var result = new List<TaggedText>();
+                result.Add(new TaggedText(TextTags.Punctuation, "["));
                 result.AddRange(list);
-                result.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "]"));
+                result.Add(new TaggedText(TextTags.Punctuation, "]"));
                 return result;
             }
 

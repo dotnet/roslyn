@@ -84,7 +84,6 @@
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
     <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
-    <Compile Include="Completion\VisualBasicCompletionHelper.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentCommandHandler.vb" />
     <Compile Include="DocumentationComments\XmlTagCompletionCommandHandler.vb" />
@@ -245,7 +244,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBEditorResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBEditorResources.Designer.vb</LastGenOutput>
       <SubType>Designer</SubType>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
-                CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
+                CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
                 c => UpdateDocumentAsync(context.Document, context.Diagnostics.First(), c),
                equivalenceKey: nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)),
                context.Diagnostics);

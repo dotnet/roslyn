@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -1409,6 +1410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert(instance.Fields.Count() >= 1); // greater depth
                     Debug.Assert((variableKind == DisplayClassVariableKind.Parameter) ||
                         (variableKind == DisplayClassVariableKind.This));
+
+                    if (variableKind == DisplayClassVariableKind.Parameter && GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.LambdaDisplayClass)
+                    {
+                        displayClassVariablesBuilder[variableName] = instance.ToVariable(variableName, variableKind, field);
+                    }
                 }
                 else if (variableKind != DisplayClassVariableKind.This || GeneratedNames.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {

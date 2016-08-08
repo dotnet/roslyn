@@ -1950,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReturnType()
         {
             var text = "delegate ref a b();";
-            var file = this.ParseFileExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1960,9 +1960,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.ReturnType);
-            Assert.Equal("a", ds.ReturnType.ToString());
+            Assert.Equal("ref a", ds.ReturnType.ToString());
             Assert.NotNull(ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
             Assert.NotNull(ds.ParameterList.OpenParenToken);
@@ -2422,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReturn()
         {
             var text = "class a { ref b X() { } }";
-            var file = this.ParseFileExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2447,10 +2446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
-            Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.RefKeyword);
             Assert.NotNull(ms.ReturnType);
-            Assert.Equal("b", ms.ReturnType.ToString());
+            Assert.Equal("ref b", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -2468,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
-            var file = this.ParseFileExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3787,7 +3784,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReturn()
         {
             var text = "class a { ref b c { get; set; } }";
-            var file = this.ParseFileExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3813,9 +3810,8 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
@@ -4663,7 +4659,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReturn()
         {
             var text = "class a { ref b this[c d] { get; set; } }";
-            var file = this.ParseFileExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4689,9 +4685,8 @@ class Class1<T>{
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
@@ -5547,7 +5542,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5568,7 +5563,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
             Assert.Equal(0, file.Errors().Length);
         }
     }

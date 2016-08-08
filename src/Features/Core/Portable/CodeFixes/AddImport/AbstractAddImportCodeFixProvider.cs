@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
+        protected abstract string TryGetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

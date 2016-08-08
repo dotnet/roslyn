@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract ISymbol GetInvocationSymbol(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<ISymbol> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 switch (context.CannotChangeSignatureReason)
                 {
                     case CannotChangeSignatureReason.DefinedInMetadata:
-                        errorHandler(FeaturesResources.TheMemberIsDefinedInMetadata, NotificationSeverity.Error);
+                        errorHandler(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error);
                         break;
                     case CannotChangeSignatureReason.IncorrectKind:
-                        errorHandler(FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate, NotificationSeverity.Error);
+                        errorHandler(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error);
                         break;
                     case CannotChangeSignatureReason.InsufficientParameters:
-                        errorHandler(FeaturesResources.ThisSignatureDoesNotContainParametersThatCanBeChanged, NotificationSeverity.Error);
+                        errorHandler(FeaturesResources.This_signature_does_not_contain_parameters_that_can_be_changed, NotificationSeverity.Error);
                         break;
                 }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = GetInvocationSymbol(document, position, restrictToDeclarations, cancellationToken);
+            var symbol = await GetInvocationSymbolAsync(document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-lang symbols will show as metadata, so map it to source if possible.
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (hasLocationsInMetadata)
             {
                 var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
-                if (!notificationService.ConfirmMessageBox(FeaturesResources.ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata, severity: NotificationSeverity.Warning))
+                if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
                 {
                     return false;
                 }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var doc = updatedSolution.GetDocument(docId);
                 var updater = doc.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
-                var root = doc.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
 
                 var nodes = nodesToUpdate[docId];
 

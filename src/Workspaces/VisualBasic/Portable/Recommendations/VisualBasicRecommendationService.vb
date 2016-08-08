@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             position As Integer,
             options As OptionSet,
             cancellationToken As CancellationToken
-        ) As Tasks.Task(Of Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext))
+        ) As Tasks.Task(Of Tuple(Of IEnumerable(Of ISymbol), SyntaxContext))
 
             Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
 
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language)
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation)
 
-            Return Tuple.Create(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)(symbols, context)
+            Return Tuple.Create(Of IEnumerable(Of ISymbol), SyntaxContext)(symbols, context)
         End Function
 
         Private Function GetSymbolsWorker(

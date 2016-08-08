@@ -82,11 +82,11 @@ class Program
 }
 ";
             var documentation = $@"
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   int x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<int> Program.Foo<T>()", documentation, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Foo<T>()", documentation, string.Empty, currentParameterIndex: 0));
 
             // TODO: Enable the script case when we have support for extension methods in scripts
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
@@ -266,7 +266,7 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
-                new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
             };
 
             // Extension methods are supported in Interactive/Script (yet).

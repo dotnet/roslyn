@@ -246,10 +246,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (current is ExpressionSyntax && 
                             ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
                              (current.Parent as SwitchStatementSyntax)?.Expression == current ||
-                             (current.Parent as ForEachStatementSyntax)?.Expression == current ||
+                             (current.Parent as CommonForEachStatementSyntax)?.Expression == current ||
                              (current.Parent as IfStatementSyntax)?.Condition == current))
                 {
                     binder = rootBinder.GetBinder(current);
+                }
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent as ForEachComponentStatementSyntax)?.VariableComponent == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent);
+                }
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent is VariableComponentAssignmentSyntax) &&
+                             (current.Parent.Parent as ForStatementSyntax)?.Deconstruction == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent.Parent);
+                }
+                else if (current is VariableComponentSyntax &&
+                             (current.Parent is VariableComponentAssignmentSyntax) &&
+                             (current.Parent.Parent as DeconstructionDeclarationStatementSyntax)?.Assignment.VariableComponent == current)
+                {
+                    binder = rootBinder.GetBinder(current.Parent.Parent);
                 }
                 else
                 {
@@ -281,8 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                    ErrorTypeSymbol.UnknownResultType,
                                                                    unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
-                                                                   isSynthesized: false,
-                                                                   isAsync: false),
+                                                                   isSynthesized: false),
                                                   binder);
             }
 
@@ -308,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ForEachStatement:
-                    var foreachStmt = (ForEachStatementSyntax)stmt;
+                case SyntaxKind.ForEachComponentStatement:
+                    var foreachStmt = (CommonForEachStatementSyntax)stmt;
                     if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
                     {
                         binder = binder.GetBinder(foreachStmt.Expression);
@@ -390,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionForCast(boundExpression, destination, ref useSiteDiagnostics);
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref useSiteDiagnostics, forCast: true);
         }
 
         /// <summary>
@@ -553,6 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
         }
 
+        public override ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
+
         private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
         {
             for (var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)); binder != null; binder = binder.Next)
@@ -569,10 +592,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+        }
+
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier());
         }
 
         public override ILabelSymbol GetDeclaredSymbol(LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -749,6 +778,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
+        {
+            return GetForEachStatementInfo((CommonForEachStatementSyntax)node);
+        }
+
+        public override ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node)
         {
             BoundForEachStatement boundForEach = (BoundForEachStatement)GetUpperBoundNode(node);
 
@@ -1669,13 +1703,22 @@ done:
                 throw new ArgumentException();
             }
 
-            // skip up past parens, as we have no bound nodes for them.
-            while (parent.Kind() == SyntaxKind.ParenthesizedExpression)
+            // skip up past parens and ref expressions, as we have no bound nodes for them.
+            while (true)
             {
-                var pp = parent.Parent;
-                if (pp == null) break;
-                parent = pp;
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ParenthesizedExpression:
+                    case SyntaxKind.RefExpression:
+                        var pp = parent.Parent;
+                        if (pp == null) break;
+                        parent = pp;
+                        break;
+                    default:
+                        goto foundParent;
+                }
             }
+            foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

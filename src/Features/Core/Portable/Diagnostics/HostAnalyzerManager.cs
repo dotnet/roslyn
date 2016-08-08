@@ -166,9 +166,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
+            // don't capture project
+            var projectId = project.Id;
+
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, project.Id);
+                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
         }

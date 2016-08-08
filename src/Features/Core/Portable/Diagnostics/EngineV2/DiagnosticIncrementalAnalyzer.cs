@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -93,6 +94,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             ClearAllDiagnostics(stateSets, project.Id);
+        }
+
+        public override void Shutdown()
+        {
+            var stateSets = _stateManager.GetStateSets();
+
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                var handleActiveFile = true;
+                foreach (var stateSet in stateSets)
+                {
+                    var projectIds = stateSet.GetProjectsWithDiagnostics();
+                    foreach (var projectId in projectIds)
+                    {
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    }
+                }
+            });
         }
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
@@ -187,18 +206,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return project.GetDependentVersionAsync(cancellationToken);
         }
 
-        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
-            AnalysisResult result;
+            DiagnosticAnalysisResult result;
             if (map.TryGetValue(analyzer, out result))
             {
                 return result;
             }
 
-            return new AnalysisResult(projectId, version);
+            return new DiagnosticAnalysisResult(projectId, version);
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
+        private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)
         {
             if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
             {

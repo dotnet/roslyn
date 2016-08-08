@@ -8,6 +8,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal interface IVisualStudioWorkspaceHost2
     {
         void OnHasAllInformation(ProjectId projectId, bool hasAllInformation);
-        void UpdateGeneratedDocumentsIfNecessary(ProjectId projectId);
     }
 }

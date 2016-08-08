@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,10 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
-        private static readonly Dictionary<string, string> s_experimentalFeatures = new Dictionary<string, string> { { MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true" }, { MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true" } };
-        public static readonly CSharpParseOptions ExperimentalParseOptions =
-            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
-
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new InlineTemporaryCodeRefactoringProvider();
@@ -69,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12838"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task WithRefInitializer1()
         {
             await TestMissingAsync(@"
@@ -81,9 +76,7 @@ class C
         ref int [||]x = ref arr[2];
         return ref x;
     }
-}",
-                // TODO: propagating features to the project is currently NYI
-                parseOptions: ExperimentalParseOptions);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3994,7 +3987,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4021,7 +4014,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4047,7 +4040,36 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Deconstruction()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]temp = new C();
+        var (x1, x2) = temp;
+        var x3 = temp;
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var (x1, x2) = new C();
+        var x3 = new C();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0);
         }
     }
 }

@@ -56,11 +56,5 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>

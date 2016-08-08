@@ -796,7 +796,7 @@ End Class]]>
                 expectedMarkup:=expected,
                 options:=options,
                 compareTokens:=False,
-                fixAllActionEquivalenceKey:=VBFeaturesResources.RemoveMeQualification)
+                fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
         End Function
 
     End Class

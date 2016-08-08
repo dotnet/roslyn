@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Roslyn.Test.Utilities
 {
@@ -194,6 +195,14 @@ namespace Roslyn.Test.Utilities
                 }
             }
             return true;
+        }
+
+        public static ImmutableArray<byte> GetSourceLinkBlob(this MetadataReader reader)
+        {
+            return (from handle in reader.CustomDebugInformation
+                    let cdi = reader.GetCustomDebugInformation(handle)
+                    where reader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink
+                    select reader.GetBlobContent(cdi.Value)).Single();
         }
     }
 }

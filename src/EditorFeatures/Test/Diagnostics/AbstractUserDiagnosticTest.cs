@@ -280,133 +280,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        protected async Task TestAddDocument(
-            string initialMarkup, string expectedMarkup,
-            IList<string> expectedContainers,
-            string expectedDocumentName,
-            int index = 0,
-            bool compareTokens = true, bool isLine = true)
-        {
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine);
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
-        }
-
-        private async Task TestAddDocument(
-            string initialMarkup, string expectedMarkup,
-            int index,
-            IList<string> expectedContainers,
-            string expectedDocumentName,
-            ParseOptions parseOptions, CompilationOptions compilationOptions,
-            bool compareTokens, bool isLine)
-        {
-            using (var workspace = isLine
-                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions)
-                : await TestWorkspace.CreateAsync(initialMarkup))
-            {
-                var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
-                await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                    codeActions, compareTokens);
-            }
-        }
-
-        private async Task TestAddDocument(
-            TestWorkspace workspace,
-            string expectedMarkup,
-            int index,
-            IList<string> expectedFolders,
-            string expectedDocumentName,
-            IList<CodeAction> actions,
-            bool compareTokens)
-        {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
-            await TestAddDocument(
-                workspace,
-                expectedMarkup,
-                operations,
-                hasProjectChange: false,
-                modifiedProjectId: null,
-                expectedFolders: expectedFolders,
-                expectedDocumentName: expectedDocumentName,
-                compareTokens: compareTokens);
-        }
-
-        private async Task<Tuple<Solution, Solution>> TestAddDocument(
-            TestWorkspace workspace,
-            string expected,
-            IEnumerable<CodeActionOperation> operations,
-            bool hasProjectChange,
-            ProjectId modifiedProjectId,
-            IList<string> expectedFolders,
-            string expectedDocumentName,
-            bool compareTokens)
-        {
-            var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-            var oldSolution = appliedChanges.Item1;
-            var newSolution = appliedChanges.Item2;
-
-            Document addedDocument = null;
-            if (!hasProjectChange)
-            {
-                addedDocument = SolutionUtilities.GetSingleAddedDocument(oldSolution, newSolution);
-            }
-            else
-            {
-                Assert.NotNull(modifiedProjectId);
-                addedDocument = newSolution.GetProject(modifiedProjectId).Documents.SingleOrDefault(doc => doc.Name == expectedDocumentName);
-            }
-
-            Assert.NotNull(addedDocument);
-
-            AssertEx.Equal(expectedFolders, addedDocument.Folders);
-            Assert.Equal(expectedDocumentName, addedDocument.Name);
-            if (compareTokens)
-            {
-                TokenUtilities.AssertTokensEqual(
-                    expected, (await addedDocument.GetTextAsync()).ToString(), GetLanguage());
-            }
-            else
-            {
-                Assert.Equal(expected, (await addedDocument.GetTextAsync()).ToString());
-            }
-
-            var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-            if (!hasProjectChange)
-            {
-                // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as IWpfDifferenceViewer;
-                Assert.NotNull(diffView);
-                diffView.Close();
-            }
-            else
-            {
-                // If there are more changes than just the document we need to browse all the changes and get the document change
-                var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
-                bool hasPreview = false;
-                var previews = await contents.GetPreviewsAsync();
-                if (previews != null)
-                {
-                    foreach (var preview in previews)
-                    {
-                        if (preview != null)
-                        {
-                            var diffView = preview as IWpfDifferenceViewer;
-                            if (diffView != null)
-                            {
-                                hasPreview = true;
-                                diffView.Close();
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                Assert.True(hasPreview);
-            }
-
-            return Tuple.Create(oldSolution, newSolution);
-        }
-
         internal async Task TestWithMockedGenerateTypeDialog(
             string initial,
             string languageName,
@@ -471,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var index = fixActions.Count() - 1;
                 var action = fixActions.ElementAt(index);
 
-                Assert.Equal(action.Title, FeaturesResources.GenerateNewType);
+                Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
                 var operations = await action.GetOperationsAsync(CancellationToken.None);
                 Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 

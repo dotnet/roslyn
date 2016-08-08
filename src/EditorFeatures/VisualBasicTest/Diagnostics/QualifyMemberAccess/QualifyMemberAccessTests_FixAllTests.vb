@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 
@@ -79,7 +79,7 @@ End Class]]>
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
                 compareTokens:=False,
-                fixAllActionEquivalenceKey:=FeaturesResources.AddQualification)
+                fixAllActionEquivalenceKey:=FeaturesResources.Add_qualification)
         End Function
 
     End Class

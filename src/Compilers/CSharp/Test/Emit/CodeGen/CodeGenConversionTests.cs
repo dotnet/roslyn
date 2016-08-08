@@ -917,6 +917,43 @@ class C
         }
 
         [Fact]
+        public void NullableNumericToIntPtr1()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte? b = 0 + 1;
+        IntPtr p = (IntPtr)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (byte? V_0) //b
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  conv.u1
+  IL_0004:  call       ""byte?..ctor(byte)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       ""byte byte?.Value.get""
+  IL_0010:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0015:  box        ""System.IntPtr""
+  IL_001a:  call       ""void System.Console.WriteLine(object)""
+  IL_001f:  ret
+}");
+        }
+
+
+        [Fact]
         public void NumericToNullableIntPtr()
         {
             var source =

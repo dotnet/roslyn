@@ -1474,8 +1474,55 @@ class C
         public async Task Tuples()
         {
             await TestAsync(@"class C { (int a, int b) x; }",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature());
+                TestOptions.Regular,
+                Options.Script);
+        }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+",
+    Class("MyClass"));
+        }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass(int)""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+");
+        }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass.MyClass(int)""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+",
+    Class("MyClass"));
         }
     }
 }

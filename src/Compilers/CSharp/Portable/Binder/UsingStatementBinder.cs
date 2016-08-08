@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
 
                     if (declarator.Initializer != null)
                     {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversion(declType, iDisposable, ref useSiteDiagnostics);
+                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
                     if (!iDisposableConversion.IsImplicit)
@@ -149,6 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

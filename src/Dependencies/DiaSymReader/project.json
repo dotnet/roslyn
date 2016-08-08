@@ -1,9 +1,0 @@
-{
-  "supports": {},
-  "dependencies": {
-    "Microsoft.DiaSymReader": "1.0.8-rc3-60429-03"
-  },
-  "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
-  }
-}

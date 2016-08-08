@@ -156,7 +156,13 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
+    <Compile Include="CodeActions\MoveType\CSharpMoveTypeTestsBase.cs" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.cs" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.cs" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.cs" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.cs" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
+    <Compile Include="Completion\CompletionServiceTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
@@ -185,7 +191,7 @@
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\PartialCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\PartialMethodCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProviderTests.cs" />
@@ -198,6 +204,7 @@
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
@@ -506,6 +513,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProviderTests.cs" />
     <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

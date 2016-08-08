@@ -14,9 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    using Roslyn.Reflection.Metadata.Ecma335;
-    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
-
     internal sealed class DeltaMetadataWriter : MetadataWriter
     {
         private readonly EmitBaseline _previousGeneration;
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeTablesBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
+            : base(MakeTablesBuilder(previousGeneration), null, null, context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -393,6 +390,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return _methodSpecIndex.Rows;
         }
 
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
@@ -635,9 +634,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     var signature = local.Signature;
                     if (signature == null)
                     {
-                        int start = writer.Position;
+                        int start = writer.Count;
                         SerializeLocalVariableType(encoder.AddVariable(), local);
-                        signature = writer.ToArray(start, writer.Position - start);
+                        signature = writer.ToArray(start, writer.Count - start);
                     }
                     else
                     {
@@ -646,8 +645,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-                
-                encoder.EndVariables();
                 
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
                 

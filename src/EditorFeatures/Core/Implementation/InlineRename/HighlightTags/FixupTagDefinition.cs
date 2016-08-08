@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
         public FixupTagDefinition()
         {
             this.Border = new Pen(Brushes.Green, thickness: 1.0) { DashStyle = new DashStyle(new[] { 4.0, 4.0 }, 0) };
-            this.DisplayName = EditorFeaturesResources.InlineRenameFixup;
+            this.DisplayName = EditorFeaturesResources.Inline_Rename_Fixup;
             this.ZOrder = 1;
         }
     }

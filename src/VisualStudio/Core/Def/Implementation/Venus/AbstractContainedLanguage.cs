@@ -3,7 +3,6 @@
 using System;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus

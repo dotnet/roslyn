@@ -1,21 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -307,14 +300,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _indirectReturnState = IndirectReturnState.Emitted;
         }
 
-        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, CSharpSyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList)
+        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList), syntaxNode, _diagnostics);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
+        }
+
+        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
+        {
+            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, CSharpSyntaxNode syntaxNode)

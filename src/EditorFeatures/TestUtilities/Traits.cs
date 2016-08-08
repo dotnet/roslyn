@@ -68,11 +68,13 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
+            public const string CodeActionsMoveType = "CodeActions.MoveType";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
+            public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,11 +7,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -598,7 +596,7 @@ namespace Microsoft.CodeAnalysis
             var languageServices = this.Workspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.UnsupportedLanguage, language));
+                throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
             }
 
             var newProject = new ProjectState(projectInfo, languageServices, _solutionServices);
@@ -1148,79 +1146,6 @@ namespace Microsoft.CodeAnalysis
             return this.ForkProject(this.GetProjectState(projectId).WithAnalyzerReferences(analyzerReferences));
         }
 
-        internal ImmutableArray<DocumentInfo> GetGeneratedDocuments(ProjectId projectId)
-        {
-            CheckContainsProject(projectId);
-            return this.GetGeneratedDocumentsAsync(projectId, CancellationToken.None).Result;
-        }
-
-        // See CompilationTracker.BuildCompilationInfoFromScratchAsync.
-        private async Task<Compilation> CreateCompilationAsync(ProjectState projectState, CancellationToken cancellationToken)
-        {
-            var compilationFactory = projectState.LanguageServices.GetService<ICompilationFactoryService>();
-            var compilation = compilationFactory.CreateCompilation(
-                projectState.AssemblyName,
-                projectState.CompilationOptions);
-
-            foreach (var document in projectState.OrderedDocumentStates)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                compilation = compilation.AddSyntaxTrees(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-            }
-
-            var newReferences = ArrayBuilder<MetadataReference>.GetInstance();
-            newReferences.AddRange(projectState.MetadataReferences);
-
-            foreach (var projectReference in projectState.ProjectReferences)
-            {
-                var referencedProject = this.GetProject(projectReference.ProjectId);
-                var metadataReference = await this.GetMetadataReferenceAsync(projectReference, projectState, cancellationToken).ConfigureAwait(false);
-                // A reference can fail to be created if a skeleton assembly could not be constructed.
-                if (metadataReference != null)
-                {
-                    newReferences.Add(metadataReference);
-                }
-            }
-
-            compilation = compilation.WithReferences(newReferences);
-            newReferences.Free();
-            return compilation;
-        }
-
-        private async Task<ImmutableArray<DocumentInfo>> GetGeneratedDocumentsAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            var projectState = this.GetProjectState(projectId);
-            var projectInfo = projectState.ProjectInfo;
-            var builder = ArrayBuilder<SourceGenerator>.GetInstance();
-            foreach (var reference in projectInfo.AnalyzerReferences)
-            {
-                builder.AddRange(reference.GetSourceGenerators(projectInfo.Language));
-            }
-            var generators = builder.ToImmutableAndFree();
-            if (generators.IsEmpty)
-            {
-                return ImmutableArray<DocumentInfo>.Empty;
-            }
-            var compilation = await this.CreateCompilationAsync(projectState, cancellationToken).ConfigureAwait(false);
-            var trees = compilation.GenerateSource(
-                generators,
-                PathUtilities.GetDirectoryName(projectState.OutputFilePath),
-                writeToDisk: false,
-                cancellationToken: cancellationToken);
-            var documents = ArrayBuilder<DocumentInfo>.GetInstance();
-            foreach (var tree in trees)
-            {
-                var sourceText = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var documentId = DocumentId.CreateNewId(projectId);
-                var version = VersionStamp.Create();
-                var filePath = tree.FilePath;
-                var loader = TextLoader.From(TextAndVersion.Create(sourceText, version, filePath));
-                var info = DocumentInfo.Create(documentId, PathUtilities.GetFileName(filePath), loader: loader, filePath: filePath, isGenerated: true);
-                documents.Add(info);
-            }
-            return documents.ToImmutableAndFree();
-        }
-
         private Solution AddDocument(DocumentState state)
         {
             if (state == null)
@@ -1380,7 +1305,7 @@ namespace Microsoft.CodeAnalysis
             CheckNotContainsDocument(document.Id);
             CheckContainsProject(document.Id.ProjectId);
 
-            return this.AddDocument(document.State);
+            return this.AddDocument((DocumentState)document.State);
         }
 
         /// <summary>
@@ -2028,7 +1953,7 @@ namespace Microsoft.CodeAnalysis
                         || _documentIdOfLatestSolutionWithPartialCompilation != documentId)
                     {
                         var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(this, doc.State, tree, cancellationToken);
+                        var newTracker = tracker.FreezePartialStateWithTree(this, (DocumentState)doc.State, tree, cancellationToken);
 
                         var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
                         var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
@@ -2278,7 +2203,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsProject(projectId))
             {
-                throw new InvalidOperationException(WorkspacesResources.ProjectAlreadyInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_project);
             }
         }
 
@@ -2286,7 +2211,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.ContainsProject(projectId))
             {
-                throw new InvalidOperationException(WorkspacesResources.ProjectNotInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_project);
             }
         }
 
@@ -2294,7 +2219,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.GetProjectState(projectId).ProjectReferences.Contains(referencedProject))
             {
-                throw new InvalidOperationException(WorkspacesResources.ProjectDirectlyReferencesTargetProject);
+                throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
             }
         }
 
@@ -2303,7 +2228,7 @@ namespace Microsoft.CodeAnalysis
             var dependents = _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId);
             if (dependents.Contains(toProjectId))
             {
-                throw new InvalidOperationException(WorkspacesResources.ProjectTransitivelyReferencesTargetProject);
+                throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
             }
         }
 
@@ -2315,7 +2240,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (projectState.ProjectReferences.Any(p => GetProjectState(p.ProjectId).IsSubmission))
                 {
-                    throw new InvalidOperationException(WorkspacesResources.InvalidSubmissionReference);
+                    throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
                 }
             }
         }
@@ -2326,7 +2251,7 @@ namespace Microsoft.CodeAnalysis
 
             if (this.ContainsDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.DocumentAlreadyInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
             }
         }
 
@@ -2336,7 +2261,7 @@ namespace Microsoft.CodeAnalysis
 
             if (this.ContainsAdditionalDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.DocumentAlreadyInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_document);
             }
         }
 
@@ -2346,7 +2271,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 
@@ -2356,7 +2281,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!this.ContainsAdditionalDocument(documentId))
             {
-                throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
+                throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 

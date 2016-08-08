@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2601,7 +2599,7 @@ partial class C
         private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
         {
             return $@"    #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
 
     {disposeVisibility}void Dispose(bool disposing)
     {{
@@ -2609,28 +2607,28 @@ partial class C
         {{
             if (disposing)
             {{
-                // {FeaturesResources.DisposeManagedStateTodo}
+                // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
 
-            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
-            // {FeaturesResources.SetLargeFieldsToNullTodo}
+            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
+            // {FeaturesResources.TODO_colon_set_large_fields_to_null}
 
             disposedValue = true;
         }}
     }}
 
-    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
     // ~{className}() {{
-    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
 
-    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {implementationVisibility}Dispose()
     {{
-        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
         Dispose(true);
-        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
         // GC.SuppressFinalize(this);
     }}
     #endregion";
@@ -2697,7 +2695,7 @@ index: 1);
             await TestAsync(
 @"interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
 @"using System; interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : IInterface { (int, string) x; public (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2706,7 +2704,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
 @"using System; interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : IInterface { (int, string) x; public (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2715,7 +2713,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
 @"using System; interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string), int) Method1 (((int, string), int) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2724,7 +2722,7 @@ parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
             await TestAsync(
 @"interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
 @"using System; interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string) a, int b) Method1 (((int, string) a, int b) y) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+parseOptions: TestOptions.Regular, withScriptOption: true);
         }
     }
 }

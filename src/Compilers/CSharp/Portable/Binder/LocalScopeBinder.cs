@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
         {
-            ArrayBuilder<LocalSymbol> locals = null;
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var statement in statements)
             {
                 var innerStatement = statement;
@@ -154,20 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (innerStatement.Kind())
                 {
+                    case SyntaxKind.DeconstructionDeclarationStatement:
+                        {
+                            var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
+                            CollectLocalsFromDeconstruction(decl.Assignment.VariableComponent, LocalDeclarationKind.RegularVariable, locals);
+                            break;
+                        }
                     case SyntaxKind.LocalDeclarationStatement:
                         {
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                            if (locals == null)
-                            {
-                                locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                            }
-
-                            RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
                             LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
+                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
                                 locals.Add(localSymbol);
                             }
                         }
@@ -178,9 +178,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
+            return locals.ToImmutableAndFree();
         }
 
+        internal void CollectLocalsFromDeconstruction(VariableComponentSyntax declaration, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    {
+                        var component = (ParenthesizedVariableComponentSyntax)declaration;
+                        foreach (var decl in component.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(decl, kind, locals);
+                        }
+                        break;
+                    }
+                case SyntaxKind.TypedVariableComponent:
+                    {
+                        var component = (TypedVariableComponentSyntax)declaration;
+                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals);
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+            }
+        }
+
+        internal void CollectLocalsFromDeconstruction(VariableDesignationSyntax designation, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind);
+                        locals.Add(localSymbol);
+                        break;
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals);
+                        }
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
 
         protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {
@@ -217,12 +270,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(RefKind refKind, VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
                 this,
-                refKind,
+                true,
                 declaration.Type,
                 declarator.Identifier,
                 kind,
@@ -233,7 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new LocalFunctionSymbol(
                 this,
-                this.ContainingType,
                 this.ContainingMemberOrLambda,
                 declaration);
         }

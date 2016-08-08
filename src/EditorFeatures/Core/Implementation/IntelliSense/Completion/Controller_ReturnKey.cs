@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                      service.GetRules(), model.SelectedItem.Item, textTypedSoFar);
             }
 
-            this.Commit(model.SelectedItem, model, commitChar: null);
+            this.CommitOnNonTypeChar(model.SelectedItem, model);
             committed = true;
         }
 

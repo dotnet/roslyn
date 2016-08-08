@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             var compilation = method.DeclaringCompilation;
 
-            if (method.ReturnsVoid || method.IsIterator ||
-                (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
+            if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
             {
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
@@ -117,18 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
-
-            // Implicitly added return for async method does not need sequence points since lowering would add one.
-            if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
-            {
-                var blockSyntax = (BlockSyntax)syntax;
-
-                ret = new BoundSequencePointWithSpan(
-                    blockSyntax,
-                    ret,
-                    blockSyntax.CloseBraceToken.Span)
-                { WasCompilerGenerated = true };
-            }
 
             return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
         }

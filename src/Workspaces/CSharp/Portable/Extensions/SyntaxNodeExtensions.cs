@@ -98,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                    .SelectMany(n => n.Usings));
         }
 
+        public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
+        {
+            return node.GetAncestorOrThis<CompilationUnitSyntax>().Externs
+                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                                   .Reverse()
+                                   .SelectMany(n => n.Externs));
+        }
+
         public static bool IsUnsafeContext(this SyntaxNode node)
         {
             if (node.GetAncestor<UnsafeStatementSyntax>() != null)
@@ -245,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -259,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -886,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (WhileStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (DoStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (ForStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
+                (CommonForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (UsingStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (FixedStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (LockStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
@@ -916,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
                    node is FixedStatementSyntax ||
-                   node is ForEachStatementSyntax ||
+                   node is CommonForEachStatementSyntax ||
                    node is ForStatementSyntax ||
                    node is IfStatementSyntax ||
                    node is LabeledStatementSyntax ||
@@ -931,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (DoStatementSyntax n) => n.Statement,
                 (ElseClauseSyntax n) => n.Statement,
                 (FixedStatementSyntax n) => n.Statement,
-                (ForEachStatementSyntax n) => n.Statement,
+                (CommonForEachStatementSyntax n) => n.Statement,
                 (ForStatementSyntax n) => n.Statement,
                 (IfStatementSyntax n) => n.Statement,
                 (LabeledStatementSyntax n) => n.Statement,
@@ -1131,51 +1141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
-
-        public static IEnumerable<SyntaxNode> GetBodies(this SyntaxNode node)
-        {
-            var constructor = node as ConstructorDeclarationSyntax;
-            if (constructor != null)
-            {
-                var result = SpecializedCollections.SingletonEnumerable<SyntaxNode>(constructor.Body).WhereNotNull();
-                var initializer = constructor.Initializer;
-                if (initializer != null)
-                {
-                    result = result.Concat(initializer.ArgumentList.Arguments.Select(a => (SyntaxNode)a.Expression).WhereNotNull());
-                }
-
-                return result;
-            }
-
-            var method = node as BaseMethodDeclarationSyntax;
-            if (method != null)
-            {
-                return SpecializedCollections.SingletonEnumerable<SyntaxNode>(method.Body).WhereNotNull();
-            }
-
-            var property = node as BasePropertyDeclarationSyntax;
-            if (property != null && property.AccessorList != null)
-            {
-                return property.AccessorList.Accessors.Select(a => a.Body).WhereNotNull();
-            }
-
-            var @enum = node as EnumMemberDeclarationSyntax;
-            if (@enum != null)
-            {
-                if (@enum.EqualsValue != null)
-                {
-                    return SpecializedCollections.SingletonEnumerable(@enum.EqualsValue.Value).WhereNotNull();
-                }
-            }
-
-            var field = node as BaseFieldDeclarationSyntax;
-            if (field != null)
-            {
-                return field.Declaration.Variables.Where(v => v.Initializer != null).Select(v => v.Initializer.Value).WhereNotNull();
-            }
-
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
         public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)

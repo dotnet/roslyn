@@ -380,7 +380,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Function
 
@@ -403,7 +403,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Function
 
@@ -426,7 +426,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Function
 
@@ -449,7 +449,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Function
 

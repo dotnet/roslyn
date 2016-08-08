@@ -668,16 +668,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 receiverOpt,
                 operand.ResultKind);
 
+            var conversionInfo = conversion.Conversion;
+            if (conversionInfo.Method != (object)method)
+            {
+                conversionInfo = conversionInfo.SetConversionMethod(method);
+            }
+
             return conversion.Update(
                 operand,
-                conversion.ConversionKind,
-                resultKind: conversion.ResultKind,
+                conversionInfo,
                 isBaseConversion: conversion.IsBaseConversion,
-                symbolOpt: method,
                 @checked: conversion.Checked,
                 explicitCastInCode: conversion.ExplicitCastInCode,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: conversion.ConstantValueOpt,
                 type: type);
         }
@@ -718,6 +720,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 base.AddSynthesizedAttributes(compilationState, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+            }
+
+            internal override TypeSymbol IteratorElementType
+            {
+                get
+                {
+                    // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
+                    return null;
+                }
             }
         }
     }

@@ -9,19 +9,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    [Export(typeof(IOptionService))]
-    [Shared]
-    internal class OptionService : IOptionService
+    [Export(typeof(IGlobalOptionService)), Shared]
+    internal class GlobalOptionService : IGlobalOptionService
     {
         private readonly Lazy<HashSet<IOption>> _options;
         private readonly ImmutableDictionary<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>> _featureNameToOptionSerializers =
             ImmutableDictionary.Create<string, ImmutableArray<Lazy<IOptionSerializer, OptionSerializerMetadata>>>();
 
         private readonly object _gate = new object();
+
         private ImmutableDictionary<OptionKey, object> _currentValues;
 
         [ImportingConstructor]
-        public OptionService(
+        public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>> optionSerializers)
         {
@@ -90,11 +90,6 @@ namespace Microsoft.CodeAnalysis.Options
             return _options.Value;
         }
 
-        public OptionSet GetOptions()
-        {
-            return new WorkspaceOptionSet(this);
-        }
-
         public T GetOption<T>(Option<T> option)
         {
             return (T)GetOption(new OptionKey(option, language: null));
@@ -135,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (workspaceOptionSet == null)
             {
-                throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
+                throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_Workspace, paramName: nameof(optionSet));
             }
 
             var changedOptions = new List<OptionChangedEventArgs>();
@@ -179,7 +174,12 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            // Outside of the lock, raise events
+            // Outside of the lock, raise the events on our task queue.
+            RaiseEvents(changedOptions);
+        }
+
+        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions)
+        {
             var optionChanged = OptionChanged;
             if (optionChanged != null)
             {

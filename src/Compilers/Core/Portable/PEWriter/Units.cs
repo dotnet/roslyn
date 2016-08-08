@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Emit;
+using System.IO;
 
 namespace Microsoft.Cci
 {
@@ -77,9 +78,10 @@ namespace Microsoft.Cci
         bool GenerateVisualBasicStylePdb { get; }
 
         /// <summary>
-        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
+        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
+        /// followed by types forwarded to another assembly.
         /// </summary>
-        IEnumerable<ITypeReference> GetExportedTypes(EmitContext context);
+        ImmutableArray<ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
@@ -205,6 +207,14 @@ namespace Microsoft.Cci
         // provide a basis for approximating the capacities of
         // various databases used during Emit.
         int HintNumberOfMethodDefinitions { get; }
+
+        /// <summary>
+        /// Number of debug documents in the module. 
+        /// Used to determine capacities of lists and indices when emitting debug info.
+        /// </summary>
+        int DebugDocumentCount { get; }
+
+        Stream SourceLinkStream { get; }
     }
 
     internal struct DefinitionWithLocation

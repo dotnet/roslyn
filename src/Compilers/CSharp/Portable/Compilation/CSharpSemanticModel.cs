@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.RefExpression:
                     // There are just placeholders and are not separately meaningful.
                     return false;
 
@@ -510,6 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
+            SyntaxNode parent;
+
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
                 return SymbolInfo.None;
@@ -519,10 +522,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else
+            else if (IsOutVarType(expression, out parent))
             {
-                return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+                return TypeFromLocal((VariableDeclarationSyntax)parent, cancellationToken);
             }
+            else if (SyntaxFacts.IsDeconstructionType(expression, out parent))
+            {
+                var declaration = (TypedVariableComponentSyntax)parent;
+                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                {
+                    return SymbolInfo.None;
+                }
+
+                return TypeFromLocal((SingleVariableDesignationSyntax)declaration.Designation, cancellationToken);
+            }
+
+            return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a variable declaration, figure out its type by looking at the declared symbol of the corresponding local.
+        /// </summary>
+        private SymbolInfo TypeFromLocal(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
+        {
+            TypeSymbol variableType = (GetDeclaredSymbol(variableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+
+            if (variableType?.IsErrorType() == false)
+            {
+                return new SymbolInfo(variableType);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
+        /// figure out its type by looking at the declared symbol of the corresponding local.
+        /// </summary>
+        private SymbolInfo TypeFromLocal(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
+        {
+            TypeSymbol variableType = (GetDeclaredSymbol(variableDesignation, cancellationToken) as LocalSymbol)?.Type;
+
+            if (variableType?.IsErrorType() == false)
+            {
+                return new SymbolInfo(variableType);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Figures out if this expression is a type in an out-var ArgumentSyntax.
+        /// Outputs the VariableDeclarationSyntax directly containing it, if that is the case.
+        /// </summary>
+        private static bool IsOutVarType(ExpressionSyntax expression, out SyntaxNode parent)
+        {
+            parent = null;
+            var variableDeclaration = expression.Parent as VariableDeclarationSyntax;
+            var enclosingDeclaration = variableDeclaration?.Parent as DeclarationExpressionSyntax;
+            if (enclosingDeclaration?.Parent?.Kind() != SyntaxKind.Argument)
+            {
+                return false;
+            }
+
+            parent = variableDeclaration;
+            return variableDeclaration.Type == expression;
         }
 
         /// <summary>
@@ -1733,7 +1797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var s in symbols)
                     {
                         AddUnwrappingErrorTypes(builder, s);
-                        }
+                    }
 
                     symbols = builder.ToImmutableAndFree();
                 }
@@ -1838,18 +1902,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
+                else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
                 {
-                    Debug.Assert(highestBoundExpr == boundExpr);
-                    var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
-                    // The bound tree always fully binds tuple literals. From the language point of
-                    // view, however, converted tuple literals represent tuple conversions
-                    // from tuple literal expressions which may or may not have types
-                    type = convertedLiteral.NaturalTypeOpt;
-                    convertedType = convertedLiteral.Type;
-                    conversion = convertedType.Equals(type, ignoreDynamic: true) ?
-                                        Conversion.Identity :
-                                        Conversion.ImplicitTupleLiteral;
+                    var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
+                    var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
+                    type = convertedTuple.NaturalTypeOpt;
+                    convertedType = tupleLiteralConversion.Type;
+                    conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
@@ -2498,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    return binder.Conversions.ClassifyConversionForCast(bnode, destination, ref useSiteDiagnostics);
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref useSiteDiagnostics, forCast: true);
                 }
             }
 
@@ -2657,12 +2716,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given an identifier declared in a deconstruction declaration, get the corresponding local variable symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable in a deconstruction.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a declaration pattern syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given an out variable declaration expression, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ILocalSymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
@@ -4217,6 +4292,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node);
 
         /// <summary>
+        /// Gets for each statement info.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public abstract ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node);
+
+        /// <summary>
         /// Gets await expression info.
         /// </summary>
         /// <param name="node">The node.</param>
@@ -4550,8 +4631,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
+                case SyntaxKind.SingleVariableDesignation:
+                    return this.GetDeclaredSymbol((SingleVariableDesignationSyntax)node, cancellationToken);
                 case SyntaxKind.DeclarationPattern:
                     return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
+                case SyntaxKind.DeclarationExpression:
+                    return this.GetDeclaredSymbol((DeclarationExpressionSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:

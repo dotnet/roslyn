@@ -12,7 +12,6 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>
     </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
@@ -25,10 +24,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>

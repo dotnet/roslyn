@@ -486,12 +486,12 @@ class C
         [Fact]
         public void RefReturningExpressionBodiedProperty()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
     public ref int P => ref field;
-}", MessageID.IDS_FeatureRefLocalsReturns);
+}");
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

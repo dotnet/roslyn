@@ -16,14 +16,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
@@ -82,6 +74,7 @@
     <Compile Include="Attributes\AttributeTests_Security.cs" />
     <Compile Include="Attributes\AttributeTests_StructLayout.cs" />
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
+    <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
@@ -95,6 +88,7 @@
     <Compile Include="CodeGen\CodeGenConditionalOperatorTests.cs" />
     <Compile Include="CodeGen\CodeGenConstructorInitTests.cs" />
     <Compile Include="CodeGen\CodeGenConversionTests.cs" />
+    <Compile Include="CodeGen\CodeGenDeconstructTests.cs" />
     <Compile Include="CodeGen\CodeGenDynamicTests.cs" />
     <Compile Include="CodeGen\CodeGenExplicitImplementationTests.cs" />
     <Compile Include="CodeGen\CodeGenExprLambdaTests.cs" />
@@ -134,8 +128,10 @@
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />
     <Compile Include="CodeGen\WinMdDelegateTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />

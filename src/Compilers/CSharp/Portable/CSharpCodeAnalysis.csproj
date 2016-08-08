@@ -84,6 +84,7 @@
     <Compile Include="Binder\Binder_Patterns.cs" />
     <Compile Include="Binder\Binder_Query.cs" />
     <Compile Include="Binder\Binder_QueryErrors.cs" />
+    <Compile Include="Binder\Binder_Deconstruct.cs" />
     <Compile Include="Binder\Binder_Statements.cs" />
     <Compile Include="Binder\Binder_Symbols.cs" />
     <Compile Include="Binder\Binder_Unsafe.cs" />
@@ -198,7 +199,11 @@
     <Compile Include="BoundTree\BoundTreeVisitors.cs" />
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
+    <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\Expression.cs" />
+    <Compile Include="BoundTree\DeconstructionLocalPendingInference.cs" />
+    <Compile Include="BoundTree\OutVarLocalPendingInference.cs" />
+    <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
@@ -317,6 +322,7 @@
     <Compile Include="Emitter\Model\SpecializedMethodReference.cs" />
     <Compile Include="Emitter\Model\SpecializedNestedTypeReference.cs" />
     <Compile Include="Emitter\Model\SymbolAdapter.cs" />
+    <Compile Include="Emitter\Model\SynthesizedPrivateImplementationDetailsStaticConstructor.cs" />
     <Compile Include="Emitter\Model\TypeMemberReference.cs" />
     <Compile Include="Emitter\Model\TypeParameterSymbolAdapter.cs" />
     <Compile Include="Emitter\NoPia\EmbeddedEvent.cs" />
@@ -376,6 +382,11 @@
     <Compile Include="Lowering\DiagnosticsPass_Warnings.cs" />
     <Compile Include="Lowering\Extensions.cs" />
     <Compile Include="Lowering\InitializerRewriter.cs" />
+    <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.cs" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector.cs" />
+    <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.cs" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.cs" />
+    <Compile Include="Lowering\Instrumentation\Instrumenter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorConstructor.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorFinallyMethodSymbol.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorMethodToStateMachineRewriter.IteratorFinallyFrame.cs" />
@@ -406,6 +417,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ContinueStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Conversion.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_DeconstructionAssignmentOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DelegateCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DoStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Event.cs" />
@@ -420,11 +432,11 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IndexerAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IsOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LabeledStatement.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_PatternSwitchStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Literal.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LocalDeclaration.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LockStatement.cs" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_MatchStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_MultipleLocalDeclarations.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_NullCoalescingOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ObjectCreationExpression.cs" />
@@ -435,7 +447,6 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_PropertyAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Query.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ReturnStatement.cs" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StackAlloc.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringInterpolation.cs" />
@@ -511,6 +522,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
@@ -756,14 +768,10 @@
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
+    <Compile Include="Syntax\ForStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
-    <Compile Include="Syntax\ForStatementSyntax.cs" />
-    <Compile Include="Syntax\LocalDeclarationStatementSyntax.cs" />
-    <Compile Include="Syntax\ParenthesizedLambdaExpressionSyntax.cs" />
-    <Compile Include="Syntax\ReturnStatementSyntax.cs" />
-    <Compile Include="Syntax\SimpleLambdaExpressionSyntax.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
@@ -813,9 +821,6 @@
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
-    <Compile Include="Syntax\ArrowExpressionClauseSyntax.cs" />
-    <Compile Include="Syntax\EqualsValueClauseSyntax.cs" />
-    <Compile Include="Syntax\IncompleteMemberSyntax.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />

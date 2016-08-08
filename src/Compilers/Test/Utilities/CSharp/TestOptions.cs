@@ -13,8 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // document every public member of every test input.
         public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
+        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
+        public static readonly CSharpParseOptions ExperimentalParseOptions =
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
+
+        // Enable pattern-switch translation even for switches that use no new syntax. This is used
+        // to help ensure compatibility of the semantics of the new switch binder with the old switch
+        // binder, so that we may eliminate the old one in the future.
+        public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
+
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
+        
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
 
@@ -48,27 +60,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureLocalFunctions);
+            return options;
         }
 
         public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureRefLocalsReturns);
+            return options;
         }
 
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureTuples);
+            return options;
         }
 
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
-            return WithExperimental(options, MessageID.IDS_FeatureReplace);
-        }
-
-        public static CSharpParseOptions WithPatternsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeaturePatternMatching);
+            return options;
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
@@ -87,10 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     throw new InvalidOperationException($"{feature} is not a valid experimental feature");
                 }
 
+
                 list.Add(new KeyValuePair<string, string>(name, "true"));
             }
 
             return options.WithFeatures(options.Features.Concat(list));
+        }
+        
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
         }
     }
 }

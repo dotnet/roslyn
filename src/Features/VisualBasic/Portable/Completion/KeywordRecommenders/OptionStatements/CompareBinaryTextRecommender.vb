@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
             End If
 
             If context.TargetToken.IsKind(SyntaxKind.CompareKeyword) Then
-                Return {New RecommendedKeyword("Binary", VBFeaturesResources.BinaryKeywordToolTip),
-                        New RecommendedKeyword("Text", VBFeaturesResources.TextKeywordToolTip)}
+                Return {New RecommendedKeyword("Binary", VBFeaturesResources.Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order),
+                        New RecommendedKeyword("Text", VBFeaturesResources.Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_text_sort_order_that_is_not_case_sensitive)}
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

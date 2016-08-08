@@ -326,5 +326,24 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SpellChecker_ExceptionInCacheRead,
         BKTree_ExceptionInCacheRead,
         IntellisenseBuild_Failed,
+
+        // Generic performance measurement action IDs
+        MeasurePerformance_StartAction,
+        MeasurePerformance_StopAction,
+
+        RemoteHostClientService_AddGlobalAssetsAsync,
+        RemoteHostClientService_RemoveGlobalAssets,
+        RemoteHostClientService_Enabled,
+        ServiceHubRemoteHostClient_CreateAsync,
+        SolutionChecksumServiceFactory_CreateChecksumAsync,
+        SolutionChecksumServiceFactory_GetChecksumObject,
+        ChecksumTreeNodeCache_GetOrCreateChecksumObjectAsync,
+        Serializer_Deserialize,
+        CodeAnalysisService_CalculateDiagnosticsAsync,
+        CodeAnalysisService_SerializeDiagnosticResultAsync,
+        AssetService_CleanAssets,
+        AssetService_GetAssetAsync,
+        SnapshotService_RequestAssetAsync,
+        CompilationService_GetCompilationAsync,
     }
 }

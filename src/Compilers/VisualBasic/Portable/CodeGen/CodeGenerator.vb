@@ -4,12 +4,9 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Friend NotInheritable Class CodeGenerator
@@ -214,8 +211,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
+        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken)
         End Sub
 
         Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)

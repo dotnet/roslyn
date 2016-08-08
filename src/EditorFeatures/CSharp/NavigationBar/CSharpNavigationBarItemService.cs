@@ -1,25 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -323,7 +317,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 }
             }
 
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)));
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(syntaxTree));
 
             if (location == null)
             {

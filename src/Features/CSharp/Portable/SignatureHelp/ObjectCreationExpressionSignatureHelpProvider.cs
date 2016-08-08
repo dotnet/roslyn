@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -80,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
+                    ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
+                    : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 

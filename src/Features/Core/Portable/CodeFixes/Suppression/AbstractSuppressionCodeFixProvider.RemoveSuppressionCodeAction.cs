@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
-                : base(fixer, title: string.Format(FeaturesResources.RemoveSuppressionForId, diagnostic.Id))
+                : base(fixer, title: string.Format(FeaturesResources.Remove_Suppression_0, diagnostic.Id))
             {
                 _diagnostic = diagnostic;
                 _forFixMultipleContext = forFixMultipleContext;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public abstract RemoveSuppressionCodeAction CloneForFixMultipleContext();
             public abstract SyntaxTree SyntaxTreeToModify { get; }
 
-            public override string EquivalenceKey => FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix + DiagnosticIdForEquivalenceKey;
+            public override string EquivalenceKey => FeaturesResources.Remove_Suppression + DiagnosticIdForEquivalenceKey;
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
         }

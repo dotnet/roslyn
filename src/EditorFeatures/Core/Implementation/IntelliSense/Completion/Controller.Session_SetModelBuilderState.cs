@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                                 .WithHardSelection(!softSelect);
                 }
 
-                return model.WithHardSelection(!softSelect).WithUseSuggestionCompletionMode(includeBuilder);
+                return model.WithHardSelection(!softSelect).WithUseSuggestionMode(includeBuilder);
             }
         }
     }

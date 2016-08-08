@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -10,8 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface ICodeActionEditHandlerService
     {
         ITextBufferAssociatedViewService AssociatedViewService { get; }
-        SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken);
-        void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, 
-            IProgressTracker progressTracker, CancellationToken cancellationToken);
+
+        SolutionPreviewResult GetPreviews(
+            Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken);
+
+        Task ApplyAsync(
+            Workspace workspace, Document fromDocument,
+            IEnumerable<CodeActionOperation> operations,
+            string title, IProgressTracker progressTracker,
+            CancellationToken cancellationToken);
     }
 }

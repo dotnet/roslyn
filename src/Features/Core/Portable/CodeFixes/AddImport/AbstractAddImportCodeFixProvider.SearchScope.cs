@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -39,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
+            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(
+                string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
@@ -110,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+                string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, CancellationToken);
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await info.FindAsync(searchQuery, lazyAssembly, CancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
-                return await info.FindAsync(searchQuery, _assembly, CancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, _assembly, filter, CancellationToken).ConfigureAwait(false);
             }
         }
     }

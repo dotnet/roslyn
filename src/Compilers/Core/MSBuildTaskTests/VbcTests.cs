@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.ChecksumAlgorithm = "";
             Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
+        
+        [Fact]
+        public void InstrumentTestNamesFlag()
+        {
+            var vbc = new Vbc();
+            vbc.Instrument = "Instrument.This.Flag";
+            Assert.Equal("/optionstrict:custom /instrument:Instrument.This.Flag", vbc.GenerateResponseFileContents());
+        }
 
         [Fact]
         public void TargetTypeDll()
@@ -178,6 +186,62 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
                 Assert.Equal(@"/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
             }
+        }
+
+        [Fact]
+        public void DebugType()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "full";
+            Assert.Equal("/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "pdbonly";
+            Assert.Equal("/optionstrict:custom /debug:pdbonly /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            Assert.Equal("/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "embedded";
+            Assert.Equal("/optionstrict:custom /debug:embedded /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = null;
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "";
+            Assert.Equal("/optionstrict:custom /debug: /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void SourceLink()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.SourceLink = @"C:\x y\z.json";
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe /sourcelink:""C:\x y\z.json"" test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.SourceLink = null;
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.SourceLink = "";
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe /sourcelink: test.vb", vbc.GenerateResponseFileContents());
         }
     }
 }

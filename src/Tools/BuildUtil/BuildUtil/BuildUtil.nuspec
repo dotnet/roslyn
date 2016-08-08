@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Roslyn.Build.Util</id>
     <version>0.9.4-portable</version>
@@ -16,7 +16,7 @@
         <dependency id="Microsoft.Build.Utilities.Core" version="0.1.0-preview-00005" />
         <dependency id="System.Collections" version="4.0.10" />
         <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.IO.FileSystem" version="4.0.1" />
         <dependency id="System.Linq" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />
       </group>

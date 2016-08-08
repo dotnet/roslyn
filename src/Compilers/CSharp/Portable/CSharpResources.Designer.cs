@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be full or pdbonly.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /debug; must be &apos;portable&apos;, &apos;embedded&apos;, &apos;full&apos; or &apos;pdbonly&apos;.
         /// </summary>
         internal static string ERR_BadDebugType {
             get {
@@ -2312,6 +2312,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct dynamic objects..
+        /// </summary>
+        internal static string ERR_CannotDeconstructDynamic {
+            get {
+                return ResourceManager.GetString("ERR_CannotDeconstructDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
@@ -2353,6 +2362,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CantChangeReturnTypeOnOverride {
             get {
                 return ResourceManager.GetString("ERR_CantChangeReturnTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change tuple element names when overriding inherited member &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_CantChangeTupleNamesOnOverride {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeTupleNamesOnOverride", resourceCulture);
             }
         }
         
@@ -2434,15 +2452,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CantInferMethTypeArgs {
             get {
                 return ResourceManager.GetString("ERR_CantInferMethTypeArgs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of &apos;{0}&apos; as it does not return a value..
-        /// </summary>
-        internal static string ERR_CantInferVoid {
-            get {
-                return ResourceManager.GetString("ERR_CantInferVoid", resourceCulture);
             }
         }
         
@@ -3095,6 +3104,51 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type information on the left-hand-side &apos;{0}&apos; and right-hand-side &apos;{1}&apos; of the deconstruction was insufficient to infer a merged type..
+        /// </summary>
+        internal static string ERR_DeconstructCouldNotInferMergedType {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructCouldNotInferMergedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruction `var (...)` form disallows a specific type for &apos;var&apos;..
+        /// </summary>
+        internal static string ERR_DeconstructionVarFormDisallowsSpecificType {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructionVarFormDisallowsSpecificType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
+        /// </summary>
+        internal static string ERR_DeconstructRequiresExpression {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructRequiresExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruction must contain at least two variables..
+        /// </summary>
+        internal static string ERR_DeconstructTooFewElements {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructTooFewElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct a tuple of &apos;{0}&apos; elements into &apos;{1}&apos; variables..
+        /// </summary>
+        internal static string ERR_DeconstructWrongCardinality {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructWrongCardinality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -3437,6 +3491,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
+            get {
+                return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNamesInBaseList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The label &apos;{0}&apos; is a duplicate.
         /// </summary>
         internal static string ERR_DuplicateLabel {
@@ -3505,15 +3568,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DuplicatePropertyAccessMods {
             get {
                 return ResourceManager.GetString("ERR_DuplicatePropertyAccessMods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type already contains a replacement for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_DuplicateReplace {
-            get {
-                return ResourceManager.GetString("ERR_DuplicateReplace", resourceCulture);
             }
         }
         
@@ -3640,15 +3694,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_EncReferenceToAddedMember {
             get {
                 return ResourceManager.GetString("ERR_EncReferenceToAddedMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
-        /// </summary>
-        internal static string ERR_EncUpdateFailedMissingAttribute {
-            get {
-                return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture);
             }
         }
         
@@ -3946,6 +3991,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExplicitPropertyMissingAccessor {
             get {
                 return ResourceManager.GetString("ERR_ExplicitPropertyMissingAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
+        /// </summary>
+        internal static string ERR_ExplicitTupleElementNames {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitTupleElementNames", resourceCulture);
             }
         }
         
@@ -4796,6 +4850,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tuple element names in the signature of method &apos;{0}&apos; must match the tuple element names of interface method &apos;{1}&apos; (including on the return type)..
+        /// </summary>
+        internal static string ERR_ImplBadTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_ImplBadTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No best type found for implicitly-typed array.
         /// </summary>
         internal static string ERR_ImplicitlyTypedArrayNoBestType {
@@ -4810,6 +4873,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplicitlyTypedLocalCannotBeFixed {
             get {
                 return ResourceManager.GetString("ERR_ImplicitlyTypedLocalCannotBeFixed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to an implicitly-typed out variable &apos;{0}&apos; is not permitted in the same argument list..
+        /// </summary>
+        internal static string ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList", resourceCulture);
             }
         }
         
@@ -5894,6 +5966,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters..
+        /// </summary>
+        internal static string ERR_MissingDeconstruct {
+            get {
+                return ResourceManager.GetString("ERR_MissingDeconstruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing Guid for option &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_MissingGuidForOption {
@@ -6569,15 +6650,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No original member for &apos;{0}&apos;.
-        /// </summary>
-        internal static string ERR_NoOriginalMember {
-            get {
-                return ResourceManager.GetString("ERR_NoOriginalMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
         internal static string ERR_NoPIAAssemblyMissingAttribute {
@@ -7082,6 +7154,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both partial method declarations, &apos;{0}&apos; and &apos;{1}&apos;, must use the same tuple element names..
+        /// </summary>
+        internal static string ERR_PartialMethodInconsistentTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_PartialMethodInconsistentTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees.
         /// </summary>
         internal static string ERR_PartialMethodInExpressionTree {
@@ -7226,15 +7307,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replacement methods cannot be partial.
-        /// </summary>
-        internal static string ERR_PartialReplace {
-            get {
-                return ResourceManager.GetString("ERR_PartialReplace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Partial declarations of &apos;{0}&apos; must be all classes, all structs, or all interfaces.
         /// </summary>
         internal static string ERR_PartialTypeKindConflict {
@@ -7271,11 +7343,38 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
+        /// </summary>
+        internal static string ERR_PatternIsSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_PatternIsSubsumed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
         /// </summary>
         internal static string ERR_PatternNullableType {
             get {
                 return ResourceManager.GetString("ERR_PatternNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        /// </summary>
+        internal static string ERR_PatternValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_PatternValueExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
+        /// </summary>
+        internal static string ERR_PatternWrongType {
+            get {
+                return ResourceManager.GetString("ERR_PatternWrongType", resourceCulture);
             }
         }
         
@@ -8108,15 +8207,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the return type of &apos;{0}&apos; due to differing return types..
-        /// </summary>
-        internal static string ERR_ReturnTypesDontMatch {
-            get {
-                return ResourceManager.GetString("ERR_ReturnTypesDontMatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
@@ -8293,6 +8383,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SourceFileReferencesNotSupported {
             get {
                 return ResourceManager.GetString("ERR_SourceFileReferencesNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        /// </summary>
+        internal static string ERR_SourceLinkRequiresPortablePdb {
+            get {
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
             }
         }
         
@@ -8495,15 +8594,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type.
-        /// </summary>
-        internal static string ERR_SwitchGoverningTypeValueExpected {
-            get {
-                return ResourceManager.GetString("ERR_SwitchGoverningTypeValueExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {
@@ -8657,6 +8747,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot define a class or member that utilizes tuples because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
+        /// </summary>
+        internal static string ERR_TupleElementNamesAttributeMissing {
+            get {
+                return ResourceManager.GetString("ERR_TupleElementNamesAttributeMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
         /// </summary>
         internal static string ERR_TupleExplicitNamesOnAllMembersOrNone {
@@ -8707,6 +8806,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeExpected {
             get {
                 return ResourceManager.GetString("ERR_TypeExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        /// </summary>
+        internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
+            get {
+                return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedOutVariable", resourceCulture);
             }
         }
         
@@ -9044,6 +9152,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier..
+        /// </summary>
+        internal static string ERR_V6SwitchGoverningTypeValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_V6SwitchGoverningTypeValueExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a non-nullable value type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_ValConstraintNotSatisfied {
@@ -9166,15 +9283,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VoidError {
             get {
                 return ResourceManager.GetString("ERR_VoidError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Void-returning methods cannot return by reference.
-        /// </summary>
-        internal static string ERR_VoidReturningMethodCannotReturnByRef {
-            get {
-                return ResourceManager.GetString("ERR_VoidReturningMethodCannotReturnByRef", resourceCulture);
             }
         }
         
@@ -9734,6 +9842,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureOptionalParameter {
             get {
                 return ResourceManager.GetString("IDS_FeatureOptionalParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to out variable declaration.
+        /// </summary>
+        internal static string IDS_FeatureOutVar {
+            get {
+                return ResourceManager.GetString("IDS_FeatureOutVar", resourceCulture);
             }
         }
         
@@ -10472,6 +10589,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TypeArgumentCannotBeNull {
             get {
                 return ResourceManager.GetString("TypeArgumentCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type must be &apos;var&apos;..
+        /// </summary>
+        internal static string TypeMustBeVar {
+            get {
+                return ResourceManager.GetString("TypeMustBeVar", resourceCulture);
             }
         }
         

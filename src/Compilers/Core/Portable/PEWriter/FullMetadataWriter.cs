@@ -12,8 +12,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection.Metadata.Ecma335;
-
     internal sealed class FullMetadataWriter : MetadataWriter
     {
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
@@ -53,7 +51,7 @@ namespace Microsoft.Cci
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugBuilderOpt = builder;
+                    debugBuilderOpt = new MetadataBuilder();
                     break;
 
                 default:
@@ -61,18 +59,23 @@ namespace Microsoft.Cci
                     break;
             }
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? 
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
+                null;
+
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataBuilder builder,
             MetadataBuilder debugBuilderOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -262,6 +265,8 @@ namespace Microsoft.Cci
             return _methodSpecIndex.Rows;
         }
 
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+        
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;

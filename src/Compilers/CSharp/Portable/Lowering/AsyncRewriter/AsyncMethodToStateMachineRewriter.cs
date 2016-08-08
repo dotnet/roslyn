@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                                 // Use reference conversion rather than dynamic conversion:
-                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), ConversionKind.ExplicitReference)),
+                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), Conversion.ExplicitReference)),
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), _asyncMethodBuilderField),
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(
+            var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
                 ref useSiteDiagnostics).IsImplicit;

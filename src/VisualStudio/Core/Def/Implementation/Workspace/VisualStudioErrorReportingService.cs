@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioErrorReportingService : IErrorReportingService
     {
         private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
-        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
+        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IForegroundNotificationService _foregroundNotificationService;
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IVsInfoBarUIFactory factory;
                 if (_workspace.TryGetInfoBarData(out frame, out factory))
                 {
-                    CreateInfoBarForCodeFix(factory, frame, string.Format(ServicesVSResources.CodefixOrRefactoringEncounteredError, codefixName), OnClose, OnEnable, OnEnableAndIgnore);
+                    CreateInfoBarForCodeFix(factory, frame, string.Format(ServicesVSResources._0_encountered_an_error_and_has_been_disabled, codefixName), OnClose, OnEnable, OnEnableAndIgnore);
                 }
             }, _listener.BeginAsyncOperation("Show InfoBar"));
         }
