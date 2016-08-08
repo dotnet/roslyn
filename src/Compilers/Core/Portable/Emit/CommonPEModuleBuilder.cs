@@ -66,8 +66,16 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public abstract int CurrentGenerationOrdinal { get; }
 
-        internal abstract string Name { get; }
+        /// <summary>
+        /// If this module represents an assembly, name of the assembly used in AssemblyDef table. Otherwise name of the module same as <see cref="ModuleName"/>.
+        /// </summary>
+        public abstract string Name { get; }
+
+        /// <summary>
+        /// Name of the module. Used in ModuleDef table.
+        /// </summary>
         internal abstract string ModuleName { get; }
+
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
@@ -85,12 +93,42 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+
+        /// <summary>
+        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
+        /// followed by types forwarded to another assembly.
+        /// </summary>
         public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
+        /// <summary>
+        /// Used to distinguish which style to pick while writing native PDB information.
+        /// </summary>
+        /// <remarks>
+        /// The PDB content for custom debug information is different between Visual Basic and CSharp.
+        /// E.g. C# always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where 
+        /// as VB only outputs namespace imports into the namespace scopes. 
+        /// C# defines forwards in that header, VB includes them into the scopes list.
+        /// 
+        /// Currently the compiler doesn't allow mixing C# and VB method bodies. Thus this flag can be per module.
+        /// It is possible to move this flag to per-method basis but native PDB CDI forwarding would need to be adjusted accordingly.
+        /// </remarks>
         public abstract bool GenerateVisualBasicStylePdb { get; }
+
+        /// <summary>
+        /// Linked assembly names to be stored to native PDB (VB only).
+        /// </summary>
         public abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
+
+        /// <summary>
+        /// Project level imports (VB only, TODO: C# scripts).
+        /// </summary>
         public abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
+
+        /// <summary>
+        /// Default namespace (VB only).
+        /// </summary>
         public abstract string DefaultNamespace { get; }
+
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
         protected abstract void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics);
@@ -111,8 +149,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
 
+        /// <summary>
+        /// Number of debug documents in the module. 
+        /// Used to determine capacities of lists and indices when emitting debug info.
+        /// </summary>
         public int DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
-        string Cci.INamedEntity.Name => Name;
 
         public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
 
@@ -126,6 +167,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract ISourceAssemblySymbolInternal SourceAssemblyOpt { get; }
 
+        /// <summary>
+        /// An approximate number of method definitions that can
+        /// provide a basis for approximating the capacities of
+        /// various databases used during Emit.
+        /// </summary>
         public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
@@ -174,6 +220,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return method.ContainingModule == CommonSourceModule && method.IsDefinition;
         }
 
+        /// <summary>
+        /// CorLibrary assembly referenced by this module.
+        /// </summary>
         public Cci.IAssemblyReference GetCorLibrary(EmitContext context)
         {
             return Translate(CommonCorLibrary, context.Diagnostics);
@@ -184,6 +233,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return OutputKind == OutputKind.NetModule ? null : (Cci.IAssemblyReference)this;
         }
 
+        /// <summary>
+        /// Returns User Strings referenced from the IL in the module. 
+        /// </summary>
         public IEnumerable<string> GetStrings()
         {
             return _stringsInILMap.GetAllItems();
@@ -230,6 +282,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return _referencesInILMap.GetAllItemsAndCount(out count);
         }
 
+        /// <summary>
+        /// Assembly reference aliases (C# only).
+        /// </summary>
         public ImmutableArray<Cci.AssemblyReferenceAlias> GetAssemblyReferenceAliases(EmitContext context)
         {
             if (_lazyAssemblyReferenceAliases.IsDefault)
@@ -413,6 +468,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context);
 
+        /// <summary>
+        /// Returns all top-level (not nested) types defined in the module. 
+        /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             Cci.NoPiaReferenceIndexer noPiaIndexer = null;

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override string Name => _metadataName;
+        public override string Name => _metadataName;
         public AssemblyIdentity Identity => _sourceAssembly.Identity;
         public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
     }

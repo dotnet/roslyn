@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Sub
 
-        Friend Overrides ReadOnly Property Name As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return _metadataName
             End Get

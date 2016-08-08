@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override string Name
+        public override string Name
         {
             get { return _metadataName; }
         }

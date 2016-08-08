@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
 
-        internal bool StartSourceChecksumCalculation(DebugDocumentsBuilder documentsBuilder, IEnumerable<EmbeddedText> embeddedTexts, DiagnosticBag diagnostics)
+        internal bool CreateDebugDocuments(DebugDocumentsBuilder documentsBuilder, IEnumerable<EmbeddedText> embeddedTexts, DiagnosticBag diagnostics)
         {
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
@@ -1594,6 +1594,7 @@ namespace Microsoft.CodeAnalysis
             // Add debug documents for all pragmas. 
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
+            // Therefore we need to add these in a separate pass after documents for syntax trees were added.
             foreach (var tree in SyntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);

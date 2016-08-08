@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </remarks>
         Friend MustOverride ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
 
-        Friend Overrides ReadOnly Property Name As String
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return _metadataName
             End Get
