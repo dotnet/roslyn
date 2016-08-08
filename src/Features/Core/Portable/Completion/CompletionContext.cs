@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This is the most common value used for <see cref="CompletionItem.Span"/> and will
         /// be automatically assigned to any <see cref="CompletionItem"/> that has no <see cref="CompletionItem.Span"/> specified.
         /// </summary>
-        [Obsolete("Not used anymore. Use CompletionListSpan instead.")]
+        [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
 
         /// <summary>
@@ -103,9 +103,6 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Provider = provider;
             this.Document = document;
             this.Position = position;
-#pragma warning disable CS0618 // Type or member is obsolete
-            this.DefaultItemSpan = defaultSpan;
-#pragma warning restore CS0618 // Type or member is obsolete
             this.CompletionListSpan = defaultSpan;
             this.Trigger = trigger;
             this.Options = options;

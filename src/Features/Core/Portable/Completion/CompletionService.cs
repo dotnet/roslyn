@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         /// <param name="text">The document text that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret within the text.</param>
-        [Obsolete("Not used anymore. CompletionService.GetDefaultCompletionListSpan is used instead.")]
+        [Obsolete("Not used anymore. CompletionService.GetDefaultCompletionListSpan is used instead.", error: true)]
         public virtual TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
         {
             return GetDefaultCompletionListSpan(text, caretPosition);
