@@ -135,15 +135,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// itemToFilterText provides the values that each individual completion item should
         /// be filtered against.
         /// </summary>
-        public virtual ImmutableArray<CompletionItem> ChooseBestItems(
+        public virtual ImmutableArray<CompletionItem> FilterItems(
             Document document,
-            ImmutableArray<CompletionItem> filteredItems,
+            ImmutableArray<CompletionItem> items,
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
 
             var bestItems = ImmutableArray.CreateBuilder<CompletionItem>();
-            foreach (var item in filteredItems)
+            foreach (var item in items)
             {
                 if (bestItems.Count == 0)
                 {
