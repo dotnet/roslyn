@@ -2921,7 +2921,7 @@ public class Test
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         [WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
-        public async Task TestNoOverloadOnEventAssignment()
+        public async Task TestWithIncompatibleOverloadOnEventAssignment()
         {
             await TestAsync(
 @"class Program
@@ -2959,7 +2959,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         [WorkItem(12708, "https://github.com/dotnet/roslyn/issues/12708")]
-        public async Task TestNoOverloadOnEventAssignmentBracketed_Bracketed()
+        public async Task TestWithIncompatibleOverloadOnEventAssignmentWithAssignedMethodInParentheses()
         {
             await TestAsync(
 @"using System;
