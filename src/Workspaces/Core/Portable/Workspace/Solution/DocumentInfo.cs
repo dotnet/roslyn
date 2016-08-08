@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
     {
-
-        private string GetDebuggerDisplay()
-        {
-            return nameof(FilePath) + " = " + FilePath;
-        }
-
         /// <summary>
         /// The Id of the document.
         /// </summary>
@@ -153,6 +147,11 @@ namespace Microsoft.CodeAnalysis
         public DocumentInfo WithFilePath(string filePath)
         {
             return this.With(filePath: filePath);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
         }
     }
 }

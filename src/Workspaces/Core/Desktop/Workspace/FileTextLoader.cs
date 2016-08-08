@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis
         private readonly string _path;
         private readonly Encoding _defaultEncoding;
 
-        private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
-
         /// <summary>
         /// Creates a content loader for specified file.
         /// </summary>
@@ -104,6 +99,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return textAndVersion;
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return nameof(Path) + " = " + Path;
         }
     }
 }
