@@ -101,7 +101,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
         public IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
         {
-            return CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression as TExpressionSyntax).Select(t => t.InferredType);
+            var result = new List<ITypeSymbol>();
+            var typeInferenceInfo = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression as TExpressionSyntax);
+            foreach (var info in typeInferenceInfo)
+            {
+                result.Add(info.InferredType);
+            }
+
+            return result;
         }
 
         public IEnumerable<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

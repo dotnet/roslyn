@@ -95,20 +95,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        TypeInferenceInfo type = new TypeInferenceInfo(typeInfo.Type);
+                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
-                        if (type.InferredType == null &&
+                        if (typeInferenceInfo.InferredType == null &&
                             symbolInfo.GetAllSymbols().Count() == 1 &&
                             symbolInfo.GetAllSymbols().First().Kind == SymbolKind.Method)
                         {
                             var method = symbolInfo.GetAllSymbols().First();
-                            type = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
+                            typeInferenceInfo = new TypeInferenceInfo(method.ConvertToType(this.Compilation));
                         }
 
-                        if (IsUsableTypeFunc(type))
+                        if (IsUsableTypeFunc(typeInferenceInfo))
                         {
-                            return SpecializedCollections.SingletonEnumerable(type);
+                            return SpecializedCollections.SingletonEnumerable(typeInferenceInfo);
                         }
                     }
                 }
@@ -1205,7 +1205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var addMethodParameterTypes = addMethodSymbols
                         .Cast<IMethodSymbol>()
                         .Where(a => a.Parameters.Length == initializerExpression.Expressions.Count)
-                        .Select(a => new TypeInferenceInfo(a.Parameters.ElementAtOrDefault(parameterIndex)?.Type));
+                        .Select(a => new TypeInferenceInfo(a.Parameters.ElementAtOrDefault(parameterIndex)?.Type))
+                        .Where(t => t.InferredType != null);
 
                     if (addMethodParameterTypes.Any())
                     {
