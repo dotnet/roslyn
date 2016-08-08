@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
-                Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
+                Document document, SemanticModel semanticModel,
+                Diagnostic diagnostic, SyntaxNode node,
+                CancellationToken cancellationToken)
             {
                 _owner = owner;
                 _document = document;
@@ -44,8 +47,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                _namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+                _namespacesInScope = GetNamespacesInScope(cancellationToken);
+            }
+
+            private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
+            {
+                // Add all hte namespaces brought in by imports/usings.
+                var set = _owner.GetImportNamespacesInScope(_semanticModel, _node, cancellationToken);
+
+                // Also add all the namespaces we're containing in.  We don't want
+                // to add imports for these namespaces either.
+                for (var containingNamespace = _semanticModel.GetEnclosingNamespace(_node.SpanStart, cancellationToken);
+                     containingNamespace != null;
+                     containingNamespace = containingNamespace.ContainingNamespace)
+                {
+                    set.Add(containingNamespace);
+                }
+
+                return set;
             }
 
             internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
