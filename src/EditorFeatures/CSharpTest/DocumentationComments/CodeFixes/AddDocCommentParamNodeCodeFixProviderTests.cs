@@ -224,13 +224,119 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             await TestAsync(initial, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_Ctor()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""j""></param>
+    public Program(int [|i|], int j, int k) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i""></param>
+    /// <param name=""j""></param>
+    public Program(int i, int j, int k) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_Delegate()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""j""></param>
+    public delegate int Foo(int [|i|], int j, int k);
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i""></param>
+    /// <param name=""j""></param>
+    public delegate int Foo(int [|i|], int j, int k);
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_Operator()
+        {
+            var initial =
+@"public struct MyStruct
+{
+    public int Val { get; }
+
+    public MyStruct(int val)
+    {
+        Val = val;
+    }
+        
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""s1""></param>
+    /// <returns></returns>
+    public static MyStruct operator +(MyStruct s1, MyStruct [|s2|])
+    {
+        return new MyStruct(s1.Val + s2.Val);
+    }
+}
+";
+
+            var expected =
+@"public struct MyStruct
+{
+    public int Val { get; }
+
+    public MyStruct(int val)
+    {
+        Val = val;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""s1""></param>
+    /// <param name=""s2""></param>
+    /// <returns></returns>
+    public static MyStruct operator +(MyStruct s1, MyStruct s2)
+    {
+        return new MyStruct(s1.Val + s2.Val);
+    }
+}
+";
+            await TestAsync(initial, expected);
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
         {
             var initial =
-@"class Program1
+@"class Program
 {
     /// <summary>
     /// <param name=""i""></param>
@@ -240,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
 }";
 
             var expected =
-@"class Program1
+@"class Program
 {
     /// <summary>
     /// <param name=""i""></param>

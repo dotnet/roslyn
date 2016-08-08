@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAttribute), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class CSharpAddDocCommentParamNodeCodeFixProvider
-        : AbstractAddDocCommentParamNodeCodeFixProvider<XmlElementSyntax, XmlNameAttributeSyntax, ParameterSyntax, MethodDeclarationSyntax, XmlTextSyntax>
+        : AbstractAddDocCommentParamNodeCodeFixProvider<XmlElementSyntax, XmlNameAttributeSyntax, XmlTextSyntax, MemberDeclarationSyntax, ParameterSyntax>
     {
         /// <summary>
         /// Parameter has no matching param tag in XML comment
@@ -35,8 +35,20 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override string GetXmlElementLocalName(XmlElementSyntax element)
             => element.StartTag.Name.LocalName.ValueText;
 
-        protected override List<string> GetParameterNames(MethodDeclarationSyntax method)
-            => method.ParameterList.Parameters.Select(s => s.Identifier.ValueText).ToList();
+        protected override List<string> GetParameterNames(MemberDeclarationSyntax member)
+        {
+            if (member is BaseMethodDeclarationSyntax)
+            {
+                return ((BaseMethodDeclarationSyntax)member).ParameterList.Parameters.Select(s => s.Identifier.ValueText).ToList();
+            }
+
+            var parameterList = (ParameterListSyntax)member.DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
+                                                           .FirstOrDefault(f => f is ParameterListSyntax);
+
+            return parameterList != null
+                   ? parameterList.Parameters.Select(s => s.Identifier.ValueText).ToList()
+                   : new List<string>();
+        }
 
         protected override string GetParameterName(ParameterSyntax parameter)
             => parameter.Identifier.ValueText;

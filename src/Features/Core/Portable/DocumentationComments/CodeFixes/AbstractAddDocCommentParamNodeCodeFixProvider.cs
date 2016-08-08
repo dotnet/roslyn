@@ -14,12 +14,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
     internal abstract class AbstractAddDocCommentParamNodeCodeFixProvider
-        <TXmlElementSyntax, TXmlNameAttributeSyntax, TParameterSyntax, TMethodDeclarationSyntax, TXmlTextSyntax> : CodeFixProvider
+        <TXmlElementSyntax, TXmlNameAttributeSyntax, TXmlTextSyntax, TMemberDeclarationSyntax, TParameterSyntax> : CodeFixProvider
         where TXmlElementSyntax : SyntaxNode
         where TXmlNameAttributeSyntax : SyntaxNode
-        where TParameterSyntax : SyntaxNode
-        where TMethodDeclarationSyntax : SyntaxNode
         where TXmlTextSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
+        where TParameterSyntax : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
             var parameter = root.FindNode(context.Span) as TParameterSyntax;
 
-            var parentMethod = parameter.FirstAncestorOrSelf<TMethodDeclarationSyntax>();
+            var parentMethod = parameter.FirstAncestorOrSelf<TMemberDeclarationSyntax>();
             if (parentMethod != null)
             {
                 context.RegisterCodeFix(
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         
         protected abstract List<TXmlNameAttributeSyntax> GetNameAttributes(TXmlElementSyntax node);
         protected abstract string GetValueFromNameAttribute(TXmlNameAttributeSyntax attribute);
-        protected abstract SyntaxNode GetDocCommentNode(SyntaxTriviaList leadingTrivia);
+        protected abstract SyntaxNode GetDocCommentNode(SyntaxTriviaList parameter);
         protected abstract string GetXmlElementLocalName(TXmlElementSyntax element);
-        protected abstract List<string> GetParameterNames(TMethodDeclarationSyntax method);
+        protected abstract List<string> GetParameterNames(TMemberDeclarationSyntax method);
         protected abstract string GetParameterName(TParameterSyntax parameter);
         protected abstract TXmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var parameter = root.FindNode(span) as TParameterSyntax;
 
-            var parentMethod = parameter.FirstAncestorOrSelf<TMethodDeclarationSyntax>();
+            var parentMethod = parameter.FirstAncestorOrSelf<TMemberDeclarationSyntax>();
             var docCommentNode = GetDocCommentNode(parentMethod.GetLeadingTrivia());
             var docCommentChildNodes = docCommentNode.ChildNodes().ToList();
 
