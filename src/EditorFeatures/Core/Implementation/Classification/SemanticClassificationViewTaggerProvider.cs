@@ -92,8 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var spanToTag = context.SpansToTag.Single();
 
-            _classificationService = _classificationService ?? 
-                spanToTag.Document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+            // Attempt to get a classification service which will actually produce the results.
+            // If we can't (because we have no Document, or because the language doesn't support
+            // this service), then bail out immediately.
+            if (_classificationService == null)
+            {
+                var document = spanToTag.Document;
+                _classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+            }
+
             if (_classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
