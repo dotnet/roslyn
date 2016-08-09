@@ -782,6 +782,8 @@ public class Program
     {
         return l(x);
     }
+
+    // Method 11 is a synthesized static constructor.
 }
 ";
             // There is no entry for method '8' since it's a Prop2_set which is never called.
@@ -823,6 +825,9 @@ Method 9
 File 1
 True
 True
+Method 11
+File 1
+True
 Method 13
 File 1
 True
@@ -854,27 +859,30 @@ using System;
 public class Program
 {
 #line 10 ""File1.cs""
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
 #line 20 ""File2.cs""
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         Fred();
-        Fred();
+        Program p = new Program();
         return;
     }
 
 #line 30 ""File3.cs""
-    static void Fred()
+    static void Fred()                                                      // Method 3
     {
         return;
     }
 
-#line 40 ""File4.cs""
+#line 40 ""File5.cs""
+
+    // The synthesized instance constructor is method 4 and
+    // appears in the original source file, which gets file index 4.
 }
 ";
 
@@ -894,8 +902,10 @@ Method 3
 File 3
 True
 True
-Method 6
+Method 4
 File 4
+Method 6
+File 5
 True
 True
 False
@@ -1329,6 +1339,8 @@ public class C
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
+
+    // Methods 5 and 7 are implicit constructors.
 ";
             string expectedOutput = @"Flushing
 Method 1
@@ -1351,6 +1363,10 @@ True
 False
 False
 True
+Method 5
+File 1
+Method 7
+File 1
 Method 9
 File 1
 True
@@ -1638,6 +1654,89 @@ True
 True
 True
 Method 11
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestImplicitConstructorSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                      // Method 2
+    {
+        C local = new C();
+        int x = local._x + C.s_x;
+    }
+
+    static int Init() => 33;                                    // Method 3
+
+    // Method 6 is the implicit instance constructor.
+    // Method 7 is the implicit shared constructor.
+
+    int _x = Init();
+    int _y = Init() + 12;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z = 144;
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
+}
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 6
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+True
+True
+Method 9
 File 1
 True
 True

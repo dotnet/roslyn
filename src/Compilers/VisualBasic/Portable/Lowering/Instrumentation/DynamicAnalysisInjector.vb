@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodBodyFactory As SyntheticBoundNodeFactory
 
         Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
-            ' Do not instrument implicitly-declared methods.
+            ' Do not instrument implicitly-declared methods, except for constructors.
             If Not method.IsImplicitlyDeclared OrElse method.IsAnyConstructor Then
                 Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
 

@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && (methodSymbol.ContainingType.IsStructType() || instrumentForDynamicAnalysis) && !methodSymbol.IsImplicitConstructor)
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || instrumentForDynamicAnalysis))
                         {
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
