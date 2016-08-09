@@ -55,6 +55,57 @@ hello
         End Sub
 
         <Fact()>
+        Public Sub TupleTypeBindingNoTuple()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (Integer, Integer)
+        console.writeline(t)            
+        console.writeline(t.Item1)            
+
+        Dim t1 as (A As Integer, B As Integer)
+        console.writeline(t1)            
+        console.writeline(t1.Item1)            
+        console.writeline(t1.A)            
+    End Sub
+End Module
+
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim t as (Integer, Integer)
+                 ~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim t as (Integer, Integer)
+                 ~~~~~~~~~~~~~~~~~~
+BC30389: '(Integer, Integer).Item1' is not accessible in this context because it is 'Private'.
+        console.writeline(t.Item1)            
+                          ~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim t1 as (A As Integer, B As Integer)
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim t1 as (A As Integer, B As Integer)
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30389: '(A As Integer, B As Integer).Item1' is not accessible in this context because it is 'Private'.
+        console.writeline(t1.Item1)            
+                          ~~~~~~~~
+BC30389: '(A As Integer, B As Integer).A' is not accessible in this context because it is 'Private'.
+        console.writeline(t1.A)            
+                          ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
         Public Sub TupleFieldBinding()
 
             Dim verifier = CompileAndVerify(
@@ -102,6 +153,56 @@ End Namespace
   IL_0021:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleFieldBinding01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim vt as ValueTuple(Of Integer, Integer) = M1(2,3)
+        console.writeline(vt.Item2)            
+    End Sub
+    
+    Function M1(x As Integer, y As Integer) As ValueTuple(Of Integer, Integer)
+        Return New ValueTuple(Of Integer, Integer)(x, y) 
+    End Function
+End Module
+
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+3
+            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            verifier.VerifyIL("C.M1", <![CDATA[
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0007:  ret
+}
+]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldc.i4.2
+  IL_0001:  ldc.i4.3
+  IL_0002:  call       "Function C.M1(Integer, Integer) As (Integer, Integer)"
+  IL_0007:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_000c:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0011:  ret
+}
+]]>)
+
         End Sub
 
         <Fact()>
@@ -530,6 +631,18 @@ End Module
   IL_001b:  ret
 }
 ]]>)
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(Nothing, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+            Assert.Equal("(System.String, System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
         End Sub
 
         <Fact()>
@@ -848,6 +961,18 @@ End Module
   IL_002f:  ret
 }
 ]]>)
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(a:=100, b:=100)", node.ToString())
+            Assert.Equal("(a As Integer, b As Integer)", model.GetTypeInfo(node).Type.ToDisplayString())
+            Assert.Equal("(x As System.Byte, y As System.Byte)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
         End Sub
 
         <Fact()>
@@ -896,6 +1021,18 @@ End Module
   IL_0039:  ret
 }
 ]]>)
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(100, 100)", node.ToString())
+            Assert.Equal("(Integer, Integer)", model.GetTypeInfo(node).Type.ToDisplayString())
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind)
         End Sub
 
         <Fact()>
