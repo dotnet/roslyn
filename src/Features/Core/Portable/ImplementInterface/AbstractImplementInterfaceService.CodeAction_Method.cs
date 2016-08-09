@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
                     this.State.ClassOrStructType,
-                    compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType());
+                    AttributesToRemove(compilation));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     updatedMethod,

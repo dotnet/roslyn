@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,48 +27,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 CancellationToken cancellationToken)
             {
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
-                var comAliasNameAttribute = compilation.ComAliasNameAttributeType();
-                var tupleElementNamesAttribute = compilation.TupleElementNamesAttributeType();
+                var attributesToRemove = AttributesToRemove(compilation);
 
-                IMethodSymbol getAccessor;
-                if (property.GetMethod == null)
-                {
-                    getAccessor = null;
-                }
-                else
-                {
-                    var getMethod = property.GetMethod;
-                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                                             this.State.ClassOrStructType,
-                                             comAliasNameAttribute, tupleElementNamesAttribute);
-
-                    getAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                                    getMethod,
-                                    attributes: null,
-                                    accessibility: accessibility,
-                                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
-                                    statements: GetGetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
-                }
-
-                IMethodSymbol setAccessor;
-                if (property.SetMethod == null)
-                {
-                    setAccessor = null;
-                }
-                else
-                {
-                    var setMethod = property.SetMethod;
-                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                                             this.State.ClassOrStructType,
-                                             comAliasNameAttribute, tupleElementNamesAttribute);
-
-                    setAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                                    setMethod,
-                                    attributes: null,
-                                    accessibility: accessibility,
-                                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
-                                    statements: GetSetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
-                }
+                var getAccessor = GenerateGetAccessor(compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
+                var setAccessor = GenerateSetAccessor(compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
 
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
                 var parameterNames = NameGenerator.EnsureUniqueness(
@@ -75,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 
-                updatedProperty = updatedProperty.RemoveAttributeFromParameters(comAliasNameAttribute);
+                updatedProperty = updatedProperty.RemoveAttributeFromParameters(attributesToRemove);
 
                 // TODO(cyrusn): Delegate through throughMember if it's non-null.
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -86,6 +49,68 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     name: memberName,
                     getMethod: getAccessor,
                     setMethod: setAccessor);
+            }
+
+            /// <summary>
+            /// Lists compiler attributes that we want to remove.
+            /// The TupleElementNames attribute is compiler generated and used for naming tuple element names. We never want to place it in source code.
+            /// Same thing for the Dynamic attribute.
+            /// </summary>
+            private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
+            {
+                return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(), compilation.DynamicAttributeType() };
+            }
+
+            private IMethodSymbol GenerateSetAccessor(
+                Compilation compilation,
+                IPropertySymbol property,
+                Accessibility accessibility,
+                bool generateAbstractly,
+                bool useExplicitInterfaceSymbol,
+                INamedTypeSymbol[] attributesToRemove,
+                CancellationToken cancellationToken)
+            {
+                if (property.SetMethod == null)
+                {
+                    return null;
+                }
+
+                var setMethod = property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                     this.State.ClassOrStructType,
+                     attributesToRemove);
+
+                return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                    setMethod,
+                    attributes: null,
+                    accessibility: accessibility,
+                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
+                    statements: GetSetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
+            }
+
+            private IMethodSymbol GenerateGetAccessor(
+                Compilation compilation,
+                IPropertySymbol property,
+                Accessibility accessibility,
+                bool generateAbstractly,
+                bool useExplicitInterfaceSymbol,
+                INamedTypeSymbol[] attributesToRemove,
+                CancellationToken cancellationToken)
+            {
+                if (property.GetMethod == null)
+                {
+                    return null;
+                }
+
+                var getMethod = property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                     this.State.ClassOrStructType,
+                     attributesToRemove);
+
+                return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                    getMethod,
+                    attributes: null,
+                    accessibility: accessibility,
+                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
+                    statements: GetGetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
             }
 
             private IList<SyntaxNode> GetSetAccessorStatements(
