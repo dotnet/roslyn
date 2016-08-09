@@ -1219,4 +1219,23 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Type_a_name_here_to_declare_a_partial_structure" xml:space="preserve">
     <value>Type a name here to declare a partial structure.</value>
   </data>
+  <data name="Event_add_handler_name" xml:space="preserve">
+    <value>{0}.add</value>
+    <comment>The name of an event add handler where "{0}" is the event name.</comment>
+  </data>
+  <data name="Event_remove_handler_name" xml:space="preserve">
+    <value>{0}.remove</value>
+    <comment>The name of an event remove handler where "{0}" is the event name.</comment>
+  </data>
+  <data name="Property_getter_name" xml:space="preserve">
+    <value>{0}.get</value>
+    <comment>The name of a property getter like "public int MyProperty { get; }" where "{0}" is the property name</comment>
+  </data>
+  <data name="Property_setter_name" xml:space="preserve">
+    <value>{0}.set</value>
+    <comment>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</comment>
+  </data>
+  <data name="Unknown_value" xml:space="preserve">
+    <value>(Unknown)</value>
+  </data>
 </root>
