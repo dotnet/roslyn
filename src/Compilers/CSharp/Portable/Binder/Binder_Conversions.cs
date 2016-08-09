@@ -62,10 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.TupleLiteral)
                 {
                     var sourceTuple = (BoundTupleLiteral)source;
+                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination.TupleElementNames, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        sourceTuple.Type, 
-                        sourceTuple.Arguments, 
+                        sourceTuple.Type,
+                        sourceTuple.Arguments,
                         sourceTuple.Type, // same type to keep original element names 
                         sourceTuple.HasErrors);
                 }
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTupleLiteralConversion || 
+            if (conversion.IsTupleLiteralConversion ||
                 (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
@@ -343,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.Kind == ConversionKind.ImplicitNullable)
             {
                 destinationWithoutNullable = destination.GetNullableUnderlyingType();
-                conversionWithoutNullable = conversion.UnderlyingConversions[0]; 
+                conversionWithoutNullable = conversion.UnderlyingConversions[0];
             }
 
             Debug.Assert(conversionWithoutNullable.IsTupleLiteralConversion);
@@ -353,6 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
                 // do not lose the original element names in the literal if different from names in the target
+
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType.TupleElementNames, sourceTuple, diagnostics);
 
                 // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
@@ -377,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
                 sourceTuple.Type,
-                convertedArguments.ToImmutableAndFree(), 
+                convertedArguments.ToImmutableAndFree(),
                 targetType);
 
             if (sourceTuple.Type != destination)

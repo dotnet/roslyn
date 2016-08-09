@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string DesignerAttribute = nameof(DesignerAttribute);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
         public const string ErrorList = nameof(ErrorList);
+        public const string FindReferences = nameof(FindReferences);
         public const string TodoCommentList = nameof(TodoCommentList);
         public const string EventHookup = nameof(EventHookup);
         public const string GraphProvider = nameof(GraphProvider);

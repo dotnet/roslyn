@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expressionSyntax != null)
             {
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                PatternVariableFinder.FindPatternVariables(this, locals, expressionSyntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, expressionSyntax);
                 return locals.ToImmutableAndFree();
             }
             else
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
 
                     if (declarator.Initializer != null)
                     {
-                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator.Initializer.Value);
                     }
                 }
 

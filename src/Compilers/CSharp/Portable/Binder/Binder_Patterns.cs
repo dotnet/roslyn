@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
-                    RefKind.None,
+                    false, // do not allow ref
                     typeSyntax,
                     identifier,
                     LocalDeclarationKind.PatternVariable);

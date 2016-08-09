@@ -2637,6 +2637,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            return null;
+        }
+
         public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
         {
             throw ExceptionUtilities.Unreachable;

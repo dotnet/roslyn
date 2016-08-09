@@ -1471,6 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachComponentStatement:
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.DoStatement:
                     case SyntaxKind.SimpleLambdaExpression:

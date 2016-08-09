@@ -1354,9 +1354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternWrongType = 8121,
         #endregion diagnostics for pattern-matching introduced in C# 7
 
-        // Available = 8122, 8123
+        // Available = 8122
 
         #region tuple diagnostics introduced in C# 7
+        WRN_TupleLiteralNameMismatch = 8123,
         ERR_TupleTooFewElements = 8124,
         ERR_TupleReservedMemberName = 8125,
         ERR_TupleReservedMemberNameAnyPosition = 8126,
@@ -1368,17 +1369,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,
         ERR_DeconstructTooFewElements = 8134,
-
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
-
         ERR_TupleElementNamesAttributeMissing = 8137,
         ERR_ExplicitTupleElementNames = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
-
         #endregion tuple diagnostics introduced in C# 7
 
         // Available = 8143, 8144

@@ -302,6 +302,7 @@
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
     <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
+    <Compile Include="DocumentationComments\CodeFixes\VisualBasicRemoveDocCommentNodeCodeFixProvider.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />

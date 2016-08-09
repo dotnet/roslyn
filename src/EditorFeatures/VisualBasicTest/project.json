@@ -1,6 +1,9 @@
 ﻿{
   "dependencies": {
-     "Moq": "4.2.1402.2112"
+    "Microsoft.VisualStudio.Language.Intellisense": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
   },
   "frameworks": {
     "net46": {}

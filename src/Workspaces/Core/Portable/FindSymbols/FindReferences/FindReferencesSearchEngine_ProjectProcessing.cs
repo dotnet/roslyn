@@ -25,7 +25,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                await ProcessProjectAsync(projectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
+                try
+                {
+                    await ProcessProjectAsync(projectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _progressTracker.ItemCompleted();
+                }
             }
         }
 

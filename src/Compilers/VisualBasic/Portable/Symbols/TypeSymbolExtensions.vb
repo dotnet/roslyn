@@ -1209,7 +1209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers.Concat(typeArgumentsCustomModifiers)
             End While
 
-            Return ImmutableArray.CreateRange(typeArguments.Zip(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m)))
+            Return typeArguments.ZipAsArray(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m))
         End Function
 
         ''' <summary>

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -31,19 +32,55 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return SpecializedCollections.SingletonEnumerable(part).ToTextBlock(typeMap);
         }
 
-        public static TextBlock ToTextBlock(this IEnumerable<TaggedText> parts, ClassificationTypeMap typeMap)
+        public static IList<Inline> ToInlines(
+            this IEnumerable<TaggedText> parts, 
+            ClassificationTypeMap typeMap,
+            string classificationFormatMap = null,
+            Action<Run, TaggedText, int> runCallback = null)
         {
-            var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+            classificationFormatMap = classificationFormatMap ?? "tooltip";
 
-            var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
-            result.SetDefaultTextProperties(formatMap);
+            var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap(classificationFormatMap);
+            var inlines = new List<Inline>();
 
+            var position = 0;
             foreach (var part in parts)
             {
-                result.Inlines.Add(part.ToRun(formatMap, typeMap));
+                var run = part.ToRun(formatMap, typeMap);
+                runCallback?.Invoke(run, part, position);
+                inlines.Add(run);
+
+                position += part.Text.Length;
             }
 
-            return result;
+            return inlines;
+        }
+
+        public static TextBlock ToTextBlock(
+            this IEnumerable<TaggedText> parts,
+            ClassificationTypeMap typeMap,
+            string classificationFormatMap = null,
+            Action<Run, TaggedText, int> runCallback = null)
+        {
+            classificationFormatMap = classificationFormatMap ?? "tooltip";
+
+            var inlines = parts.ToInlines(typeMap, classificationFormatMap, runCallback);
+            return inlines.ToTextBlock(typeMap, classificationFormatMap);
+        }
+
+        public static TextBlock ToTextBlock(
+            this IEnumerable<Inline> inlines,
+            ClassificationTypeMap typeMap,
+            string classificationFormatMap = null)
+        {
+            classificationFormatMap = classificationFormatMap ?? "tooltip";
+            var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap(classificationFormatMap);
+
+            var textBlock = new TextBlock { TextWrapping = TextWrapping.Wrap };
+            textBlock.SetDefaultTextProperties(formatMap);
+            textBlock.Inlines.AddRange(inlines);
+
+            return textBlock;
         }
 
         public static IList<ClassificationSpan> ToClassificationSpans(

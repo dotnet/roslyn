@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 /*
 SPEC:
@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics
-            )
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -2464,43 +2463,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-            // SPEC: * If among the remaining candidate types there is a unique type V to
-            // SPEC:   which there is an implicit conversion from all the other candidate
-            // SPEC:   types, then the parameter is fixed to V.
-            TypeSymbol best = null;
-            foreach (var candidate in candidates)
-            {
-                foreach (var candidate2 in candidates)
+                // SPEC: * If among the remaining candidate types there is a unique type V to
+                // SPEC:   which there is an implicit conversion from all the other candidate
+                // SPEC:   types, then the parameter is fixed to V.
+                TypeSymbol best = null;
+                foreach (var candidate in candidates)
                 {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    foreach (var candidate2 in candidates)
                     {
-                        goto OuterBreak;
-                    }
-                }
-
-                if ((object)best == null)
-                {
-                    best = candidate;
-                }
-                else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
-                {
-                    if (candidate.IsTupleType)
-                    {
-                        best = candidate.TupleUnderlyingType;
-                        break;
+                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                        {
+                            goto OuterBreak;
+                        }
                     }
 
-                    // SPEC: 4.7 The Dynamic Type
-                    //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-                    //
-                    // This rule doesn't have to be implemented explicitly due to special handling of 
-                    // conversions from dynamic in ImplicitConversionExists helper.
-                    // 
-                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+                    if ((object)best == null)
+                    {
+                        best = candidate;
+                    }
+                    else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    {
+                        // SPEC: 4.7 The Dynamic Type
+                        //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                        //
+                        // This rule doesn't have to be implemented explicitly due to special handling of 
+                        // conversions from dynamic in ImplicitConversionExists helper.
+                        // 
+                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        // best candidate is not unique
-                        return false;
+                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary), _conversions.CorLibrary);
                     }
 
                     OuterBreak:
@@ -2521,6 +2513,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 candidates.Free();
             }
+        }
+
+        /// <summary>
+        /// Takes the dynamic flags from both types and applies them onto the target.
+        /// </summary>
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
+        {
+            // SPEC: 4.7 The Dynamic Type
+            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreTupleNames))
+            {
+                return target;
+            }
+            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
+            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
+            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
+
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, corLibrary, RefKind.None, mergedFlags);
+        }
+
+        /// <summary>
+        /// Takes the names from the two types, finds the common names, and applies them onto the target.
+        /// </summary>
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
+        {
+            if (!target.ContainsTuple() ||
+                first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
+                !target.ContainsTupleNames())
+            {
+                return target;
+            }
+
+            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
+            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
+
+            ImmutableArray<string> mergedNames;
+            if (names1.IsDefault || names2.IsDefault)
+            {
+                mergedNames = default(ImmutableArray<string>);
+            }
+            else
+            {
+                Debug.Assert(names1.Length == names2.Length);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
+
+                if (mergedNames.All(n => n == null))
+                {
+                    mergedNames = default(ImmutableArray<string>);
+                }
+            }
+
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, corLibrary, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

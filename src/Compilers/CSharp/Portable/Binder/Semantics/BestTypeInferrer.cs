@@ -8,13 +8,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BestTypeInferrer
     {
-        private readonly ConversionsBase _conversions;
-        private BestTypeInferrer(ConversionsBase conversions)
+        private readonly Conversions _conversions;
+
+        private BestTypeInferrer(Conversions conversions)
         {
             _conversions = conversions;
         }
 
-        public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, ConversionsBase conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var inferrer = new BestTypeInferrer(conversions);
             return inferrer.GetBestType(types, ref useSiteDiagnostics);
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method finds the best common type of a set of expressions as per section 7.5.2.14 of the specification.
         /// NOTE: If some or all of the expressions have error types, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbol InferBestType(ImmutableArray<BoundExpression> exprs, ConversionsBase conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbol InferBestType(ImmutableArray<BoundExpression> exprs, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method implements best type inference for the conditional operator ?:.
         /// NOTE: If either expression is an error type, we return error type as the inference result.
         /// </remarks>
-        public static TypeSymbol InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, ConversionsBase conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbol InferBestTypeForConditionalOperator(BoundExpression expr1, BoundExpression expr2, Conversions conversions, out bool hadMultipleCandidates, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The second and third operands, x and y, of the ?: operator control the type of the conditional expression. 
             // SPEC:    •	If x has type X and y has type Y then
@@ -135,11 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol best = null;
-            foreach (var type in types)
+            int bestIndex = -1;
+            for(int i = 0; i < types.Length; i++)
             {
+                TypeSymbol type = types[i];
                 if ((object)best == null)
                 {
                     best = type;
+                    bestIndex = i;
                 }
                 else
                 {
@@ -149,9 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         best = null;
                     }
-                    else if ((object)better == (object)type)
+                    else if ((object)better != (object)best)
                     {
-                        best = type;
+                        best = better;
+                        bestIndex = i;
                     }
                 }
             }
@@ -163,14 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We have actually only determined that every type *after* best was worse. Now check
             // that every type *before* best was also worse.
-            foreach (var type in types)
+            for (int i = 0; i < bestIndex; i++)
             {
-                if ((object)type == (object)best)
-                {
-                    break;
-                }
+                TypeSymbol type = types[i];
+                TypeSymbol better = Better(best, type, ref useSiteDiagnostics);
 
-                if ((object)Better(best, type, ref useSiteDiagnostics) != (object)best)
+                if (better != best)
                 {
                     return null;
                 }
@@ -179,6 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return best;
         }
 
+        /// <summary>
+        /// Returns the better type amongst the two, with some possible modifications (dynamic/object or tuple names).
+        /// </summary>
         private TypeSymbol Better(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Anything is better than an error sym.
@@ -205,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type2.IsDynamic())
                 {
                     return type2;
+                }
+
+                if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                {
+                    return MethodTypeInferrer.MergeTupleNames(type1, type2, MethodTypeInferrer.MergeDynamic(type1, type2, type1, _conversions.CorLibrary), _conversions.CorLibrary);
                 }
 
                 return null;

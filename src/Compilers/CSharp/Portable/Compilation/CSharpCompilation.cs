@@ -2826,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
             }
 
-            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var fields = memberTypes.ZipAsArray(memberNames, (type, name) => new AnonymousTypeField(name, Location.None, (TypeSymbol)type));
             var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);

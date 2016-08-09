@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
         private readonly bool _isExpressionBodied;
         private readonly bool _isAutoProperty;
-        private readonly RefKind refKind;
+        private readonly RefKind _refKind;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
             _containingType = containingType;
             _syntaxRef = syntax.GetReference();
+            syntax.Type.SkipRef(out _refKind);
 
             SyntaxTokenList modifiers = syntax.Modifiers;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
@@ -105,19 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
             _isExpressionBodied = false;
-
-            var refKeyword = default(SyntaxToken);
-            switch (syntax.Kind())
-            {
-                case SyntaxKind.PropertyDeclaration:
-                    refKeyword = ((PropertyDeclarationSyntax)syntax).RefKeyword;
-                    break;
-
-                case SyntaxKind.IndexerDeclaration:
-                    refKeyword = ((IndexerDeclarationSyntax)syntax).RefKeyword;
-                    break;
-            }
-            this.refKind = refKeyword.Kind().GetRefKind();
 
             bool hasAccessorList = syntax.AccessorList != null;
             var propertySyntax = syntax as PropertyDeclarationSyntax;
@@ -179,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
                         WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
 
-                        if (this.refKind != RefKind.None && !_containingType.IsInterface)
+                        if (this._refKind != RefKind.None && !_containingType.IsInterface)
                         {
                             diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, location, this);
                         }
@@ -296,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PropertyWithNoAccessors, location, this);
                     }
-                    else if (refKind != RefKind.None)
+                    else if (_refKind != RefKind.None)
                     {
                         if (getSyntax == null)
                         {
@@ -319,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (((object)_getMethod != null) && ((object)_setMethod != null))
                 {
-                    if (refKind != RefKind.None)
+                    if (_refKind != RefKind.None)
                     {
                         diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
                     }
@@ -411,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.refKind;
+                return _refKind;
             }
         }
 
@@ -442,14 +430,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.IsPointerType() ==
-                         (((BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax()).Type.Kind() == SyntaxKind.PointerType));
-
                     return _lazyType.IsPointerType();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-                return syntax.Type.Kind() == SyntaxKind.PointerType;
+                RefKind refKind;
+                var typeSyntax = syntax.Type.SkipRef(out refKind);
+                return typeSyntax.Kind() == SyntaxKind.PointerType;
             }
         }
 
@@ -1298,7 +1285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeSymbol ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var type = binder.BindType(syntax.Type, diagnostics);
+            RefKind refKind;
+            var typeSyntax = syntax.Type.SkipRef(out refKind);
+            var type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -46,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // not turned on
                         return;
                     }
+
+                    // log that remote host is enabled
+                    Logger.Log(FunctionId.RemoteHostClientService_Enabled, KeyValueLogMessage.NoProperty);
 
                     var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
                     if (remoteHostClientFactory == null)
@@ -125,23 +129,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task AddGlobalAssetsAsync(CancellationToken cancellationToken)
             {
-                var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
-                var assetBuilder = new AssetBuilder(_workspace.CurrentSolution);
-
-                foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
-                    snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
+                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
+                    var assetBuilder = new AssetBuilder(_workspace.CurrentSolution);
+
+                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    {
+                        var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
+                        snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
+                    }
                 }
             }
 
             private void RemoveGlobalAssets()
             {
-                var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
-
-                foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
+                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
+
+                    foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
+                    {
+                        snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
+                    }
                 }
             }
 

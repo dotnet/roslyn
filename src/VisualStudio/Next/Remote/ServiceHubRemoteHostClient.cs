@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Roslyn.Utilities;
@@ -21,22 +22,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-            var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+            {
+                var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+                var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
-            var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
 
-            // make sure connection is done right
-            var current = $"VS ({Process.GetCurrentProcess().Id})";
-            var host = await instance._rpc.InvokeAsync<string>(WellKnownServiceHubServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+                // make sure connection is done right
+                var current = $"VS ({Process.GetCurrentProcess().Id})";
+                var host = await instance._rpc.InvokeAsync<string>(WellKnownServiceHubServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
-            // TODO: change this to non fatal watson and make VS to use inproc implementation
-            Contract.ThrowIfFalse(host == current.ToString());
+                // TODO: change this to non fatal watson and make VS to use inproc implementation
+                Contract.ThrowIfFalse(host == current.ToString());
 
-            instance.Connected();
+                instance.Connected();
 
-            // return instance
-            return instance;
+                // return instance
+                return instance;
+            }
         }
 
         private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :

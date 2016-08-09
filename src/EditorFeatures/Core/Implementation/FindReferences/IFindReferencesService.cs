@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 
@@ -13,5 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         /// <returns>True if finding references of the symbol at the provided position succeeds.  False, otherwise.</returns>
         bool TryFindReferences(Document document, int position, IWaitContext waitContext);
+    }
+
+    internal interface IStreamingFindReferencesService : ILanguageService
+    {
+        /// <summary>
+        /// Finds the references for the symbol at the specific position in the document,
+        /// pushing the results into the context instance.
+        /// </summary>
+        Task FindReferencesAsync(Document document, int position, FindReferencesContext context);
     }
 }
