@@ -10,5 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         [ExportOption]
         public static readonly Option<bool> RemoteHost = new Option<bool>(OptionName, nameof(RemoteHost), defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(OptionName, nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 10000);
     }
 }
