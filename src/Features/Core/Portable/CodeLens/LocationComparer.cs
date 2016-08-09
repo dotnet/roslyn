@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -24,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
         {
             if (obj != null && obj.IsInSource)
             {
-                return obj.SourceSpan.GetHashCode() ^
-                   StringComparer.OrdinalIgnoreCase.GetHashCode(obj.SourceTree.FilePath);
+                return Hash.Combine(obj.SourceSpan.GetHashCode(),
+                   StringComparer.OrdinalIgnoreCase.GetHashCode(obj.SourceTree.FilePath));
             }
             return obj?.GetHashCode() ?? 0;
         }

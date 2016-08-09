@@ -3,11 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
@@ -15,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService)), Shared]
     internal sealed class CodeLensReferenceService : ICodeLensReferencesService
     {
-        public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken,
-            int maxSearchResults = 0)
+        public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
             if (solution == null || documentId == null || syntaxNode == null)
             {
@@ -43,25 +46,17 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (var cappingCancellationTokenSource = new CancellationTokenSource())
+            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, maxSearchResults, cancellationToken))
             {
-                var aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                    cappingCancellationTokenSource.Token, cancellationToken);
-
-                var progress = new CodeLensFindReferencesProgress(
-                    symbol, syntaxNode, cappingCancellationTokenSource, maxSearchResults);
-
                 try
                 {
-                    await
-                        SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                            aggregateCancellationTokenSource.Token).ConfigureAwait(false);
+                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                        progress.CancellationToken).ConfigureAwait(false);
 
-                    return
-                        new ReferenceCount(
-                            progress.SearchCap > 0
-                                ? Math.Min(progress.ReferencesCount, progress.SearchCap)
-                                : progress.ReferencesCount, progress.SearchCapReached);
+                    return new ReferenceCount(
+                        progress.SearchCap > 0
+                            ? Math.Min(progress.ReferencesCount, progress.SearchCap)
+                            : progress.ReferencesCount, progress.SearchCapReached);
                 }
                 catch (OperationCanceledException)
                 {
@@ -80,155 +75,102 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        private static bool IsQueriedDefinition(ReferencedSymbol reference, ISymbol queriedDefinition)
+        private static async Task<ReferenceLocationDescriptor> GetDescriptorOfEnclosingSymbolAsync(Solution solution, Location location, CancellationToken cancellationToken)
         {
-            return reference.Definition.Locations.Intersect(
-                queriedDefinition.Locations, LocationComparer.Instance).Any();
-        }
+            var document = solution.GetDocument(location.SourceTree);
 
-        private static async Task<IEnumerable<Tuple<ReferencedSymbol, bool>>> GetReferences(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-
-            // Exclude the following kind of symbols:
-            //  (a) Implicitly declared symbols (such as implicit fields backing properties)
-            //  (b) Symbols that can't be referenced by name (such as property getters and setters).
-            //  (c) Metadata only symbols, i.e. symbols with no location in source.
-            IEnumerable<ReferencedSymbol> filteredReferences = from reference in references
-                                                               let symbolDef = reference.Definition
-                                                               where FilteringHelpers.FilterReference(symbolDef, reference)
-                                                               select reference;
-
-            return filteredReferences.Select(reference => Tuple.Create(reference, IsQueriedDefinition(reference, symbol)));
-        }
-
-        private static async Task<Tuple<SyntaxNode, IEnumerable<Tuple<ReferencedSymbol, bool>>>> FindReferencesAsync(Solution solution, Document document, SyntaxNode syntaxNode, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol == null)
+            if (document == null)
             {
                 return null;
             }
 
-            var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-
-            // Exclude the following kind of symbols:
-            //  (a) Implicitly declared symbols (such as implicit fields backing properties)
-            //  (b) Symbols that can't be referenced by name (such as property getters and setters).
-            //  (c) Metadata only symbols, i.e. symbols with no location in source.
-            IEnumerable<ReferencedSymbol> filteredReferences = from reference in references
-                                                               let symbolDef = reference.Definition
-                                                               where FilteringHelpers.FilterReference(symbolDef, reference)
-                                                               select reference;
-
-            var allReferences =
-                filteredReferences.Select(reference => Tuple.Create(reference, IsQueriedDefinition(reference, symbol)));
-
-            // Search through all other projects to see if we can a matching symbol in other projects
-            foreach (var additionalProject in document.Project.Solution.Projects)
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel == null)
             {
-                if (additionalProject == document.Project)
+                return null;
+            }
+
+            var langServices = document.GetLanguageService<ICodeLensDisplayInfoService>();
+            if (langServices == null)
+            {
+                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Unsupported language '{0}'", semanticModel.Language), nameof(semanticModel));
+            }
+
+            var position = location.SourceSpan.Start;
+            var token = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FindToken(position, true);
+            var node = GetEnclosingCodeElementNode(document, token, langServices);
+            var longName = langServices.GetDisplayName(semanticModel, node, false);
+
+            // get the full line of source text on the line that contains this position
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            // get the actual span of text for the line containing reference
+            var textLine = text.Lines.GetLineFromPosition(position);
+            
+            // turn the span from document relative to line relative
+            var spanStart = token.Span.Start - textLine.Span.Start;
+            var line = textLine.ToString();
+
+            var beforeLine1 = textLine.LineNumber > 0 ? text.Lines[textLine.LineNumber - 1].ToString() : string.Empty;
+            var beforeLine2 = textLine.LineNumber - 1 > 0
+                ? text.Lines[textLine.LineNumber - 2].ToString()
+                : string.Empty;
+            var afterLine1 = textLine.LineNumber < text.Lines.Count - 1
+                ? text.Lines[textLine.LineNumber + 1].ToString()
+                : string.Empty;
+            var afterLine2 = textLine.LineNumber + 1 < text.Lines.Count - 1
+                ? text.Lines[textLine.LineNumber + 2].ToString()
+                : string.Empty;
+            var referenceSpan = new TextSpan(spanStart, token.Span.Length);
+
+            var symbol = semanticModel.GetDeclaredSymbol(node);
+            var glyph = symbol?.GetGlyph();
+
+            return new ReferenceLocationDescriptor(longName,
+                                   semanticModel.Language,
+                                   glyph,
+                                   location,
+                                   solution.GetDocument(location.SourceTree)?.Id,
+                                   line.TrimEnd(),
+                                   referenceSpan.Start,
+                                   referenceSpan.Length,
+                                   beforeLine1.TrimEnd(),
+                                   beforeLine2.TrimEnd(),
+                                   afterLine1.TrimEnd(),
+                                   afterLine2.TrimEnd());
+        }
+
+        private static SyntaxNode GetEnclosingCodeElementNode(Document document, SyntaxToken token, ICodeLensDisplayInfoService langServices)
+        {
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+
+            var node = token.Parent;
+            while (node != null)
+            {
+                if (syntaxFactsService.IsDocumentationComment(node))
                 {
-                    continue;
+                    var structuredTriviaSyntax = (IStructuredTriviaSyntax)node;
+                    var parentTrivia = structuredTriviaSyntax.ParentTrivia;
+                    node = parentTrivia.Token.Parent;
                 }
-
-                var additionalDocument = additionalProject.Documents.FirstOrDefault(d => document.FilePath.Equals(d.FilePath, StringComparison.OrdinalIgnoreCase));
-                if (additionalDocument == null)
+                else if (syntaxFactsService.IsDeclaration(node) ||
+                         syntaxFactsService.IsDirectiveOrImport(node) ||
+                         syntaxFactsService.IsGlobalAttribute(node))
                 {
-                    continue;
+                    break;
                 }
-
-                var additionalSemanticModel = await additionalDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var token = (await additionalSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false)).FindToken(syntaxNode.Span.Start);
-                var node = token.Parent.AncestorsAndSelf().FirstOrDefault(n => n.Span == syntaxNode.Span);
-
-                if (node == null)
+                else
                 {
-                    continue;
-                }
-
-                var additionalSymbol = additionalSemanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-                // Sanity check that the symbol is the same
-                if (additionalSymbol != null && additionalSymbol.Kind == symbol.Kind && additionalSymbol.Name == symbol.Name)
-                {
-                    allReferences = allReferences.Concat(await GetReferences(additionalSymbol, solution, cancellationToken).ConfigureAwait(false));
+                    node = node.Parent;
                 }
             }
 
-            return Tuple.Create(syntaxNode, allReferences);
-        }
+            if (node == null)
+            {
+                node = token.Parent;
+            }
 
-        /// <summary>
-        /// Returns partial symbol locations whose node does not match the given syntaxNode
-        /// </summary>
-        /// <param name="symbol">Symbol whose locations are queried</param>
-        /// <param name="syntaxNode">Syntax node to compare against to exclude location - actual location being queried</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Partial locations</returns>
-        private static IEnumerable<Location> GetPartialLocations(ISymbol symbol, SyntaxNode syntaxNode, CancellationToken cancellationToken)
-        {
-            // Returns nodes from source not equal to actual location
-            IEnumerable<SyntaxNode> syntaxNodes = from syntaxReference in symbol.DeclaringSyntaxReferences
-                                                  let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
-                                                  where !(syntaxNode.Span == candidateSyntaxNode.Span &&
-                                                          syntaxNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath, StringComparison.OrdinalIgnoreCase))
-                                                  select candidateSyntaxNode;
-
-            // This matches the definition locations to syntax references, ignores metadata locations
-            IEnumerable<Location> partialLocations = from currentSyntaxNode in syntaxNodes
-                                                     from sourceLocation in symbol.Locations
-                                                     where !sourceLocation.IsInMetadata
-                                                           && currentSyntaxNode.SyntaxTree.Equals(sourceLocation.SourceTree)
-                                                           && currentSyntaxNode.Span.Contains(sourceLocation.SourceSpan)
-                                                     select sourceLocation;
-
-            return partialLocations;
-        }
-
-        private static IEnumerable<Location> ExtractLocations(Tuple<SyntaxNode, IEnumerable<Tuple<ReferencedSymbol, bool>>> referenceInfo, CancellationToken cancellationToken)
-        {
-            SyntaxNode definitionSyntaxNode = referenceInfo.Item1;
-            IEnumerable<Tuple<ReferencedSymbol, bool>> referencingSymbols = referenceInfo.Item2;
-
-            // Take reference locations from all definitions
-            IEnumerable<Location> referenceLocations = from referencedSymbol in referencingSymbols
-                                                       from location in referencedSymbol.Item1.Locations
-                                                       select location.Location;
-
-            // Exclude the definition we queried for - base references should be 0
-            IEnumerable<ISymbol> definitions = from referencedSymbol in referencingSymbols
-                                               where !referencedSymbol.Item2    // Item2 indicates if this was the queried symbol definition
-                                               select referencedSymbol.Item1.Definition;
-
-            IEnumerable<Location> definitionLocations = definitions.SelectMany(def => def.Locations);
-
-            // Partial types can have more than one declaring syntax references.
-            // Add remote locations for all the syntax references except the queried syntax node.
-            // To query for the partial locations, filter definition locations that occur in source whose span is part of
-            // span of any syntax node from Definition.DeclaringSyntaxReferences except for the queried syntax node.
-            IEnumerable<Location> additionalSyntaxLocations = from referencedSymbol in referencingSymbols
-                                                              let symbolReference = referencedSymbol.Item1
-                                                              let isQueriedDefinition = referencedSymbol.Item2
-                                                              where isQueriedDefinition
-                                                              from partialLocation in GetPartialLocations(symbolReference.Definition, definitionSyntaxNode, cancellationToken)
-                                                              select partialLocation;
-
-            return referenceLocations.Concat(definitionLocations).Concat(additionalSyntaxLocations);
-        }
-
-        private static IEnumerable<Location> FilterLocations(IEnumerable<Location> locations)
-        {
-            // Exclude references from metadata
-            IEnumerable<Location> sourceLocations = from location in locations
-                                                    where location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None
-                                                    select location;
-
-            // Strip out duplicate locations
-            IEnumerable<Location> uniqueLocations = sourceLocations.Distinct(LocationComparer.Instance);
-
-            return uniqueLocations;
+            return langServices.GetDisplayNode(node);
         }
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
@@ -252,18 +194,29 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            Tuple<SyntaxNode, IEnumerable<Tuple<ReferencedSymbol, bool>>> referencingSymbols =
-                await FindReferencesAsync(solution, document, syntaxNode, semanticModel, cancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+            if (symbol == null)
+            {
+                return null;
+            }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, 0, cancellationToken))
+            {
+                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                    progress.CancellationToken).ConfigureAwait(false);
 
-            IEnumerable<Location> locations = ExtractLocations(referencingSymbols, cancellationToken);
-            IEnumerable<Location> filteredLocations = FilterLocations(locations);
-            return
-                filteredLocations.Select(
-                    location =>
-                        new ReferenceLocationDescriptor(solution, location, DisplayInfoProvider.GetDisplayInfoOfEnclosingSymbol(document, semanticModel,
-                            location.SourceSpan.Start)));
+                var referenceTasks = progress.Locations
+                    .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
+                    .Distinct(LocationComparer.Instance)
+                    .Select(
+                        location =>
+                            GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
+                    .ToArray();
+
+                Task.WaitAll(referenceTasks, cancellationToken);
+
+                return referenceTasks.Select(task => task.Result);
+            }
         }
     }
 }

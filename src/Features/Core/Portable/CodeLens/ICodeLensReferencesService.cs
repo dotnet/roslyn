@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
         ///     if <paramref name="maxSearchResults"/> is greater than 0.
         /// </para>
         /// </summary>
-        Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken, int maxSearchResults = 0);
+        Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations where the located node is referenced.

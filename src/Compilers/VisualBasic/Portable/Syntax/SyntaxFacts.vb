@@ -1169,5 +1169,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
+
+        Public Shared Function IsGlobalAttribute(node As SyntaxNode) As Boolean
+            If node.IsKind(SyntaxKind.Attribute) Then
+                Dim attributeNode = CType(node, AttributeSyntax)
+                If attributeNode.Target IsNot Nothing Then
+                    Return attributeNode.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)
+                End If
+            End If
+
+            Return False
+        End Function
     End Class
 End Namespace

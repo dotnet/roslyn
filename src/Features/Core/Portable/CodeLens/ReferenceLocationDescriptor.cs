@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.CodeAnalysis.CodeLens
 {
     /// <summary>
@@ -13,46 +11,75 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         public int ColumnNumber { get; }
 
-        public DocumentId Document { get; }
+        public DocumentId DocumentId { get; }
 
+        /// <summary>
+        /// Language of the reference location
+        /// </summary>
         public string Language { get; }
 
+        /// <summary>
+        /// Fully qualified name of the symbol containing the reference location
+        /// </summary>
         public string LongDescription { get; }
 
+        /// <summary>
+        /// The kind of symbol containing the reference location (such as type, method, property, etc.)
+        /// </summary>
         public Glyph? Glyph { get; }
 
+        /// <summary>
+        /// the full line of source that contained the reference
+        /// </summary>
         public string ReferenceLineText { get; }
 
+        /// <summary>
+        /// the beginning of the span within reference text that was the use of the reference
+        /// </summary>
         public int ReferenceStart { get; }
 
+        /// <summary>
+        /// the length of the span of the reference
+        /// </summary>
         public int ReferenceLength { get; }
 
+        /// <summary>
+        /// Text above the line with the reference
+        /// </summary>
         public string BeforeReferenceText1 { get; }
 
+        /// <summary>
+        /// Text above the line with the reference
+        /// </summary>
         public string BeforeReferenceText2 { get; }
 
+        /// <summary>
+        /// Text below the line with the reference
+        /// </summary>
         public string AfterReferenceText1 { get; }
 
+        /// <summary>
+        /// Text below the line with the reference
+        /// </summary>
         public string AfterReferenceText2 { get; }
 
-        public ReferenceLocationDescriptor(Solution solution, Location location, DisplayInfo displayInfo)
+        public ReferenceLocationDescriptor(string longDescription, string language, Glyph? glyph, Location location, DocumentId documentId, string referenceLineText, int referenceStart, int referenceLength, string beforeReferenceText1, string beforeReferenceText2, string afterReferenceText1, string afterReferenceText2)
         {
-            Language = displayInfo.Language;
-            LongDescription = displayInfo.LongName;
-            Glyph = displayInfo.Glyph;
-            LinePosition sourceText = location.GetLineSpan().StartLinePosition;
+            LongDescription = longDescription;
+            Language = language;
+            Glyph = glyph;
+            var sourceText = location.GetLineSpan().StartLinePosition;
             LineNumber = sourceText.Line;
             ColumnNumber = sourceText.Character;
             // We want to keep track of the location's document if it comes from a file in your solution.
-            var document = solution.GetDocument(location.SourceTree);
-            Document = document?.Id;
-            ReferenceLineText = displayInfo.ReferenceLineText;
-            ReferenceStart = displayInfo.ReferenceStart;
-            ReferenceLength = displayInfo.ReferenceLength;
-            BeforeReferenceText1 = displayInfo.BeforeReferenceText1;
-            BeforeReferenceText2 = displayInfo.BeforeReferenceText2;
-            AfterReferenceText1 = displayInfo.AfterReferenceText1;
-            AfterReferenceText2 = displayInfo.AfterReferenceText2;
+            DocumentId = documentId;
+            ReferenceLineText = referenceLineText;
+            ReferenceStart = referenceStart;
+            ReferenceLength = referenceLength;
+            BeforeReferenceText1 = beforeReferenceText1;
+            BeforeReferenceText2 = beforeReferenceText2;
+            AfterReferenceText1 = afterReferenceText1;
+            AfterReferenceText2 = afterReferenceText2;
         }
     }
 }

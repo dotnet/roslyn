@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
-    <ExportLanguageService(GetType(IDisplayInfoLanguageServices), LanguageNames.VisualBasic), [Shared]>
-    Friend NotInheritable Class DisplayInfoVisualBasicServices
-        Implements IDisplayInfoLanguageServices
+    <ExportLanguageService(GetType(ICodeLensDisplayInfoService), LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class VisualBasicDisplayInfoService
+        Implements ICodeLensDisplayInfoService
 
-        Private Shared ReadOnly DefaultDisplayFormatVB As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly DefaultFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
                 SymbolDisplayGlobalNamespaceStyle.Omitted,                                  ' Don't prepend VB namespaces with "Global."
                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,    ' Show fully qualified names
                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -23,124 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                 SymbolDisplayKindOptions.None,
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private Shared ReadOnly ShortDisplayFormatVB As SymbolDisplayFormat = New SymbolDisplayFormat(
-                SymbolDisplayGlobalNamespaceStyle.Omitted,
-                SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                SymbolDisplayMemberOptions.IncludeContainingType Or SymbolDisplayMemberOptions.IncludeParameters,
-                SymbolDisplayDelegateStyle.NameOnly,
-                SymbolDisplayExtensionMethodStyle.StaticMethod,
-                SymbolDisplayParameterOptions.IncludeType,
-                SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                SymbolDisplayLocalOptions.IncludeType,
-                SymbolDisplayKindOptions.None,
-                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-
-        ''' <summary>
-        ''' Indicates if the given node Is a declaration of some kind of symbol. 
-        ''' For example a class for a sub declaration.
-        ''' </summary>
-        Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements IDisplayInfoLanguageServices.IsDeclaration
-            ' From the Visual Basic language spec:
-            ' NamespaceMemberDeclaration  :=
-            '    NamespaceDeclaration  |
-            '    TypeDeclaration
-            ' TypeDeclaration  ::=
-            '    ModuleDeclaration  |
-            '    NonModuleDeclaration
-            ' NonModuleDeclaration  ::=
-            '    EnumDeclaration  |
-            '    StructureDeclaration  |
-            '    InterfaceDeclaration  |
-            '    ClassDeclaration  |
-            '    DelegateDeclaration
-            ' ClassMemberDeclaration  ::=
-            '    NonModuleDeclaration  |
-            '    EventMemberDeclaration  |
-            '    VariableMemberDeclaration  |
-            '    ConstantMemberDeclaration  |
-            '    MethodMemberDeclaration  |
-            '    PropertyMemberDeclaration  |
-            '    ConstructorMemberDeclaration  |
-            '    OperatorDeclaration
-            Select Case node.Kind()
-                ' Because fields declarations can define multiple symbols "Public a, b As Integer" 
-                ' We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
-                Case SyntaxKind.VariableDeclarator
-                    If (node.Parent.IsKind(SyntaxKind.FieldDeclaration)) Then
-                        Return True
-                    End If
-                    Return False
-
-                Case SyntaxKind.NamespaceStatement
-                Case SyntaxKind.NamespaceBlock
-                Case SyntaxKind.ModuleStatement
-                Case SyntaxKind.ModuleBlock
-                Case SyntaxKind.EnumStatement
-                Case SyntaxKind.EnumBlock
-                Case SyntaxKind.StructureStatement
-                Case SyntaxKind.StructureBlock
-                Case SyntaxKind.InterfaceStatement
-                Case SyntaxKind.InterfaceBlock
-                Case SyntaxKind.ClassStatement
-                Case SyntaxKind.ClassBlock
-                Case SyntaxKind.DelegateFunctionStatement
-                Case SyntaxKind.DelegateSubStatement
-                Case SyntaxKind.EventStatement
-                Case SyntaxKind.EventBlock
-                Case SyntaxKind.AddHandlerAccessorBlock
-                Case SyntaxKind.RemoveHandlerAccessorBlock
-                Case SyntaxKind.FieldDeclaration
-                Case SyntaxKind.SubStatement
-                Case SyntaxKind.SubBlock
-                Case SyntaxKind.FunctionStatement
-                Case SyntaxKind.FunctionBlock
-                Case SyntaxKind.PropertyStatement
-                Case SyntaxKind.PropertyBlock
-                Case SyntaxKind.GetAccessorBlock
-                Case SyntaxKind.SetAccessorBlock
-                Case SyntaxKind.SubNewStatement
-                Case SyntaxKind.ConstructorBlock
-                Case SyntaxKind.OperatorStatement
-                Case SyntaxKind.OperatorBlock
-                    Return True
-            End Select
-
-            Return False
-        End Function
-
-        ''' <summary>
-        ''' Indicates if the given node Is a namespace import.
-        ''' </summary>
-        Public Function IsDirectiveOrImport(node As SyntaxNode) As Boolean Implements IDisplayInfoLanguageServices.IsDirectiveOrImport
-            Return node.IsKind(SyntaxKind.ImportsStatement)
-        End Function
-
-        ''' <summary>
-        ''' Indicates if the given node Is an assembly level attribute "[assembly: MyAttribute]"
-        ''' </summary>
-        Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements IDisplayInfoLanguageServices.IsGlobalAttribute
-            If node.IsKind(SyntaxKind.Attribute) Then
-                Dim attributeNode = CType(node, AttributeSyntax)
-                If attributeNode.Target IsNot Nothing Then
-                    Return attributeNode.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)
-                End If
-            End If
-
-            Return False
-        End Function
-
-        ''' <summary>
-        ''' Indicates if given node Is DocumentationCommentTriviaSyntax
-        ''' </summary>
-        Public Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements IDisplayInfoLanguageServices.IsDocumentationComment
-            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
-        End Function
+        Private Shared ReadOnly ShortFormat As SymbolDisplayFormat =
+            DefaultFormat.WithTypeQualificationStyle(SymbolDisplayTypeQualificationStyle.NameAndContainingTypes)
 
         ''' <summary>
         ''' Returns the node that should be displayed
         ''' </summary>
-        Public Function GetDisplayNode(node As SyntaxNode) As SyntaxNode Implements IDisplayInfoLanguageServices.GetDisplayNode
+        Public Function GetDisplayNode(node As SyntaxNode) As SyntaxNode Implements ICodeLensDisplayInfoService.GetDisplayNode
             Select Case node.Kind()
                 ' A variable declarator can contain multiple symbols, for example "Private field2, field3 As Integer"
                 ' In that case default to the first field name.
@@ -171,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
         Private Shared Function SymbolToDisplayString(symbolDisplayFormat As SymbolDisplayFormat, symbol As ISymbol) As String
             If symbol Is Nothing Then
-                Return VBFeaturesResources.Unknown_value
+                Return VBFeaturesResources.paren_unknown_paren
             End If
 
             Dim symbolName As String = symbol.ToDisplayString(symbolDisplayFormat)
@@ -230,13 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' <summary>
         ''' Gets the DisplayName for the given node.
         ''' </summary>
-        Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode, displayFormat As DisplayFormat) As String Implements IDisplayInfoLanguageServices.GetDisplayName
-            Dim symbolDisplayFormat As SymbolDisplayFormat = DefaultDisplayFormatVB
-            If displayFormat = DisplayFormat.Short Then
-                symbolDisplayFormat = ShortDisplayFormatVB
-            End If
+        Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode, useShortFormat As Boolean) As String Implements ICodeLensDisplayInfoService.GetDisplayName
+            Dim symbolDisplayFormat As SymbolDisplayFormat = If(useShortFormat, ShortFormat, DefaultFormat)
 
-            If IsGlobalAttribute(node) Then
+            If SyntaxFacts.IsGlobalAttribute(node) Then
                 Return node.ToString()
             End If
 
@@ -249,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                     ' Indexer properties should Not include get And set
                     symbol = semanticModel.GetDeclaredSymbol(node)
                     If IsAccessorForDefaultProperty(symbol) AndAlso node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
-                        Return GetDisplayName(semanticModel, node.Parent, displayFormat)
+                        Return GetDisplayName(semanticModel, node.Parent, useShortFormat)
                     Else
                         ' Append "get" Or "set" to property accessors
                         symbolName = SymbolToDisplayString(symbolDisplayFormat, symbol)

@@ -1352,5 +1352,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
+
+        Public Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
+            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
+        End Function
+
+        Public Function IsDirectiveOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirectiveOrImport
+            Return node.IsKind(SyntaxKind.ImportsStatement)
+        End Function
+
+        Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGlobalAttribute
+            Return SyntaxFacts.IsGlobalAttribute(node)
+        End Function
+
+        Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaration
+            ' From the Visual Basic language spec:
+            ' NamespaceMemberDeclaration  :=
+            '    NamespaceDeclaration  |
+            '    TypeDeclaration
+            ' TypeDeclaration  ::=
+            '    ModuleDeclaration  |
+            '    NonModuleDeclaration
+            ' NonModuleDeclaration  ::=
+            '    EnumDeclaration  |
+            '    StructureDeclaration  |
+            '    InterfaceDeclaration  |
+            '    ClassDeclaration  |
+            '    DelegateDeclaration
+            ' ClassMemberDeclaration  ::=
+            '    NonModuleDeclaration  |
+            '    EventMemberDeclaration  |
+            '    VariableMemberDeclaration  |
+            '    ConstantMemberDeclaration  |
+            '    MethodMemberDeclaration  |
+            '    PropertyMemberDeclaration  |
+            '    ConstructorMemberDeclaration  |
+            '    OperatorDeclaration
+            Select Case node.Kind()
+                ' Because fields declarations can define multiple symbols "Public a, b As Integer" 
+                ' We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
+                Case SyntaxKind.VariableDeclarator
+                    If (node.Parent.IsKind(SyntaxKind.FieldDeclaration)) Then
+                        Return True
+                    End If
+                    Return False
+
+                Case SyntaxKind.NamespaceStatement
+                Case SyntaxKind.NamespaceBlock
+                Case SyntaxKind.ModuleStatement
+                Case SyntaxKind.ModuleBlock
+                Case SyntaxKind.EnumStatement
+                Case SyntaxKind.EnumBlock
+                Case SyntaxKind.StructureStatement
+                Case SyntaxKind.StructureBlock
+                Case SyntaxKind.InterfaceStatement
+                Case SyntaxKind.InterfaceBlock
+                Case SyntaxKind.ClassStatement
+                Case SyntaxKind.ClassBlock
+                Case SyntaxKind.DelegateFunctionStatement
+                Case SyntaxKind.DelegateSubStatement
+                Case SyntaxKind.EventStatement
+                Case SyntaxKind.EventBlock
+                Case SyntaxKind.AddHandlerAccessorBlock
+                Case SyntaxKind.RemoveHandlerAccessorBlock
+                Case SyntaxKind.FieldDeclaration
+                Case SyntaxKind.SubStatement
+                Case SyntaxKind.SubBlock
+                Case SyntaxKind.FunctionStatement
+                Case SyntaxKind.FunctionBlock
+                Case SyntaxKind.PropertyStatement
+                Case SyntaxKind.PropertyBlock
+                Case SyntaxKind.GetAccessorBlock
+                Case SyntaxKind.SetAccessorBlock
+                Case SyntaxKind.SubNewStatement
+                Case SyntaxKind.ConstructorBlock
+                Case SyntaxKind.OperatorStatement
+                Case SyntaxKind.OperatorBlock
+                    Return True
+            End Select
+
+            Return False
+        End Function
     End Class
 End Namespace

@@ -464,7 +464,7 @@
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
   </data>
-  <data name="unknown_value" xml:space="preserve">
+  <data name="paren_unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
   </data>
 </root>

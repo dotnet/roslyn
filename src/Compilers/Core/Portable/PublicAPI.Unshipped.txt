@@ -686,6 +686,7 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 77
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveGenericsOptions(Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
+Microsoft.CodeAnalysis.SymbolDisplayFormat.WithTypeQualificationStyle(Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle typeQualificationStyle) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.Text.SourceText.GetChecksum() -> System.Collections.Immutable.ImmutableArray<byte>
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void

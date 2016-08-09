@@ -648,6 +648,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (Unknown).
+        /// </summary>
+        internal static string paren_unknown_paren {
+            get {
+                return ResourceManager.GetString("paren_unknown_paren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -943,15 +952,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string unchecked_statement {
             get {
                 return ResourceManager.GetString("unchecked_statement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to (Unknown).
-        /// </summary>
-        internal static string unknown_value {
-            get {
-                return ResourceManager.GetString("unknown_value", resourceCulture);
             }
         }
         

@@ -498,6 +498,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a copy of the SymbolDisplayFormat but with replaced <seealso cref="SymbolDisplayTypeQualificationStyle"/>.
+        /// </summary>
+        /// <param name="typeQualificationStyle">
+        /// An object specifying how types will be qualified.
+        /// </param>
+        /// <returns>A duplicate of the SymbolDisplayFormat, with a replaced <seealso cref="SymbolDisplayTypeQualificationStyle"/>.</returns>
+        public SymbolDisplayFormat WithTypeQualificationStyle(SymbolDisplayTypeQualificationStyle typeQualificationStyle)
+        {
+            return new SymbolDisplayFormat(
+                this.GlobalNamespaceStyle,
+                typeQualificationStyle,
+                this.GenericsOptions,
+                this.MemberOptions,
+                this.DelegateStyle,
+                this.ExtensionMethodStyle,
+                this.ParameterOptions,
+                this.PropertyStyle,
+                this.LocalOptions,
+                this.KindOptions,
+                this.MiscellaneousOptions);
+        }
+
+        /// <summary>
         /// Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="SymbolDisplayMemberOptions"/>.
         /// </summary>
         /// <param name="options">

@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
+        bool IsDocumentationComment(SyntaxNode node);
+        bool IsDirectiveOrImport(SyntaxNode node);
+        bool IsGlobalAttribute(SyntaxNode node);
+        bool IsDeclaration(SyntaxNode node);
 
         string GetText(int kind);
 

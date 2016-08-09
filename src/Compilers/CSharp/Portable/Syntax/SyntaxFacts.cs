@@ -41,6 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the node is a global attribute.
+        /// </summary>
+        public static bool IsGlobalAttribute(SyntaxNode node)
+        {
+            if (node.IsKind(Attribute) &&
+                node.Parent.IsKind(AttributeList))
+            {
+                var attributeListNode = (AttributeListSyntax)node.Parent;
+                if (attributeListNode.Target != null)
+                {
+                    return attributeListNode.Target.Identifier.IsKind(AssemblyKeyword);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns true if the node is the object of an invocation expression.
         /// </summary>
         public static bool IsInvoked(ExpressionSyntax node)
