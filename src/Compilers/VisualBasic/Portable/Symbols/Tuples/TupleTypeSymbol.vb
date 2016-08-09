@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsValueType As Boolean
             Get
-                Return Me._underlyingType.IsValueType
+                Return Me._underlyingType.IsErrorType() OrElse Me._underlyingType.IsValueType
             End Get
         End Property
 

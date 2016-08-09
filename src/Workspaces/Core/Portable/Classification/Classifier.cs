@@ -55,45 +55,57 @@ namespace Microsoft.CodeAnalysis.Classification
         internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             Document document,
             TextSpan textSpan,
-            CancellationToken cancellationToken)
+            bool insertSourceTextInGaps = false,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
  
             return await GetClassifiedSymbolDisplayPartsAsync(
                 semanticModel, textSpan,
                 document.Project.Solution.Workspace,
+                insertSourceTextInGaps,
                 cancellationToken).ConfigureAwait(false);
         }
  
         internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, CancellationToken cancellationToken)
+            SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
+            bool insertSourceTextInGaps = false,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             var classifiedSpans = GetClassifiedSpans(semanticModel, textSpan, workspace, cancellationToken);
             var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return ConvertClassifications(sourceText, classifiedSpans);
+            return ConvertClassifications(sourceText, textSpan.Start, classifiedSpans, insertSourceTextInGaps);
         }
  
         private static List<SymbolDisplayPart> ConvertClassifications(
-            SourceText sourceText, IEnumerable<ClassifiedSpan> classifiedSpans)
+            SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, bool insertSourceTextInGaps = false)
         {
             var parts = new List<SymbolDisplayPart>();
  
-            ClassifiedSpan? lastSpan = null;
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
-                if (lastSpan != null && lastSpan.Value.TextSpan.End != span.TextSpan.Start)
+                if (startPosition != span.TextSpan.Start)
                 {
-                    parts.AddRange(Space());
+                    if (insertSourceTextInGaps)
+                    {
+                        parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null,
+                            sourceText.ToString(TextSpan.FromBounds(
+                                startPosition, span.TextSpan.Start))));
+                    }
+                    else
+                    {
+                        parts.AddRange(Space());
+                    }
                 }
  
                 var kind = GetClassificationKind(span.ClassificationType);
                 if (kind != null)
                 {
                     parts.Add(new SymbolDisplayPart(kind.Value, null, sourceText.ToString(span.TextSpan)));
- 
-                    lastSpan = span;
+
+                    startPosition = span.TextSpan.End;
                 }
             }
  

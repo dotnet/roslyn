@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -19,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private const int CleanupInterval = 3; // 3 minutes
         private const int PurgeAfter = 30; // 30 minutes
+
+        private static readonly TimeSpan s_purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
+        private static readonly TimeSpan s_cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);
 
         // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
         private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy").Services);
@@ -36,16 +40,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task CleanAssetsAsync()
         {
-            var purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
-            var cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);
-
             while (true)
             {
-                var current = DateTime.UtcNow;
+                CleanAssets();
 
+                await Task.Delay(s_cleanupIntervalTimeSpan).ConfigureAwait(false);
+            }
+        }
+
+        private void CleanAssets()
+        {
+            var current = DateTime.UtcNow;
+
+            using (Logger.LogBlock(FunctionId.AssetService_CleanAssets, CancellationToken.None))
+            {
                 foreach (var kvp in _assets.ToArray())
                 {
-                    if (current - kvp.Value.LastAccessed <= purgeAfterTimeSpan)
+                    if (current - kvp.Value.LastAccessed <= s_purgeAfterTimeSpan)
                     {
                         continue;
                     }
@@ -54,33 +65,45 @@ namespace Microsoft.CodeAnalysis.Remote
                     Entry entry;
                     _assets.TryRemove(kvp.Key, out entry);
                 }
-
-                await Task.Delay(cleanupIntervalTimeSpan).ConfigureAwait(false);
             }
+        }
+
+        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
+        }
+
+        public void RegisterAssetSource(int serviceId, AssetSource assetSource)
+        {
+            Contract.ThrowIfFalse(_assetSources.TryAdd(serviceId, assetSource));
+        }
+
+        public void UnregisterAssetSource(int serviceId)
+        {
+            AssetSource dummy;
+            _assetSources.TryRemove(serviceId, out dummy);
         }
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            Entry entry;
-            if (!_assets.TryGetValue(checksum, out entry))
+            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, GetChecksumLogInfo, checksum, cancellationToken))
             {
-                // TODO: what happen if service doesn't come back. timeout?
-                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+                Entry entry;
+                if (!_assets.TryGetValue(checksum, out entry))
+                {
+                    // TODO: what happen if service doesn't come back. timeout?
+                    var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                Set(checksum, value);
+                    _assets.TryAdd(checksum, new Entry(value));
 
-                return (T)value;
+                    return (T)value;
+                }
+
+                // Update timestamp
+                Update(checksum, entry);
+
+                return (T)entry.Object;
             }
-
-            // Update timestamp
-            Update(checksum, entry);
-
-            return (T)entry.Object;
-        }
-
-        private void Set(Checksum checksum, object value)
-        {
-            _assets.TryAdd(checksum, new Entry(value));
         }
 
         private void Update(Checksum checksum, Entry entry)
@@ -90,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
             entry.LastAccessed = DateTime.UtcNow;
         }
 
-        public async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             // the service doesn't care which asset source it uses to get the asset. if there are multiple
             // channel created (multiple caller to code analysis service), we will have multiple asset sources
@@ -130,20 +153,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException;
         }
 
-        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
+        private static string GetChecksumLogInfo(Checksum checksum)
         {
-            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
-        }
-
-        public void RegisterAssetSource(int serviceId, AssetSource assetSource)
-        {
-            Contract.ThrowIfFalse(_assetSources.TryAdd(serviceId, assetSource));
-        }
-
-        public void UnregisterAssetSource(int serviceId)
-        {
-            AssetSource dummy;
-            _assetSources.TryRemove(serviceId, out dummy);
+            return checksum.ToString();
         }
 
         private class Entry

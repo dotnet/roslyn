@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
+        public static TypeSyntax GenerateRefTypeSyntax(
+            this INamespaceOrTypeSymbol symbol)
+        {
+            var underlyingType = GenerateTypeSyntax(symbol)
+                .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
+            return SyntaxFactory.RefType(refKeyword, underlyingType);
+        }
+
         public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
         {
             do

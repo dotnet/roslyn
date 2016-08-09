@@ -330,8 +330,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerBinder != null);
 
             BindValueKind valueKind;
-            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
-            var initializer = initializerBinder.BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
+            ExpressionSyntax value;
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind, out value);
+            var initializer = initializerBinder.BindPossibleArrayInitializer(value, varType, valueKind, diagnostics);
             initializer = initializerBinder.GenerateConversionForAssignment(varType, initializer, diagnostics);
 
             if (isMemberInitializer)
@@ -1191,18 +1192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBindingImplicitlyTypedLocal(LocalSymbol symbol)
-        {
-            foreach (LocalSymbol s in this.ImplicitlyTypedLocalsBeingBound)
-            {
-                if (s == symbol)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private bool IsBadLocalOrParameterCapture(Symbol symbol, RefKind refKind)
         {
             if (refKind != RefKind.None)
@@ -1234,20 +1223,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null
-                            ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
-                        TypeSymbol type;
-
                         Location localSymbolLocation = localSymbol.Locations[0];
 
-                        bool usedBeforeDecl =
-                            node.SyntaxTree == localSymbolLocation.SourceTree &&
-                            node.SpanStart < localSymbolLocation.SourceSpan.Start;
-                        bool isBindingVar = IsBindingImplicitlyTypedLocal(localSymbol);
-
-                        if (usedBeforeDecl || isBindingVar)
+                        TypeSymbol type;
+                        if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
                         {
-                            // Here we check for errors 
+                            // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
+                            // There are many cases where this occurs, including:
+                            //
+                            // 1. var x = M(out x);
+                            // 2. M(out var x, out x);
+                            // 3. var (x, y) = (y, x);
+                            //
+                            // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
+                            //
+                            diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
+                            type = new ExtendedErrorTypeSymbol(
+                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                        }
+                        else if (node.SyntaxTree == localSymbolLocation.SourceTree &&
+                            node.SpanStart < localSymbolLocation.SourceSpan.Start)
+                        {
+                            // Here we report a local variable being used before its declaration
+                            //
+                            // There are two possible diagnostics for this:
                             //
                             // CS0841: ERR_VariableUsedBeforeDeclaration
                             // Cannot use local variable 'x' before it is declared
@@ -1277,54 +1276,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // bind to "this.x" in the "Print". (In C++ the local does not come
                             // into scope until its declaration.)
                             //
-                            // The second case is when an implicitly typed local is used
-                            // in its initializer, like "var x = N(out x);". Since overload
-                            // resolution cannot proceed until the type of x is known, this is 
-                            // an error.
-                            //
-                            // CONSIDER:
-                            // In the case of something like "var x = M(out x);" we give the error 
-                            // that x cannot be used before it is *declared*. But that seems like 
-                            // the wrong error; we didn't say "x = M(out x); int x;" -- the usage
-                            // happened after the declaration. Should we give a better error?
-                            //
-                            // In the native compiler we give the "hides field" error even
-                            // in this case:
-                            //
-                            // class C { 
-                            //  int x; 
-                            //  void M() { 
-                            //    var x = N(out x);
-                            //  } }
-                            //
-                            // but that seems like the wrong error to give in this scenario. The "out x" is not
-                            // "hiding the field" the same way the "Print(x);" is in the previous example. In
-                            // Roslyn we do not report that error in this scenario; we only report that
-                            // the offending usage is possibly hiding a field if it really is lexically
-                            // before the declaration.
-
                             FieldSymbol possibleField = null;
-                            if (usedBeforeDecl)
-                            {
-                                var lookupResult = LookupResult.GetInstance();
-                                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                                this.LookupMembersInType(
-                                    lookupResult,
-                                    ContainingType,
-                                    localSymbol.Name,
-                                    arity: 0,
-                                    basesBeingResolved: null,
-                                    options: LookupOptions.Default,
-                                    originalBinder: this,
-                                    diagnose: false,
-                                    useSiteDiagnostics: ref useSiteDiagnostics);
-
-                                diagnostics.Add(node, useSiteDiagnostics);
-
-                                possibleField = lookupResult.SingleSymbolOrDefault as FieldSymbol;
-                                lookupResult.Free();
-                            }
-
+                            var lookupResult = LookupResult.GetInstance();
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            this.LookupMembersInType(
+                                lookupResult,
+                                ContainingType,
+                                localSymbol.Name,
+                                arity: 0,
+                                basesBeingResolved: null,
+                                options: LookupOptions.Default,
+                                originalBinder: this,
+                                diagnose: false,
+                                useSiteDiagnostics: ref useSiteDiagnostics);
+                            diagnostics.Add(node, useSiteDiagnostics);
+                            possibleField = lookupResult.SingleSymbolOrDefault as FieldSymbol;
+                            lookupResult.Free();
                             if ((object)possibleField != null)
                             {
                                 Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclarationAndHidesField, node, node, possibleField);
@@ -1334,67 +1301,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, node, node);
                             }
 
-                            // Moreover: we wish to avoid any deadlocks, unbounded recursion or
-                            // race conditions that might result from a situation like:
-                            //
-                            // var x = M(y);
-                            // var y = x;
-                            //
-                            // We therefore say that if an illegal forward reference is made
-                            // to a local variable then we do not attempt to determine its
-                            // type for the purposes of error recovery; we only look
-                            // backwards. In the case above, the analysis of "= M(y)" will not
-                            // attempt to determine the type of y, but the analysis of "= x"
-                            // will attempt to determine the type of x.
-                            //
-                            // CONSIDER:
-                            // We could interrogate the local symbol and only skip checking its 
-                            // type if it is "var".
-
-                            type = new ExtendedErrorTypeSymbol(this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                            type = new ExtendedErrorTypeSymbol(
+                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                         }
                         else
                         {
-                            SourceLocalSymbol sourceLocal;
-                            DeclarationExpressionSyntax declExpression;
-                            ArgumentSyntax argument;
-                            type = null;
-
-                            if (node.SyntaxTree == localSymbolLocation.SourceTree && 
-                                (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null &&
-                                (declExpression = sourceLocal.IdentifierToken.Parent?.Parent?.Parent as DeclarationExpressionSyntax) != null &&
-                                (argument = declExpression.Parent as ArgumentSyntax) != null)
-                            {
-                                if (declExpression.Type().IsVar)
-                                {
-                                    // We are referring to an out variable which might need type inference.
-                                    // If it is in fact needs inference, it is illegal to reference it in the same argument list that immediately 
-                                    // contains its declaration. 
-                                    // Technically, we could support some restricted scenarios (when it is used as another argument in the same list), 
-                                    // but their utility is very questionable. Otherwise, we are looking into getting into a cycle trying to infer its type. 
-                                    if (node.SpanStart < ((ArgumentListSyntax)argument.Parent).CloseParenToken.SpanStart && 
-                                        sourceLocal.IsVar) // This check involves trying to bind 'var' as a real type, so keeping it last for performance.
-                                    {
-                                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, node, node);
-
-                                        // Treat this case as variable used before declaration, we might be able to infer type of the variable anyway and SemanticModel 
-                                        // will be able to return non-error type information for this node. 
-                                        type = new ExtendedErrorTypeSymbol(this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
-                                    }
-                                }
-                            }
-
-                            if ((object)type == null)
-                            {
-                                type = localSymbol.Type;
-                            }
-
+                            type = localSymbol.Type;
                             if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
                             {
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
                             }
                         }
 
+                        var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null && !type.IsErrorType()
+                            ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
                     }
 
@@ -2105,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
-            var declaration = declarationExpression.Declaration;
+            var declaration = (TypedVariableComponentSyntax)declarationExpression.VariableComponent;
             var typeSyntax = declaration.Type;
 
             bool isConst = false;
@@ -2299,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                         && parameterType.IsRestrictedType())
                     {
-                        var declaration = ((DeclarationExpressionSyntax)argument.Syntax).Declaration;
+                        var declaration = (TypedVariableComponentSyntax)((DeclarationExpressionSyntax)argument.Syntax).VariableComponent;
                         Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, parameterType);
                         hasErrors = true;
                     }

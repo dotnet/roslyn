@@ -6384,9 +6384,21 @@ class C
 " + trivial2uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
+                // (7,51): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("e").WithLocation(7, 51),
+                // (7,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the assignment target.
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("f").WithLocation(7, 56),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
+                // (9,53): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("e").WithLocation(9, 53),
+                // (9,58): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the assignment target.
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("f").WithLocation(9, 58),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
@@ -15238,6 +15250,402 @@ class C {
 
             Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object).Kind);
             Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
+        }
+
+        [Fact]
+        public void TernaryTypeInferenceWithDynamicAndTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+
+        dynamic d = null;
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 1, c: d);
+        var x2 = flag ? t1 : t2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,35): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(7, 35),
+                // (7,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("c").WithLocation(7, 50)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(5).First());
+            Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TernaryTypeInferenceWithNoNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: 2) : (1, 2);
+        var x2 = flag ? (1, 2) : (a: 1, b: 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("a").WithLocation(7, 29),
+                // (7,35): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(7, 35),
+                // (8,38): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the assignment target.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("a").WithLocation(8, 38),
+                // (8,44): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(8, 44)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32, System.Int32) x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(2).First());
+            Assert.Equal("(System.Int32, System.Int32) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TernaryTypeInferenceDropsCandidates()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,62): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //         var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("c").WithLocation(7, 62)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32 a, System.Int64 b) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceWithTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        if (flag)
+                        {
+                            return (a: 1, b: 2);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: 1, c: 3);
+                            }
+                            else
+                            {
+                                return (a: 1, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,46): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //                             return (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(11, 46),
+                // (17,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //                                 return (a: 1, c: 3);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "3").WithArguments("c").WithLocation(17, 50),
+                // (21,50): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
+                //                                 return (a: 1, d: 4);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "4").WithArguments("d").WithLocation(21, 50)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceWithDynamic()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        dynamic d = null;
+                        if (flag)
+                        {
+                            return (a: 1, b: 2);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: d, c: 3);
+                            }
+                            else
+                            {
+                                return (a: d, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (12,46): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //                             return (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(12, 46),
+                // (18,50): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //                                 return (a: d, c: 3);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "3").WithArguments("c").WithLocation(18, 50),
+                // (22,50): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
+                //                                 return (a: d, d: 4);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "4").WithArguments("d").WithLocation(22, 50)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("(dynamic a, System.Int32) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceFails()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        dynamic d = null;
+                        if (flag)
+                        {
+                            return (a: 1, b: d);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: d, c: 3);
+                            }
+                            else
+                            {
+                                return (a: d, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0411: The type arguments for method 'C.M2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x1 = M2(() =>
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("C.M2<T>(System.Func<T>)").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void WarnForDroppingNamesInConversion()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (int a, int) x1 = (1, b: 2);
+        (int a, string) x2 = (1, b: null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         (int a, int) x1 = (1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "2").WithArguments("b").WithLocation(6, 34),
+                // (7,37): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         (int a, string) x2 = (1, b: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "null").WithArguments("b").WithLocation(7, 37)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeInferenceMergesTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var t = M2((a: 1, b: 2), (a: 1, c: 3));
+        System.Console.Write(t.a);
+        System.Console.Write(t.b);
+        System.Console.Write(t.c);
+        M2((1, 2), (c: 1, d: 3));
+        M2(new[] { (a: 1, b: 2) }, new[] { (1, 3) });
+    }
+    public T M2<T>(T x1, T x2)
+    {
+        return x1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.b);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(8, 32),
+                // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'c' and no extension method 'c' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.c);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32) C.M2<(System.Int32 a, System.Int32)>((System.Int32 a, System.Int32) x1, (System.Int32 a, System.Int32) x2)", invocation1.Symbol.ToTestDisplayString());
+
+            var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(4).First());
+            Assert.Equal("(System.Int32, System.Int32) C.M2<(System.Int32, System.Int32)>((System.Int32, System.Int32) x1, (System.Int32, System.Int32) x2)", invocation2.Symbol.ToTestDisplayString());
+
+            var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
+            Assert.Equal("(System.Int32, System.Int32)[] C.M2<(System.Int32, System.Int32)[]>((System.Int32, System.Int32)[] x1, (System.Int32, System.Int32)[] x2)", invocation3.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MethodTypeInferenceDropsCandidates()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
+        M2(((long)1, b: 2), (c: 1, d: (byte)3));
+        M2((a: (long)1, b: 2), ((byte)1, 3));
+    }
+    public T M2<T>(T x1, T x2)
+    {
+        return x1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,42): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //         M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "(byte)3").WithArguments("c").WithLocation(6, 42),
+                // (7,33): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "1").WithArguments("c").WithLocation(7, 33),
+                // (7,39): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
+                //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "(byte)3").WithArguments("d").WithLocation(7, 39)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32 b) C.M2<(System.Int32 a, System.Int32 b)>((System.Int32 a, System.Int32 b) x1, (System.Int32 a, System.Int32 b) x2)", invocation1.Symbol.ToTestDisplayString());
+
+            var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int64, System.Int32 b) C.M2<(System.Int64, System.Int32 b)>((System.Int64, System.Int32 b) x1, (System.Int64, System.Int32 b) x2)", invocation2.Symbol.ToTestDisplayString());
+
+            var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(2).First());
+            Assert.Equal("(System.Int64 a, System.Int32 b) C.M2<(System.Int64 a, System.Int32 b)>((System.Int64 a, System.Int32 b) x1, (System.Int64 a, System.Int32 b) x2)", invocation3.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MethodTypeInferenceMergesDynamic()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (dynamic[] a, object[] b) x1 = (null, null);
+        (object[] a, dynamic[] c) x2 = (null, null);
+        M2(x1, x2);
+    }
+    public void M2<T>(T x1, T x2) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("void C.M2<(dynamic[] a, dynamic[])>((dynamic[] a, dynamic[]) x1, (dynamic[] a, dynamic[]) x2)", invocation1.Symbol.ToTestDisplayString());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12267")]

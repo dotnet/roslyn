@@ -809,6 +809,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType, null) != null;
 
         /// <summary>
+        /// Return true if the type contains any tuples with element names.
+        /// </summary>
+        internal static bool ContainsTupleNames(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType && !t.TupleElementNames.IsDefault , null) != null;
+
+        /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
         /// Otherwise, the underlying type (if any) of the error type will be

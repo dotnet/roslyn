@@ -4738,9 +4738,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not return by {3}</value>
   </data>
-  <data name="ERR_VoidReturningMethodCannotReturnByRef" xml:space="preserve">
-    <value>Void-returning methods cannot return by reference</value>
-  </data>
   <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>
   </data>
@@ -4923,6 +4920,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="TypeMustBeVar" xml:space="preserve">
     <value>The type must be 'var'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the assignment target.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
     <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>

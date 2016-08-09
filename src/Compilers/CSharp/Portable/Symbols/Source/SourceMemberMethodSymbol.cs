@@ -101,13 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            syntax.ReturnType.SkipRef(out _refKind);
 
             if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
-
-            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
@@ -138,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
+            RefKind refKind;
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             if (_lazyReturnType.IsRestrictedType())
             {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
             if (this.RefKind != RefKind.None && returnsVoid)
             {
-                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, syntax.RefKeyword.GetLocation());
+                Debug.Assert(returnTypeSyntax.HasErrors);
             }
 
             // set ReturnsVoid flag
@@ -361,8 +362,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
-            Debug.Assert(this.RefKind == RefKind.None);
-            if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            if (this.RefKind != RefKind.None)
+            {
+                var returnTypeSyntax = GetSyntax().ReturnType;
+                if (!returnTypeSyntax.HasErrors)
+                {
+                    var refKeyword = returnTypeSyntax.GetFirstToken();
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+                }
+            }
+            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
@@ -524,7 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return _refKind; }
+            get
+            {
+                return _refKind;
+            }
         }
 
         public override TypeSymbol ReturnType

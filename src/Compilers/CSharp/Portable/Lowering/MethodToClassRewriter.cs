@@ -490,6 +490,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
         }
 
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
+            BoundExpression whenNullOpt = (BoundExpression)this.Visit(node.WhenNullOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(receiver, VisitMethodSymbol(node.HasValueMethodOpt), whenNotNull, whenNullOpt, node.Id, type);
+        }
+
         protected MethodSymbol VisitMethodSymbol(MethodSymbol method)
         {
             if ((object)method == null)

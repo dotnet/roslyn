@@ -345,6 +345,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol)
             End If
 
+            If methodSymbol.IsTupleMethod Then
+                methodSymbol = methodSymbol.TupleUnderlyingMethod
+            End If
+
             Me.ProcessReferencedSymbol(methodSymbol)
 
             If methodSymbol.OriginalDefinition IsNot methodSymbol Then
