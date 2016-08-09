@@ -1,14 +1,67 @@
 
-A lot of details and motivation for the feature is given in 
-[https://github.com/dotnet/roslyn/issues/347](https://github.com/dotnet/roslyn/issues/347)
-
-Current design notes:
-https://github.com/dotnet/roslyn/issues/10429
 
 NOTE: The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
 Changes in design will be applied to this document as the changes are implemented.
 
 -----------------------------------
+
+Quickstart guide (C#)
+---------------------
+1. Install dev15 preview 4
+2. Start a C# project
+3. Add a reference to the `System.ValueTuple` nuget package (pre-release)
+4. Use tuples:
+
+    ```C#
+public class C
+{
+        public static (int code, string message) Method((int, string) x) 
+        { 
+                return x;
+        }
+
+        public static void Main()
+        {
+                var pair1 = (42, "hello");
+                Console.Write(Method(pair1).message);
+        
+                var pair2 = (code: 43, message: "world");
+                Console.Write(pair2.message);
+        }
+}
+    ```
+5. Use deconstruction:
+    ```C#
+public class C
+{
+        public static void Main()
+        {
+                
+              int code;
+              string message;
+
+              var pair = (42, "hello");
+              (code, message) = pair; // deconstruct a tuple into existing variables
+              Console.Write(message); // hello
+
+              (code, message) = new Deconstructable(); // deconstruct any object with a proper Deconstruct method into existing variables
+              Console.Write(message); // world
+              
+              (int code2, int message2) = pair; // deconstruct into new variables
+              var (code3, message3) = pair; // deconstruct into new 'var' variables
+        }
+}
+
+public class Deconstructable
+{
+        public void Deconstruct(out int x, out int y)
+        {
+                x = 43;
+                y = "world";
+        }
+}
+    ```
+
 
 Tuple types
 -----------
@@ -293,3 +346,13 @@ Open issues:
 - [ ] Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
 - [ ] Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
 - [ ] Exactly matching expression
+
+References:
+-----------
+
+A lot of details and motivation for the feature is given in 
+[Proposal: Language support for Tuples](https://github.com/dotnet/roslyn/issues/347)
+
+[C# Design Notes for Apr 6, 2016](https://github.com/dotnet/roslyn/issues/10429)
+
+
