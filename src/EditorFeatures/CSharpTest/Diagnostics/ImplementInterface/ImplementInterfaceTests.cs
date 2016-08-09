@@ -61,6 +61,14 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TupleWithNamesInEvent()
+        {
+            await TestAsync(
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : IInterface { public event Func<(int a, int b)> Event1; } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {
             await TestAsync(

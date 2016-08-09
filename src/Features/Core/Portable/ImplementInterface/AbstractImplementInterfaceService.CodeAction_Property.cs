@@ -37,12 +37,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 else
                 {
                     var getMethod = property.GetMethod;
-                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                                             accessibleWithin: this.State.ClassOrStructType,
-                                             removeAttributeType: comAliasNameAttribute);
-                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                                             accessibleWithin: this.State.ClassOrStructType,
-                                             removeAttributeType: tupleElementNamesAttribute);
+                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                                             this.State.ClassOrStructType,
+                                             comAliasNameAttribute, tupleElementNamesAttribute);
 
                     getAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                                     getMethod,
@@ -60,12 +57,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 else
                 {
                     var setMethod = property.SetMethod;
-                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                                             accessibleWithin: this.State.ClassOrStructType,
-                                             removeAttributeType: comAliasNameAttribute);
-                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                                             accessibleWithin: this.State.ClassOrStructType,
-                                             removeAttributeType: tupleElementNamesAttribute);
+                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                                             this.State.ClassOrStructType,
+                                             comAliasNameAttribute, tupleElementNamesAttribute);
 
                     setAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                                     setMethod,
