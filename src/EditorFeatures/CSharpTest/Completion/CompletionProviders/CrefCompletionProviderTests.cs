@@ -841,7 +841,7 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool IsDirectiveOrImport(SyntaxNode node)
+            public bool IsUsingOrExternOrImport(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }

@@ -300,7 +300,6 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableComponentAssignment(M
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VariableComponentAssignment(Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentSyntax variableComponent, Microsoft.CodeAnalysis.SyntaxToken equalsToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax value) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.SyntaxToken whenKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsGlobalAttribute(Microsoft.CodeAnalysis.SyntaxNode node) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitCasePatternSwitchLabel(Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitConstantPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> void

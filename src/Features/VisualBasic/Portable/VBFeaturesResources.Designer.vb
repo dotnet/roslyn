@@ -1749,15 +1749,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to (Unknown).
-        '''</summary>
-        Friend ReadOnly Property paren_unknown_paren() As String
-            Get
-                Return ResourceManager.GetString("paren_unknown_paren", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Performs a logical conjunction on two Boolean expressions, or a bitwise conjunction on two numeric expressions. For Boolean expressions, returns True if both operands evaluate to True. Both expressions are always evaluated.
         '''&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;.
         '''</summary>

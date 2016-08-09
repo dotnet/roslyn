@@ -1678,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
         }
 
-        public bool IsDirectiveOrImport(SyntaxNode node)
+        public bool IsUsingOrExternOrImport(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.UsingDirective) ||
                    node.IsKind(SyntaxKind.ExternAliasDirective);
@@ -1686,7 +1686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsGlobalAttribute(SyntaxNode node)
         {
-            return SyntaxFacts.IsGlobalAttribute(node);
+            return node.IsKind(SyntaxKind.Attribute) && node.Parent.IsKind(SyntaxKind.AttributeList) &&
+                   ((AttributeListSyntax)node.Parent).Target?.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
         }
 
         private static bool IsMemberDeclaration(SyntaxNode node)

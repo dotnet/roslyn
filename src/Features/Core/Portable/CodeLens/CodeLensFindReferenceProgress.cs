@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// </remarks>
     internal sealed class CodeLensFindReferencesProgress : IFindReferencesProgress, IDisposable
     {
-        /// <summary>
-        /// this token is linked to an aggregate token that is passed to the Find References
-        /// operation, this is used solely to trigger the cancellation of an in progress
-        /// find references operation, when the references count hits a given cap.
-        /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationTokenSource _aggregateCancellationTokenSource;
         private readonly SyntaxNode _queriedNode;
         private readonly ISymbol _queriedSymbol;
@@ -55,9 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
         {
             _queriedSymbol = queriedDefinition;
             _queriedNode = queriedNode;
-            _cancellationTokenSource = new CancellationTokenSource();
-            _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                _cancellationTokenSource.Token, cancellationToken);
+            _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _locations = new ConcurrentSet<Location>();
 
             SearchCap = searchCap;
@@ -96,12 +88,15 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// </summary>
         private static bool FilterReference(ISymbol queriedSymbol, ISymbol definition, ReferenceLocation reference)
         {
-            return definition.IsImplicitlyDeclared ||
-                   (definition as IMethodSymbol)?.AssociatedSymbol != null ||
-                   // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
-                   // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
-                   // reference location for the invocation while computing references count for the named type symbol. 
-                   (queriedSymbol.Kind == SymbolKind.NamedType && (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor) ||
+            var isAccessor = (definition as IMethodSymbol)?.AssociatedSymbol != null;
+            var isImplicitlyDeclared = definition.IsImplicitlyDeclared || isAccessor;
+            // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
+            // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
+            // reference location for the invocation while computing references count for the named type symbol. 
+            var isImplicitReference = queriedSymbol.Kind == SymbolKind.NamedType &&
+                                      (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return isImplicitlyDeclared ||
+                   isImplicitReference ||
                    (!definition.Locations.Any(loc => loc.IsInSource) && !reference.Location.IsInSource);
         }
 
@@ -124,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // To query for the partial locations, filter definition locations that occur in source whose span is part of
             // span of any syntax node from Definition.DeclaringSyntaxReferences except for the queried syntax node.
             _locations.AddRange(symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any()
-                ? GetPartialLocations(symbol, _queriedNode, _cancellationTokenSource.Token)
+                ? GetPartialLocations(symbol, _queriedNode, _aggregateCancellationTokenSource.Token)
                 : symbol.Locations);
 
             if (SearchCapReached)
             {
-                _cancellationTokenSource.Cancel();
+                _aggregateCancellationTokenSource.Cancel();
             }
         }
 
@@ -152,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             if (SearchCapReached)
             {
-                _cancellationTokenSource.Cancel();
+                _aggregateCancellationTokenSource.Cancel();
             }
         }
 
@@ -167,7 +162,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public void Dispose()
         {
             _aggregateCancellationTokenSource.Dispose();
-            _cancellationTokenSource.Dispose();
         }
     }
 }

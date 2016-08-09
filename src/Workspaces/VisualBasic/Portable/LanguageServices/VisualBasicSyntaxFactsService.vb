@@ -1357,12 +1357,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
-        Public Function IsDirectiveOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirectiveOrImport
+        Public Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrExternOrImport
             Return node.IsKind(SyntaxKind.ImportsStatement)
         End Function
 
         Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGlobalAttribute
-            Return SyntaxFacts.IsGlobalAttribute(node)
+            If node.IsKind(SyntaxKind.Attribute) Then
+                Dim attributeNode = CType(node, AttributeSyntax)
+                If attributeNode.Target IsNot Nothing Then
+                    Return attributeNode.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)
+                End If
+            End If
+
+            Return False
         End Function
 
         Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaration

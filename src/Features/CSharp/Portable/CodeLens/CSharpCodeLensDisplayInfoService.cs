@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -10,14 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
     [ExportLanguageService(typeof(ICodeLensDisplayInfoService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpCodeLensDisplayInfoService : ICodeLensDisplayInfoService
     {
-        private static readonly SymbolDisplayFormat DefaultFormat =
+        private static readonly SymbolDisplayFormat Format =
             SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMemberOptions(
                 SymbolDisplayMemberOptions.IncludeExplicitInterface);
-
-        // Matches default ToDisplayString except removing global namspace and namespaces
-        private static readonly SymbolDisplayFormat ShortFormat =
-            DefaultFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
-                .WithTypeQualificationStyle(SymbolDisplayTypeQualificationStyle.NameAndContainingTypes);
 
         /// <summary>
         /// Returns the node that should be displayed
@@ -30,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 {
                     // LocalDeclarations do not have symbols themselves, you need a variable declarator
                     case SyntaxKind.LocalDeclarationStatement:
-                        var localDeclarationNode = (LocalDeclarationStatementSyntax) node;
-                        node = localDeclarationNode.Declaration.Variables.First();
+                        var localDeclarationNode = (LocalDeclarationStatementSyntax)node;
+                        node = localDeclarationNode.Declaration.Variables.FirstOrDefault();
                         continue;
 
                         // Field and event declarations do not have symbols themselves, you need a variable declarator
                     case SyntaxKind.FieldDeclaration:
                     case SyntaxKind.EventFieldDeclaration:
-                        var fieldNode = (BaseFieldDeclarationSyntax) node;
-                        node = fieldNode.Declaration.Variables.First();
+                        var fieldNode = (BaseFieldDeclarationSyntax)node;
+                        node = fieldNode.Declaration.Variables.FirstOrDefault();
                         continue;
 
                         // Variable is a field without access modifier. Parent is FieldDeclaration
@@ -56,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                         // For DocumentationCommentTrivia node, node.Parent is null. Obtain parent through ParentTrivia.Token
                         if (node.IsStructuredTrivia)
                         {
-                            var structuredTriviaSyntax = (StructuredTriviaSyntax) node;
+                            var structuredTriviaSyntax = (StructuredTriviaSyntax)node;
                             node = structuredTriviaSyntax.ParentTrivia.Token.Parent;
                             continue;
                         }
@@ -71,104 +67,102 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
         /// <summary>
         /// Gets the DisplayName for the given node.
         /// </summary>
-        public string GetDisplayName(SemanticModel semanticModel, SyntaxNode node, bool useShortName)
+        public string GetDisplayName(SemanticModel semanticModel, SyntaxNode node)
         {
             if (node == null)
             {
-                return CSharpFeaturesResources.paren_unknown_paren;
+                return FeaturesResources.paren_Unknown_paren;
             }
 
-            var symbolDisplayFormat = useShortName ? ShortFormat : DefaultFormat;
-            string displayName;
-            string enclosingScopeString;
-
-            int lastDotBeforeSpaceIndex;
-
-            ISymbol symbol;
-
-            if (SyntaxFacts.IsGlobalAttribute(node))
+            if (CSharpSyntaxFactsService.Instance.IsGlobalAttribute(node))
             {
-                return "assembly: " + node;
+                return "assembly: " + node.ConvertToSingleLine();
             }
 
             // Don't discriminate between getters and setters for indexers
             if (node.Parent.IsKind(SyntaxKind.AccessorList) &&
                 node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration))
             {
-                return GetDisplayName(semanticModel, node.Parent.Parent, useShortName);
+                return GetDisplayName(semanticModel, node.Parent.Parent);
             }
 
             switch (node.Kind())
             {
                 case SyntaxKind.ConstructorDeclaration:
+                {
                     // The constructor's name will be the name of the class, not ctor like we want
-                    symbol = semanticModel.GetDeclaredSymbol(node);
-                    displayName = symbol.ToDisplayString(symbolDisplayFormat);
+                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    var displayName = symbol.ToDisplayString(Format);
                     var openParenIndex = displayName.IndexOf('(');
                     var lastDotBeforeOpenParenIndex = displayName.LastIndexOf('.', openParenIndex, openParenIndex);
 
                     var constructorName = symbol.IsStatic ? "cctor" : "ctor";
 
-                    displayName = displayName.Substring(0, lastDotBeforeOpenParenIndex + 1) +
-                                         constructorName +
-                                         displayName.Substring(openParenIndex);
-                    break;
+                    return displayName.Substring(0, lastDotBeforeOpenParenIndex + 1) +
+                           constructorName +
+                           displayName.Substring(openParenIndex);
+                }
 
                 case SyntaxKind.IndexerDeclaration:
+                {
                     // The name will be "namespace.class.this[type] - we want "namespace.class[type] Indexer"
-                    symbol = semanticModel.GetDeclaredSymbol(node);
-                    displayName = symbol.ToDisplayString(symbolDisplayFormat);
+                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    var displayName = symbol.ToDisplayString(Format);
                     var openBracketIndex = displayName.IndexOf('[');
                     var lastDotBeforeOpenBracketIndex = displayName.LastIndexOf('.', openBracketIndex, openBracketIndex);
 
-                    displayName = displayName.Substring(0, lastDotBeforeOpenBracketIndex) +
-                                         displayName.Substring(openBracketIndex) +
-                                         " Indexer";
-                    break;
+                    return displayName.Substring(0, lastDotBeforeOpenBracketIndex) +
+                           displayName.Substring(openBracketIndex) +
+                           " Indexer";
+                }
 
                 case SyntaxKind.OperatorDeclaration:
+                {
                     // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
-                    symbol = semanticModel.GetDeclaredSymbol(node);
-                    displayName = symbol.ToDisplayString(symbolDisplayFormat);
+                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    var displayName = symbol.ToDisplayString(Format);
                     var spaceIndex = displayName.IndexOf(' ');
-                    lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', spaceIndex, spaceIndex);
+                    var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', spaceIndex, spaceIndex);
 
-                    displayName = displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                                         displayName.Substring(spaceIndex + 1) +
-                                         " Operator";
-                    break;
+                    return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
+                           displayName.Substring(spaceIndex + 1) +
+                           " Operator";
+                }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
+                {
                     // The name will be "namespace.class.operator +(type)" - we want namespace.class.+(type) Operator
-                    symbol = semanticModel.GetDeclaredSymbol(node);
-                    displayName = symbol.ToDisplayString(symbolDisplayFormat);
+                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    var displayName = symbol.ToDisplayString(Format);
                     var firstSpaceIndex = displayName.IndexOf(' ');
                     var secondSpaceIndex = displayName.IndexOf(' ', firstSpaceIndex + 1);
-                    lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', firstSpaceIndex, firstSpaceIndex);
+                    var lastDotBeforeSpaceIndex = displayName.LastIndexOf('.', firstSpaceIndex, firstSpaceIndex);
 
-                    displayName = displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
-                                         displayName.Substring(secondSpaceIndex + 1) +
-                                         " Operator";
-                    break;
+                    return displayName.Substring(0, lastDotBeforeSpaceIndex + 1) +
+                           displayName.Substring(secondSpaceIndex + 1) +
+                           " Operator";
+                }
 
                 case SyntaxKind.UsingDirective:
+                {
                     // We want to see usings formatted as simply "Using", prefaced by the namespace they are in
-                    enclosingScopeString = GetEnclosingScopeString(node, semanticModel, symbolDisplayFormat);
-                    displayName = string.IsNullOrEmpty(enclosingScopeString) ? "Using" : enclosingScopeString + " Using";
-                    break;
+                    var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
+                    return string.IsNullOrEmpty(enclosingScopeString) ? "Using" : enclosingScopeString + " Using";
+                }
 
                 case SyntaxKind.ExternAliasDirective:
+                {
                     // We want to see aliases formatted as "Alias", prefaced by their enclosing scope, if any
-                    enclosingScopeString = GetEnclosingScopeString(node, semanticModel, symbolDisplayFormat);
-                    displayName = string.IsNullOrEmpty(enclosingScopeString) ? "Alias" : enclosingScopeString + " Alias";
-                    break;
+                    var enclosingScopeString = GetEnclosingScopeString(node, semanticModel, Format);
+                    return string.IsNullOrEmpty(enclosingScopeString) ? "Alias" : enclosingScopeString + " Alias";
+                }
 
                 default:
-                    displayName = GetSymbolDisplayString(node, semanticModel, symbolDisplayFormat);
-                    break;
+                {
+                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    return symbol != null ? symbol.ToDisplayString(Format) : FeaturesResources.paren_Unknown_paren;
+                }
             }
-
-            return displayName;
         }
 
         private static string GetEnclosingScopeString(SyntaxNode node, SemanticModel semanticModel, SymbolDisplayFormat symbolDisplayFormat)
@@ -186,17 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
 
             var scopeSymbol = semanticModel.GetDeclaredSymbol(scopeNode);
             return scopeSymbol.ToDisplayString(symbolDisplayFormat);
-        }
-
-        private static string GetSymbolDisplayString(SyntaxNode node, SemanticModel semanticModel, SymbolDisplayFormat symbolDisplayFormat)
-        {
-            if (node == null)
-            {
-                return CSharpFeaturesResources.paren_unknown_paren;
-            }
-
-            var symbol = semanticModel.GetDeclaredSymbol(node);
-            return symbol != null ? symbol.ToDisplayString(symbolDisplayFormat) : CSharpFeaturesResources.paren_unknown_paren;
         }
     }
 }

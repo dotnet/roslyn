@@ -756,7 +756,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException
             End Function
 
-            Public Function IsDirectiveOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirectiveOrImport
+            Public Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrExternOrImport
                 Throw New NotImplementedException
             End Function
 

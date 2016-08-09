@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -21,11 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
     {
         public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
-            if (solution == null || documentId == null || syntaxNode == null)
-            {
-                return null;
-            }
-
             var document = solution.GetDocument(documentId);
             if (document == null)
             {
@@ -63,15 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     if (progress.SearchCapReached)
                     {
                         // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return new ReferenceCount(progress.SearchCap, true);
+                        return new ReferenceCount(progress.SearchCap, isCapped: true);
                     }
 
                     // search was cancelled, but not because of cap.
                     // this always throws.
-                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
                 }
-
-                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -99,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var position = location.SourceSpan.Start;
             var token = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)).FindToken(position, true);
             var node = GetEnclosingCodeElementNode(document, token, langServices);
-            var longName = langServices.GetDisplayName(semanticModel, node, false);
+            var longName = langServices.GetDisplayName(semanticModel, node);
 
             // get the full line of source text on the line that contains this position
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -127,17 +119,17 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var glyph = symbol?.GetGlyph();
 
             return new ReferenceLocationDescriptor(longName,
-                                   semanticModel.Language,
-                                   glyph,
-                                   location,
-                                   solution.GetDocument(location.SourceTree)?.Id,
-                                   line.TrimEnd(),
-                                   referenceSpan.Start,
-                                   referenceSpan.Length,
-                                   beforeLine1.TrimEnd(),
-                                   beforeLine2.TrimEnd(),
-                                   afterLine1.TrimEnd(),
-                                   afterLine2.TrimEnd());
+                semanticModel.Language,
+                glyph,
+                location,
+                solution.GetDocument(location.SourceTree)?.Id,
+                line.TrimEnd(),
+                referenceSpan.Start,
+                referenceSpan.Length,
+                beforeLine1.TrimEnd(),
+                beforeLine2.TrimEnd(),
+                afterLine1.TrimEnd(),
+                afterLine2.TrimEnd());
         }
 
         private static SyntaxNode GetEnclosingCodeElementNode(Document document, SyntaxToken token, ICodeLensDisplayInfoService langServices)
@@ -154,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     node = parentTrivia.Token.Parent;
                 }
                 else if (syntaxFactsService.IsDeclaration(node) ||
-                         syntaxFactsService.IsDirectiveOrImport(node) ||
+                         syntaxFactsService.IsUsingOrExternOrImport(node) ||
                          syntaxFactsService.IsGlobalAttribute(node))
                 {
                     break;
@@ -175,11 +167,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
-            if (solution == null || documentId == null || syntaxNode == null)
-            {
-                return null;
-            }
-
             var document = solution.GetDocument(documentId);
             if (document == null)
             {
@@ -200,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, 0, cancellationToken))
+            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap: 0, cancellationToken: cancellationToken))
             {
                 await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
                     progress.CancellationToken).ConfigureAwait(false);
@@ -213,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
                     .ToArray();
 
-                Task.WaitAll(referenceTasks, cancellationToken);
+                await Task.WhenAll(referenceTasks).ConfigureAwait(false);
 
                 return referenceTasks.Select(task => task.Result);
             }

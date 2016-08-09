@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
     Friend NotInheritable Class VisualBasicDisplayInfoService
         Implements ICodeLensDisplayInfoService
 
-        Private Shared ReadOnly DefaultFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly Format As SymbolDisplayFormat = New SymbolDisplayFormat(
                 SymbolDisplayGlobalNamespaceStyle.Omitted,                                  ' Don't prepend VB namespaces with "Global."
                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,    ' Show fully qualified names
                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -21,10 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                 SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 SymbolDisplayLocalOptions.IncludeType,
                 SymbolDisplayKindOptions.None,
-                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-
-        Private Shared ReadOnly ShortFormat As SymbolDisplayFormat =
-            DefaultFormat.WithTypeQualificationStyle(SymbolDisplayTypeQualificationStyle.NameAndContainingTypes)
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         ''' <summary>
         ''' Returns the node that should be displayed
@@ -58,16 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             Return node
         End Function
 
-        Private Shared Function SymbolToDisplayString(symbolDisplayFormat As SymbolDisplayFormat, symbol As ISymbol) As String
-            If symbol Is Nothing Then
-                Return VBFeaturesResources.paren_unknown_paren
-            End If
-
-            Dim symbolName As String = symbol.ToDisplayString(symbolDisplayFormat)
-
-            ' surounding a idenitfier in square brackets allows you to use a keyword as an identifer
-            symbolName = symbolName.Replace("[", String.Empty).Replace("]", String.Empty)
-            Return symbolName
+        Private Shared Function SymbolToDisplayString(symbol As ISymbol) As String
+            Return If(symbol Is Nothing, FeaturesResources.paren_Unknown_paren, symbol.ToDisplayString(Format))
         End Function
 
         Private Shared Function FormatPropertyAccessor(node As SyntaxNode, symbolName As String) As String
@@ -119,10 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' <summary>
         ''' Gets the DisplayName for the given node.
         ''' </summary>
-        Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode, useShortFormat As Boolean) As String Implements ICodeLensDisplayInfoService.GetDisplayName
-            Dim symbolDisplayFormat As SymbolDisplayFormat = If(useShortFormat, ShortFormat, DefaultFormat)
-
-            If SyntaxFacts.IsGlobalAttribute(node) Then
+        Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode) As String Implements ICodeLensDisplayInfoService.GetDisplayName
+            If VisualBasicSyntaxFactsServiceFactory.Instance.IsGlobalAttribute(node) Then
                 Return node.ToString()
             End If
 
@@ -135,24 +122,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                     ' Indexer properties should Not include get And set
                     symbol = semanticModel.GetDeclaredSymbol(node)
                     If IsAccessorForDefaultProperty(symbol) AndAlso node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
-                        Return GetDisplayName(semanticModel, node.Parent, useShortFormat)
+                        Return GetDisplayName(semanticModel, node.Parent)
                     Else
                         ' Append "get" Or "set" to property accessors
-                        symbolName = SymbolToDisplayString(symbolDisplayFormat, symbol)
+                        symbolName = SymbolToDisplayString(symbol)
                         symbolName = FormatPropertyAccessor(node, symbolName)
                     End If
 
                 Case SyntaxKind.AddHandlerAccessorBlock
                 Case SyntaxKind.RemoveHandlerAccessorBlock
                     ' Append "add" Or "remove" to event handlers
-                    symbolName = SymbolToDisplayString(symbolDisplayFormat, symbol)
+                    symbolName = SymbolToDisplayString(symbol)
                     symbolName = FormatEventHandler(node, symbolName)
 
                 Case SyntaxKind.ImportsStatement
                     symbolName = "Imports"
 
                 Case Else
-                    symbolName = SymbolToDisplayString(symbolDisplayFormat, symbol)
+                    symbolName = SymbolToDisplayString(symbol)
             End Select
 
             Return symbolName

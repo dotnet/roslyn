@@ -1,4 +1,3 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsGlobalAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) -> Boolean

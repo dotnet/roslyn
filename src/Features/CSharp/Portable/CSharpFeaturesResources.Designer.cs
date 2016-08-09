@@ -648,15 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to (Unknown).
-        /// </summary>
-        internal static string paren_unknown_paren {
-            get {
-                return ResourceManager.GetString("paren_unknown_paren", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {

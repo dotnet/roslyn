@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
         SyntaxNode GetDisplayNode(SyntaxNode node);
 
         /// <summary>
-        /// Gets the DisplayName for the given node for given display format
+        /// Gets the DisplayName for the given node
         /// </summary>
-        string GetDisplayName(SemanticModel semanticModel, SyntaxNode node, bool useShortName);
+        string GetDisplayName(SemanticModel semanticModel, SyntaxNode node);
     }
 }
