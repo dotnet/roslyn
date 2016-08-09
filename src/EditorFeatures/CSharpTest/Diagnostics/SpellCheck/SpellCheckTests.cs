@@ -435,5 +435,31 @@ class C
 "[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(12990, "https://github.com/dotnet/roslyn/issues/12990")]
+        public async Task TestTrivia1()
+        {
+            var text = @"
+using System.Text;
+class C
+{
+  void M()
+  {
+    /*leading*/ [|stringbuilder|] /*trailing*/ sb = null;
+  }
+}";
+
+            var expected = @"
+using System.Text;
+class C
+{
+  void M()
+  {
+    /*leading*/ StringBuilder /*trailing*/ sb = null;
+  }
+}";
+
+            await TestAsync(text, expected, compareTokens: false);
+        }
     }
 }
