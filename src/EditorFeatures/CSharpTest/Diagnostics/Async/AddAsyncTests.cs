@@ -40,6 +40,34 @@ class Program
 }";
             await TestAsync(initial, expected);
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        public async Task AwaitInVoidMethodWithModifiers2()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+class Program 
+{
+    public static void Test() 
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+class Program 
+{
+    public static async Task Test() 
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestAsync(initial, expected, index: 1);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInTaskMethodNoModifiers()

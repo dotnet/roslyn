@@ -549,15 +549,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make the containing scope &apos;async&apos;..
-        /// </summary>
-        internal static string Make_the_containing_scope_async {
-            get {
-                return ResourceManager.GetString("Make_the_containing_scope_async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
         internal static string member_name {

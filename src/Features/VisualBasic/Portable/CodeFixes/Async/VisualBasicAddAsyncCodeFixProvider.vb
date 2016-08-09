@@ -27,28 +27,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Async Function GetDataAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of Data))
-            Dim newRoot = Await GetNewRootAsync(
-                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(False)
-            If newRoot Is Nothing Then
-                Return Nothing
-            End If
+        Protected Overrides Async Function GetDataAsync(
+                root As SyntaxNode, oldNode As SyntaxNode,
+                semanticModel As SemanticModel, diagnostic As Diagnostic,
+                document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
 
-            Return SpecializedCollections.SingletonList(New Data(
-                VBFeaturesResources.Make_the_containing_scope_Async,
-                newRoot))
-        End Function
-
-        Private Async Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim methodNode = GetContainingMember(oldNode)
             If methodNode Is Nothing Then
                 Return Nothing
             End If
-            Return root.ReplaceNode(methodNode, Await ConvertToAsync(methodNode, semanticModel, document, cancellationToken).ConfigureAwait(False))
+
+            Dim descriptionsAndNodes = Await ConvertToAsync(
+                methodNode, semanticModel, document, cancellationToken).ConfigureAwait(False)
+            If descriptionsAndNodes Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim q = From n In descriptionsAndNodes
+                    Let newRoot = root.ReplaceNode(methodNode, n.Node)
+                    Select New DescriptionAndNode(n.Description, newRoot)
+
+            Return q.ToList()
         End Function
 
         Private Shared Function GetContainingMember(oldNode As SyntaxNode) As StatementSyntax
-
             Dim lambda = oldNode.GetAncestor(Of LambdaExpressionSyntax)
             If lambda IsNot Nothing Then
                 Return TryCast(lambda.ChildNodes().FirstOrDefault(Function(a) _
@@ -68,7 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return Nothing
         End Function
 
-        Private Async Function ConvertToAsync(node As StatementSyntax, semanticModel As SemanticModel, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Async Function ConvertToAsync(node As StatementSyntax,
+                                              semanticModel As SemanticModel,
+                                              document As Document,
+                                              cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
             Dim methodNode = TryCast(node, MethodStatementSyntax)
             If methodNode IsNot Nothing Then
                 Return Await ConvertMethodToAsync(document, semanticModel, methodNode, cancellationToken).ConfigureAwait(False)
@@ -76,7 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
             Dim lambdaNode = TryCast(node, LambdaHeaderSyntax)
             If lambdaNode IsNot Nothing Then
-                Return lambdaNode.AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)).WithAdditionalAnnotations(Formatter.Annotation)
+                Dim newNode = lambdaNode.AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)).WithAdditionalAnnotations(Formatter.Annotation)
+                Return SpecializedCollections.SingletonList(New DescriptionAndNode(
+                    FeaturesResources.Make_containing_scope_async,
+                    newNode))
             End If
 
             Return Nothing
@@ -99,12 +107,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return methodNode.AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)).WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Protected Overrides Function AddAsyncKeywordAndTaskReturnType(node As SyntaxNode, existingReturnType As ITypeSymbol, taskTypeSymbol As INamedTypeSymbol) As SyntaxNode
+        Protected Overrides Function AddAsyncKeywordAndTaskReturnType(
+                node As SyntaxNode,
+                existingReturnType As ITypeSymbol,
+                taskTypeSymbol As INamedTypeSymbol) As SyntaxNode
             Dim methodNode = TryCast(node, MethodStatementSyntax)
             If methodNode Is Nothing Then
                 Return Nothing
             End If
+
             If taskTypeSymbol Is Nothing Then
+                Return Nothing
+            End If
+
+            If existingReturnType Is Nothing Then
                 Return Nothing
             End If
 

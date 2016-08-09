@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
-        protected override async Task<IList<Data>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        protected override async Task<IList<DescriptionAndNode>> GetDataAsync(
+            SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var newRoot = await GetNewRootAsync(
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            return SpecializedCollections.SingletonList(new Data(
+            return SpecializedCollections.SingletonList(new DescriptionAndNode(
                 CSharpFeaturesResources.Insert_await,
                 newRoot));
         }

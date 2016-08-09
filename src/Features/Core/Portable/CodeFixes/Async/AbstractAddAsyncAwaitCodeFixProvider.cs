@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAddAsyncAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
-        protected abstract Task<IList<Data>> GetDataAsync(
+        protected abstract Task<IList<DescriptionAndNode>> GetDataAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);
 
         protected override async Task<IList<CodeAction>> GetCodeActionsAsync(
@@ -19,13 +19,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var data = await this.GetDataAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            if (data == null)
+            {
+                return null;
+            }
+
             var result = new List<CodeAction>();
 
             foreach (var item in data)
             {
                 var action = new MyCodeAction(
                     item.Description,
-                    c => Task.FromResult(document.WithSyntaxRoot(item.NewRoot)));
+                    c => Task.FromResult(document.WithSyntaxRoot(item.Node)));
                 result.Add(action);
             }
 
@@ -57,15 +62,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        protected struct Data
+        protected struct DescriptionAndNode
         {
             public readonly string Description;
-            public readonly SyntaxNode NewRoot;
+            public readonly SyntaxNode Node;
 
-            public Data(string description, SyntaxNode newRoot)
+            public DescriptionAndNode(string description, SyntaxNode node)
             {
                 Description = description;
-                NewRoot = newRoot;
+                Node = node;
             }
         }
     }

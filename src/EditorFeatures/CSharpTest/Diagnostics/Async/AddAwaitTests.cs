@@ -497,7 +497,16 @@ class Program
         public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
             await TestMissingAsync(
-@"using System . Threading . Tasks ; class TestClass { private Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System . Threading . Tasks ;
+class TestClass { 
+    private Task MyTestMethod1Async ( ) { 
+        long myInt = [|MyIntMethodAsync ( )|] ; 
+    } 
+
+    private Task < int > MyIntMethodAsync ( ) { 
+        return Task . FromResult ( result : 1 ) ; 
+    } 
+} ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]

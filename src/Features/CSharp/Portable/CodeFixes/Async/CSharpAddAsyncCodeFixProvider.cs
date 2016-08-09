@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -39,21 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4032, CS4033, CS4034); }
         }
 
-        protected override async Task<IList<Data>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
-        {
-            var newRoot = await GetNewRootAsync(
-                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
-            if (newRoot == null)
-            {
-                return null;
-            }
-
-            return SpecializedCollections.SingletonList(new Data(
-                CSharpFeaturesResources.Make_the_containing_scope_async,
-                newRoot));
-        }
-
-        private async Task<SyntaxNode> GetNewRootAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        protected override async Task<IList<DescriptionAndNode>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var nodeToModify = GetContainingMember(oldNode);
             if (nodeToModify == null)
@@ -61,13 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var modifiedNode = await ConvertToAsync(nodeToModify, semanticModel, document, cancellationToken).ConfigureAwait(false);
-            if (modifiedNode != null)
+            var nodesAndDescriptions = await ConvertToAsync(nodeToModify, semanticModel, document, cancellationToken).ConfigureAwait(false);
+            if (nodesAndDescriptions == null)
             {
-                return root.ReplaceNode(nodeToModify, modifiedNode);
+                return null;
             }
 
-            return null;
+            var q = from n in nodesAndDescriptions
+                    let newRoot = root.ReplaceNode(nodeToModify, n.Node)
+                    select new DescriptionAndNode(n.Description, newRoot);
+
+            return q.ToList();
         }
 
         private static SyntaxNode GetContainingMember(SyntaxNode oldNode)
@@ -98,47 +88,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return null;
         }
 
-        private Task<SyntaxNode> ConvertToAsync(SyntaxNode node, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        private Task<IList<DescriptionAndNode>> ConvertToAsync(
+            SyntaxNode node, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
         {
-            return node.TypeSwitch(
-                (MethodDeclarationSyntax methodNode) => ConvertMethodToAsync(document, semanticModel, methodNode, cancellationToken),
-                (ParenthesizedLambdaExpressionSyntax parenthesizedLambda) => Task.FromResult(ConvertParenthesizedLambdaToAsync(parenthesizedLambda)),
-                (SimpleLambdaExpressionSyntax simpleLambda) => Task.FromResult(ConvertSimpleLambdaToAsync(simpleLambda)),
-                (AnonymousMethodExpressionSyntax anonymousMethod) => Task.FromResult(ConvertAnonymousMethodToAsync(anonymousMethod)),
-                @default => Task.FromResult<SyntaxNode>(null));
+            if (node is MethodDeclarationSyntax)
+            {
+                return ConvertMethodToAsync(document, semanticModel, node, cancellationToken);
+            }
+
+            var newNode = node.TypeSwitch(
+                (ParenthesizedLambdaExpressionSyntax parenthesizedLambda) => ConvertParenthesizedLambdaToAsync(parenthesizedLambda),
+                (SimpleLambdaExpressionSyntax simpleLambda) => ConvertSimpleLambdaToAsync(simpleLambda),
+                (AnonymousMethodExpressionSyntax anonymousMethod) => ConvertAnonymousMethodToAsync(anonymousMethod));
+
+            return Task.FromResult(SpecializedCollections.SingletonList(new DescriptionAndNode(
+                FeaturesResources.Make_containing_scope_async,
+                newNode)));
         }
 
-        private static SyntaxNode ConvertParenthesizedLambdaToAsync(ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
+        private static SyntaxNode ConvertParenthesizedLambdaToAsync(
+            ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
         {
             return SyntaxFactory.ParenthesizedLambdaExpression(
-                                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
-                                parenthesizedLambda.ParameterList,
-                                parenthesizedLambda.ArrowToken,
-                                parenthesizedLambda.Body)
-                                .WithTriviaFrom(parenthesizedLambda)
-                                .WithAdditionalAnnotations(Formatter.Annotation);
+                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
+                parenthesizedLambda.ParameterList,
+                parenthesizedLambda.ArrowToken,
+                parenthesizedLambda.Body)
+                .WithTriviaFrom(parenthesizedLambda)
+                .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private static SyntaxNode ConvertSimpleLambdaToAsync(SimpleLambdaExpressionSyntax simpleLambda)
+        private static SyntaxNode ConvertSimpleLambdaToAsync(
+            SimpleLambdaExpressionSyntax simpleLambda)
         {
             return SyntaxFactory.SimpleLambdaExpression(
-                                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
-                                simpleLambda.Parameter,
-                                simpleLambda.ArrowToken,
-                                simpleLambda.Body)
-                                .WithTriviaFrom(simpleLambda)
-                                .WithAdditionalAnnotations(Formatter.Annotation);
+                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
+                simpleLambda.Parameter,
+                simpleLambda.ArrowToken,
+                simpleLambda.Body)
+                .WithTriviaFrom(simpleLambda)
+                .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private static SyntaxNode ConvertAnonymousMethodToAsync(AnonymousMethodExpressionSyntax anonymousMethod)
+        private static SyntaxNode ConvertAnonymousMethodToAsync(
+            AnonymousMethodExpressionSyntax anonymousMethod)
         {
             return SyntaxFactory.AnonymousMethodExpression(
-                                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
-                                anonymousMethod.DelegateKeyword,
-                                anonymousMethod.ParameterList,
-                                anonymousMethod.Block)
-                                .WithTriviaFrom(anonymousMethod)
-                                .WithAdditionalAnnotations(Formatter.Annotation);
+                SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
+                anonymousMethod.DelegateKeyword,
+                anonymousMethod.ParameterList,
+                anonymousMethod.Block)
+                .WithTriviaFrom(anonymousMethod)
+                .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override SyntaxNode AddAsyncKeyword(SyntaxNode node)
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected override SyntaxNode AddAsyncKeywordAndTaskReturnType(SyntaxNode node, ITypeSymbol existingReturnType, INamedTypeSymbol taskTypeSymbol)
+        protected override SyntaxNode AddAsyncKeywordAndTaskReturnType(
+            SyntaxNode node, ITypeSymbol existingReturnType, INamedTypeSymbol taskTypeSymbol)
         {
             var methodNode = node as MethodDeclarationSyntax;
             if (methodNode == null)
@@ -167,7 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return null;
             }
 
-            var returnType = taskTypeSymbol.Construct(existingReturnType).GenerateTypeSyntax();
+            var returnTypeSymbol = existingReturnType == null
+                ? taskTypeSymbol
+                : taskTypeSymbol.Construct(existingReturnType);
+
+            var returnType = returnTypeSymbol.GenerateTypeSyntax();
             return AddAsyncKeyword(methodNode.WithReturnType(returnType));
         }
 
