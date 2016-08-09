@@ -158,7 +158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         {
                             var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
-                            CollectLocalsFromDeconstruction(decl.Assignment.VariableComponent, LocalDeclarationKind.RegularVariable, locals);
+                            CollectLocalsFromDeconstruction(
+                                decl.Assignment.VariableComponent,
+                                LocalDeclarationKind.RegularVariable,
+                                locals,
+                                innerStatement);
                             break;
                         }
                     case SyntaxKind.LocalDeclarationStatement:
@@ -181,7 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locals.ToImmutableAndFree();
         }
 
-        internal void CollectLocalsFromDeconstruction(VariableComponentSyntax declaration, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        internal void CollectLocalsFromDeconstruction(
+            VariableComponentSyntax declaration,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement)
         {
             switch (declaration.Kind())
             {
@@ -190,14 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var component = (ParenthesizedVariableComponentSyntax)declaration;
                         foreach (var decl in component.Variables)
                         {
-                            CollectLocalsFromDeconstruction(decl, kind, locals);
+                            CollectLocalsFromDeconstruction(decl, kind, locals, deconstructionStatement);
                         }
                         break;
                     }
                 case SyntaxKind.TypedVariableComponent:
                     {
                         var component = (TypedVariableComponentSyntax)declaration;
-                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals);
+                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals, deconstructionStatement);
                         break;
                     }
                 default:
@@ -205,7 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void CollectLocalsFromDeconstruction(VariableDesignationSyntax designation, TypeSyntax closestTypeSyntax, LocalDeclarationKind kind, ArrayBuilder<LocalSymbol> locals)
+        internal void CollectLocalsFromDeconstruction(
+            VariableDesignationSyntax designation,
+            TypeSyntax closestTypeSyntax,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement)
         {
             switch (designation.Kind())
             {
@@ -217,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                     this,
                                                                     closestTypeSyntax,
                                                                     single.Identifier,
-                                                                    kind);
+                                                                    kind,
+                                                                    deconstructionStatement);
                         locals.Add(localSymbol);
                         break;
                     }
@@ -226,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var tuple = (ParenthesizedVariableDesignationSyntax)designation;
                         foreach (var d in tuple.Variables)
                         {
-                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals);
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement);
                         }
                         break;
                     }
