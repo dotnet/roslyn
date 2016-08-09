@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         protected abstract SyntaxNode AddAsyncKeywordAndTaskReturnType(SyntaxNode methodNode, ITypeSymbol existingReturnType, INamedTypeSymbol taskTypeSymbol);
         protected abstract bool DoesConversionExist(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
-        protected async Task<SyntaxNode> ConvertMethodToAsync(Document document, SemanticModel semanticModel, SyntaxNode methodNode, CancellationToken cancellationToken)
+        protected async Task<SyntaxNode> ConvertMethodToAsync(
+            Document document, SemanticModel semanticModel, SyntaxNode methodNode, CancellationToken cancellationToken)
         {
             var methodSymbol = semanticModel.GetDeclaredSymbol(methodNode, cancellationToken) as IMethodSymbol;
 

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -36,12 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4032, CS4033, CS4034); }
         }
 
-        protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override async Task<IList<Data>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
-            return CSharpFeaturesResources.Make_the_containing_scope_async;
+            var newRoot = await GetNewRootAsync(
+                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            if (newRoot == null)
+            {
+                return null;
+            }
+
+            return SpecializedCollections.SingletonList(new Data(
+                CSharpFeaturesResources.Make_the_containing_scope_async,
+                newRoot));
         }
 
-        protected override async Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetNewRootAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var nodeToModify = GetContainingMember(oldNode);
             if (nodeToModify == null)

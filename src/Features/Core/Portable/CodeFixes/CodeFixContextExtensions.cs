@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         internal static void RegisterFixes(this CodeFixContext context, IEnumerable<CodeAction> actions, ImmutableArray<Diagnostic> diagnostics)
         {
-            foreach (var action in actions)
+            if (actions != null)
             {
-                context.RegisterCodeFix(action, diagnostics);
+                foreach (var action in actions)
+                {
+                    context.RegisterCodeFix(action, diagnostics);
+                }
             }
         }
     }

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -36,10 +38,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
-        protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken) =>
-            CSharpFeaturesResources.Insert_await;
+        protected override async Task<IList<Data>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        {
+            var newRoot = await GetNewRootAsync(
+                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            if (newRoot == null)
+            {
+                return null;
+            }
 
-        protected override Task<SyntaxNode> GetNewRoot(
+            return SpecializedCollections.SingletonList(new Data(
+                CSharpFeaturesResources.Insert_await,
+                newRoot));
+        }
+
+        private Task<SyntaxNode> GetNewRootAsync(
             SyntaxNode root,
             SyntaxNode oldNode,
             SemanticModel semanticModel,

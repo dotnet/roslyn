@@ -27,11 +27,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Function GetDescription(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As String
-            Return VBFeaturesResources.Make_the_containing_scope_Async
+        Protected Overrides Async Function GetDataAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of Data))
+            Dim newRoot = Await GetNewRootAsync(
+                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(False)
+            If newRoot Is Nothing Then
+                Return Nothing
+            End If
+
+            Return SpecializedCollections.SingletonList(New Data(
+                VBFeaturesResources.Make_the_containing_scope_Async,
+                newRoot))
         End Function
 
-        Protected Overrides Async Function GetNewRoot(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Async Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim methodNode = GetContainingMember(oldNode)
             If methodNode Is Nothing Then
                 Return Nothing
