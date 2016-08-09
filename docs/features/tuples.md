@@ -9,7 +9,7 @@ Quickstart guide (C#)
 ---------------------
 1. Install dev15 preview 4
 2. Start a C# project
-3. Add a reference to the `System.ValueTuple` nuget package (pre-release)
+3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
 4. Use tuples:
 
     ```C#
