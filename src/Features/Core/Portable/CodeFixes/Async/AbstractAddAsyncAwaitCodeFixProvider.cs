@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAddAsyncAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
-        protected abstract Task<IList<DescriptionAndNode>> GetDataAsync(
+        protected abstract Task<IList<DescriptionAndNode>> GetDescriptionsAndNodes(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);
 
         protected override async Task<IList<CodeAction>> GetCodeActionsAsync(
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var data = await this.GetDataAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            var data = await this.GetDescriptionsAndNodes(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (data == null)
             {
                 return null;

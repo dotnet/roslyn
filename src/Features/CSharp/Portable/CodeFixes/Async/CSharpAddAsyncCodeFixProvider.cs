@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4032, CS4033, CS4034); }
         }
 
-        protected override async Task<IList<DescriptionAndNode>> GetDataAsync(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        protected override async Task<IList<DescriptionAndNode>> GetDescriptionsAndNodes(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var nodeToModify = GetContainingMember(oldNode);
             if (nodeToModify == null)

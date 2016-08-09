@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Async Function GetDataAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
+        Protected Overrides Async Function GetDescriptionsAndNodes(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
             Dim newRoot = Await GetNewRootAsync(
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(False)
             If newRoot Is Nothing Then
