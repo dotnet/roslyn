@@ -1034,8 +1034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (analyzedInitializers != null)
                             {
                                 // For dynamic analysis, field initializers are instrumented as part of constructors,
-                                // and so are never instrumented here.  
-                                const bool instrumentFieldInitializersForDynamicAnalysis = false;
+                                // and so are never instrumented here.
+                                Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
-                                    instrumentFieldInitializersForDynamicAnalysis,
+                                    instrumentForDynamicAnalysis,
                                     _debugDocumentProvider,
                                     ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,

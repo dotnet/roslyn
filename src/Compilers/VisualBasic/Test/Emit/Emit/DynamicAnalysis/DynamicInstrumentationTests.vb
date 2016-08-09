@@ -1225,7 +1225,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestFieldInitializerSpans()
+        Public Sub TestFieldInitializersCoverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -1268,6 +1268,9 @@ Class C
     Sub New(a As Integer, b As Integer)         ' Method 7
         _z = a + b
     End Sub
+
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
 End Class
 ]]>
                                          </file>
@@ -1297,8 +1300,10 @@ True
 True
 True
 True
+True
 Method 5
 File 1
+True
 True
 True
 True
@@ -1309,7 +1314,8 @@ True
 True
 True
 True
-Method 10
+True
+Method 14
 File 1
 True
 True
@@ -1329,7 +1335,7 @@ True
         End Sub
 
         <Fact>
-        Public Sub TestImplicitConstructorSpans()
+        Public Sub TestImplicitConstructorConverage()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -1360,6 +1366,9 @@ Class C
     Public Shared s_x As Integer = Init()
     Public Shared s_y As Integer = Init() + 153
     Public Shared s_z As Integer = 144
+    
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
 End Class
 ]]>
                                          </file>
@@ -1384,15 +1393,17 @@ File 1
 True
 True
 True
+True
 Method 4
 File 1
+True
 True
 True
 Method 5
 File 1
 True
 True
-Method 8
+Method 12
 File 1
 True
 True

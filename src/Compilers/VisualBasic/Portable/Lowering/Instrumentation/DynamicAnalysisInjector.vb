@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initializer IsNot Nothing Then
                         Return initializer.Syntax
                     End If
-                Case BoundKind.FieldInitializer
+                Case BoundKind.FieldInitializer, BoundKind.PropertyInitializer
                     Dim equalsValue = TryCast(statement.Syntax, EqualsValueSyntax)
                     If equalsValue IsNot Nothing Then
                         Return equalsValue.Value
