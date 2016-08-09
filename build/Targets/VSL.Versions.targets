@@ -75,6 +75,11 @@
               <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
           </PropertyGroup>
       </When>
+      <When Condition="'$(BUILD_SOURCEVERSION)' == '' and '$(GIT_COMMIT)' != ''">
+          <PropertyGroup>
+              <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
+          </PropertyGroup>
+      </When>
       <Otherwise>
           <PropertyGroup>
             <GitHeadSha>Not found</GitHeadSha>
