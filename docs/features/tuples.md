@@ -5,8 +5,8 @@ Changes in design will be applied to this document as the changes are implemente
 
 -----------------------------------
 
-Quickstart guide (C#)
----------------------
+Quickstart guide for tuples (C# 7.0)
+------------------------------------
 1. Install dev15 preview 4
 2. Start a C# project
 3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
