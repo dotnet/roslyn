@@ -1223,6 +1223,7 @@ True
 
             CompileAndVerify(source, expectedOutput)
         End Sub
+
         <Fact>
         Public Sub TestFieldInitializerSpans()
             Dim testSource As XElement = <file name="c.vb">
@@ -1309,6 +1310,89 @@ True
 True
 True
 Method 10
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub TestImplicitConstructorSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                           ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                              ' Method 2
+        Dim local As New C()
+        Dim x As Integer = local._x + C.s_x
+    End Sub
+End Module
+
+Class C
+
+    ' Method 3 is the implicit shared constructor.
+    ' Method 4 is the implicit instance constructor.
+
+    Shared Function Init() As Integer           ' Method 5
+        Return 33
+    End Function
+    
+    Public _x As Integer = Init()
+    Public _y As Integer = Init() + 12
+    Public Shared s_x As Integer = Init()
+    Public Shared s_y As Integer = Init() + 153
+    Public Shared s_z As Integer = 144
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+True
+Method 4
+File 1
+True
+True
+Method 5
+File 1
+True
+True
+Method 8
 File 1
 True
 True

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
             ' Do not instrument implicitly-declared methods.
-            If Not method.IsImplicitlyDeclared Then
+            If Not method.IsImplicitlyDeclared OrElse method.IsAnyConstructor Then
                 Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
 
                 ' Do not instrument any methods if CreatePayload is not present.
@@ -70,7 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The first point indicates entry into the method and has the span of the method definition.
             Dim bodySyntax As VisualBasicSyntaxNode = methodBody.Syntax
-            _methodEntryInstrumentation = AddAnalysisPoint(bodySyntax, SkipAttributes(bodySyntax), methodBodyFactory)
+            If Not method.IsImplicitlyDeclared Then
+                _methodEntryInstrumentation = AddAnalysisPoint(bodySyntax, SkipAttributes(bodySyntax), methodBodyFactory)
+            End If
         End Sub
 
         Public Overrides Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
@@ -106,7 +108,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim prologueStatements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance(If(previousPrologue Is Nothing, 3, 4))
                 prologueStatements.Add(payloadInitialization)
                 prologueStatements.Add(payloadIf)
-                prologueStatements.Add(_methodEntryInstrumentation)
+                If _methodEntryInstrumentation IsNot Nothing Then
+                    prologueStatements.Add(_methodEntryInstrumentation)
+                End If
                 If previousPrologue IsNot Nothing Then
                     prologueStatements.Add(previousPrologue)
                 End If
