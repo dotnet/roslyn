@@ -1761,6 +1761,11 @@ namespace Microsoft.Cci
             if (_debugMetadataOpt != null)
             {
                 DefineModuleImportScope();
+
+                if (module.SourceLinkStream != null)
+                {
+                    EmbedSourceLink(module.SourceLinkStream);
+                }
             }
 
             int[] methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);

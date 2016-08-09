@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -267,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachComponentStatement:
                     return true;
             }
 
@@ -894,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (WhileStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (DoStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (ForStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
+                (CommonForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (UsingStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (FixedStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
                 (LockStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
@@ -924,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
                    node is FixedStatementSyntax ||
-                   node is ForEachStatementSyntax ||
+                   node is CommonForEachStatementSyntax ||
                    node is ForStatementSyntax ||
                    node is IfStatementSyntax ||
                    node is LabeledStatementSyntax ||
@@ -939,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (DoStatementSyntax n) => n.Statement,
                 (ElseClauseSyntax n) => n.Statement,
                 (FixedStatementSyntax n) => n.Statement,
-                (ForEachStatementSyntax n) => n.Statement,
+                (CommonForEachStatementSyntax n) => n.Statement,
                 (ForStatementSyntax n) => n.Statement,
                 (IfStatementSyntax n) => n.Statement,
                 (LabeledStatementSyntax n) => n.Statement,

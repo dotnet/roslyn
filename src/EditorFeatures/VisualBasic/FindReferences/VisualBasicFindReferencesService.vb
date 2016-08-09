@@ -17,4 +17,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindReferences
             MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
         End Sub
     End Class
+
+    <ExportLanguageService(GetType(IStreamingFindReferencesService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicStreamingFindReferencesService
+        Inherits AbstractFindReferencesService
+
+        <ImportingConstructor>
+        Protected Sub New(<ImportMany> referencedSymbolsPresenters As IEnumerable(Of IDefinitionsAndReferencesPresenter),
+                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter),
+                          <ImportMany> externalReferencesProviders As IEnumerable(Of IFindReferencesResultProvider))
+            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
+        End Sub
+    End Class
 End Namespace

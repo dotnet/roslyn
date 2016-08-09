@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DebugType)]; }
         }
 
+        public string SourceLink
+        {
+            set { _store[nameof(SourceLink)] = value; }
+            get { return (string)_store[nameof(SourceLink)]; }
+        }
+
         public string DefineConstants
         {
             set { _store[nameof(DefineConstants)] = value; }
@@ -715,6 +721,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
             commandLine.AppendSwitchIfNotNull("/instrument:", Instrument);
+            commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
 
             AddFeatures(commandLine, Features);
         }

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 if (block.Parent is ParenthesizedLambdaExpressionSyntax ||
                     block.Parent is SimpleLambdaExpressionSyntax ||
                     block.Parent is AnonymousMethodExpressionSyntax ||
-                    block.Parent is ForEachStatementSyntax ||
+                    block.Parent is CommonForEachStatementSyntax ||
                     block.Parent is ForStatementSyntax ||
                     block.Parent is WhileStatementSyntax ||
                     block.Parent is DoStatementSyntax)

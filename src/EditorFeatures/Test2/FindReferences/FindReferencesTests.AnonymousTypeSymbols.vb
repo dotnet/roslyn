@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousType1() As Task
             Dim input =
 <Workspace>
@@ -23,11 +23,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousType2() As Task
             Dim input =
 <Workspace>
@@ -45,11 +45,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousType3() As Task
             Dim input =
 <Workspace>
@@ -69,11 +69,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousType4() As Task
             Dim input =
 <Workspace>
@@ -93,11 +93,11 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousType5() As Task
             Dim input =
 <Workspace>
@@ -119,11 +119,11 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCaseInsensitiveAnonymousType1() As Task
             Dim input =
 <Workspace>
@@ -139,11 +139,11 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCaseInsensitiveAnonymousType2() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -159,7 +159,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

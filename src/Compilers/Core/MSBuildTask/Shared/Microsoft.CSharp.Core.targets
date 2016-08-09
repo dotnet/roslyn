@@ -136,6 +136,7 @@
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
           PathMap="$(PathMap)"
+          SourceLink="$(SourceLink)"
           >
       <Output TaskParameter="CommandLineArgs" ItemName="CscCommandLineArgs" />
     </Csc>

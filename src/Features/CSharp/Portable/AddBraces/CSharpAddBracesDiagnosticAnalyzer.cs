@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
                 SyntaxKind.ForEachStatement,
+                SyntaxKind.ForEachComponentStatement,
                 SyntaxKind.WhileStatement,
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement,
@@ -79,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 }
             }
 
-            if (node.IsKind(SyntaxKind.ForEachStatement))
+            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachComponentStatement))
             {
-                var forEachStatement = (ForEachStatementSyntax)node;
+                var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         private bool AnalyzeForStatement(ForStatementSyntax forStatement) =>
             !forStatement.Statement.IsKind(SyntaxKind.Block);
 
-        private bool AnalyzeForEachStatement(ForEachStatementSyntax forEachStatement) =>
+        private bool AnalyzeForEachStatement(CommonForEachStatementSyntax forEachStatement) =>
             !forEachStatement.Statement.IsKind(SyntaxKind.Block);
 
         private bool AnalyzeWhileStatement(WhileStatementSyntax whileStatement) =>

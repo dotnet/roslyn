@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, _syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
 
                     if (declarator.Initializer != null)
                     {
-                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator.Initializer.Value);
                     }
                 }
 

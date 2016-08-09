@@ -383,6 +383,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.CompletionWarning:
                     return KnownMonikers.IntellisenseWarning;
 
+                case Glyph.StatusInformation:
+                    return KnownMonikers.StatusInformation;
+
                 case Glyph.NuGet:
                     return KnownMonikers.NuGet;
 
@@ -629,6 +632,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                     case CompletionTags.Warning:
                         return Glyph.CompletionWarning;
+
+                case CompletionTags.StatusInformation:
+                    return Glyph.StatusInformation;
                 }
             }
 

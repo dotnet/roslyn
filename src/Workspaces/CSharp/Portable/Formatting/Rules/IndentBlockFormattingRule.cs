@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var foreachStatement = node as ForEachStatementSyntax;
+            var foreachStatement = node as CommonForEachStatementSyntax;
             if (foreachStatement != null && foreachStatement.Statement != null && !(foreachStatement.Statement is BlockSyntax))
             {
                 AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);

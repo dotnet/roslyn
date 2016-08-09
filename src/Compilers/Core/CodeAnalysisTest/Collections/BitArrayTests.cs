@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
                 var required = BitVector.WordsRequired(capacity);
                 var count = BitVector.AllSet(capacity).Words().Count();
+
+                Assert.Equal(required, count);
             }
         }
 

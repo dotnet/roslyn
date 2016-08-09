@@ -15,6 +15,7 @@ internal sealed class Arguments
     public bool DisplayStatistics { get; private set; }
     public bool DisplayAssemblyReferences { get; private set; }
     public bool DisplayIL { get; private set; }
+    public bool DisplayEmbeddedPdb { get; private set; }
     public bool DisplayMetadata { get; private set; }
     public string OutputPath { get; private set; }
     public ImmutableArray<string> FindRefs { get; private set; }
@@ -29,6 +30,7 @@ Parameters:
 /assemblyRefs[+|-]                        Display/hide assembly references.
 /il[+|-]                                  Display/hide IL of method bodies.
 /md[+|-]                                  Display/hide metadata tables.
+/embeddedpdb[+|-]                         Display embedded PDB insted of the type system metadata.
 /findRef:<MemberRefs>                     Displays all assemblies containing the specified MemberRefs: 
                                           a semicolon separated list of 
                                           <assembly display name>:<qualified-type-name>:<member-name>
@@ -75,6 +77,7 @@ If /g is specified the path must be baseline PE file (generation 0).
 
         result.DisplayIL = ParseFlagArg(args, "il", defaultValue: !result.Recursive && !findRefs);
         result.DisplayMetadata = ParseFlagArg(args, "md", defaultValue: !result.Recursive && !findRefs);
+        result.DisplayEmbeddedPdb = ParseFlagArg(args, "embeddedpdb", defaultValue: false);
         result.DisplayStatistics = ParseFlagArg(args, "stats", defaultValue: result.Recursive && !findRefs);
         result.DisplayAssemblyReferences = ParseFlagArg(args, "stats", defaultValue: !findRefs);
         result.OutputPath = ParseValueArg(args, "out");
@@ -90,11 +93,12 @@ If /g is specified the path must be baseline PE file (generation 0).
 
     private static bool ParseFlagArg(string[] args, string name, bool defaultValue)
     {
-        string onStr = "/" + name + "+";
+        string onStr1 = "/" + name;
+        string onStr2 = "/" + name + "+";
         string offStr = "/" + name + "-";
 
         return args.Aggregate(defaultValue, (value, arg) =>
-            arg.Equals(onStr, StringComparison.OrdinalIgnoreCase) ? true :
+            arg.Equals(onStr1, StringComparison.OrdinalIgnoreCase) || arg.Equals(onStr2, StringComparison.OrdinalIgnoreCase) ? true :
             arg.Equals(offStr, StringComparison.OrdinalIgnoreCase) ? false :
             value);
     }

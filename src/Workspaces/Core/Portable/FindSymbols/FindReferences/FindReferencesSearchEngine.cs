@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
+        private readonly ProgressTracker _progressTracker;
         private readonly IFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -50,12 +52,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+
+            _progressTracker = new ProgressTracker(progress.ReportProgress);
         }
 
         public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol)
         {
             _progress.OnStarted();
-            _progress.ReportProgress(0, 1);
+            _progressTracker.AddItems(1);
             try
             {
                 var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                _progress.ReportProgress(1, 1);
+                _progressTracker.ItemCompleted();
                 _progress.OnCompleted();
             }
 
@@ -92,6 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
                 var projectMap = CreateProjectMap(documentMap);
 
+                _progressTracker.AddItems(connectedProjects.Flatten().Count());
                 foreach (var projectSet in connectedProjects)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();

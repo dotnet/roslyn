@@ -34,12 +34,12 @@ class c
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() => 0;").WithArguments("local functions", "7").WithLocation(6, 9),
-                // (10,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() { return 0; }").WithArguments("local functions", "7").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(10, 13)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);

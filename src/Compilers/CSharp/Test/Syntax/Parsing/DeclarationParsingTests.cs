@@ -1960,9 +1960,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.ReturnType);
-            Assert.Equal("a", ds.ReturnType.ToString());
+            Assert.Equal("ref a", ds.ReturnType.ToString());
             Assert.NotNull(ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
             Assert.NotNull(ds.ParameterList.OpenParenToken);
@@ -2447,10 +2446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
-            Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.RefKeyword);
             Assert.NotNull(ms.ReturnType);
-            Assert.Equal("b", ms.ReturnType.ToString());
+            Assert.Equal("ref b", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -3813,9 +3810,8 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
@@ -4689,9 +4685,8 @@ class Class1<T>{
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 

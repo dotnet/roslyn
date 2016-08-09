@@ -189,6 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case TupleElement:
                         return ((TupleElementSyntax)parent).Type == node;
+
+                    case TypedVariableComponent:
+                        return ((TypedVariableComponentSyntax)parent).Type == node;
                 }
             }
 
@@ -385,59 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
         }
 
-        /// <summary>
-        /// Figures out if this expression is a type in a deconstruction-declaration.
-        /// Outputs the VariableDeclarationSyntax directly containing it, if that is the case.
-        /// </summary>
-        internal static bool IsDeconstructionType(ExpressionSyntax expression, out SyntaxNode parent)
+        internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
         {
-            if ((parent = expression.Parent)?.Kind() != SyntaxKind.VariableDeclaration)
-            {
-                return false;
-            }
-
-            SyntaxNode ignored;
-            return IsDeconstruction((VariableDeclarationSyntax)parent, out ignored);
-        }
-
-        /// <summary>
-        /// Figures out if this token is an identifier in a deconstruction-declaration.
-        /// Outputs the top-level VariableDeclarationSyntax if that is the case.
-        /// </summary>
-        internal static bool IsDeconstructionIdentifier(SyntaxToken identifier, out SyntaxNode parent)
-        {
-            if ((parent = identifier.Parent)?.Kind() != SyntaxKind.VariableDeclarator)
-            {
-                return false;
-            }
-
-            if ((parent = parent.Parent)?.Kind() != SyntaxKind.VariableDeclaration)
-            {
-                return false;
-            }
-
-            return IsDeconstruction((VariableDeclarationSyntax)parent, out parent);
-        }
-
-        private static bool IsDeconstruction(VariableDeclarationSyntax declaration, out SyntaxNode parent)
-        {
-            parent = declaration;
-
-            while (true)
-            {
-                SyntaxNode skipParent = parent.Parent;
-                if (skipParent?.Kind() != SyntaxKind.VariableDeconstructionDeclarator)
-                {
-                    break;
-                }
-
-                if ((parent = skipParent.Parent)?.Kind() != SyntaxKind.VariableDeclaration)
-                {
-                    break;
-                }
-            }
-
-            return ((VariableDeclarationSyntax)parent).IsDeconstructionDeclaration;
+            var component = node.Parent as TypedVariableComponentSyntax;
+            parent = component;
+            return node == component?.Type;
         }
     }
 }

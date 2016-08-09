@@ -19,14 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
-        {
-            get
-            {
-                return ConsList<LocalSymbol>.Empty;
-            }
-        }
-
         internal override ImportChain ImportChain
         {
             get
@@ -182,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;

@@ -8387,6 +8387,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        /// </summary>
+        internal static string ERR_SourceLinkRequiresPortablePdb {
+            get {
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method.
         /// </summary>
         internal static string ERR_SpecialByRefInLambda {
@@ -9274,15 +9283,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VoidError {
             get {
                 return ResourceManager.GetString("ERR_VoidError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Void-returning methods cannot return by reference.
-        /// </summary>
-        internal static string ERR_VoidReturningMethodCannotReturnByRef {
-            get {
-                return ResourceManager.GetString("ERR_VoidReturningMethodCannotReturnByRef", resourceCulture);
             }
         }
         
@@ -13360,6 +13360,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_TooManyLinesForDebugger_Title {
             get {
                 return ResourceManager.GetString("WRN_TooManyLinesForDebugger_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the assignment target..
+        /// </summary>
+        internal static string WRN_TupleLiteralNameMismatch {
+            get {
+                return ResourceManager.GetString("WRN_TupleLiteralNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
+        /// </summary>
+        internal static string WRN_TupleLiteralNameMismatch_Title {
+            get {
+                return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture);
             }
         }
         

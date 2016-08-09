@@ -85,24 +85,6 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Dependencies\DiaSymReader.PortablePdb\DiaSymReader.PortablePdb.csproj">
-      <Project>{d06f8190-ac11-48e6-b0bf-5f17b7eb7b62}</Project>
-      <Name>DiaSymReader.PortablePdb</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

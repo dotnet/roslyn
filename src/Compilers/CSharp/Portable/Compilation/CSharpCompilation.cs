@@ -2221,6 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
+            Stream sourceLinkStream,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -2265,6 +2266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 moduleBeingBuilt.SetDebugEntryPoint((MethodSymbol)debugEntryPoint, diagnostics);
             }
+
+            moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream;
 
             // testData is only passed when running tests.
             if (testData != null)
@@ -2352,19 +2355,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!moduleBuilder.EmitOptions.EmitMetadataOnly);
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
+            var resourceDiagnostics = DiagnosticBag.GetInstance();
 
-            var moduleBeingBuilt = (PEModuleBuilder)moduleBuilder;
-
-            SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);
+            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
 
             ReportManifestResourceDuplicates(
-                moduleBeingBuilt.ManifestResources,
-                SourceAssembly.Modules.Skip(1).Select((m) => m.Name),   //all modules except the first one
-                AddedModulesResourceNames(methodBodyDiagnosticBag),
-                methodBodyDiagnosticBag);
+                moduleBuilder.ManifestResources,
+                SourceAssembly.Modules.Skip(1).Select(m => m.Name),   //all modules except the first one
+                AddedModulesResourceNames(resourceDiagnostics),
+                resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics))
             {
                 return false;
             }
@@ -2372,9 +2373,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            DiagnosticBag xmlDiagnostics = DiagnosticBag.GetInstance();
+            var xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension: null);
+            string assemblyName = FileNameUtilities.ChangeExtension(moduleBuilder.EmitOptions.OutputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
@@ -2610,25 +2611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp, () => tree.GetChecksumAndAlgorithm());
         }
 
-        private void SetupWin32Resources(PEModuleBuilder moduleBeingBuilt, Stream win32Resources, DiagnosticBag diagnostics)
-        {
-            if (win32Resources == null)
-                return;
-
-            switch (DetectWin32ResourceForm(win32Resources))
-            {
-                case Win32ResourceForm.COFF:
-                    moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
-                    break;
-                case Win32ResourceForm.RES:
-                    moduleBeingBuilt.Win32Resources = MakeWin32ResourceList(win32Resources, diagnostics);
-                    break;
-                default:
-                    diagnostics.Add(ErrorCode.ERR_BadWin32Res, NoLocation.Singleton, "Unrecognized file format.");
-                    break;
-            }
-        }
-
         internal override bool HasCodeToEmit()
         {
             foreach (var syntaxTree in this.SyntaxTrees)
@@ -2844,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
             }
 
-            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var fields = memberTypes.ZipAsArray(memberNames, (type, name) => new AnonymousTypeField(name, Location.None, (TypeSymbol)type));
             var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);

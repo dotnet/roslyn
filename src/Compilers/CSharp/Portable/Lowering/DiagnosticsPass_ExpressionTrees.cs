@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }
-                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }
-                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
