@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private class ProjectState
         {
+            private static readonly Task<StrongBox<ImmutableArray<DiagnosticData>>> s_emptyResultTaskCache =
+                Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty));
+
             // project id of this state
             private readonly StateSet _owner;
 
@@ -385,6 +388,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CacheEntry entry;
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
                 {
+                    if (entry.Diagnostics.Length == 0)
+                    {
+                        // if there is no result, use cached task
+                        return s_emptyResultTaskCache;
+                    }
+
                     return Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(entry.Diagnostics));
                 }
 
