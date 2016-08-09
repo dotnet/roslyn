@@ -742,7 +742,6 @@
     <Compile Include="SymbolSearch\SymbolSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
-    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">

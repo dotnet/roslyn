@@ -1,2 +1,0 @@
-Microsoft.VisualStudio.LanguageServices.Implementation.DetailedErrorInfoDialog
-Microsoft.VisualStudio.LanguageServices.Implementation.DetailedErrorInfoDialog.InitializeComponent() -> void

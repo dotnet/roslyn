@@ -156,15 +156,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void ShowDetailedErrorInfo(Exception exception)
         {
+            string errorInfo = GetErrorInfoForException(exception);
+
+            (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
+        }
+
+        private static string GetErrorInfoForException(Exception exception)
+        {
             string errorInfo = exception.Message + Environment.NewLine + exception.StackTrace;
 
+            var aggregateException = exception as AggregateException;
+            if (aggregateException?.InnerExceptions != null)
+            {
+                foreach (var ex in aggregateException.InnerExceptions)
+                {
+                    errorInfo = AppendExceptionInfo(errorInfo, ex);
+                }
+            }
+            else
+            {
+                if (exception.InnerException != null)
+                {
+                    errorInfo = AppendExceptionInfo(errorInfo, exception.InnerException);
+                }
+            }
+
+            return errorInfo;
+        }
+
+        private static string AppendExceptionInfo(string errorInfo, Exception exception)
+        {
+            errorInfo += Environment.NewLine + exception.Message + Environment.NewLine + exception.StackTrace;
             while (exception.InnerException != null)
             {
                 exception = exception.InnerException;
                 errorInfo += Environment.NewLine + exception.Message + Environment.NewLine + exception.StackTrace;
             }
 
-            (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
+            return errorInfo;
         }
     }
 }

@@ -18,14 +18,11 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    /// <summary>
-    /// Interaction logic for UserControl1.xaml
-    /// </summary>
-    public partial class DetailedErrorInfoDialog : DialogWindow
+    internal partial class DetailedErrorInfoDialog : DialogWindow
     {
-        string errorInfo;
+        private readonly string errorInfo;
 
-        internal DetailedErrorInfoDialog(string title,  string errorInfo)
+        internal DetailedErrorInfoDialog(string title, string errorInfo)
         {
             InitializeComponent();
             this.errorInfo = errorInfo;
@@ -33,11 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             stackTraceText.AppendText(errorInfo);
             this.CopyButton.Content = ServicesVSResources.Copy_to_clipboard;
             this.CloseButton.Content = ServicesVSResources.Close;
+
         }
 
         private void CopyMessageToClipBoard(object sender, RoutedEventArgs e)
         {
-            System.Windows.Clipboard.SetText(errorInfo);
+            try
+            {
+                System.Windows.Clipboard.SetText(errorInfo);
+            }
+            catch (Exception)
+            {
+                // rdpclip.exe not running in a TS session, ignore
+            }
         }
 
         private void CloseWindow(object sender, RoutedEventArgs e)

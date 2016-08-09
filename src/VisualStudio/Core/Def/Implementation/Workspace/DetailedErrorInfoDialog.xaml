@@ -8,6 +8,7 @@
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              mc:Ignorable="d"
+             x:ClassModifier="internal" 
              ShowInTaskbar="False"
              WindowStartupLocation="CenterOwner"
              Background="{DynamicResource {x:Static vs:VsBrushes.ToolboxBackgroundKey}}"
@@ -22,14 +23,27 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="38"/>
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Column="0" Grid.Row="0" HorizontalScrollBarVisibility="Auto" Style="{DynamicResource {x:Static vs:VsResourceKeys.ScrollViewerStyleKey}}">
-            <TextBox Name="stackTraceText" IsReadOnly="True"
-                     Background="{DynamicResource {x:Static vs:VsBrushes.ToolboxBackgroundKey}}"
-                     Foreground="{DynamicResource {x:Static vs:VsBrushes.ButtonTextKey}}"/>
+        <ScrollViewer Grid.Column="0" Grid.Row="0"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
+                      Style="{DynamicResource {x:Static vs:VsResourceKeys.ScrollViewerStyleKey}}">
+            <TextBox   
+                  Name="stackTraceText"
+                  IsReadOnly="True"
+                  Style="{DynamicResource {x:Static vs:VsResourceKeys.TextBoxStyleKey}}"/>
         </ScrollViewer>
+
         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="CopyButton" Height="24" Margin="0,0,10,0" Click="CopyMessageToClipBoard" Style="{DynamicResource {x:Static vs:VsResourceKeys.ButtonStyleKey}}"/>
-            <Button Name="CloseButton" Height="24" Width="70" Margin="0,0,10,0" Click="CloseWindow" Style="{DynamicResource {x:Static vs:VsResourceKeys.ButtonStyleKey}}"/>
+            <Button Name="CopyButton" 
+                    Height="24" 
+                    Margin="0,0,10,0" 
+                    Click="CopyMessageToClipBoard" 
+                    Style="{DynamicResource {x:Static vs:VsResourceKeys.ButtonStyleKey}}"/>
+            <Button Name="CloseButton"
+                    Height="24" Width="70" 
+                    Margin="0,0,10,0"
+                    Click="CloseWindow"
+                    Style="{DynamicResource {x:Static vs:VsResourceKeys.ButtonStyleKey}}"/>
         </StackPanel>
     </Grid>
 </ui:DialogWindow>
