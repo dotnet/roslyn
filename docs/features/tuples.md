@@ -30,38 +30,7 @@ public class C
         }
 }
     ```
-5. Use deconstruction:
-    ```C#
-public class C
-{
-        public static void Main()
-        {
-                
-              int code;
-              string message;
-
-              var pair = (42, "hello");
-              (code, message) = pair; // deconstruct a tuple into existing variables
-              Console.Write(message); // hello
-
-              (code, message) = new Deconstructable(); // deconstruct any object with a proper Deconstruct method into existing variables
-              Console.Write(message); // world
-              
-              (int code2, int message2) = pair; // deconstruct into new variables
-              var (code3, message3) = pair; // deconstruct into new 'var' variables
-        }
-}
-
-public class Deconstructable
-{
-        public void Deconstruct(out int x, out int y)
-        {
-                x = 43;
-                y = "world";
-        }
-}
-    ```
-
+5. Use deconstructions: see the [deconstruction page](deconstruction.md)
 
 Tuple types
 -----------
