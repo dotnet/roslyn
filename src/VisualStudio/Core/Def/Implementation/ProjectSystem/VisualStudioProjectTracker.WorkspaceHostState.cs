@@ -104,6 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var projectInfos = inOrderToPush.Select(p => p.CreateProjectInfoForCurrentState()).ToImmutableArray();
 
+                // Enable projects to start pushing changes to workspace hosts, even before we add the solution/project to the host.
+                // As we are currently on the foreground thread, any background notification requests for project changes between now and until
+                // we add the solution/project to the host will just be queued onto foreground task scheduler and execute after we have added the solution/project to the host.
+                foreach (var project in inOrderToPush)
+                {
+                    project.StartPushingToWorkspaceHosts();
+                }
+
                 if (!_solutionAdded)
                 {
                     string solutionFilePath = null;
@@ -147,7 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var project in inOrderToPush)
                 {
-                    project.StartPushingToWorkspaceHosts();
                     _pushedProjects.Add(project);
 
                     foreach (var document in project.GetCurrentDocuments())

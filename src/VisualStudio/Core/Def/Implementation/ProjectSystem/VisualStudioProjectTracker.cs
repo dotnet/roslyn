@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, ImmutableArray<AbstractProject>> _projectsByBinPath = new Dictionary<string, ImmutableArray<AbstractProject>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Holds the task with continuations added to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
+        /// Holds the task with continuations to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
         /// </summary>
         private Task _taskForForegroundAffinitizedActions = Task.CompletedTask;
 

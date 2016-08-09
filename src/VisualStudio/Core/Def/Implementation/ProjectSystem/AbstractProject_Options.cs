@@ -16,27 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ParseOptions _currentParseOptions;
 
         // internal for testing purposes.
-        internal CompilationOptions CurrentCompilationOptions
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _currentCompilationOptions;
-                }
-            }
-        }
-
-        internal ParseOptions CurrentParseOptions
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _currentParseOptions;
-                }
-            }
-        }
+        internal CompilationOptions CurrentCompilationOptions => _currentCompilationOptions;
+        internal ParseOptions CurrentParseOptions => _currentParseOptions;
 
         private void SetOptionsCore(CompilationOptions newCompilationOptions)
         {
@@ -70,13 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected void UpdateOptions()
         {
-            CommandLineArguments lastParsedCommandLineArguments;
-
-            lock (_gate)
-            {
-                lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
-            }
-
+            CommandLineArguments lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
             Contract.ThrowIfNull(lastParsedCommandLineArguments);
 
             var newParseOptions = CreateParseOptions(lastParsedCommandLineArguments);
@@ -110,13 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected CommandLineArguments ResetArgumentsAndUpdateOptions()
         {
             // Clear last parsed command line.
-            string savedLastParsedCompilerOptions;
-
-            lock (_gate)
-            {
-                savedLastParsedCompilerOptions = _lastParsedCompilerOptions;
-            }
-
+            string savedLastParsedCompilerOptions = _lastParsedCompilerOptions;
             SetArgumentsCore(commandLine: null, commandLineArguments: null);
 
             // Now set arguments and update options with the saved command line.

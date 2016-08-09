@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #endregion
 
-        #region Mutable fields accessed only from the foreground - does not need locking for access.
+        #region Mutable fields accessed only from the foreground thread - does not need locking for access.
         /// <summary>
         /// When a reference changes on disk we start a delayed task to update the <see cref="Workspace"/>.
         /// It is delayed for two reasons: first, there are often a bunch of change notifications in quick succession
@@ -67,11 +67,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="CancellationTokenSource"/>s that allow us to cancel the existing reload task if another file
         /// change comes in before we process it.
         /// </summary>
-        private readonly Dictionary<VisualStudioMetadataReference, CancellationTokenSource> _changedReferencesPendingUpdate
+        private readonly Dictionary<VisualStudioMetadataReference, CancellationTokenSource> _donotAccessDirectlyChangedReferencesPendingUpdate
             = new Dictionary<VisualStudioMetadataReference, CancellationTokenSource>();
+        private Dictionary<VisualStudioMetadataReference, CancellationTokenSource> ChangedReferencesPendingUpdate
+        {
+            get
+            {
+                AssertIsForeground();
+                return _donotAccessDirectlyChangedReferencesPendingUpdate;
+            }
+        }
 
         #endregion
-        
+
         // PERF: Create these event handlers once to be shared amongst all documents (the sender arg identifies which document and project)
         private static readonly EventHandler<bool> s_documentOpenedEventHandler = OnDocumentOpened;
         private static readonly EventHandler<bool> s_documentClosingEventHandler = OnDocumentClosing;
@@ -151,76 +159,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public bool IsWebSite { get; protected set; }
 
-        #region ObjOutputPath
-        private string _objOutputPath;
-
         /// <summary>
         /// A full path to the project obj output binary, or null if the project doesn't have an obj output binary.
         /// </summary>
-        internal string ObjOutputPath
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _objOutputPath;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _objOutputPath = value;
-                }
-            }
-        }
-        #endregion
+        internal string ObjOutputPath { get; private set; }
 
-        #region BinOutputPath
-        private string _binOutputPath;
-        
         /// <summary>
         /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
         /// </summary>
-        internal string BinOutputPath
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _binOutputPath;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _binOutputPath = value;
-                }
-            }
-        }
-        #endregion
+        internal string BinOutputPath { get; private set; }
 
-        #region RuleSetFile
-        private IRuleSetFile _ruleSetFile;
-        public IRuleSetFile RuleSetFile
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _ruleSetFile;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _ruleSetFile = value;
-                }
-            }
-        }
-        #endregion
+        public IRuleSetFile RuleSetFile { get; private set; }
 
         protected VisualStudioProjectTracker ProjectTracker { get; }
 
@@ -238,32 +187,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVsHierarchy Hierarchy { get; }
 
-        #region Guid
-        private Guid _guid;
-
         /// <summary>
         /// Guid of the project
         /// 
         /// it is not readonly since it can be changed while loading project
         /// </summary>
-        public Guid Guid
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _guid;
-                }
-            }
-            protected set
-            {
-                lock (_gate)
-                {
-                    _guid = value;
-                }
-            }
-        }
-        #endregion
+        public Guid Guid { get; protected set; }
 
         public Workspace Workspace { get; }
 
@@ -290,80 +219,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        #region ProjectFilePath
-        private string _projectFilePath;
-        
         /// <summary>
         /// The full path of the project file. Null if none exists (consider Venus.)
         /// Note that the project file path might change with project file rename.
         /// If you need the folder of the project, just use <see cref="ContainingDirectoryPathOpt" /> which doesn't change for a project.
         /// </summary>
-        public string ProjectFilePath
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _projectFilePath;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _projectFilePath = value;
-                }
-            }
-        }
-        #endregion
-
-        #region DisplayName
-        private string _displayName;
+        public string ProjectFilePath { get; private set; }
 
         /// <summary>
         /// The public display name of the project. This name is not unique and may be shared
         /// between multiple projects, especially in cases like Venus where the intellisense
         /// projects will match the name of their logical parent project.
         /// </summary>
-        public string DisplayName
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _displayName;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _displayName = value;
-                }
-            }
-        }
-        #endregion
+        public string DisplayName { get; private set; }
 
-        #region AssemblyName
-        private string _assemblyName;
-        internal string AssemblyName
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _assemblyName;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _assemblyName = value;
-                }
-            }
-        }
-        #endregion
+        internal string AssemblyName { get; private set; }
 
         /// <summary>
         /// The name of the project according to the project system. In "regular" projects this is
@@ -385,26 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected abstract bool LastDesignTimeBuildSucceeded { get; }
 
-        #region EditAndContinueImpl
-        private VsENCRebuildableProjectImpl _editAndContinueImplOpt;
-        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt
-        {
-            get
-            {
-                lock (_gate)
-                {
-                    return _editAndContinueImplOpt;
-                }
-            }
-            private set
-            {
-                lock (_gate)
-                {
-                    _editAndContinueImplOpt = value;
-                }
-            }
-        }
-        #endregion
+        internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
         /// <summary>
         /// Override this method to validate references when creating <see cref="ProjectInfo"/> for current state.
@@ -836,13 +687,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioMetadataReference reference = (VisualStudioMetadataReference)sender;
 
             CancellationTokenSource delayTaskCancellationTokenSource;
-            if (_changedReferencesPendingUpdate.TryGetValue(reference, out delayTaskCancellationTokenSource))
+            if (ChangedReferencesPendingUpdate.TryGetValue(reference, out delayTaskCancellationTokenSource))
             {
                 delayTaskCancellationTokenSource.Cancel();
             }
 
             delayTaskCancellationTokenSource = new CancellationTokenSource();
-            _changedReferencesPendingUpdate[reference] = delayTaskCancellationTokenSource;
+            ChangedReferencesPendingUpdate[reference] = delayTaskCancellationTokenSource;
 
             var task = Task.Delay(TimeSpan.FromSeconds(5), delayTaskCancellationTokenSource.Token)
                 .ContinueWith(
@@ -858,7 +709,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             var reference = (VisualStudioMetadataReference)state;
-            _changedReferencesPendingUpdate.Remove(reference);
+            ChangedReferencesPendingUpdate.Remove(reference);
 
             bool hasMetadataReference;
             lock (_gate)
@@ -1226,12 +1077,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             using (Workspace?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
             {
                 // No sense in reloading any metadata references anymore.
-                foreach (var cancellationTokenSource in _changedReferencesPendingUpdate.Values)
+                foreach (var cancellationTokenSource in ChangedReferencesPendingUpdate.Values)
                 {
                     cancellationTokenSource.Cancel();
                 }
 
-                _changedReferencesPendingUpdate.Clear();
+                ChangedReferencesPendingUpdate.Clear();
 
                 var wasPushing = _pushingChangesToWorkspaceHosts;
 
