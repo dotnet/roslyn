@@ -1,10 +1,4 @@
 
-
-NOTE: The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
-Changes in design will be applied to this document as the changes are implemented.
-
------------------------------------
-
 Quickstart guide for tuples (C# 7.0)
 ------------------------------------
 1. Install dev15 preview 4
@@ -31,6 +25,12 @@ public class C
 }
     ```
 5. Use deconstructions: see the [deconstruction page](deconstruction.md)
+
+Design
+------
+The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
+Changes in design will be applied to this document as the changes are implemented.
+
 
 Tuple types
 -----------
