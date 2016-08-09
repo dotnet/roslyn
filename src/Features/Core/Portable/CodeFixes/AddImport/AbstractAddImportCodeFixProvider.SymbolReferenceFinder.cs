@@ -63,10 +63,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                      containingNamespace != null;
                      containingNamespace = containingNamespace.ContainingNamespace)
                 {
-                    set.Add(containingNamespace);
+                    set.Add(MapToCompilationNamespaceIfPossible(containingNamespace));
                 }
 
                 return set;
+            }
+
+            private INamespaceSymbol MapToCompilationNamespaceIfPossible(INamespaceSymbol containingNamespace)
+            {
+                return _semanticModel.Compilation.GetCompilationNamespace(containingNamespace) ?? containingNamespace;
             }
 
             internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
@@ -655,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // We only want to offer to add a using if we don't already have one.
                 return
                     namespaces.Where(n => !n.Symbol.IsGlobalNamespace)
-                              .Select(n => n.WithSymbol(_semanticModel.Compilation.GetCompilationNamespace(n.Symbol) ?? n.Symbol))
+                              .Select(n => n.WithSymbol(MapToCompilationNamespaceIfPossible(n.Symbol)))
                               .Where(n => n.Symbol != null && !_namespacesInScope.Contains(n.Symbol))
                               .Select(n => scope.CreateReference(n))
                               .ToList();
