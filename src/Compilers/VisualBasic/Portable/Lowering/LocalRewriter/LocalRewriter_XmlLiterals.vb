@@ -311,8 +311,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim method = DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Xml_Linq_XNamespace__Get), MethodSymbol)
             Return New BoundCall(syntax,
                                      method,
-                                     methodGroup:=Nothing,
-                                     receiver:=Nothing,
+                                     methodGroupOpt:=Nothing,
+                                     receiverOpt:=Nothing,
                                      arguments:=ImmutableArray.Create([namespace]),
                                      constantValueOpt:=Nothing,
                                      type:=method.ReturnType).MakeCompilerGenerated()

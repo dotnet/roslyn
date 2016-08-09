@@ -731,8 +731,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       operatorCall.ReceiverOpt,
                                                                       ImmutableArray.Create(inputToOperatorMethod),
                                                                       operatorCall.ConstantValueOpt,
-                                                                      operatorCall.SuppressObjectClone,
-                                                                      operatorCall.Type)
+                                                                      isLValue:=operatorCall.IsLValue,
+                                                                      suppressObjectClone:=operatorCall.SuppressObjectClone,
+                                                                      type:=operatorCall.Type)
 
             ' outConversion is a nullable conversion. need to rewrite it.
             whenHasValue = RewriteNullableConversion(outConversion, whenHasValue)

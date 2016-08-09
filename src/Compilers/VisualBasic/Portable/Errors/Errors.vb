@@ -1694,6 +1694,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_TupleReservedMemberName = 37261
         ERR_TupleDuplicateMemberName = 37262
 
+        ERR_RefReturningCallInExpressionTree = 37263
+
         ERR_LastPlusOne
 
 

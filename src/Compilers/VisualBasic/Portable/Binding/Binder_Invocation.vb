@@ -140,7 +140,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If expr.Kind = BoundKind.Call Then
                     ' Set HasErrors to prevent cascading errors.
                     Dim callExpr = DirectCast(expr, BoundCall)
-                    expr = New BoundCall(callExpr.Syntax, callExpr.Method, callExpr.MethodGroupOpt, callExpr.ReceiverOpt, callExpr.Arguments, callExpr.ConstantValueOpt, False, callExpr.Type, hasErrors:=True)
+                    expr = New BoundCall(
+                        callExpr.Syntax,
+                        callExpr.Method,
+                        callExpr.MethodGroupOpt,
+                        callExpr.ReceiverOpt,
+                        callExpr.Arguments,
+                        callExpr.ConstantValueOpt,
+                        isLValue:=False,
+                        suppressObjectClone:=False,
+                        type:=callExpr.Type,
+                        hasErrors:=True)
                 End If
 
                 Return expr
@@ -921,8 +931,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     receiver,
                     boundArguments,
                     constantValue,
-                    False,
                     returnType,
+                    suppressObjectClone:=False,
                     hasErrors:=hasErrors)
 
             Else
@@ -2792,6 +2802,10 @@ ProduceBoundNode:
             ' TODO: Fields of MarshalByRef object are passed via temp.
 
             Dim isLValue As Boolean = argument.IsLValue()
+
+            If isLValue AndAlso argument.Kind = BoundKind.PropertyAccess Then
+                argument = argument.SetAccessKind(PropertyAccessKind.Get)
+            End If
 
             If isLValue AndAlso Conversions.IsIdentityConversion(conversionTo.Key) Then
                 'Nothing to do

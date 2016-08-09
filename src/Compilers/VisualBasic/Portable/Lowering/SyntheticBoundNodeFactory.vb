@@ -597,7 +597,15 @@ nextm:
 
         Public Function [Call](receiver As BoundExpression, method As MethodSymbol, args As ImmutableArray(Of BoundExpression)) As BoundCall
             Debug.Assert(method.ParameterCount = args.Length)
-            Dim boundNode = New BoundCall(Syntax, method, Nothing, receiver, args, Nothing, True, method.ReturnType)
+            Dim boundNode = New BoundCall(
+                Syntax,
+                method,
+                Nothing,
+                receiver,
+                args,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=method.ReturnType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

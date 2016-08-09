@@ -9416,6 +9416,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to An expression tree may not contain a call to a method or property that returns by reference..
+        '''</summary>
+        Friend ReadOnly Property ERR_RefReturningCallInExpressionTree() As String
+            Get
+                Return ResourceManager.GetString("ERR_RefReturningCallInExpressionTree", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}.{1}&apos; is already implemented by the base class &apos;{2}&apos;. Re-implementation of Windows Runtime Interface &apos;{3}&apos; is not allowed.
         '''</summary>
         Friend ReadOnly Property ERR_ReImplementingWinRTInterface4() As String

@@ -576,11 +576,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
-            ' Check returns by ref.
-            If Me.ReturnsByRef Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-            End If
-
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ReturnType)
 
