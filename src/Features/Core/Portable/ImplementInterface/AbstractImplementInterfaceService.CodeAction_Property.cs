@@ -27,28 +27,53 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
                 var comAliasNameAttribute = compilation.ComAliasNameAttributeType();
+                var tupleElementNamesAttribute = compilation.TupleElementNamesAttributeType();
 
-                var getAccessor = property.GetMethod == null
-                    ? null
-                    : CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                            accessibleWithin: this.State.ClassOrStructType,
-                            removeAttributeType: comAliasNameAttribute),
-                        attributes: null,
-                        accessibility: accessibility,
-                        explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
-                        statements: GetGetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
+                IMethodSymbol getAccessor;
+                if (property.GetMethod == null)
+                {
+                    getAccessor = null;
+                }
+                else
+                {
+                    var getMethod = property.GetMethod;
+                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                                             accessibleWithin: this.State.ClassOrStructType,
+                                             removeAttributeType: comAliasNameAttribute);
+                    getMethod = getMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                                             accessibleWithin: this.State.ClassOrStructType,
+                                             removeAttributeType: tupleElementNamesAttribute);
 
-                var setAccessor = property.SetMethod == null
-                    ? null
-                    : CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                            accessibleWithin: this.State.ClassOrStructType,
-                            removeAttributeType: comAliasNameAttribute),
-                        attributes: null,
-                        accessibility: accessibility,
-                        explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
-                        statements: GetSetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
+                    getAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                                    getMethod,
+                                    attributes: null,
+                                    accessibility: accessibility,
+                                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
+                                    statements: GetGetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
+                }
+
+                IMethodSymbol setAccessor;
+                if (property.SetMethod == null)
+                {
+                    setAccessor = null;
+                }
+                else
+                {
+                    var setMethod = property.SetMethod;
+                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                                             accessibleWithin: this.State.ClassOrStructType,
+                                             removeAttributeType: comAliasNameAttribute);
+                    setMethod = setMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                                             accessibleWithin: this.State.ClassOrStructType,
+                                             removeAttributeType: tupleElementNamesAttribute);
+
+                    setAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                                    setMethod,
+                                    attributes: null,
+                                    accessibility: accessibility,
+                                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,
+                                    statements: GetSetAccessorStatements(compilation, property, generateAbstractly, cancellationToken));
+                }
 
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
                 var parameterNames = NameGenerator.EnsureUniqueness(
