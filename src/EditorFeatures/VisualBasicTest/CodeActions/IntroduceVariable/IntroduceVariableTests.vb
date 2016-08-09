@@ -1693,8 +1693,8 @@ End Class
 <File>
 Imports System
 Class C
-    Private Shared ReadOnly {|Rename:p|} As Integer() = {90, 73}
-    Property Grades As Integer() = p
+    Private Shared ReadOnly {|Rename:v|} As Integer() = {90, 73}
+    Property Grades As Integer() = v
 End Class
 </File>
             Await TestAsync(code, expected, index:=0, compareTokens:=False)

@@ -2871,10 +2871,10 @@ End Class
             Dim typeInfo = model.GetTypeInfo(expr)
 
             Assert.Equal("System.Int32()", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Null(typeInfo.Type)
+            Assert.Equal("System.Int32()", typeInfo.Type.ToTestDisplayString())
 
             Dim conv1 = model.ClassifyConversion(expr, castType)
-            Assert.Equal(ConversionKind.Widening, conv1.Kind)
+            Assert.Equal(ConversionKind.Identity, conv1.Kind)
 
             Dim conv2 = model.ClassifyConversion(castNode.Span.Start, expr, castType)
             Assert.Equal(ConversionKind.Widening, conv2.Kind)
