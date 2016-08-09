@@ -2614,8 +2614,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 i = i + 1
             Next
 
-            Dim fields = memberTypes.SelectAsArray(
-                Function(type, index, loc) New AnonymousTypeField(memberNames(index), DirectCast(type, TypeSymbol), loc), Location.None)
+            Dim fields = memberTypes.ZipAsArray(
+                memberNames,
+                Function(type, name) New AnonymousTypeField(name, DirectCast(type, TypeSymbol), Location.None))
 
             Dim descriptor = New AnonymousTypeDescriptor(fields, Location.None, isImplicitlyDeclared:=False)
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
