@@ -12,13 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ExpressionVariableFinder : CSharpSyntaxWalker
     {
-        private Binder _binder;
+        private Binder _scopeBinder;
+        private Binder _enclosingBinderOpt;
         private ArrayBuilder<LocalSymbol> _localsBuilder;
 
         internal static void FindExpressionVariables(
-            Binder binder,
+            Binder scopeBinder,
             ArrayBuilder<LocalSymbol> builder,
-            CSharpSyntaxNode node)
+            CSharpSyntaxNode node,
+            Binder enclosingBinderOpt = null)
         {
             if (node == null)
             {
@@ -26,12 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var finder = s_poolInstance.Allocate();
-            finder._binder = binder;
+            finder._scopeBinder = scopeBinder;
+            finder._enclosingBinderOpt = enclosingBinderOpt;
             finder._localsBuilder = builder;
 
             finder.Visit(node);
 
-            finder._binder = null;
+            finder._scopeBinder = null;
+            finder._enclosingBinderOpt = null;
             finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var finder = s_poolInstance.Allocate();
-            finder._binder = binder;
+            finder._scopeBinder = binder;
             finder._localsBuilder = builder;
 
             foreach (var n in nodes)
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finder.Visit(n);
             }
 
-            finder._binder = null;
+            finder._scopeBinder = null;
             finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectCreationExpression:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.BaseConstructorInitializer:
-                    var local = SourceLocalSymbol.MakeOutVariable(_binder.ContainingMemberOrLambda, _binder, node.Type(), node.Identifier(), context);
+                    var local = SourceLocalSymbol.MakeOutVariable(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(), node.Identifier(), context);
                     _localsBuilder.Add(local);
                     break;
                 default:

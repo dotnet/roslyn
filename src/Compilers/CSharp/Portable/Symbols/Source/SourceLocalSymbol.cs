@@ -123,12 +123,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static SourceLocalSymbol MakeOutVariable(
             Symbol containingSymbol,
-            Binder binder,
+            Binder scopeBinder,
+            Binder enclosingBinderOpt,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             CSharpSyntaxNode context)
         {
-            return new OutLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, context);
+            return new OutLocalSymbol(containingSymbol, scopeBinder, enclosingBinderOpt, typeSyntax, identifierToken, context);
         }
 
         internal override bool IsImportedFromMetadata
@@ -580,21 +581,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Symbol for an out variable local that might require type inference during overload resolution.
+        /// Symbol for an out variable local.
         /// </summary>
         private class OutLocalSymbol : SourceLocalSymbol
         {
             private readonly CSharpSyntaxNode _containingInvocation;
+            private readonly Binder _enclosingBinderOpt;
 
             public OutLocalSymbol(
                 Symbol containingSymbol,
-                Binder binder,
+                Binder scopeBinder,
+                Binder enclosingBinderOpt,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 CSharpSyntaxNode containingInvocation)
-            : base(containingSymbol, binder, false, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable)
+            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable)
             {
                 _containingInvocation = containingInvocation;
+                _enclosingBinderOpt = enclosingBinderOpt;
             }
 
             internal override SyntaxNode ForbiddenZone => _containingInvocation;
@@ -609,13 +613,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.InvocationExpression:
                     case SyntaxKind.ObjectCreationExpression:
-                        this.binder.BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
+                        (_enclosingBinderOpt ?? this.binder).BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
 
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
+                        Debug.Assert(_enclosingBinderOpt == null);
                         this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);

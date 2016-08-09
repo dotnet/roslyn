@@ -2042,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
             if (isVar)

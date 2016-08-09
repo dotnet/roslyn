@@ -620,9 +620,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
         {
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, patternBinder);
-            Visit(node.Expression, patternBinder);
         }
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -731,6 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but we still want to bind it.  We'll pretend that the statement was
                         // inside a block.
 
+                    case SyntaxKind.ExpressionStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                         var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         AddToMap(statement, blockBinder);
