@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
         {
             // Do not instrument implicitly-declared methods, except for constructors.
+            // Instrument implicit constructors in order to instrument member initializers.
             if (!method.IsImplicitlyDeclared || method.IsImplicitConstructor)
             {
                 MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
