@@ -13,17 +13,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeLens
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class A
-    {|0: Sub B()
+    {|0: Sub B()|}
         C();
-    End Sub|}
+    End Sub
 
-    {|2: Sub C()
+    {|2: Sub C()|}
         D();
-    End Sub|}
+    End Sub
 
-    {|1: Sub D()
+    {|1: Sub D()|}
         C();
-    End Sub|}
+    End Sub
 End Class
 ]]>
         </Document>
@@ -39,17 +39,17 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class A
-    {|0: Sub B()
+    {|0: Sub B()|}
         C();
-    End Sub|}
+    End Sub
 
-    {|c1: Sub C()
+    {|c1: Sub C()|}
         D();
-    End Sub|}
+    End Sub
 
-    {|1: Sub D()
+    {|1: Sub D()|}
         C();
-    End Sub|}
+    End Sub
 End Class
 ]]>
         </Document>
@@ -65,17 +65,17 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
         <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class A
-    {|0: Sub B()
+    {|0: Sub B()|}
         C();
-    End Sub|}
+    End Sub
 
-    {|2: Sub C()
+    {|2: Sub C()|}
         D();
-    End Sub|}
+    End Sub
 
-    {|1: Sub D()
+    {|1: Sub D()|}
         C();
-    End Sub|}
+    End Sub
 End Class
 ]]>
         </Document>
