@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -369,26 +370,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CancellationToken cancellationToken) where T : class
             {
                 var diagnostics = await DeserializeAsync(serializer, documentOrProject, key, stateKey, cancellationToken).ConfigureAwait(false);
-                if (diagnostics.IsDefault)
+                if (diagnostics == null)
                 {
                     return false;
                 }
 
-                add(key, diagnostics);
+                add(key, diagnostics.Value);
                 return true;
             }
 
-            private async Task<ImmutableArray<DiagnosticData>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
+            private Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
             {
                 // check cache first
                 CacheEntry entry;
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
                 {
-                    return entry.Diagnostics;
+                    return Task.FromResult(new StrongBox<ImmutableArray<DiagnosticData>>(entry.Diagnostics));
                 }
 
                 // try to deserialize it
-                return await serializer.DeserializeAsync(documentOrProject, stateKey, cancellationToken).ConfigureAwait(false);
+                return serializer.DeserializeAsync(documentOrProject, stateKey, cancellationToken);
             }
 
             private void RemoveInMemoryCache(DiagnosticAnalysisResult lastResult)
