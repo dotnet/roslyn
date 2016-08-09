@@ -1869,10 +1869,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.PropertyAccess
                     Dim propertyAccess As BoundPropertyAccess = DirectCast(op1, BoundPropertyAccess)
-                    Debug.Assert(propertyAccess.AccessKind <> PropertyAccessKind.Get)
                     Dim propertySymbol As PropertySymbol = propertyAccess.PropertySymbol
 
-                    Dim receiver As BoundExpression = propertyAccess.ReceiverOpt
+                    If propertyAccess.IsLValue Then
+                        Debug.Assert(propertySymbol.ReturnsByRef)
+                        WarnOnRecursiveAccess(propertyAccess, PropertyAccessKind.Get, diagnostics)
+                        Return propertyAccess.SetAccessKind(PropertyAccessKind.Get)
+                    End If
+
+                    Debug.Assert(propertyAccess.AccessKind <> PropertyAccessKind.Get)
 
                     If Not propertyAccess.IsWriteable Then
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
@@ -1890,7 +1895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
                                 isError = True
                             Else
-                                Dim accessThroughType = GetAccessThroughType(receiver)
+                                Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
                                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
                                 If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
@@ -1978,11 +1983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 right = MakeRValueAndIgnoreDiagnostics(right)
             End If
 
-            If left.IsPropertyOrXmlPropertyAccess() Then
-                left = left.SetAccessKind(PropertyAccessKind.Get Or PropertyAccessKind.Set)
-            ElseIf left.IsLateBound() Then
-                left = left.SetLateBoundAccessKind(LateBoundAccessKind.Get Or LateBoundAccessKind.Set)
-            End If
+            left = left.SetGetSetAccessKindIfAppropriate()
 
             Return New BoundAssignmentOperator(node, left, placeholder, right, False, hasErrors:=isError)
         End Function
@@ -2180,11 +2181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert((original.Kind = BoundKind.CompoundAssignmentTargetPlaceholder) = (right.Kind = BoundKind.MidResult) OrElse original.HasErrors OrElse right.HasErrors)
             End If
 
-            If target.IsPropertyOrXmlPropertyAccess() Then
-                target = target.SetAccessKind(PropertyAccessKind.Get Or PropertyAccessKind.Set)
-            ElseIf target.IsLateBound() Then
-                target = target.SetLateBoundAccessKind(LateBoundAccessKind.Get Or LateBoundAccessKind.Set)
-            End If
+            target = target.SetGetSetAccessKindIfAppropriate()
 
             Return New BoundExpressionStatement(node, New BoundAssignmentOperator(node, target, placeholder, right, False,
                                                                                   Compilation.GetSpecialType(SpecialType.System_Void),

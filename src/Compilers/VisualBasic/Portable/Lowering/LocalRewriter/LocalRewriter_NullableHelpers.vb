@@ -171,8 +171,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueOrDefaultMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -194,8 +195,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -221,8 +223,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 hasValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=hasValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),

@@ -633,6 +633,7 @@
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
 
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
 
         <!-- Suppress GetObjectValue call injection for arguments of this method call -->
         <Field Name="SuppressObjectClone" Type="Boolean"/>
@@ -891,7 +892,8 @@
         <!-- autoproperty could be writable even when having no setter 
              when in a corresponding constructor or initializer -->
         <Field Name="IsWriteable" Type="Boolean"/>
-      
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
+
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
     </Node>

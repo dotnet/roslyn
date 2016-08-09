@@ -840,7 +840,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.PropertyAccess
                     Dim access = DirectCast(result, BoundPropertyAccess)
                     result = New BoundPropertyAccess(typeExpr.Syntax, access.PropertySymbol, access.PropertyGroupOpt, access.AccessKind,
-                                                     access.IsWriteable, access.ReceiverOpt, access.Arguments, access.Type, access.HasErrors)
+                                                     isWriteable:=access.IsWriteable,
+                                                     isLValue:=False,
+                                                     receiverOpt:=access.ReceiverOpt,
+                                                     arguments:=access.Arguments,
+                                                     type:=access.Type,
+                                                     hasErrors:=access.HasErrors)
 
                 Case BoundKind.FieldAccess
                     Dim access = DirectCast(result, BoundFieldAccess)
@@ -850,7 +855,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Call
                     Dim [call] = DirectCast(result, BoundCall)
                     result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
-                                           [call].ConstantValueOpt, [call].SuppressObjectClone, [call].Type, [call].HasErrors)
+                                           [call].ConstantValueOpt,
+                                           isLValue:=False,
+                                           suppressObjectClone:=[call].SuppressObjectClone,
+                                           type:=[call].Type,
+                                           hasErrors:=[call].HasErrors)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(result.Kind)
@@ -1447,6 +1456,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.XmlMemberAccess
                     Return IsValidAssignmentTarget(DirectCast(expression, BoundXmlMemberAccess).MemberAccess)
 
+                Case BoundKind.Call
+                    Return DirectCast(expression, BoundCall).IsLValue
+
                 Case BoundKind.LateInvocation
                     Dim invocation = DirectCast(expression, BoundLateInvocation)
                     Debug.Assert(invocation.AccessKind <> LateBoundAccessKind.Get AndAlso invocation.AccessKind <> LateBoundAccessKind.Call)
@@ -1458,7 +1470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return member.AccessKind <> LateBoundAccessKind.Get AndAlso member.AccessKind <> LateBoundAccessKind.Call
 
                 Case Else
-                    Return expression.IsLValue()
+                    Return expression.IsLValue
 
             End Select
         End Function

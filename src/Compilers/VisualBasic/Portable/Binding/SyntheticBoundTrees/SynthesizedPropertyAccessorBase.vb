@@ -1,21 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Friend MustInherit Class SynthesizedPropertyAccessorBase(Of T As PropertySymbol)
+    Friend Module SynthesizedPropertyAccessorHelper
 
-        Friend Overloads Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Return GetBoundMethodBody(Me, Me.BackingFieldSymbol, methodBodyBinder)
-        End Function
-
-        Friend Overloads Shared Function GetBoundMethodBody(accessor As MethodSymbol,
+        Friend Function GetBoundMethodBody(accessor As MethodSymbol,
                                                             backingField As FieldSymbol,
                                                             Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
@@ -55,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     myBaseReference,
                     ImmutableArray(Of BoundExpression).Empty,
                     Nothing,
-                    True,
-                    baseGetSym.ReturnType)
+                    type:=baseGetSym.ReturnType,
+                    suppressObjectClone:=True)
             Else
                 ' not overriding property operates with field
                 field = backingField
@@ -283,8 +274,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         myBaseReference,
                         ImmutableArray.Create(Of BoundExpression)(parameterAccess),
                         Nothing,
-                        True,
-                        baseSet.ReturnType)
+                        suppressObjectClone:=True,
+                        type:=baseSet.ReturnType)
                 Else
                     valueSettingExpression = New BoundAssignmentOperator(
                         syntax,
@@ -366,6 +357,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (New BoundBlock(syntax, Nothing, locals, statements.ToImmutableAndFree())).MakeCompilerGenerated()
         End Function
 
-    End Class
+    End Module
 
 End Namespace
