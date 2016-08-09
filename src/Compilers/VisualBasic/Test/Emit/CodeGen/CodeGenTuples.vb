@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+    <CompilerTrait(CompilerFeature.Tuples)>
     Public Class CodeGenTuples
         Inherits BasicTestBase
 
@@ -101,6 +102,50 @@ BC30389: '(A As Integer, B As Integer).Item1' is not accessible in this context 
 BC30389: '(A As Integer, B As Integer).A' is not accessible in this context because it is 'Private'.
         console.writeline(t1.A)            
                           ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub DataFlow()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        dim initialized as Object = Nothing
+        dim baseline_literal = (initialized, initialized)
+
+
+        dim uninitialized as Object
+        dim literal = (uninitialized, uninitialized)
+
+        dim uninitialized1 as Exception
+        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)                
+        
+        dim uninitialized2 as Exception
+        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)                
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC42104: Variable 'uninitialized' is used before it has been assigned a value. A null reference exception could result at runtime.
+        dim literal = (uninitialized, uninitialized)
+                       ~~~~~~~~~~~~~
+BC42104: Variable 'uninitialized1' is used before it has been assigned a value. A null reference exception could result at runtime.
+        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)                
+                                                                           ~~~~~~~~~~~~~~
+BC42104: Variable 'uninitialized2' is used before it has been assigned a value. A null reference exception could result at runtime.
+        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)                
+                                                      ~~~~~~~~~~~~~~
+
 </errors>)
 
         End Sub
