@@ -29,7 +29,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 
             var codeAction = await GetCodeActionAsync(
                 root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
-            context.RegisterCodeFix(codeAction, context.Diagnostics);
+            if (codeAction != null)
+            {
+                context.RegisterCodeFix(codeAction, context.Diagnostics);
+            }
         }
 
         private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
