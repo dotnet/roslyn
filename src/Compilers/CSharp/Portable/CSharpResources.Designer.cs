@@ -6119,24 +6119,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be assigned a reference because it is not a by-reference local.
-        /// </summary>
-        internal static string ERR_MustBeRefAssignable {
-            get {
-                return ResourceManager.GetString("ERR_MustBeRefAssignable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected a by-reference local.
-        /// </summary>
-        internal static string ERR_MustBeRefAssignableLocal {
-            get {
-                return ResourceManager.GetString("ERR_MustBeRefAssignableLocal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to In order for &apos;{0}&apos; to be applicable as a short circuit operator, its declaring type &apos;{1}&apos; must define operator true and operator false.
         /// </summary>
         internal static string ERR_MustHaveOpTF {
