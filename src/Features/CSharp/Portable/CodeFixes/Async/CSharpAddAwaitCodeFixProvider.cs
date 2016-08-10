@@ -38,19 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
-        protected override async Task<IList<DescriptionAndNode>> GetDescriptionsAndNodesAsync(
+        protected override async Task<DescriptionAndNode> GetDescriptionAndNodeAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             var newRoot = await GetNewRootAsync(
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (newRoot == null)
             {
-                return null;
+                return default(DescriptionAndNode);
             }
 
-            return SpecializedCollections.SingletonList(new DescriptionAndNode(
-                CSharpFeaturesResources.Insert_await,
-                newRoot));
+            return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);
         }
 
         private Task<SyntaxNode> GetNewRootAsync(

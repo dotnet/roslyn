@@ -29,16 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Async Function GetDescriptionsAndNodesAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
+        Protected Overrides Async Function GetDescriptionAndNodeAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of DescriptionAndNode)
             Dim newRoot = Await GetNewRootAsync(
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(False)
             If newRoot Is Nothing Then
                 Return Nothing
             End If
 
-            Return SpecializedCollections.SingletonList(New DescriptionAndNode(
-                VBFeaturesResources.Insert_Await,
-                newRoot))
+            Return New DescriptionAndNode(VBFeaturesResources.Insert_Await, newRoot)
         End Function
 
         Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)

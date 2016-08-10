@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
     {
-        protected abstract Task<IList<CodeAction>> GetCodeActionsAsync(
+        protected abstract Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 
             var diagnostic = context.Diagnostics.FirstOrDefault();
 
-            var codeActions = await GetCodeActionsAsync(
+            var codeAction = await GetCodeActionAsync(
                 root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
-            context.RegisterFixes(codeActions, context.Diagnostics);
+            context.RegisterCodeFix(codeAction, context.Diagnostics);
         }
 
         private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)

@@ -10,31 +10,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAddAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
-        protected abstract Task<IList<DescriptionAndNode>> GetDescriptionsAndNodesAsync(
+        protected abstract Task<DescriptionAndNode> GetDescriptionAndNodeAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);
 
-        protected override async Task<IList<CodeAction>> GetCodeActionsAsync(
+        protected override async Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var data = await this.GetDescriptionsAndNodesAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
-            if (data == null)
+            var data = await this.GetDescriptionAndNodeAsync(root, node, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            if (data.Node == null)
             {
                 return null;
             }
 
-            var result = new List<CodeAction>();
-
-            foreach (var item in data)
-            {
-                var action = new MyCodeAction(
-                    item.Description,
-                    c => Task.FromResult(document.WithSyntaxRoot(item.Node)));
-                result.Add(action);
-            }
-
-            return result;
+            return new MyCodeAction(
+                data.Description,
+                c => Task.FromResult(document.WithSyntaxRoot(data.Node)));
         }
 
         protected static bool TryGetExpressionType(
