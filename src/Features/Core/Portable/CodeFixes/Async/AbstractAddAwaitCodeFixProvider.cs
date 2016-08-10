@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
-    internal abstract partial class AbstractAddAsyncAwaitCodeFixProvider : AbstractAsyncCodeFix
+    internal abstract partial class AbstractAddAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
         protected abstract Task<IList<DescriptionAndNode>> GetDescriptionsAndNodesAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);

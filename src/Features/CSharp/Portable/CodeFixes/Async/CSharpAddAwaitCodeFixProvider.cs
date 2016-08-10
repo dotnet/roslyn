@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAwait), Shared]
-    internal class CSharpAddAwaitCodeFixProvider : AbstractAddAsyncAwaitCodeFixProvider
+    internal class CSharpAddAwaitCodeFixProvider : AbstractAddAwaitCodeFixProvider
     {
         /// <summary>
         /// Because this call is not awaited, execution of the current method continues before the call is completed.

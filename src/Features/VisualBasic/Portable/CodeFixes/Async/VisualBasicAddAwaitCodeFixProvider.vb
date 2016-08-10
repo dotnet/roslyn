@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAwait), [Shared]>
     Friend Class VisualBasicAddAwaitCodeFixProvider
-        Inherits AbstractAddAsyncAwaitCodeFixProvider
+        Inherits AbstractAddAwaitCodeFixProvider
 
         Friend Const BC30311 As String = "BC30311" ' error BC30311: Value of type 'X' cannot be converted to 'Y'.
         Friend Const BC37055 As String = "BC37055" ' error BC37055: Since this is an async method, the return expression must be of type 'blah' rather than 'baz'
