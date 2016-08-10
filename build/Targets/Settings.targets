@@ -132,13 +132,13 @@
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '15.0'">
       <PropertyGroup>
-        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
       </PropertyGroup>
     </When>
 
     <Otherwise>
       <PropertyGroup>
-        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25407</VisualStudioBuildToolsNuGetPackagePath>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25420</VisualStudioBuildToolsNuGetPackagePath>
       </PropertyGroup>
     </Otherwise>
   </Choose>

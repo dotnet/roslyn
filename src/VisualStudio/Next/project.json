@@ -2,10 +2,10 @@
   "dependencies": {
     "Microsoft.ServiceHub.Client": "0.13.54-alpha-g315dc9a206",
     "StreamJsonRpc": "0.14.3-alpha",
-    "Microsoft.VisualStudio.Shell.15.0-pre": "15.0.25511.2-pre",
-    "Microsoft.VisualStudio.ImageCatalog": "15.0.25123-Dev15Preview",
-    "Microsoft.VisualStudio.Shell.Framework-pre": "15.0.25511-pre",
-	"Microsoft.VisualStudio.Language.Intellisense": "15.0.25123-Dev15Preview",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.25604-Preview4",
+    "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",
+    "Microsoft.VisualStudio.Shell.Framework": "15.0.25604-Preview4",
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.25604-Preview4",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"
