@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (_classificationService == null)
             {
                 var document = spanToTag.Document;
-                _classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+                _classificationService = document?.Project?.LanguageServices?.GetService<IEditorClassificationService>();
             }
 
             if (_classificationService == null)
