@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(IWorkspaceProjectContextFactory))]
     internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
-        private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IServiceProvider _serviceProvider;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
@@ -37,12 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         [ImportingConstructor]
         public CPSProjectFactory(
-            VisualStudioProjectTracker projectTracker,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
-            _projectTracker = projectTracker;
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
@@ -74,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
-            return new CPSProject(_projectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
+            return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, commandLineForOptions, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
         }
@@ -89,8 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     string errorCodePrefix;
                     if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
                     {
-                        Debug.Fail($"Unknown language '{languageName}'");
-                        _projectLangaugeToErrorCodePrefixMap.Add(languageName, languageName);
+                        throw new NotSupportedException(nameof(languageName));
                     }
 
                     errorReporter = new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
