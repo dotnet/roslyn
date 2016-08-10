@@ -8312,16 +8312,17 @@ tryAgain:
                     return localFunction;
                 }
 
+                // If we find an accessibility modifier but no local function it's likely
+                // the user forgot a closing brace. Let's back out of statement parsing.
+                if (mods.Count > 0 &&
+                    IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))
+                {
+                    return null;
+                }
+
                 for (int i = 0; i < mods.Count; i++)
                 {
                     var mod = (SyntaxToken)mods[i];
-
-                    // If we find an accessibility modifier but no local function it's likely
-                    // the user forgot a closing brace. Let's back out of statement parsing.
-                    if (IsAccessibilityModifier(mod.ContextualKind))
-                    {
-                        return null;
-                    }
 
                     if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
                     {
