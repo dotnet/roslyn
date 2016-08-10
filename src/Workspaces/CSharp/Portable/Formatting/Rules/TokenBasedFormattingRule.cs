@@ -324,6 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // nullable
+            if (currentToken.Kind() == SyntaxKind.QuestionToken &&
+                currentToken.Parent.Kind() == SyntaxKind.NullableType)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
             {
@@ -335,11 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
-                    if (previousToken.Parent.Kind() == SyntaxKind.TupleType)
-                    {
-                        break;
-                    }
-
                     int space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -359,13 +361,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // ! *
             if (previousToken.Kind() == SyntaxKind.ExclamationToken)
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // nullable
-            if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.Kind() == SyntaxKind.NullableType)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
