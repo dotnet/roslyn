@@ -29,8 +29,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var factory = this.Document.GetLanguageService<SyntaxGenerator>();
                 var attributesToRemove = AttributesToRemove(compilation);
 
-                var getAccessor = GenerateGetAccessor(compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
-                var setAccessor = GenerateSetAccessor(compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
+                var getAccessor = GenerateGetAccessor(compilation, property, accessibility, generateAbstractly,
+                    useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
+
+                var setAccessor = GenerateSetAccessor(compilation, property, accessibility,
+                    generateAbstractly, useExplicitInterfaceSymbol, attributesToRemove, cancellationToken);
 
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
                 var parameterNames = NameGenerator.EnsureUniqueness(
@@ -53,12 +56,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             /// <summary>
             /// Lists compiler attributes that we want to remove.
-            /// The TupleElementNames attribute is compiler generated and used for naming tuple element names. We never want to place it in source code.
+            /// The TupleElementNames attribute is compiler generated (it is used for naming tuple element names).
+            /// We never want to place it in source code.
             /// Same thing for the Dynamic attribute.
             /// </summary>
             private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
-                return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(), compilation.DynamicAttributeType() };
+                return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
+                    compilation.DynamicAttributeType() };
             }
 
             private IMethodSymbol GenerateSetAccessor(
