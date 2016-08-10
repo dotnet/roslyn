@@ -1739,7 +1739,11 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
-            var rootBuilder = new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion);
+            // TODO (https://github.com/dotnet/roslyn/issues/3905):
+            // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
+            // Once fixed enable validation in DEBUG builds.
+            var rootBuilder = new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion, suppressValidation: true);
+
             rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
             metadataSizes = rootBuilder.Sizes;
 
@@ -1789,7 +1793,10 @@ namespace Microsoft.Cci
 
         public MetadataRootBuilder GetRootBuilder()
         {
-            return new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion);
+            // TODO (https://github.com/dotnet/roslyn/issues/3905):
+            // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
+            // Once fixed enable validation in DEBUG builds.
+            return new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion, suppressValidation: true);
         }
 
         public PortablePdbBuilder GetPortablePdbBuilder(MetadataSizes typeSystemMetadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
@@ -2612,8 +2619,10 @@ namespace Microsoft.Cci
             else
             {
                 // The guid will be filled in later:
-                mvidHandle = metadata.ReserveGuid(out mvidFixup);
-                new BlobWriter(mvidFixup).WriteBytes(0, mvidFixup.Length);
+                var reservedGuid = metadata.ReserveGuid();
+                mvidFixup = reservedGuid.Content;
+                mvidHandle = reservedGuid.Handle;
+                reservedGuid.CreateWriter().WriteBytes(0, mvidFixup.Length);
             }
 
             metadata.AddModule(
@@ -2787,7 +2796,7 @@ namespace Microsoft.Cci
             var lastLocalVariableHandle = default(LocalVariableHandle);
             var lastLocalConstantHandle = default(LocalConstantHandle);
 
-            var encoder = new MethodBodiesEncoder(ilBuilder);
+            var encoder = new MethodBodyStreamEncoder(ilBuilder);
 
             var mvidStringHandle = default(UserStringHandle);
             mvidStringFixup = default(Blob);
@@ -2843,7 +2852,7 @@ namespace Microsoft.Cci
             return bodyOffsets;
         }
 
-        private int SerializeMethodBody(MethodBodiesEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
+        private int SerializeMethodBody(MethodBodyStreamEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
             int ilLength = methodBody.IL.Length;
             var exceptionRegions = methodBody.ExceptionRegions;
@@ -2852,35 +2861,34 @@ namespace Microsoft.Cci
             // Check if an identical method body has already been serialized. 
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
-            int bodyOffset;
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
+            int bodyOffset;
             if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyOffset))
             {
                 return bodyOffset;
             }
 
-            MethodBodyAttributes attributes =
-                (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : 0) |
-                (MayUseSmallExceptionHeaders(exceptionRegions) ? 0 : MethodBodyAttributes.LargeExceptionRegions);
-
-            var bodyEncoder = encoder.AddMethodBody(methodBody.MaxStack, exceptionRegions.Length, localSignatureHandleOpt, attributes);
-
-            Blob ilBlob;
-            var ehEncoder = bodyEncoder.WriteInstructions(methodBody.IL, out bodyOffset, out ilBlob);
+            var encodedBody = encoder.AddMethodBody(
+                codeSize: methodBody.IL.Length, 
+                maxStack: methodBody.MaxStack, 
+                exceptionRegionCount: exceptionRegions.Length, 
+                hasSmallExceptionRegions: MayUseSmallExceptionHeaders(exceptionRegions),
+                localVariablesSignature: localSignatureHandleOpt, 
+                attributes: (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : 0));
 
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             if (isSmallBody && !_deterministic)
             {
-                _smallMethodBodies.Add(methodBody.IL, bodyOffset);
+                _smallMethodBodies.Add(methodBody.IL, encodedBody.Offset);
             }
 
-            SubstituteFakeTokens(ilBlob, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
-            SerializeMethodBodyExceptionHandlerTable(ehEncoder, exceptionRegions);
+            WriteInstructions(encodedBody.Instructions, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
+            SerializeMethodBodyExceptionHandlerTable(encodedBody.ExceptionRegions, exceptionRegions);
 
-            return bodyOffset;
+            return encodedBody.Offset;
         }
 
         /// <summary>
@@ -3033,13 +3041,13 @@ namespace Microsoft.Cci
             return default(UserStringHandle);
         }
 
-        private UserStringHandle ReserveUserString(int length, out Blob fixup)
+        private ReservedBlob<UserStringHandle> ReserveUserString(int length)
         {
             if (!_userStringTokenOverflow)
             {
                 try
                 {
-                    return metadata.ReserveUserString(length, out fixup);
+                    return metadata.ReserveUserString(length);
                 }
                 catch (ImageFormatLimitationException)
                 {
@@ -3048,8 +3056,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            fixup = default(Blob);
-            return default(UserStringHandle);
+            return default(ReservedBlob<UserStringHandle>);
         }
 
         internal const uint LiteralMethodDefinitionToken = 0x80000000;
@@ -3057,15 +3064,18 @@ namespace Microsoft.Cci
         internal const uint SourceDocumentIndex = 0x20000000;
         internal const uint ModuleVersionIdStringToken = 0x80000000;
         
-        private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
+        private void WriteInstructions(Blob finalIL, ImmutableArray<byte> generatedIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
             // write the raw body first and then patch tokens:
-            var writer = new BlobWriter(blob);
+            var writer = new BlobWriter(finalIL);
+
+            writer.WriteBytes(generatedIL);
+            writer.Offset = 0;
 
             int offset = 0;
-            while (offset < methodBodyIL.Length)
+            while (offset < generatedIL.Length)
             {
-                var operandType = InstructionOperandTypes.ReadOperandType(methodBodyIL, ref offset);
+                var operandType = InstructionOperandTypes.ReadOperandType(generatedIL, ref offset);
                 switch (operandType)
                 {
                     case OperandType.InlineField:
@@ -3073,7 +3083,7 @@ namespace Microsoft.Cci
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
                         {
-                            int pseudoToken = ReadInt32(methodBodyIL, offset);
+                            int pseudoToken = ReadInt32(generatedIL, offset);
                             int token = 0;
                             // If any bits in the high-order byte of the pseudotoken are nonzero, replace the opcode with Ldc_i4
                             // and either clear the high-order byte in the pseudotoken or ignore the pseudotoken.
@@ -3083,7 +3093,7 @@ namespace Microsoft.Cci
                                 int tokenMask = pseudoToken & unchecked((int)0xff000000);
                                 if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
                                 {
-                                    Debug.Assert(ReadByte(methodBodyIL, offset - 1) == (byte)ILOpCode.Ldtoken);
+                                    Debug.Assert(ReadByte(generatedIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
                                     switch ((uint)tokenMask)
@@ -3112,7 +3122,7 @@ namespace Microsoft.Cci
                         {
                             writer.Offset = offset;
 
-                            int pseudoToken = ReadInt32(methodBodyIL, offset);
+                            int pseudoToken = ReadInt32(generatedIL, offset);
                             UserStringHandle handle;
 
                             if ((uint)pseudoToken == ModuleVersionIdStringToken)
@@ -3124,7 +3134,9 @@ namespace Microsoft.Cci
                                 {
                                     const int guidStringLength = 36;
                                     Debug.Assert(guidStringLength == default(Guid).ToString().Length);
-                                    mvidStringHandle = ReserveUserString(guidStringLength, out mvidStringFixup);
+                                    var reserved = ReserveUserString(guidStringLength);
+                                    mvidStringHandle = reserved.Handle;
+                                    mvidStringFixup = reserved.Content;
                                 }
 
                                 handle = mvidStringHandle;
@@ -3148,7 +3160,7 @@ namespace Microsoft.Cci
                         break;
 
                     case OperandType.InlineSwitch:
-                        int argCount = ReadInt32(methodBodyIL, offset);
+                        int argCount = ReadInt32(generatedIL, offset);
                         // skip switch arguments count and arguments
                         offset += (argCount + 1) * 4;
                         break;
@@ -3179,13 +3191,11 @@ namespace Microsoft.Cci
 
         private void SerializeMethodBodyExceptionHandlerTable(ExceptionRegionEncoder encoder, ImmutableArray<ExceptionHandlerRegion> regions)
         {
-            encoder.StartRegions();
-
             foreach (var region in regions)
             {
                 var exceptionType = region.ExceptionType;
 
-                encoder.AddRegion(
+                encoder.Add(
                     region.HandlerKind,
                     region.TryStartOffset,
                     region.TryLength,
@@ -3194,8 +3204,6 @@ namespace Microsoft.Cci
                     (exceptionType != null) ? GetTypeHandle(exceptionType) : default(EntityHandle), 
                     region.FilterDecisionStartOffset);
             }
-
-            encoder.EndRegions();
         }
 
         private static bool MayUseSmallExceptionHeaders(ImmutableArray<ExceptionHandlerRegion> exceptionRegions)
