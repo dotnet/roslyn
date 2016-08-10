@@ -1961,5 +1961,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
         FEATURE_IOperation
+        FEATURE_ImplicitDefaultValueOptionalParameter
     End Enum
 End Namespace

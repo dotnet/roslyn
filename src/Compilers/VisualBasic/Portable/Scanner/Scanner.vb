@@ -2328,7 +2328,7 @@ FullWidthRepeat2:
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
                 If yearIsFirst Then
-                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options)
                 End If
 
                 Return result
@@ -2429,7 +2429,7 @@ baddate:
                     Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
                     If haveNewLine Then
-                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options)
                     End If
 
                     Return result

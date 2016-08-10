@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         DigitSeparators
         BinaryLiterals
         IOperation
+        ImplicitDefaultValueOnOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
@@ -40,7 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.IOperation
                     Return "IOperation"
-
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return "implicitDefaultValueOnOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
@@ -83,6 +85,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.BinaryLiterals,
                      Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
+
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return LanguageVersion.VBvnext ' TODO: Change to correct version, when offically supported.
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

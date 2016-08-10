@@ -56,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+
             ''' <summary>
             ''' Precedence level for an extension method.
             ''' </summary>
@@ -884,10 +885,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim candidates = ArrayBuilder(Of CandidateAnalysisResult).GetInstance()
-
             Dim instanceCandidates As ArrayBuilder(Of Candidate) = ArrayBuilder(Of Candidate).GetInstance()
             Dim curriedCandidates As ArrayBuilder(Of Candidate) = ArrayBuilder(Of Candidate).GetInstance()
-
             Dim methods As ImmutableArray(Of MethodSymbol) = methodGroup.Methods
 
             If Not methods.IsDefault Then
@@ -1957,6 +1956,7 @@ ResolutionComplete:
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
 
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
+
                     leftHasMoreApplicableParameterType = True
 
                     If rightHasMoreApplicableParameterType Then
@@ -1980,6 +1980,7 @@ ResolutionComplete:
                 Else
                     Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
                 End If
+
             Next
 
             Debug.Assert(Not (leftHasMoreApplicableParameterType AndAlso rightHasMoreApplicableParameterType))
@@ -3551,7 +3552,8 @@ Bailout:
                 ' Now see if any candidates are ambiguous or lose against other candidates in the quickInfo array.
                 ' This loop is destructive to the content of the quickInfo, some applicable candidates could be replaced with
                 ' a "better" candidate, even though that candidate is not applicable, "losers" are deleted, etc.
-                For k As Integer = 0 To If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
+                Dim ke As Integer = If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
+                For k As Integer = 0 To ke
                     info = quickInfo(k)
 
                     If info.Candidate Is Nothing OrElse info.State = CandidateAnalysisResultState.Ambiguous Then
@@ -3569,7 +3571,7 @@ Bailout:
                     For l As Integer = k + 1 To quickInfo.Count - 1
                         Dim info2 As QuickApplicabilityInfo = quickInfo(l)
 
-                        If info2.Candidate Is Nothing OrElse info2.State = CandidateAnalysisResultState.Ambiguous Then
+                        If info2.Candidate Is Nothing OrElse (info2.State = CandidateAnalysisResultState.Ambiguous) Then
                             Continue For
                         End If
 
@@ -3719,8 +3721,8 @@ Bailout:
                 If arguments.Length <> maxCount Then
                     Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, True, False)
                 End If
-            ElseIf arguments.Length < requiredCount OrElse
-               (Not hasParamArray AndAlso arguments.Length > maxCount) Then
+
+            ElseIf arguments.Length < requiredCount OrElse (Not hasParamArray AndAlso arguments.Length > maxCount) Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, Not hasParamArray, hasParamArray)
             End If
 
@@ -3730,7 +3732,6 @@ Bailout:
                 If useSiteDiagnostics Is Nothing Then
                     useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
                 End If
-
                 useSiteDiagnostics.Add(useSiteErrorInfo)
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
             End If
