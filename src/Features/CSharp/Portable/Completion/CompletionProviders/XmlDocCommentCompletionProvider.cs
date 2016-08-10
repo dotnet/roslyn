@@ -17,7 +17,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
+	internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
             {
                 // The user is typing inside an XmlElement
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement)
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
+                    token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     items.AddRange(GetNestedTags(declaredSymbol));
                 }
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetListItems(span));
                 }
 
-                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) & token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     var element = (XmlElementSyntax)token.Parent.Parent.Parent;
                     if (element.StartTag.Name.LocalName.ValueText == ListTagName)
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetListHeaderItems());
                 }
 
-                if (token.Parent.Parent is DocumentationCommentTriviaSyntax)
+                if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
+                    (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
                     items.AddRange(GetTopLevelSingleUseNames(parentTrivia, span));
                     items.AddRange(GetTopLevelRepeatableItems());

@@ -377,8 +377,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           Nothing,
                                           ImmutableArray.Create(Of BoundExpression)(value, getTypeExpr),
                                           Nothing,
-                                          False,
-                                          objectType)
+                                          suppressObjectClone:=False,
+                                          type:=objectType)
 
                 End If
 
@@ -491,7 +491,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     argumentNames)
 
 
-            Dim callerInvocation As BoundExpression = New BoundCall(syntax, lateIndexGetMethod, Nothing, Nothing, callArgs, Nothing, True, lateIndexGetMethod.ReturnType)
+            Dim callerInvocation As BoundExpression = New BoundCall(
+                syntax,
+                lateIndexGetMethod,
+                Nothing,
+                Nothing,
+                callArgs,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=lateIndexGetMethod.ReturnType)
 
             Return callerInvocation
         End Function
@@ -566,7 +574,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     rValueBase)
             End If
 
-            Return New BoundCall(syntax, lateSetMethod, Nothing, Nothing, callArgs, Nothing, True, lateSetMethod.ReturnType)
+            Return New BoundCall(
+                syntax,
+                lateSetMethod,
+                Nothing,
+                Nothing,
+                callArgs,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=lateSetMethod.ReturnType)
         End Function
 
         Private Function LateIndexSet(syntax As VisualBasicSyntaxNode,
@@ -624,8 +640,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              rValueBase)
             End If
 
-
-            Return New BoundCall(syntax, lateIndexSetMethod, Nothing, Nothing, callArgs, Nothing, True, lateIndexSetMethod.ReturnType)
+            Return New BoundCall(
+                syntax,
+                lateIndexSetMethod,
+                Nothing,
+                Nothing,
+                callArgs,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=lateIndexSetMethod.ReturnType)
         End Function
 
         ' NOTE: assignmentArguments are no-side-effects expressions representing
@@ -797,7 +820,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 callArgs = callArgs.Add(ignoreReturn)
             End If
 
-            Dim callerInvocation As BoundExpression = New BoundCall(syntax, lateCallOrGetMethod, Nothing, Nothing, callArgs, Nothing, True, lateCallOrGetMethod.ReturnType)
+            Dim callerInvocation As BoundExpression = New BoundCall(
+                syntax,
+                lateCallOrGetMethod,
+                Nothing,
+                Nothing,
+                callArgs,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=lateCallOrGetMethod.ReturnType)
 
             ' process copybacks
             If copyBackFlagArrayTemp IsNot Nothing Then

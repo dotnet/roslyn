@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<bool> dynamicTransformFlags,
             bool checkLength = true)
         {
-            Debug.Assert(containingAssembly is SourceAssemblySymbol); // Doesn't happen during decoding.
             return TransformTypeInternal(
                 type,
                 containingAssembly,
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(_index >= 0);
 
             if (!HasFlag ||
-                PeekFlag() && type.SpecialType != SpecialType.System_Object)
+                PeekFlag() && (type.SpecialType != SpecialType.System_Object && !type.IsDynamic()))
             {
                 // Bail, since flags are invalid.
                 return null;
@@ -254,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var newTypeArguments = customModifiers.IsDefault ?
                                        transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
-                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+                                       transformedTypeArguments.ZipAsArray(customModifiers, (t, m) => new TypeWithModifiers(t, m));
 
                 if (containerIsChanged)
                 {

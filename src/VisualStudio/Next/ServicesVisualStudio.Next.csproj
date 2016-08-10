@@ -104,7 +104,6 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Subscription.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />

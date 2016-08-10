@@ -69,10 +69,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
-            Return New TypeWithModifiers(InternalSubstituteTypeParametersInNamedType(substitution))
+            Return New TypeWithModifiers(SubstituteTypeParametersInNamedType(substitution))
         End Function
 
-        Private Overloads Function InternalSubstituteTypeParametersInNamedType(substitution As TypeSubstitution) As NamedTypeSymbol
+        Private Function SubstituteTypeParametersInNamedType(substitution As TypeSubstitution) As NamedTypeSymbol
 
             If substitution IsNot Nothing Then
                 ' The substitution might target one of this type's children.
