@@ -40,16 +40,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function GetEnumUnderlyingType(type As TypeSymbol) As TypeSymbol
             Debug.Assert(type IsNot Nothing)
 
-            If type.IsEnumType() Then
-                Return DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
-            End If
-
-            Return Nothing
+            Return TryCast(type, NamedTypeSymbol)?.EnumUnderlyingType
         End Function
 
         <Extension()>
         Public Function GetEnumUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
             Return If(GetEnumUnderlyingType(type), type)
+        End Function
+
+        <Extension()>
+        Public Function GetTupleUnderlyingType(type As TypeSymbol) As TypeSymbol
+            Debug.Assert(type IsNot Nothing)
+
+            Return TryCast(type, NamedTypeSymbol)?.TupleUnderlyingType
+        End Function
+
+        <Extension()>
+        Public Function GetTupleUnderlyingTypeOrSelf(type As TypeSymbol) As TypeSymbol
+            Return If(GetTupleUnderlyingType(type), type)
+        End Function
+
+        <Extension()>
+        Public Function TryGetElementTypesIfTupleOrCompatible(type As TypeSymbol, <Out> ByRef elementTypes As ImmutableArray(Of TypeSymbol)) As Boolean
+            If type.IsTupleType Then
+                elementTypes = DirectCast(type, TupleTypeSymbol).TupleElementTypes
+                Return True
+            End If
+
+            ' The following codepath should be very uncommon since it would be rare
+            ' to see a tuple underlying type not represented as a tuple.
+            ' It still might happen since tuple underlying types are creatable via public APIs 
+            ' and it is also possible that they would be passed in.
+
+            ' PERF: if allocations here become nuisance, consider caching the results
+            '       in the type symbols that can actually be tuple compatible
+            Dim cardinality As Integer
+            If (Not type.IsTupleCompatible(cardinality)) Then
+                ' source not a tuple or compatible
+                elementTypes = Nothing
+                Return False
+            End If
+
+            Dim elementTypesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(cardinality)
+            TupleTypeSymbol.AddElementTypes(DirectCast(type, NamedTypeSymbol), elementTypesBuilder)
+
+            Debug.Assert(elementTypesBuilder.Count = cardinality)
+
+            elementTypes = elementTypesBuilder.ToImmutableAndFree()
+            Return True
+        End Function
+
+        <Extension()>
+        Public Function GetElementTypesOfTupleOrCompatible(Type As TypeSymbol) As ImmutableArray(Of TypeSymbol)
+            If Type.IsTupleType Then
+                Return DirectCast(Type, TupleTypeSymbol).TupleElementTypes
+            End If
+
+            ' The following codepath should be very uncommon since it would be rare
+            ' to see a tuple underlying type not represented as a tuple.
+            ' It still might happen since tuple underlying types are creatable via public APIs 
+            ' and it is also possible that they would be passed in.
+
+            Debug.Assert(Type.IsTupleCompatible())
+
+            ' PERF: if allocations here become nuisance, consider caching the results
+            '       in the type symbols that can actually be tuple compatible
+            Dim elementTypesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance()
+            TupleTypeSymbol.AddElementTypes(DirectCast(Type, NamedTypeSymbol), elementTypesBuilder)
+
+            Return elementTypesBuilder.ToImmutableAndFree()
         End Function
 
         <Extension()>
@@ -173,8 +232,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return type.TypeKind = TypeKind.Delegate
         End Function
 
+        ''' <summary>
+        ''' Compares types ignoring type modifiers.
+        ''' Also ignores distinctions between tuple types and their underlying types (thus ignoring tuple element names)
+        ''' </summary>
         <Extension()>
         Friend Function IsSameTypeIgnoringCustomModifiers(t1 As TypeSymbol, t2 As TypeSymbol) As Boolean
+
+            If t1.IsTupleType Then
+                t1 = t1.TupleUnderlyingType
+            End If
+
+            If t2.IsTupleType Then
+                t2 = t2.TupleUnderlyingType
+            End If
 
             If t1 Is t2 Then
                 Return True

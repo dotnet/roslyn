@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -242,6 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterpolatedStringExpression
                     Return BindInterpolatedStringExpression(DirectCast(node, InterpolatedStringExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.TupleExpression
+                    Return BindTupleExpression(DirectCast(node, TupleExpressionSyntax), diagnostics)
+
                 Case Else
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
@@ -297,6 +301,147 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        Private Function BindTupleExpression(node As TupleExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Dim arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax) = node.Arguments
+            Dim numElements As Integer = arguments.Count
+
+            If numElements < 2 Then
+                ' this should be a parse error already.
+                Dim args = If(numElements = 1,
+                    ImmutableArray.Create(Of BoundNode)(BindRValue(arguments(0).Expression, diagnostics)),
+                    ImmutableArray(Of BoundNode).Empty)
+
+                Return BadExpression(node, args, ErrorTypeSymbol.UnknownResultType)
+            End If
+
+            Dim hasErrors = False
+            Dim hasNaturalType = True
+
+            ' set of names already used
+            Dim uniqueFieldNames = PooledHashSet(Of String).GetInstance()
+
+            Dim boundArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Count)
+            Dim elementTypes = ArrayBuilder(Of TypeSymbol).GetInstance(arguments.Count)
+            Dim elementLocations = ArrayBuilder(Of Location).GetInstance(arguments.Count)
+
+            Dim elementNames As ArrayBuilder(Of String) = Nothing
+            Dim countOfExplicitNames = 0
+
+            ' prepare and check element names and types
+            For i As Integer = 0 To numElements - 1
+                Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
+                Dim name As String = Nothing
+
+                Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.NameColonEquals?.Name
+
+                If nameSyntax IsNot Nothing Then
+                    name = nameSyntax.Identifier.ValueText
+                    elementLocations.Add(nameSyntax.GetLocation)
+
+                    countOfExplicitNames += 1
+                    If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
+                        hasErrors = True
+                    End If
+                Else
+                    elementLocations.Add(argumentSyntax.GetLocation)
+                End If
+
+                CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
+
+                Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
+                boundArguments.Add(boundArgument)
+
+                Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasErrors)
+                elementTypes.Add(elementType)
+
+                If elementType Is Nothing Then
+                    hasNaturalType = False
+                End If
+            Next
+
+            uniqueFieldNames.Free()
+
+            If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> elementTypes.Count Then
+                hasErrors = True
+                ReportDiagnostic(diagnostics, node, ERRID.ERR_TupleExplicitNamesOnAllMembersOrNone)
+            End If
+
+            Dim elementNamesArray = If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree())
+
+            Dim tupleTypeOpt As NamedTypeSymbol = Nothing
+            Dim elements = elementTypes.ToImmutableAndFree()
+            Dim locations = elementLocations.ToImmutableAndFree()
+
+            If hasNaturalType Then
+                tupleTypeOpt = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics)
+            Else
+                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, Me.Compilation, diagnostics)
+            End If
+
+            Return New BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+        End Function
+
+        ''' <summary>
+        ''' Returns the type to be used as a field type.
+        ''' Generates errors in case the type is not supported for tuple type fields.
+        ''' </summary>
+        Private Shared Function GetTupleFieldType(expression As BoundExpression, errorSyntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, <Out> ByRef hasError As Boolean) As TypeSymbol
+            Dim expressionType As TypeSymbol = expression.Type
+
+            If Not expression.HasErrors Then
+                If expressionType IsNot Nothing Then
+                    If expressionType.SpecialType = SpecialType.System_Void Then
+                        expressionType = ErrorTypeSymbol.UnknownResultType
+                        hasError = True
+                        ReportDiagnostic(diagnostics, errorSyntax, ERRID.ERR_VoidValue)
+
+                    ElseIf (expressionType.IsRestrictedType()) Then
+                        hasError = True
+                        ReportDiagnostic(diagnostics, errorSyntax, ERRID.ERR_RestrictedType1, expressionType)
+
+                    End If
+                End If
+            End If
+
+            Return expressionType
+        End Function
+
+        Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
+            ' add the name to the list
+            ' names would typically all be there or none at all
+            ' but in case we need to handle this in error cases
+            If elementNames IsNot Nothing Then
+                elementNames.Add(If(name, TupleTypeSymbol.TupleMemberName(position)))
+            Else
+                If name IsNot Nothing Then
+                    elementNames = ArrayBuilder(Of String).GetInstance(tupleSize)
+                    For j As Integer = 1 To position - 1
+                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j))
+                    Next
+                    elementNames.Add(name)
+                End If
+            End If
+        End Sub
+
+        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As PooledHashSet(Of String)) As Boolean
+            Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
+            If reserved = 0 Then
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)
+                Return False
+
+            ElseIf reserved > 0 AndAlso reserved <> index + 1 Then
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberName, name, reserved)
+                Return False
+
+            ElseIf (Not uniqueFieldNames.Add(name)) Then
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateMemberName)
+                Return False
+
+            End If
+
+            Return True
+        End Function
+
         Public Function BindNamespaceOrTypeExpression(node As TypeSyntax, diagnostics As DiagnosticBag) As BoundExpression
             Dim symbol = Me.BindNamespaceOrTypeOrAliasSyntax(node, diagnostics)
 
@@ -323,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function BindNamespaceOrTypeOrExpressionSyntaxForSemanticModel(node As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             If (node.Kind = SyntaxKind.PredefinedType) OrElse
-               (((TypeOf node Is NameSyntax) OrElse node.Kind = SyntaxKind.ArrayType) AndAlso SyntaxFacts.IsInNamespaceOrTypeContext(node)) Then
+               (((TypeOf node Is NameSyntax) OrElse node.Kind = SyntaxKind.ArrayType OrElse node.Kind = SyntaxKind.TupleType) AndAlso SyntaxFacts.IsInNamespaceOrTypeContext(node)) Then
                 Dim result As BoundExpression = Me.BindNamespaceOrTypeExpression(DirectCast(node, TypeSyntax), diagnostics)
 
                 ' Deal with the case of a namespace group. We may need to bind more in order to see if the ambiguity can be resolved.

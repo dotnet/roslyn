@@ -1688,7 +1688,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OptionMustBeAbsolutePath = 37257
         ERR_SourceLinkRequiresPortablePdb = 37258
 
-        ERR_RefReturningCallInExpressionTree = 37259
+        ERR_TupleExplicitNamesOnAllMembersOrNone = 37258
+        ERR_TupleTooFewElements = 37259
+        ERR_TupleReservedMemberNameAnyPosition = 37260
+        ERR_TupleReservedMemberName = 37261
+        ERR_TupleDuplicateMemberName = 37262
+
+        ERR_RefReturningCallInExpressionTree = 37263
 
         ERR_LastPlusOne
 
@@ -1960,6 +1966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
+        FEATURE_Tuples
         FEATURE_IOperation
     End Enum
 End Namespace
