@@ -374,7 +374,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within)
         {
             var systemAttributeType = compilation.AttributeType();
-            var propertyNames = new HashSet<string>(StringComparer.Ordinal);
+            
+            var propertyNames = new HashSet<string>(
+                compilation.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
             foreach (var type in attributeSymbol.GetBaseTypesAndThis())
             {
                 if (type.Equals(systemAttributeType))

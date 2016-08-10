@@ -198,7 +198,7 @@ End Class
 Class BaseAttribute
     Inherits System.Attribute
     Public Overridable Property Name As String
-    Public Property Name2 As Int16
+    Public Property NAMe2 As Int16
 End Class
 
 Class DerivedAttribute
