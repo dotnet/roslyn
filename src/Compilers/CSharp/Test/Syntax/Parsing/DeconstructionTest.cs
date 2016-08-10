@@ -1716,5 +1716,90 @@ class C
             var nullable = (NullableTypeSyntax)declaration.Type;
             Assert.Equal(SyntaxKind.TupleType, nullable.ElementType.Kind());
         }
+
+        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        public void BadTupleElementTypeInDeconstruction01()
+        {
+            var source =
+@"
+class C
+{
+    void M()
+    {
+        int (x1, x2) = (1, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
+    }
+}";
+            // the duplicate reporting of CS8136 below is due to open issue https://github.com/dotnet/roslyn/issues/12905
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,14): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                //         int (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
+                // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                //         int (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18)
+                );
+        }
+
+        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        public void BadTupleElementTypeInDeconstruction02()
+        {
+            var source =
+@"
+class C
+{
+    void M()
+    {
+        (int x1, x2) = (1, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,18): error CS1031: Type expected
+                //         (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x2").WithLocation(6, 18)
+                );
+        }
+
+        [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
+        public void SwapAssignmentShouldNotBeParsedAsDeconstructionDeclaration()
+        {
+            var source =
+@"
+class C
+{
+    void M(ref int x, ref int y)
+    {
+        (x, y) = (y, x);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                );
+        }
     }
 }

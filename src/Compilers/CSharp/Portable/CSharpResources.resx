@@ -4928,7 +4928,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
-    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
+    <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
