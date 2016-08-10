@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
         {
-            // Do not instrument implicitly-declared methods.
-            if (!method.IsImplicitlyDeclared)
+            // Do not instrument implicitly-declared methods, except for constructors.
+            // Instrument implicit constructors in order to instrument member initializers.
+            if (!method.IsImplicitlyDeclared || method.IsImplicitConstructor)
             {
                 MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
 
@@ -64,7 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The first point indicates entry into the method and has the span of the method definition.
             CSharpSyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
+            if (!method.IsImplicitlyDeclared)
+            {
+                _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
+            }
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -100,7 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundStatement> prologueStatements = ArrayBuilder<BoundStatement>.GetInstance(previousPrologue == null ? 3 : 4);
                 prologueStatements.Add(payloadInitialization);
                 prologueStatements.Add(payloadIf);
-                prologueStatements.Add(_methodEntryInstrumentation);
+                if (_methodEntryInstrumentation != null)
+                {
+                    prologueStatements.Add(_methodEntryInstrumentation);
+                }
+
                 if (previousPrologue != null)
                 {
                     prologueStatements.Add(previousPrologue);

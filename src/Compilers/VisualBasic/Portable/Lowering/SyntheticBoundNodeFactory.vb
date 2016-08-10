@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Assignment expressions in lowered form should always have suppressObjectClone = True
         ''' </summary>
         Public Function AssignmentExpression(left As BoundExpression, right As BoundExpression) As BoundAssignmentOperator
-            Debug.Assert(left.Type = right.Type OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
+            Debug.Assert(left.Type.IsSameTypeIgnoringCustomModifiers(right.Type) OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
             Dim boundNode = New BoundAssignmentOperator(_syntax, left, right, True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -597,7 +597,15 @@ nextm:
 
         Public Function [Call](receiver As BoundExpression, method As MethodSymbol, args As ImmutableArray(Of BoundExpression)) As BoundCall
             Debug.Assert(method.ParameterCount = args.Length)
-            Dim boundNode = New BoundCall(Syntax, method, Nothing, receiver, args, Nothing, True, method.ReturnType)
+            Dim boundNode = New BoundCall(
+                Syntax,
+                method,
+                Nothing,
+                receiver,
+                args,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=method.ReturnType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

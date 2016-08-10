@@ -684,8 +684,9 @@ lSelect:
                                 node.Expression,
                                 ImmutableArray(Of BoundExpression).Empty,
                                 Nothing,
-                                True,
-                                resultType))
+                                isLValue:=False,
+                                suppressObjectClone:=True,
+                                type:=resultType))
             Else
                 Return ConvertRuntimeHelperToExpressionTree("ArrayLength", Visit(node.Expression))
             End If

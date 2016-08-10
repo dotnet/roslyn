@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
         /// Individual <see cref="CompletionItem"/> spans may vary.
         /// </summary>
-        [Obsolete("Not used anymore.  CompletionList.Span is used instead.")]
+        [Obsolete("Not used anymore.  CompletionList.Span is used instead.", error: true)]
         public TextSpan DefaultSpan { get; }
 
         /// <summary>
@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem suggestionModeItem,
             bool isExclusive)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DefaultSpan = defaultSpan;
-#pragma warning restore CS0618 // Type or member is obsolete
             Span = defaultSpan;
 
             Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="DefaultSpan"/> property changed.
         /// </summary>
-        [Obsolete("Not used anymore.  Use WithSpan instead.")]
+        [Obsolete("Not used anymore.  Use WithSpan instead.", error: true)]
         public CompletionList WithDefaultSpan(TextSpan span)
         {
             return With(span: span);

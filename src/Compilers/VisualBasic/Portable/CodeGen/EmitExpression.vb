@@ -19,6 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Inherits Exception
         End Class
 
+        Private Enum UseKind
+            Unused
+            UsedAsValue
+            UsedAsAddress
+        End Enum
+
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -73,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitAssignmentExpression(DirectCast(expression, BoundAssignmentOperator), used)
 
                 Case BoundKind.Call
-                    EmitCallExpression(DirectCast(expression, BoundCall), used)
+                    EmitCallExpression(DirectCast(expression, BoundCall), If(used, UseKind.UsedAsValue, UseKind.Unused))
 
                 Case BoundKind.TernaryConditionalExpression
                     EmitTernaryConditionalExpression(DirectCast(expression, BoundTernaryConditionalExpression), used)
@@ -940,13 +946,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ConstrainedCallVirt
         End Enum
 
-        Private Sub EmitCallExpression([call] As BoundCall, used As Boolean)
+        Private Sub EmitCallExpression([call] As BoundCall, useKind As UseKind)
             Dim method = [call].Method
             Dim receiver = [call].ReceiverOpt
 
             Debug.Assert([call].MethodGroupOpt Is Nothing)
             Debug.Assert(Not Me._module.AllowOmissionOfConditionalCalls OrElse Not method.CallsAreOmitted([call].Syntax, [call].SyntaxTree))
-            Debug.Assert(Not method.ReturnsByRef)
 
             ' is this a call to a default struct constructor?
             ' this happens in struct non-parameterless constructors calling
@@ -1082,9 +1087,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
-                EmitPopIfUnused(used)
+                EmitPopIfUnused(useKind <> UseKind.Unused)
             ElseIf _ilEmitStyle = ILEmitStyle.Debug Then
-                Debug.Assert(Not used, "Using the return value of a void method.")
+                Debug.Assert(useKind = UseKind.Unused, "Using the return value of a void method.")
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
 
                 ' DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
@@ -1112,6 +1117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Not in a reliable state after lowering.
 
                 _builder.EmitOpCode(ILOpCode.Nop)
+            End If
+
+            If useKind = UseKind.UsedAsValue AndAlso method.ReturnsByRef Then
+                EmitLoadIndirect(method.ReturnType, [call].Syntax)
+            ElseIf useKind = UseKind.UsedAsAddress Then
+                Debug.Assert(method.ReturnsByRef)
             End If
 
             FreeOptTemp(tempOpt)
@@ -1863,6 +1874,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Me.EmitSideEffects(sequence.SideEffects)
                     lhsUsesStack = EmitAssignmentPreamble(sequence.ValueOpt)
 
+                Case BoundKind.Call
+                    Dim left = DirectCast(assignmentTarget, BoundCall)
+                    Debug.Assert(left.Method.ReturnsByRef)
+                    EmitCallExpression(left, UseKind.UsedAsAddress)
+                    lhsUsesStack = True
+
                 Case BoundKind.ModuleVersionId, BoundKind.InstrumentationPayloadRoot
 
                 Case Else
@@ -1961,6 +1978,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             Me.FreeLocal(local)
                         Next
                     End If
+
+                Case BoundKind.Call
+                    Debug.Assert(DirectCast(expression, BoundCall).Method.ReturnsByRef)
+                    EmitStoreIndirect(expression.Type, expression.Syntax)
 
                 Case BoundKind.ModuleVersionId
                     EmitModuleVersionIdStore(DirectCast(expression, BoundModuleVersionId))
