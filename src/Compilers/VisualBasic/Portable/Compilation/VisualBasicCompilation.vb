@@ -2219,7 +2219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
+                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, diagnostics) Then
                     Return False
                 End If
 
@@ -2286,43 +2286,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)
         End Function
 
-        Private Function StartSourceChecksumCalculation(moduleBeingBuilt As PEModuleBuilder, diagnostics As DiagnosticBag) As Boolean
-            ' Check that all syntax trees are debuggable
-            Dim allTreesDebuggable = True
-            For Each tree In Me.SyntaxTrees
-                If Not String.IsNullOrEmpty(tree.FilePath) AndAlso tree.GetText().Encoding Is Nothing Then
-                    diagnostics.Add(ERRID.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation())
-                    allTreesDebuggable = False
-                End If
-            Next
-
-            If Not allTreesDebuggable Then
-                Return False
-            End If
-
-            ' Add debug documents for all trees with distinct paths.
-            For Each tree In Me.SyntaxTrees
-                If Not String.IsNullOrEmpty(tree.FilePath) Then
-                    ' compilation does not guarantee that all trees will have distinct paths.
-                    ' Do not attempt adding a document for a particular path if we already added one.
-                    Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(tree.FilePath, basePath:=Nothing)
-                    Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
-                    If existingDoc Is Nothing Then
-                        moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree))
-                    End If
-                End If
-            Next
-
-            ' Add debug documents for all directives. 
-            ' If there are clashes with already processed directives, report warnings.
-            ' If there are clashes with debug documents that came from actual trees, ignore the directive.
-            For Each tree In Me.SyntaxTrees
-                AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics)
-            Next
-
-            Return True
-        End Function
-
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
             Dim modules As ImmutableArray(Of ModuleSymbol) = SourceAssembly.Modules
 
@@ -2368,8 +2331,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(corLibrary Is Nothing, String.Empty, corLibrary.Assembly.ManifestModule.MetadataVersion)
         End Function
 
-        Private Shared Sub AddDebugSourceDocumentsForChecksumDirectives(
-            moduleBeingBuilt As PEModuleBuilder,
+        Friend Overrides Sub AddDebugSourceDocumentsForChecksumDirectives(
+            documentsBuilder As DebugDocumentsBuilder,
             tree As SyntaxTree,
             diagnosticBag As DiagnosticBag)
 
@@ -2381,15 +2344,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim path = checksumDirective.ExternalSource.ValueText
 
                 Dim checkSumText = checksumDirective.Checksum.ValueText
-                Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath:=tree.FilePath)
-                Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
+                Dim normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath:=tree.FilePath)
+                Dim existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath)
 
                 If existingDoc IsNot Nothing Then
                     ' directive matches a file path on an actual tree.
                     ' Dev12 compiler just ignores the directive in this case which means that
                     ' checksum of the actual tree always wins and no warning is given.
                     ' We will continue doing the same.
-                    If (existingDoc.IsComputedChecksum) Then
+                    If existingDoc.IsComputedChecksum Then
                         Continue For
                     End If
 
@@ -2412,7 +2375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         MakeCheckSumBytes(checksumDirective.Checksum.ValueText),
                         Guid.Parse(checksumDirective.Guid.ValueText))
 
-                    moduleBeingBuilt.AddDebugDocument(newDocument)
+                    documentsBuilder.AddDebugDocument(newDocument)
                 End If
             Next
         End Sub
@@ -2449,12 +2412,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function MakeDebugSourceDocumentForTree(normalizedPath As String, tree As SyntaxTree) As DebugSourceDocument
-            Return New DebugSourceDocument(normalizedPath, DebugSourceDocument.CorSymLanguageTypeBasic, Function() tree.GetChecksumAndAlgorithm())
-        End Function
+        Friend Overrides ReadOnly Property DebugSourceDocumentLanguageId As Guid
+            Get
+                Return DebugSourceDocument.CorSymLanguageTypeBasic
+            End Get
+        End Property
 
         Friend Overrides Function HasCodeToEmit() As Boolean
-            ' TODO (tomat):
             For Each syntaxTree In SyntaxTrees
                 Dim unit = syntaxTree.GetCompilationUnitRoot()
                 If unit.Members.Count > 0 Then
