@@ -17454,5 +17454,19 @@ public struct S
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("S.field", "(S, S)").WithLocation(4, 19)
                 );
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13088")]
+        public void AssignNullWithMissingValueTuple()
+        {
+            var source = @"
+public struct S
+{
+    (int, int) t = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(); // crashes
+        }
     }
 }
