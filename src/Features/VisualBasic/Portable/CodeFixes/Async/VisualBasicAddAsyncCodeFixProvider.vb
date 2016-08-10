@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Async Function GetDescriptionsAndNodes(
+        Protected Overrides Async Function GetDescriptionsAndNodesAsync(
                 root As SyntaxNode, oldNode As SyntaxNode,
                 semanticModel As SemanticModel, diagnostic As Diagnostic,
                 document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of DescriptionAndNode))
