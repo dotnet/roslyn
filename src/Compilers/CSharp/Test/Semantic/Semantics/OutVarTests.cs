@@ -11724,7 +11724,7 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,23): error CS8927: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,23): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
                 //                   out x1);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 23)
                 );
@@ -11765,7 +11765,7 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS8927: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,25): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
                 //               Test1(out x1,
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 25)
                 );
