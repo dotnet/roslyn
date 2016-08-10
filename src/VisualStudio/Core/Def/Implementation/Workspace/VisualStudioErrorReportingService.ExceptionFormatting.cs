@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,8 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class VisualStudioErrorReportingService
     {
-        private const string AsyncMethodPrefix = "async ";
-
         private static string GetFormattedExceptionStack(Exception exception)
         {
             var aggregate = exception as AggregateException;
@@ -26,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var text = GetStackForException(exception, true);
             for (int i = 0; i < aggregate.InnerExceptions.Count; i++)
             {
-                text = string.Format(ServicesVSResources._0_1_InnerException_2_3_4_5, text,
+                text = string.Format("{0}{1}---> (Inner Exception #{2}) {3}{4}{5}", text,
                     Environment.NewLine, i, GetFormattedExceptionStack(aggregate.InnerExceptions[i]), "<---", Environment.NewLine);
             }
 
@@ -54,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 else
                 {
                     stackText += " ---> " + GetFormattedExceptionStack(innerException) + Environment.NewLine +
-                            "   " + ServicesVSResources.End_of_inner_exception_stack;
+                                 "   " + ServicesVSResources.End_of_inner_exception_stack;
                 }
             }
             
@@ -63,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static string GetAsyncStackTrace(Exception exception)
         {
-            var stackTrace = new StackTrace(exception, true);
+            var stackTrace = new StackTrace(exception);
 
             var stackFrames = stackTrace.GetFrames();
             if (stackFrames == null)
@@ -72,21 +71,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var firstFrame = true;
-            var stringBuilder = new StringBuilder(255);
+            var stringBuilder = new StringBuilder();
 
             foreach (var frame in stackFrames)
             {
                 var method = frame.GetMethod();
-                if (method == null)
-                {
-                    continue;
-                }
-
-                var declaringType = method.DeclaringType;
+                var declaringType = method?.DeclaringType;
                 if (declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType))
                 {
                     continue;
                 }
+
                 if (firstFrame)
                 {
                     firstFrame = false;
@@ -96,13 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     stringBuilder.Append(Environment.NewLine);
                 }
 
-                stringBuilder.AppendFormat("   {0} ", ServicesVSResources.at);
+                stringBuilder.AppendFormat("   at ");
                 var isAsync = FormatMethodName(stringBuilder, declaringType);
                 if (!isAsync)
                 {
-                    stringBuilder.Append(method.Name);
+                    stringBuilder.Append(method?.Name);
                     var methodInfo = method as MethodInfo;
-                    if (methodInfo != null && methodInfo.IsGenericMethod)
+                    if (methodInfo?.IsGenericMethod == true)
                     {
                         FormatGenericArguments(stringBuilder, methodInfo.GetGenericArguments());
                     }
@@ -140,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (typeof(IAsyncStateMachine).GetTypeInfo().IsAssignableFrom(declaringType))
             {
                 isAsync = true;
-                stringBuilder.Append(AsyncMethodPrefix);
+                stringBuilder.Append("async ");
                 var start = fullName.LastIndexOf('<');
                 var end = fullName.LastIndexOf('>');
                 if (start >= 0 && end >= 0)
@@ -168,43 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return;
             }
 
-            stringBuilder.Append("[");
-            var firstTypeParam = true;
-            foreach (var genericArgument in genericTypeArguments)
-            {
-                if (!firstTypeParam)
-                {
-                    stringBuilder.Append(",");
-                }
-                else
-                {
-                    firstTypeParam = false;
-                }
-
-                stringBuilder.Append(genericArgument.Name);
-            }
-
-            stringBuilder.Append("]");
+            stringBuilder.Append("[" + String.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
         }
 
-        private static void FormatParameters(StringBuilder stringBuilder, MethodBase method)
-        {
-            var parameters = method.GetParameters();
-            var firstParam = true;
-            foreach (var t in parameters)
-            {
-                if (!firstParam)
-                {
-                    stringBuilder.Append(", ");
-                }
-                else
-                {
-                    firstParam = false;
-                }
-                var typeName = t.ParameterType?.Name ?? "<UnknownType>";
-
-                stringBuilder.Append(typeName + " " + t.Name);
-            }
-        }
+        private static void FormatParameters(StringBuilder stringBuilder, MethodBase method) =>
+            stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
     }
 }

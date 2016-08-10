@@ -61,15 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}{1}---&gt; (Inner Exception #{2}) {3}{4}{5}.
-        /// </summary>
-        internal static string _0_1_InnerException_2_3_4_5 {
-            get {
-                return ResourceManager.GetString("_0_1_InnerException_2_3_4_5", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
         /// </summary>
         internal static string _0_encountered_an_error_and_has_been_disabled {
@@ -250,15 +241,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Assembly {
             get {
                 return ResourceManager.GetString("Assembly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to at.
-        /// </summary>
-        internal static string at {
-            get {
-                return ResourceManager.GetString("at", resourceCulture);
             }
         }
         
