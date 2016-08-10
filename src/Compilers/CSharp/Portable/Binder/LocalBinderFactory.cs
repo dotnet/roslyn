@@ -454,8 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLockStatement(LockStatementSyntax node)
         {
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var lockBinder = new LockBinder(patternBinder, node);
+            var lockBinder = new LockBinder(_enclosing, node);
             AddToMap(node, lockBinder);
 
             Visit(node.Expression, lockBinder);
@@ -717,8 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != null)
             {
-                BlockBinder blockBinder;
-
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
@@ -729,18 +726,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // inside a block.
 
                     case SyntaxKind.ExpressionStatement:
-                        Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
-                        blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
-                        AddToMap(statement, blockBinder);
-                        Visit(statement, blockBinder);
-                        return;
-
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
-                        blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
+                        var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
+                        AddToMap(statement, blockBinder);
                         Visit(statement, blockBinder);
-                        Debug.Assert(_map.ContainsKey(statement));
                         return;
 
                     default:

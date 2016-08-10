@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement));
                         break;
 
