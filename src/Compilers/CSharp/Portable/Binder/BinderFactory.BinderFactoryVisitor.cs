@@ -541,15 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return sym;
                     }
-
-                    // Replaced members are not included in GetMembers().
-                    foreach (var replaced in sym.GetReplacedMembers())
-                    {
-                        if (InSpan(replaced.Locations, this.syntaxTree, memberSpan))
-                        {
-                            return replaced;
-                        }
-                    }
                 }
 
                 return null;

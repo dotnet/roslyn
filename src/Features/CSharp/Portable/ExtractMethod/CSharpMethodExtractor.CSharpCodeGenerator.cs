@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -312,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var declarationStatement = statement as LocalDeclarationStatementSyntax;
                     if (declarationStatement == null)
                     {
-                        // if given statement is not decl statement, do nothing.
+                        // if given statement is not decl statement.
                         yield return statement;
                         continue;
                     }
@@ -380,7 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return
                                 SyntaxFactory.LocalDeclarationStatement(
                                     declarationStatement.Modifiers,
-                                    declarationStatement.RefKeyword,
                                         SyntaxFactory.VariableDeclaration(
                                             declarationStatement.Declaration.Type,
                                             SyntaxFactory.SeparatedList(list)),

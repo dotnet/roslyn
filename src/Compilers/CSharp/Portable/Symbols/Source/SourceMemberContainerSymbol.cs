@@ -27,21 +27,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  22 bits.
+            // x = modifiers.  21 bits.
             // y = IsManagedType.  2 bits.
             // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
             private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 27;
+            private const int IsManagedTypeOffset = 26;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
             private const int IsManagedTypeMask = 0x3;
 
-            private const int FieldDefinitionsNotedBit = 1 << 29;
+            private const int FieldDefinitionsNotedBit = 1 << 28;
 
             private int _flags;
 
@@ -1081,8 +1081,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
-                return symbols.Count > 0 ? 
-                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) : 
+                return symbols.Count > 0 ?
+                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) :
                     s_emptyTypeMembers;
             }
             finally
@@ -1287,7 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var memberNames = ArrayBuilder<string>.GetInstance(membersDictionary.Count);
                     memberNames.AddRange(membersDictionary.Keys);
-                    MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
                     memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
@@ -1893,13 +1892,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+            if (!op1.ReturnType.Equals(op2.ReturnType, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
@@ -2325,101 +2324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.DeclaringCompilation.GetBinder(syntaxNode);
         }
 
-        private static void MergeReplacedMembers(
-            ArrayBuilder<string> memberNames,
-            Dictionary<string, ImmutableArray<Symbol>> membersByName,
-            DiagnosticBag diagnostics)
-        {
-            var membersGroupedBySignature = new Dictionary<Symbol, OneOrMany<Symbol>>(MemberSignatureComparer.DuplicateSourceComparer);
-
-            foreach (var name in memberNames)
-            {
-                var members = membersByName[name];
-                if (members.Length < 2)
-                {
-                    continue;
-                }
-
-                membersGroupedBySignature.Clear();
-
-                foreach (var member in members)
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Method:
-                            if (((MethodSymbol)member).IsAsync)
-                            {
-                                continue;
-                            }
-                            goto case SymbolKind.Property;
-
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            OneOrMany<Symbol> group;
-                            if (membersGroupedBySignature.TryGetValue(member, out group))
-                            {
-                                membersGroupedBySignature[member] = group.Add(member);
-                            }
-                            else
-                            {
-                                membersGroupedBySignature.Add(member, OneOrMany.Create(member));
-                            }
-                            break;
-                    }
-                }
-
-                foreach (var group in membersGroupedBySignature.Values)
-                {
-                    if (group.Count < 2)
-                    {
-                        continue;
-                    }
-
-                    Symbol last = null;
-                    foreach (var member in group)
-                    {
-                        var method = member as SourceMethodSymbol;
-                        if ((object)method != null && method.IsPartial)
-                        {
-                            continue; 
-                        }
-                        if ((object)last == null)
-                        {
-                            last = member;
-                        }
-                        else
-                        {
-                            var next = member;
-                            if (!last.IsReplace)
-                            {
-                                if (!next.IsReplace)
-                                {
-                                    continue;
-                                }
-                                var temp = last;
-                                last = next;
-                                next = temp;
-                            }
-                            Debug.Assert(last.IsReplace);
-                            if (next.IsReplace)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateReplace, member.Locations[0], member);
-                                next.SetReplaced(last.Replaced);
-                            }
-                            else if ((object)last.Replaced == null)
-                            {
-                                // No need to handle two originals (last.Replaced != null).
-                                // That duplicate member will be reported elsewhere.
-                                last.SetReplaced(next);
-                                next.SetReplacedBy(last);
-                                membersByName[name] = Remove(membersByName[name], next);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         private static void MergePartialMembers(
             ArrayBuilder<string> memberNames,
             Dictionary<string, ImmutableArray<Symbol>> membersByName,
@@ -2475,6 +2379,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsPartialImplementation && (object)method.OtherPartOfPartial == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
+                    }
+                    else if ((object)method.OtherPartOfPartial != null && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
                     }
                 }
             }
@@ -2662,7 +2570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2680,7 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
+                eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

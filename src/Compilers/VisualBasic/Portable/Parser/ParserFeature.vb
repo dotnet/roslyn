@@ -31,17 +31,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        IOperation
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.DigitSeparators
-                    Return "digitSeparators"
-
-                Case Feature.BinaryLiterals
-                    Return "binaryLiterals"
+                Case Feature.IOperation
+                    Return "IOperation"
 
                 Case Else
                     Return Nothing
@@ -81,6 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.BinaryLiterals,
+                     Feature.DigitSeparators
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -141,6 +143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.IOperation
+                    Return ERRID.FEATURE_IOperation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

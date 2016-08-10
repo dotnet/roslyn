@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                ((iEndLine < iStartLine) ||
                 (iEndLine == iStartLine && iEndColumn < iStartColumn)))
             {
-                throw new ArgumentException(ServicesVSResources.EndPositionMustBeGreaterThanStart);
+                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
             }
 
             var priority = (VSTASKPRIORITY)nPriority;
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     severity = DiagnosticSeverity.Info;
                     break;
                 default:
-                    throw new ArgumentException(ServicesVSResources.NotAValidValue, nameof(nPriority));
+                    throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority));
             }
 
             if (iStartLine < 0 || iStartColumn < 0)

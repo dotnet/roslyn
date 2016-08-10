@@ -192,8 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
-        ReplaceKeyword = 8439,
-        OriginalKeyword = 8440,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,
@@ -398,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         TrueLiteralExpression = 8752,
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
-        OriginalExpression = 8755,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -540,10 +537,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
         // Changes after C# 6
-		// tuples
+
+        // tuples
         TupleType = 8925,
         TupleElement = 8926,
         TupleExpression = 8927,
+        TypedVariableComponent = 8928,
+        ParenthesizedVariableComponent = 8929,
+        SingleVariableDesignation = 8930,
+        ParenthesizedVariableDesignation = 8931,
+        DeconstructionDeclarationStatement = 8932,
+        VariableComponentAssignment = 8933,
+        ForEachComponentStatement = 8934,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,
@@ -553,5 +558,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.
 
+        DeclarationExpression = 9040,
+        RefExpression = 9050,
+        RefType = 9051,
     }
 }

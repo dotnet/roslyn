@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "ManagedEsent": "1.9.2.0"
+    "ManagedEsent": "1.9.2"
   },
   "frameworks": {
     "net46": { }

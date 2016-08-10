@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+	<Metadata>
+		<Identity Id="1e4ce699-d626-42c3-9803-cac3cd73ed77" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+		<DisplayName>.NET Compiler Platform Syntax Visualizer</DisplayName>
+		<Description xml:space="preserve">The Syntax Visualizer is a Visual Studio extension that allows you to inspect and explore the syntax trees you'll use as you build applications and VS extensions atop the .NET Compiler Platform ("Roslyn").</Description>
+		<MoreInfo>http://go.microsoft.com/fwlink/?LinkId=394587</MoreInfo>
+		<License>Eula.rtf</License>
+		<Icon>SyntaxTree.ico</Icon>
+		<Tags>roslyn,syntax,visualizer</Tags>
+	</Metadata>
+	<Installation InstalledByMsi="false">
+		<InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,)" />
+	</Installation>
+	<Dependencies>
+		<Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+		<Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0]" />
+	</Dependencies>
+	<Assets>
+		<Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+	</Assets>
+</PackageManifest>

@@ -12,13 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
     {
         private readonly NamingStyleViewModel _viewModel;
 
-        public string DialogTitle => ServicesVSResources.NamingStyleDialogTitle;
-        public string NamingStyleTitleLabelText => ServicesVSResources.NamingStyleTitleLabel;
-        public string RequiredPrefixLabelText => ServicesVSResources.RequiredPrefixLabel;
-        public string RequiredSuffixLabelText => ServicesVSResources.RequiredSuffixLabel;
-        public string WordSeparatorLabelText => ServicesVSResources.WordSeparatorLabel;
-        public string CapitalizationLabelText => ServicesVSResources.CapitalizationLabel;
-        public string SampleIdentifierLabelText => ServicesVSResources.SampleIdentifierLabel;
+        public string DialogTitle => ServicesVSResources.Naming_Style;
+        public string NamingStyleTitleLabelText => ServicesVSResources.Naming_Style_Title_colon;
+        public string RequiredPrefixLabelText => ServicesVSResources.Required_Prefix_colon;
+        public string RequiredSuffixLabelText => ServicesVSResources.Required_Suffix_colon;
+        public string WordSeparatorLabelText => ServicesVSResources.Word_Separator_colon;
+        public string CapitalizationLabelText => ServicesVSResources.Capitalization_colon;
+        public string SampleIdentifierLabelText => ServicesVSResources.Sample_Identifier_colon;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 

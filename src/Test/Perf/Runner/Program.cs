@@ -48,14 +48,14 @@ namespace Runner
             if (shouldUploadTrace)
             {
                 Log("Uploading traces");
-                UploadTraces(CPCDirectoryPath, traceDestination);
+                UploadTraces(GetCPCDirectoryPath(), traceDestination);
             }
         }
 
         private static async Task AsyncMain(bool isRunningUnderCI)
         {
 
-            RuntimeSettings.isRunnerAttached = true;
+            RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
 
@@ -72,16 +72,20 @@ namespace Runner
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
                 var state = await RunFile(script).ConfigureAwait(false);
-                var tests = RuntimeSettings.resultTests;
-                RuntimeSettings.resultTests = null;
+                var tests = RuntimeSettings.ResultTests;
+                RuntimeSettings.ResultTests = null;
+                foreach (var test in tests)
+                {
+                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                }
                 testInstances.AddRange(tests);
             }
 
-            var traceManager = TraceManagerFactory.GetTraceManager();
 
-            traceManager.Initialize();
             foreach (var test in testInstances)
             {
+                var traceManager = test.GetTraceManager();
+                traceManager.Initialize();
                 test.Setup();
                 traceManager.Setup();
 

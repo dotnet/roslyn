@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_missing_switch_cases,
+                        FeaturesResources.Add_missing_cases,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: true, includeDefaultCase: false)),
                     context.Diagnostics);
             }
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_default_switch_case,
+                        FeaturesResources.Add_default_case,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: false, includeDefaultCase: true)),
                     context.Diagnostics);
             }
@@ -75,7 +78,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var switchNode = root.FindNode(span);
-            var switchStatement = (ISwitchStatement)model.GetOperation(switchNode, cancellationToken);
+            var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
+            var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
             var enumType = switchStatement.Value.Type;
 
             var generator = SyntaxGenerator.GetGenerator(document);

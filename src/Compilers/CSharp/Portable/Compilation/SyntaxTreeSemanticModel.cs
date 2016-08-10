@@ -1640,7 +1640,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Might be a local variable.
             var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        public override ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Might be a local variable.
+            var memberModel = this.GetMemberModel(declarationSyntax);
+            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1649,7 +1656,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var memberModel = this.GetMemberModel(declarationSyntax);
+            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given an out variable declaration expression syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public override ILocalSymbol GetDeclaredSymbol(DeclarationExpressionSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var memberModel = this.GetMemberModel(declarationSyntax);
             return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -2086,6 +2105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(ForEachStatementInfo) : memberModel.GetForEachStatementInfo(node);
+        }
+
+        public override ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node)
         {
             MemberSemanticModel memberModel = GetMemberModel(node);
             return memberModel == null ? default(ForEachStatementInfo) : memberModel.GetForEachStatementInfo(node);

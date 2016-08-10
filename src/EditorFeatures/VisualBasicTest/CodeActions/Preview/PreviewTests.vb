@@ -1,13 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
@@ -89,11 +87,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 Dim previewObjects = Await previews.GetPreviewsAsync()
                 Dim preview = previewObjects(0)
                 Assert.NotNull(preview)
-                Assert.True(TypeOf preview Is IWpfDifferenceViewer)
-                Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
-                Dim text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
+                Assert.True(TypeOf preview Is DifferenceViewerPreview)
+                Dim diffView = DirectCast(preview, DifferenceViewerPreview)
+                Dim text = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
                 Assert.Equal(s_changedDocumentText, text)
-                diffView.Close()
+                diffView.Dispose()
 
                 ' Then comes the removed metadata reference.
                 preview = previewObjects(1)

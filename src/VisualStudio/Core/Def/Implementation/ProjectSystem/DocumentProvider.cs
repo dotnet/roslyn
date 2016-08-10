@@ -67,6 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
+            if (shell == null)
+            {
+                // This can happen only in tests, bail out.
+                return;
+            }
+
             int installed;
             Marshal.ThrowExceptionForHR(shell.IsPackageInstalled(Guids.RoslynPackageId, out installed));
             IsRoslynPackageInstalled = installed != 0;
@@ -77,10 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVisualStudioHostDocument TryGetDocumentForFile(
             IVisualStudioHostProject hostProject,
-            uint itemId,
+            IReadOnlyList<string> folderNames,
             string filePath,
             SourceCodeKind sourceCodeKind,
-            bool isGenerated,
             Func<ITextBuffer, bool> canUseTextBuffer)
         {
             var documentKey = new DocumentKey(hostProject, filePath);
@@ -133,13 +138,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 hostProject,
                 documentKey,
-                itemId,
+                folderNames,
                 sourceCodeKind,
                 _textUndoHistoryRegistry,
                 _fileChangeService,
                 openTextBuffer,
-                id,
-                isGenerated);
+                id);
 
             // Add this to our document map
             _documentMap.Add(documentKey, document);

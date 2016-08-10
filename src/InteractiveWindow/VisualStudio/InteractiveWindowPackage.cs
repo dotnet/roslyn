@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     [ProvideMenuResource("Menus.ctmenu", 4)]
     [Guid(Guids.InteractiveWindowPackageIdString)]
     [ProvideBindingPath]  // make sure our DLLs are loadable from other packages
-    public sealed class InteractiveWindowPackage : Package
+    internal sealed class InteractiveWindowPackage : Package
     {
     }
 }

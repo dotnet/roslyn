@@ -1,0 +1,37 @@
+﻿{
+    "fixedPackages": {
+        "Microsoft.VisualStudio.Language.Intellisense": [ "14.3.25407", "15.0.25123-Dev15Preview" ],
+        "Microsoft.VSSDK.BuildTools": [ "14.3.25407", "15.0.25201-Dev15Preview2" ],
+        "System.Reflection.Metadata": "1.0.21",
+        "System.Collections.Immutable": "1.1.36",
+		"Microsoft.VisualStudio.ImageCatalog": ["14.3.25407", "15.0.25123-Dev15Preview"]
+    },
+
+    "toolsetPackages": [
+        "Microsoft.VSSDK.BuildTools"
+    ],
+
+    "generate": {
+        "msbuild": {
+            "path": "build\\Targets\\Dependencies.props",
+            "values": [
+                "Microsoft.Dia.*",
+                "System.*",
+                "Microsoft.CodeAnalysis.Analyzers",
+                "Microsoft.VisualBasic",
+                "Microsoft.Composition",
+                "ManagedEsent",
+                "xunit"
+            ]
+        }
+    },
+
+    "nuspecExcludes": [
+        "^packages.*",
+        "^Binaries.*",
+        "^src\\\\Samples.*",
+        "^src\\\\Dependencies.*",
+        ".*NuSpec.loc.*",
+        ".*Templates.*"
+    ]
+}

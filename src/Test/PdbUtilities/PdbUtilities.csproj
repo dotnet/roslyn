@@ -54,9 +54,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
-      <Link>Collections\PooledStringBuilder.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
@@ -65,12 +62,6 @@
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
-      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
     </Compile>
     <Compile Include="Metadata\AggregatedMetadataReader.cs" />
     <Compile Include="Metadata\ILVisualizer.cs" />
@@ -82,7 +73,6 @@
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
     <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
-    <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\StringUtilities.cs" />
@@ -95,25 +85,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

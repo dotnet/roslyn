@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.ChangeToYieldReturn, document.WithSyntaxRoot(root));
+            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
         private bool TryGetExpressionType(SemanticModel model, ExpressionSyntax expression, out ITypeSymbol returnExpressionType)

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(closureOrdinal >= -1);
             Debug.Assert(methodOrdinal >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration);
         }
 
         internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(generation >= 0);
             Debug.Assert(methodOrdinal >= -1);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.StateMachineType, methodOrdinal, generation, methodName, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.StateMachineType, methodOrdinal, generation, methodName);
         }
 
         internal static string MakeBaseMethodWrapperName(int uniqueId)
@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string methodNameOpt = null,
             string suffix = null,
             int entityOrdinal = -1,
-            int entityGeneration = -1,
-            bool isTypeName = false)
+            int entityGeneration = -1)
         {
             Debug.Assert(methodOrdinal >= -1);
             Debug.Assert(methodGeneration >= 0 || methodGeneration == -1 && methodOrdinal == -1);
@@ -393,6 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        internal static string MakeSynthesizedInstrumentationPayloadLocalFieldName(int uniqueId)
+        {
+            return SynthesizedLocalNamePrefix + "InstrumentationPayload" + StringExtensions.GetNumeral(uniqueId);
+        }
+
         internal static string MakeLambdaDisplayLocalName(int uniqueId)
         {
             Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');
@@ -449,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, int generation)
         {
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
@@ -509,11 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(ParameterSymbol sourceParameter)
         {
             return "<" + sourceParameter.Name + ">";
-        }
-
-        internal static string ReplacedMemberName(string memberName, int uniqueId)
-        {
-            return "<" + memberName + ">v__" + StringExtensions.GetNumeral(uniqueId);
         }
     }
 }

@@ -91,7 +91,13 @@ namespace Microsoft.CodeAnalysis
         public string PdbPath { get; internal set; }
 
         /// <summary>
-        /// True to emit PDB file.
+        /// Path of the file containing information linking the compilation to source server that stores 
+        /// a snapshot of the source code included in the compilation.
+        /// </summary>
+        public string SourceLink { get; internal set; }
+
+        /// <summary>
+        /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
         /// </summary>
         public bool EmitPdb { get; internal set; }
 
@@ -246,8 +252,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal Guid SqmSessionGuid { get; set; }
-
         internal CommandLineArguments()
         {
         }
@@ -358,16 +362,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void ResolveAnalyzersAndGeneratorsFromArguments(
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
-            IAnalyzerAssemblyLoader analyzerLoader,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators)
+            IAnalyzerAssemblyLoader analyzerLoader)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            var generatorBuilder = ImmutableArray.CreateBuilder<SourceGenerator>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -420,14 +421,12 @@ namespace Microsoft.CodeAnalysis
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language);
-                resolvedReference.AddGenerators(generatorBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
-            analyzers = analyzerBuilder.ToImmutable();
-            generators = generatorBuilder.ToImmutable();
+            return analyzerBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

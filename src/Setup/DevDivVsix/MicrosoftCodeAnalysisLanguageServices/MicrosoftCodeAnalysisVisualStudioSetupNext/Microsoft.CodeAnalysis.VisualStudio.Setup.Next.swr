@@ -1,0 +1,20 @@
+use vs
+
+package name=Microsoft.CodeAnalysis.VisualStudio.Setup.Next
+        version=$(Version)
+        vs.package.language=en-us
+        vs.package.type=vsix
+        vs.package.vsixId=58293943-56F1-4734-82FC-0411DCF49DE1
+
+vs.localizedResources
+  vs.localizedResource language=en-us
+                       title="Roslyn Language Services.Next"
+                       description="C# and VB.NET language services for Visual Studio.Next"
+
+vs.payloads
+  vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.Next.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
+                version=$(Version)
+                type=Required

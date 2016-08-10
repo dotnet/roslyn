@@ -247,5 +247,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
             Return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken)
         End Function
+
+        Public Function IsPartial(typeSymbol As ITypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPartial
+            Dim syntaxRefs = typeSymbol.DeclaringSyntaxReferences
+            Return syntaxRefs.Any(
+                Function(n As SyntaxReference)
+                    Return DirectCast(n.GetSyntax(cancellationToken), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
+                End Function)
+        End Function
     End Class
 End Namespace

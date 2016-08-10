@@ -218,10 +218,12 @@
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
+    <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
     <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
     <Compile Include="Outlining\OutliningServiceTests.cs" />
+    <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
@@ -255,7 +257,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceTestState.cs" />
     <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
-    <Compile Include="FindReferences\MockReferencedSymbolsPresenter.cs" />
+    <Compile Include="FindReferences\MockDefinitionsAndReferencesPresenter.cs" />
     <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />

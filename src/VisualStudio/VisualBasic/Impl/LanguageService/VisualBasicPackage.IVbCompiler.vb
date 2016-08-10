@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -27,7 +28,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 pProjHier,
                 Me,
                 visualStudioWorkspace,
-                hostDiagnosticUpdateSource)
+                hostDiagnosticUpdateSource,
+                commandLineParserServiceOpt:=visualStudioWorkspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier

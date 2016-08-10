@@ -1,6 +1,8 @@
 ﻿{
   "dependencies": {
-    "CommandLineParser": "2.0.273-beta"
+    "CommandLineParser": "2.0.273-beta",
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24322-03",
   },
   "frameworks": {
     "net46": {}

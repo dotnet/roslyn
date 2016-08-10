@@ -52,7 +52,6 @@ To get the latest "preview" drop, published about once per month, add the `-pre`
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
-* [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 * Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.

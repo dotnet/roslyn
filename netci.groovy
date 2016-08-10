@@ -103,7 +103,7 @@ set TMP=%TEMP%
 
       def triggerPhraseOnly = configuration == 'release'   
       def triggerPhraseExtra = ""
-                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -160,7 +160,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -177,6 +177,23 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Microbuild
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
+  def myJob = job(jobName) {
+    description('MicroBuild test')
+    label('windows-roslyn')
+    steps {
+      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = "microbuild"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

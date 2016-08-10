@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Resources = Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            return Resources.MakeAsync;
+            return CSharpFeaturesResources.Make_the_containing_scope_async;
         }
 
         protected override async Task<SyntaxNode> GetNewRoot(SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
@@ -103,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
                                 parenthesizedLambda.ParameterList,
                                 parenthesizedLambda.ArrowToken,
-                                parenthesizedLambda.RefKeyword,
                                 parenthesizedLambda.Body)
                                 .WithTriviaFrom(parenthesizedLambda)
                                 .WithAdditionalAnnotations(Formatter.Annotation);
@@ -115,7 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
                                 simpleLambda.Parameter,
                                 simpleLambda.ArrowToken,
-                                simpleLambda.RefKeyword,
                                 simpleLambda.Body)
                                 .WithTriviaFrom(simpleLambda)
                                 .WithAdditionalAnnotations(Formatter.Annotation);

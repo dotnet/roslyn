@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -26,27 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _analyzers = analyzers;
         }
 
-        protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override uint GetSqmAppID()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void ResolveAnalyzersAndGeneratorsFromArguments(
+        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators)
+            CommonMessageProvider messageProvider)
         {
-            base.ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, messageProvider, out analyzers, out generators);
+            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
             }
+            return analyzers;
         }
 
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)

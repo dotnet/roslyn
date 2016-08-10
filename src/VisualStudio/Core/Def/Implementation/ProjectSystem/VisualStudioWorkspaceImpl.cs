@@ -15,21 +15,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Packaging;
-using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
@@ -71,15 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            var session = serviceProvider.GetService(typeof(SVsLog)) as IVsSqmMulti;
-            var profileService = serviceProvider.GetService(typeof(SVsFeedbackProfile)) as IVsFeedbackProfile;
-
-            // We have Watson hits where this came back null, so guard against it
-            if (profileService != null)
-            {
-                Sqm.LogSession(session, profileService.IsMicrosoftInternal);
-            }
         }
 
         internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)
@@ -220,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
-                throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
+                throw new ArgumentException(string.Format(ServicesVSResources.Could_not_find_project_0, projectId));
             }
         }
 
@@ -448,14 +434,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AddDocumentCore(info, text, isAdditionalDocument: true);
         }
 
-        protected override void UpdateGeneratedDocuments(ProjectId projectId, ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
-        {
-            Debug.Assert(documentsRemoved.All(d => d.Id.ProjectId == projectId));
-            Debug.Assert(documentsAdded.All(d => d.Id.ProjectId == projectId));
-            var project = GetHostProject(projectId);
-            project.UpdateGeneratedDocuments(documentsRemoved, documentsAdded);
-        }
-
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
         {
             IVsHierarchy hierarchy;
@@ -558,7 +536,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!project.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -581,7 +559,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!folder.TryGetFullPath(out folderPath))
             {
                 // TODO(cyrusn): Throw an appropriate exception here.
-                throw new Exception(ServicesVSResources.CouldNotFindLocationOfFol);
+                throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
             return AddDocumentToProjectItems(hostProject, folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
@@ -705,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (!_foregroundObject.IsForeground())
             {
-                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+                throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
 
             var document = this.GetHostDocument(documentId);
@@ -887,10 +865,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // find that one, we can map back to the open buffer and set its active context to
             // the appropriate project.
 
+            // Note that if there is a single head project and it's in the process of being unloaded
+            // there might not be a host project.
             var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
-            if (hostProject.Hierarchy == sharedHierarchy)
+            if (hostProject?.Hierarchy == sharedHierarchy)
             {
-                // How?
                 return;
             }
 
@@ -1407,11 +1386,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IVisualStudioWorkspaceHost2.OnHasAllInformation(ProjectId projectId, bool hasAllInformation)
             {
                 _workspace.OnHasAllInformationChanged(projectId, hasAllInformation);
-            }
-
-            void IVisualStudioWorkspaceHost2.UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
-            {
-                _workspace.UpdateGeneratedDocumentsIfNecessary(projectId);
             }
 
             void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()

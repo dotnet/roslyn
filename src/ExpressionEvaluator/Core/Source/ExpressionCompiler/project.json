@@ -1,7 +1,9 @@
 ﻿{
   "dependencies": {
+    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03"
   },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    ".NETPortable,Version=v4.5,Profile=Profile7": { }
   }
 }

@@ -186,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
+
+                    case TupleElement:
+                        return ((TupleElementSyntax)parent).Type == node;
+
+                    case TypedVariableComponent:
+                        return ((TypedVariableComponentSyntax)parent).Type == node;
                 }
             }
 
@@ -375,6 +381,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLambdaBody(SyntaxNode node)
         {
             return LambdaUtilities.IsLambdaBody(node);
+        }
+
+        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+        }
+
+        /// <summary>
+        /// Figures out if this token is an identifier in a deconstruction-declaration.
+        /// Outputs the top-level statement if that is the case.
+        /// </summary>
+        internal static bool IsDeconstructionIdentifier(SyntaxToken identifier, out SyntaxNode parent)
+        {
+            for (parent = identifier.Parent; parent != null; parent = parent.Parent)
+            {
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ForEachComponentStatement:
+                    case SyntaxKind.DeconstructionDeclarationStatement:
+                    case SyntaxKind.ForStatement:
+                        return true;
+                    case SyntaxKind.ParenthesizedVariableComponent:
+                    case SyntaxKind.TypedVariableComponent:
+                    case SyntaxKind.SingleVariableDesignation:
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                    case SyntaxKind.VariableComponentAssignment:
+                        continue;
+                    default:
+                        return false;
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
+        {
+            var component = node.Parent as TypedVariableComponentSyntax;
+            parent = component;
+            return node == component?.Type;
         }
     }
 }

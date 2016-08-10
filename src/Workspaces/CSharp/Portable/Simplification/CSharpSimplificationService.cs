@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
                 else
                 {
-                    throw new ArgumentException(CSharpWorkspaceResources.OnlyAttributesConstructorI, nameof(node));
+                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
                 }
             }
         }

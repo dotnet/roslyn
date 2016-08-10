@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateElisionBufferWithoutIndentation(
                 exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
                 exportProvider.GetExportedValue<IEditorOptionsFactoryService>().GlobalOptions,
-                textBuffer.CurrentSnapshot.GetFullSpan());
+                contentType: null,
+                exposedSpans: textBuffer.CurrentSnapshot.GetFullSpan());
 
             var elisionSnapshot = elisionBuffer.CurrentSnapshot;
             Assert.Equal(elisionSnapshot.LineCount, 3);

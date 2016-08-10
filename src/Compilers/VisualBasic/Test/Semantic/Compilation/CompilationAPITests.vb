@@ -239,6 +239,48 @@ End Namespace
         End Sub
 
         <Fact>
+        Public Sub Emit_BadArgs()
+            Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
+
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                sourceLinkStream:=New MemoryStream()))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New MemoryStream()))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
+
+            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
+
+            ' we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                xmlDocumentationStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)).Success)
+        End Sub
+
+        <Fact>
         Public Sub EmitOptionsDiagnostics()
             Dim c = CreateCompilationWithMscorlib({"class C {}"})
             Dim stream = New MemoryStream()
@@ -1218,6 +1260,52 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         Public Sub TuplesNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_IncorrectLengths()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_NothingArgument()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentNullException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType2()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Boolean>", type.ToDisplayString())
         End Sub
 
         <Fact()>

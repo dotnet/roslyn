@@ -2482,7 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     best = candidate;
                 }
-                else if (best.Equals(candidate, ignoreDynamic: true))
+                else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     if (candidate.IsTupleType)
                     {
@@ -2531,7 +2531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return _conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+            return _conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2687,7 +2687,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<TypeSymbol> InferTypeArgumentsFromFirstArgument(
             ConversionsBase conversions,
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

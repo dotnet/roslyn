@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -132,26 +131,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
                     this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
-                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
 
-        private bool StartNewModelComputation(CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(
+            CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed)
         {
             return StartNewModelComputation(
-                completionService,
-                CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
+                completionService, CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
         }
 
-        private bool StartNewModelComputation(CompletionService completionService, CompletionTrigger trigger, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(
+            CompletionService completionService,
+            CompletionTrigger trigger,
+            bool filterItems,
+            bool dismissIfEmptyAllowed)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
 
             if (this.TextView.Selection.Mode == TextSelectionMode.Box)
             {
-                Trace.WriteLine("Box selection, cannot have completion");
-
                 // No completion with multiple selection
                 return false;
             }
@@ -160,8 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var caret = TextView.GetCaretPoint(SubjectBuffer);
             if (!caret.HasValue)
             {
-                Trace.WriteLine("Caret is not mappable to subject buffer, cannot have completion");
-
                 return false;
             }
 
@@ -179,15 +178,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
                 ? CompletionFilterReason.BackspaceOrDelete
-                : CompletionFilterReason.TypeChar;
+                : trigger.Kind == CompletionTriggerKind.Other
+                    ? CompletionFilterReason.Other
+                    : CompletionFilterReason.TypeChar;
 
             if (filterItems)
             {
-                sessionOpt.FilterModel(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.FilterModel(
+                    filterReason,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed,
+                    filterState: null);
             }
             else
             {
-                sessionOpt.IdentifyBestMatchAndFilterToAllItems(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.IdentifyBestMatchAndFilterToAllItems(
+                    filterReason,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed);
             }
 
             return true;
@@ -198,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
-                Trace.WriteLine("Failed to get a workspace, cannot have a completion session.");
                 return null;
             }
 
@@ -235,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            this.Commit(item, this.sessionOpt.Computation.InitialUnfilteredModel, commitChar: null);
+            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
         }
 
         private const int MaxMRUSize = 10;

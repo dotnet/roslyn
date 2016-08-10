@@ -168,12 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
                 {
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.
                     operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
                     this.AssertIsForeground();
                 }
             }
             else
             {
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
                 operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
                 this.AssertIsForeground();
             }
@@ -183,8 +187,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
                 progressTracker.Clear();
-                EditHandler.Apply(Workspace, getFromDocument(), operations, CodeAction.Title, 
-                    progressTracker, cancellationToken);
+
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
+                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title, 
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -236,11 +243,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this function on the UI thread.
             AssertIsForeground();
 
+            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
+            if (previewPaneService == null)
+            {
+                return null;
+            }
+
+            // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
+            // since there is no one to close the viewer
             var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
             var preferredProjectId = preferredDocumentId?.ProjectId;
 
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
+            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
             {
                 // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
                 // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
@@ -259,14 +274,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
             }, defaultValue: null).ConfigureAwait(true);
 
-            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
-            if (previewPaneService == null)
-            {
-                return null;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
 
@@ -274,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string projectType;
             Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
         }
 
         protected virtual DiagnosticData GetDiagnostic()

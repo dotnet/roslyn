@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                type = TupleTypeSymbol.TransformToTupleIfCompatible(type); // temporary shallow unification
+                type = TupleTypeSymbol.TransformToTupleIfCompatible(type);
                 _type = type;
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // CONSIDER: Can we make parameter type computation lazy?
                 type = DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind);
 
-                _type = TupleTypeSymbol.TransformToTupleIfCompatible(type); // temporary shallow unification
+                _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
             }
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);

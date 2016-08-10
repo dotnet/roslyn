@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.RuntimeUtilities; 
 
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _additionalDependencies = additionalDependencies;
         }
 
-        public void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, bool usePdbForDebugging = false)
+        public void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false)
         {
             _testData.Methods.Clear();
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
-            var mainOutput = RuntimeUtilities.EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
+            var mainOutput = RuntimeUtilities.EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData, emitOptions);
 
             if (mainOutput.HasValue)
             {

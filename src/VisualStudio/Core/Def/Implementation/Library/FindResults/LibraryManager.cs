@@ -66,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private void PresentObjectList(string title, ObjectList objectList)
         {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                title = "None";
+            }
+
             var navInfo = new NavInfo(objectList);
             var findSymbol = (IVsFindSymbol)this.ServiceProvider.GetService(typeof(SVsObjectSearch));
             var searchCriteria = new VSOBSEARCHCRITERIA2()

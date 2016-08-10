@@ -101,13 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            syntax.ReturnType.SkipRef(out _refKind);
 
             if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
-
-            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
@@ -138,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
+            RefKind refKind;
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             if (_lazyReturnType.IsRestrictedType())
             {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
             if (this.RefKind != RefKind.None && returnsVoid)
             {
-                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, syntax.RefKeyword.GetLocation());
+                Debug.Assert(returnTypeSyntax.HasErrors);
             }
 
             // set ReturnsVoid flag
@@ -326,25 +327,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(MethodSymbol method, DiagnosticBag diagnostics, Location location)
+        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
         {
-            if (method.IsAsync)
+            foreach (var parameter in parameters)
             {
-                foreach (var parameter in method.Parameters)
+                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
+                if (parameter.RefKind != RefKind.None)
                 {
-                    var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                    if (parameter.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsUnsafe())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                    }
-                    else if (parameter.Type.IsRestrictedType())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsUnsafe())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
+                }
+                else if (parameter.Type.IsRestrictedType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
                 }
             }
         }
@@ -357,28 +355,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
-                {
-                    if (IsPartialDefinition && (object)PartialImplementationPart == null)
-                    {
-                        DeclaringCompilation.SymbolDeclaredEvent(this);
-                    }
-
-                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
-                }
-                else
-                {
-                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
-                }
-
+                CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
                 return;
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
-            Debug.Assert(this.RefKind == RefKind.None);
-            if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            if (this.RefKind != RefKind.None)
+            {
+                var returnTypeSyntax = GetSyntax().ReturnType;
+                if (!returnTypeSyntax.HasErrors)
+                {
+                    var refKeyword = returnTypeSyntax.GetFirstToken();
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+                }
+            }
+            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
@@ -401,28 +394,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (diagnostics.IsEmptyWithoutResolution)
             {
-                ReportAsyncParameterErrors(this, diagnostics, errorLocation);
+                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
             }
 
+            CompleteAsyncMethodChecks(diagnostics, cancellationToken);
+            diagnostics.Free();
+        }
+
+        private void CompleteAsyncMethodChecks(DiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
-                AddDeclarationDiagnostics(diagnostics);
-                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                if (diagnosticsOpt != null)
+                {
+                    AddDeclarationDiagnostics(diagnosticsOpt);
+                }
+                if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
                 state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
                 state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
             }
-
-            diagnostics.Free();
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-            MethodChecks(syntax, withTypeParamsBinder, diagnostics);
+            var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
+            MethodChecks(syntax, withTypeParametersBinder, diagnostics);
         }
 
         internal MethodDeclarationSyntax GetSyntax()
@@ -530,7 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return _refKind; }
+            get
+            {
+                return _refKind;
+            }
         }
 
         public override TypeSymbol ReturnType
@@ -741,8 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async |
-                    DeclarationModifiers.Replace;
+                    DeclarationModifiers.Async;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

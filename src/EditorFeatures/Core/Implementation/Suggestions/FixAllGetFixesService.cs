@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 newSolution = PreviewChanges(
                     fixAllState.Project.Solution,
                     newSolution,
-                    FeaturesResources.FixAllOccurrences,
+                    FeaturesResources.Fix_all_occurrences,
                     codeAction.Title,
                     fixAllState.Project.Language,
                     workspace,
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         : Glyph.BasicProject;
 
                 var changedSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
                     "vs.codefix.fixall",
                     fixAllTopLevelHeader,
                     fixAllPreviewChangesTitle,

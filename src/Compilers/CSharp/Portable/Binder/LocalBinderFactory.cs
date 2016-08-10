@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitPossibleEmbeddedStatement(node.Statement, binder);
         }
 
-        public override void VisitForEachStatement(ForEachStatementSyntax node)
+        private void VisitCommonForEachStatement(CommonForEachStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
             var patternBinder = new PatternVariableBinder(node.Expression, _enclosing);
@@ -406,6 +406,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddToMap(node, binder);
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
+        }
+
+        public override void VisitForEachStatement(ForEachStatementSyntax node)
+        {
+            VisitCommonForEachStatement(node);
+        }
+
+        public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+        {
+            VisitCommonForEachStatement(node);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
@@ -470,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression, patternBinder);
 
-            var switchBinder = new SwitchBinder(patternBinder, node);
+            var switchBinder = SwitchBinder.Create(patternBinder, node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -625,9 +635,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var value = decl.Initializer?.Value;
                 if (value != null)
                 {
-                   Visit(value, patternBinder);
+                    Visit(value, patternBinder);
                 }
             }
+        }
+
+        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
+        {
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
+            AddToMap(node, patternBinder);
+            Visit(node.Assignment.Value, patternBinder);
         }
 
         public override void VisitReturnStatement(ReturnStatementSyntax node)

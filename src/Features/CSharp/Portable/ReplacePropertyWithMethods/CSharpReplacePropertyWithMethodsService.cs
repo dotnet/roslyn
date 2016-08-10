@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -63,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         private List<SyntaxNode> ConvertPropertyToMembers(
             SyntaxGenerator generator, 
-            IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
+            IPropertySymbol property,
+            PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
@@ -134,7 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             if (propertyDeclaration.ExpressionBody != null)
             {
-                statements.Add(generator.ReturnStatement(propertyDeclaration.ExpressionBody.Expression));
+                var returnStatement = SyntaxFactory.ReturnStatement(propertyDeclaration.ExpressionBody.Expression)
+                                                   .WithSemicolonToken(propertyDeclaration.SemicolonToken);
+                statements.Add(returnStatement);
             }
             else
             {

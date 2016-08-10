@@ -17,8 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int ContextCodeGen = 0x3614;            // IDG_CSHARP_CTX_CODEGEN
             public const int ImplementInterface = 0x3615;        // IDG_CSHARP_IMPLEMENT_INTERFACE
             public const int ContextImplementInterface = 0x3616; // IDG_CSHARP_CTX_IMPLEMENT_INTERFACE
-            public const int Organize = 0x3617;                  // IDG_CSHARP_ORGANIZE
-            public const int ContextOrganize = 0x3618;           // IDG_CSHARP_CTX_ORGANIZE
             public const int SmartTagGenerate = 0x3619;          // IDG_CSHARP_SMART_TAG_GENERATE
             public const int ContextGenerate = 0x3620;           // IDG_CSHARP_CTX_GENERATE
             public const int Generate = 0x3621;                  // IDG_CSHARP_MENU_GENERATE

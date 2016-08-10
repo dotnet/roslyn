@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     {
                         _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.DeterminingBreakpointLocation,
+                        message: ServicesVSResources.Determining_breakpoint_location,
                         allowCancel: true,
                         action: waitContext =>
                         {
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     var succeeded = false;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.DeterminingAutos,
+                        message: ServicesVSResources.Determining_autos,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     var succeeded = false;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.ResolvingBreakpointLocation,
+                        message: ServicesVSResources.Resolving_breakpoint_location,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     int result = VSConstants.E_NOTIMPL;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.ValidatingBreakpointLocation,
+                        message: ServicesVSResources.Validating_breakpoint_location,
                         allowCancel: true,
                         action: waitContext =>
                     {
@@ -307,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var initialBreakpointSpan = snapshot.GetSpan(pCodeSpan[0]);
                             if (initialBreakpointSpan.Length > 0 && document.SupportsSyntaxTree)
                             {
-                                var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
                                 if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                                 {
                                     return VSConstants.E_FAIL;
@@ -373,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.GettingDataTipText,
+                        message: ServicesVSResources.Getting_DataTip_text,
                         allowCancel: true,
                         action: waitContext =>
                     {
