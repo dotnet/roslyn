@@ -8,14 +8,13 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal class VisualStudioErrorReportingService : IErrorReportingService
+    internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
         private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
         private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.Enable_and_ignore_future_errors);
@@ -156,44 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void ShowDetailedErrorInfo(Exception exception)
         {
-            string errorInfo = GetErrorInfoForException(exception);
-
+            string errorInfo = GetFormattedExceptionStack(exception);
             (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
-        }
-
-        private static string GetErrorInfoForException(Exception exception)
-        {
-            string errorInfo = exception.Message + Environment.NewLine + exception.StackTrace;
-
-            var aggregateException = exception as AggregateException;
-            if (aggregateException?.InnerExceptions != null)
-            {
-                foreach (var ex in aggregateException.InnerExceptions)
-                {
-                    errorInfo = AppendExceptionInfo(errorInfo, ex);
-                }
-            }
-            else
-            {
-                if (exception.InnerException != null)
-                {
-                    errorInfo = AppendExceptionInfo(errorInfo, exception.InnerException);
-                }
-            }
-
-            return errorInfo;
-        }
-
-        private static string AppendExceptionInfo(string errorInfo, Exception exception)
-        {
-            errorInfo += Environment.NewLine + exception.Message + Environment.NewLine + exception.StackTrace;
-            while (exception.InnerException != null)
-            {
-                exception = exception.InnerException;
-                errorInfo += Environment.NewLine + exception.Message + Environment.NewLine + exception.StackTrace;
-            }
-
-            return errorInfo;
         }
     }
 }

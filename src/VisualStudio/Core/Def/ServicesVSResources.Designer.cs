@@ -61,6 +61,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}{1}---&gt; (Inner Exception #{2}) {3}{4}{5}.
+        /// </summary>
+        internal static string _0_1_InnerException_2_3_4_5 {
+            get {
+                return ResourceManager.GetString("_0_1_InnerException_2_3_4_5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
         /// </summary>
         internal static string _0_encountered_an_error_and_has_been_disabled {
@@ -245,6 +254,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to at.
+        /// </summary>
+        internal static string at {
+            get {
+                return ResourceManager.GetString("at", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -371,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy to Clopboard.
+        ///   Looks up a localized string similar to Copy to Clipboard.
         /// </summary>
         internal static string Copy_to_clipboard {
             get {
@@ -538,6 +556,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enable_and_ignore_future_errors {
             get {
                 return ResourceManager.GetString("Enable_and_ignore_future_errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
+        /// </summary>
+        internal static string End_of_inner_exception_stack {
+            get {
+                return ResourceManager.GetString("End_of_inner_exception_stack", resourceCulture);
             }
         }
         
@@ -801,6 +828,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Implements_ {
             get {
                 return ResourceManager.GetString("Implements_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in {0}:line {1}.
+        /// </summary>
+        internal static string in_0_line_1 {
+            get {
+                return ResourceManager.GetString("in_0_line_1", resourceCulture);
             }
         }
         
@@ -1704,6 +1740,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Uninstalling_0_failed_Additional_information_colon_1 {
             get {
                 return ResourceManager.GetString("Uninstalling_0_failed_Additional_information_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Unknown Parameters&gt;.
+        /// </summary>
+        internal static string Unknown_parameters {
+            get {
+                return ResourceManager.GetString("Unknown_parameters", resourceCulture);
             }
         }
         

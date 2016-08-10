@@ -705,4 +705,19 @@ Additional information: {1}</value>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
+  <data name="at" xml:space="preserve">
+    <value>at</value>
+  </data>
+  <data name="End_of_inner_exception_stack" xml:space="preserve">
+    <value>--- End of inner exception stack trace ---</value>
+  </data>
+  <data name="in_0_line_1" xml:space="preserve">
+    <value>in {0}:line {1}</value>
+  </data>
+  <data name="_0_1_InnerException_2_3_4_5" xml:space="preserve">
+    <value>{0}{1}---&gt; (Inner Exception #{2}) {3}{4}{5}</value>
+  </data>
+  <data name="Unknown_parameters" xml:space="preserve">
+    <value>&lt;Unknown Parameters&gt;</value>
+  </data>
 </root>

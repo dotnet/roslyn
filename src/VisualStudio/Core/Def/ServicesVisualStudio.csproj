@@ -166,6 +166,7 @@
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
