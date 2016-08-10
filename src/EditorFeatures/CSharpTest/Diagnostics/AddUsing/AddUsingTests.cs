@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                    null,
-                    new CSharpAddImportCodeFixProvider());
+                null, new CSharpAddImportCodeFixProvider());
         }
 
         private async Task TestAsync(
@@ -2340,6 +2339,20 @@ namespace Namespace2
     }
 }",
 compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestGenericAmbiguityInSameNamespace()
+        {
+            await TestMissingAsync(
+@"
+namespace NS
+{
+    class C<T> where T : [|C|].N
+    {
+        public class N { }
+    }
+}");
         }
 
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest

@@ -109,7 +109,6 @@
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
-    <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\ImportChain.cs" />
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
@@ -127,9 +126,9 @@
     <Compile Include="Binder\MethodGroupResolution.cs" />
     <Compile Include="Binder\NameofBinder.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
-    <Compile Include="Binder\PatternVariableFinder.cs" />
+    <Compile Include="Binder\ExpressionVariableFinder.cs" />
     <Compile Include="Binder\ScriptLocalScopeBinder.cs" />
-    <Compile Include="Binder\PatternVariableBinder.cs" />
+    <Compile Include="Binder\ExpressionVariableBinder.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
     <Compile Include="Binder\Semantics\Conversions\BestIndex.cs" />

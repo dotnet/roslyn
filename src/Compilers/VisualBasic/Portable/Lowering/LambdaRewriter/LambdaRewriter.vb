@@ -1361,11 +1361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If rewritten.Kind = BoundKind.Call Then
                 Dim rewrittenCall As BoundCall = DirectCast(rewritten, BoundCall)
-                Dim rewrittenMethod As MethodSymbol = rewrittenCall.Method
-                Dim rewrittenReceiverOpt As BoundExpression = rewrittenCall.ReceiverOpt
-                Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = rewrittenCall.Arguments
-
-                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall, rewrittenMethod, rewrittenReceiverOpt, rewrittenArguments)
+                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall)
 
                 ' Check if we need to init Me proxy and this is a ctor call
                 If _currentMethod Is _topLevelMethod Then
@@ -1413,8 +1409,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''           If we decide to do this, we should be careful with extension methods because they have
         '''           special treatment of 'this' parameter. 
         ''' </summary>
-        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall, method As MethodSymbol, receiver As BoundExpression, arguments As ImmutableArray(Of BoundExpression)) As BoundCall
-
+        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
+            Dim method = node.Method
+            Dim receiver = node.ReceiverOpt
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
@@ -1430,7 +1427,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not delegateCreation.Method.IsReducedExtensionMethod Then
                     method = delegateCreation.Method
                     receiver = delegateCreation.ReceiverOpt
-                    node = node.Update(method, Nothing, receiver, arguments, Nothing, node.SuppressObjectClone, node.Type)
+                    node = node.Update(
+                        method,
+                        Nothing,
+                        receiver,
+                        node.Arguments,
+                        Nothing,
+                        isLValue:=False,
+                        suppressObjectClone:=node.SuppressObjectClone,
+                        type:=node.Type)
                 End If
             End If
 

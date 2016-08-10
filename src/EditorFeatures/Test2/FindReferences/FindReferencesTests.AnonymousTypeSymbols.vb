@@ -23,7 +23,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
@@ -45,7 +45,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
@@ -69,7 +69,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542553")>
@@ -93,7 +93,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705")>
@@ -119,7 +119,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
@@ -139,7 +139,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
@@ -159,7 +159,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

@@ -78,7 +78,7 @@ namespace RepoUtil
                 index++;
                 switch (arg.ToLower())
                 {
-                    case "-sourcesPath":
+                    case "-sourcespath":
                         {
                             if (index < args.Length)
                             {
