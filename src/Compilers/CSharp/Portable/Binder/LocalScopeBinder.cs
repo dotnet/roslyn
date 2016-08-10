@@ -139,8 +139,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return map;
         }
 
-        protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
+        protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements, Binder enclosingBinder)
         {
+#if DEBUG
+            Binder currentBinder = enclosingBinder;
+
+            while (true)
+            {
+                if (this == currentBinder)
+                {
+                    break;
+                }
+
+                currentBinder = currentBinder.Next;
+            }
+#endif
+
             ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var statement in statements)
             {
@@ -176,6 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+
+                    case SyntaxKind.ExpressionStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
+                        break;
+
                     default:
                         // no other statement introduces local variables into the enclosing scope
                         break;

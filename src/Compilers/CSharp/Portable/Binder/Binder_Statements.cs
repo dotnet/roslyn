@@ -273,7 +273,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
-            return BindStatement(node, diagnostics);
+            switch (node.Kind())
+            {
+                case SyntaxKind.ExpressionStatement:
+                    Binder binder = this.GetBinder(node);
+                    Debug.Assert(binder != null);
+                    return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics)); 
+
+                default:
+                    return BindStatement(node, diagnostics);
+            }
         }
 
         private BoundExpression BindThrownExpression(ExpressionSyntax exprSyntax, DiagnosticBag diagnostics, ref bool hasErrors)
@@ -504,9 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
-            return binder.WrapWithVariablesIfAny(node, binder.BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics));
+            return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);
         }
 
         private BoundExpressionStatement BindExpressionStatement(CSharpSyntaxNode node, ExpressionSyntax syntax, bool allowsAnyExpression, DiagnosticBag diagnostics)
