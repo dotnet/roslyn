@@ -232,7 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return type.TypeKind = TypeKind.Delegate
         End Function
 
-        'PROTOTYPE: tuples should we give a better (and preferrably shorter) name to this?
         ''' <summary>
         ''' Compares types ignoring type modifiers.
         ''' Also ignores distinctions between tuple types and their underlying types (thus ignoring tuple element names)

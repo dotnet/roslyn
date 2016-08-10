@@ -1188,8 +1188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return DirectCast(typeSyntax, IdentifierNameSyntax).Identifier.ValueText
 
                     Case SyntaxKind.TupleType
-                        'PROTOTYPE: tuples
-                        ' should we format this somehow?
                         Return typeSyntax.ToString
 
                     Case SyntaxKind.GenericName

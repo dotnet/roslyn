@@ -542,12 +542,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return "Item" & position
         End Function
 
-        ' PROTOTYPE: case sensitivity
         Private Shared Function IsElementNameForbidden(name As String) As Boolean
             Return name = "CompareTo" OrElse name = "Deconstruct" OrElse name = "Equals" OrElse name = "GetHashCode" OrElse name = "Rest" OrElse name = "ToString"
         End Function
 
-        ' PROTOTYPE: case sensitivity
         Friend Shared Function IsElementNameReserved(name As String) As Integer
             Dim result As Integer
             If TupleTypeSymbol.IsElementNameForbidden(name) Then

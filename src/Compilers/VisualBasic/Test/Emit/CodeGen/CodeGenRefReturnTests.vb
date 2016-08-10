@@ -876,10 +876,10 @@ End Module",
                 compilationOptions:=TestOptions.DebugExe)
             comp2.AssertTheseDiagnostics(
 <error><![CDATA[
-BC37259: An expression tree may not contain a call to a method or property that returns by reference.
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
         Dim e As Expression(Of Action) = Sub() M(A(Of Integer).F())
                                                  ~~~~~~~~~~~~~~~~~
-BC37259: An expression tree may not contain a call to a method or property that returns by reference.
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
         Dim f As Expression(Of Action) = Sub() M(New A(Of Integer)().P)
                                                  ~~~~~~~~~~~~~~~~~~~~~
 ]]></error>)

@@ -101,7 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._containingType = container
             Me._underlyingMethod = underlyingMethod
 
-            ' PROTOTYPE: tuples Should alpha rename typeparameters in case a tuple method has any.
             Me._typeParameters = Me._underlyingMethod.TypeParameters
         End Sub
 
