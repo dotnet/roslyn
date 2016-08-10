@@ -335,6 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
+                    if (previousToken.Parent.Kind() == SyntaxKind.TupleType)
+                    {
+                        break;
+                    }
+
                     int space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
