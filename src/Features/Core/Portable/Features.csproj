@@ -111,7 +111,6 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\AbstractAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAsyncCodeFix.cs" />
     <Compile Include="CodeFixes\CodeFixCollection.cs" />
