@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
@@ -12,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
         protected abstract Task<string> GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(SyntaxNode node, SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken);
 
-        protected override async Task<CodeAction> GetCodeFix(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override async Task<IList<CodeAction>> GetCodeActionsAsync(
+            SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -22,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
                 var syntaxTree = result.Item1;
                 var newRoot = result.Item2;
                 var otherDocument = document.Project.Solution.GetDocument(syntaxTree);
-                return new MyCodeAction(
+                return SpecializedCollections.SingletonList<CodeAction>(new MyCodeAction(
                     await this.GetDescription(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
-                    token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot)));
+                    token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot))));
             }
 
             return null;

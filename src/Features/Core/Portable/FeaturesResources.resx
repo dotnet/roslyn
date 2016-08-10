@@ -1046,4 +1046,10 @@ This version used in: {2}</value>
   <data name="Remove_tag" xml:space="preserve">
     <value>Remove tag</value>
   </data>
+  <data name="Make_containing_scope_async" xml:space="preserve">
+    <value>Make containing scope async</value>
+  </data>
+  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
+    <value>Make containing scope async (return Task)</value>
+  </data>
 </root>

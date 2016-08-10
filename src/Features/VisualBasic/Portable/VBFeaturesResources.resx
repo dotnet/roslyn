@@ -979,9 +979,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Insert_Await" xml:space="preserve">
     <value>Insert 'Await'.</value>
   </data>
-  <data name="Make_the_containing_scope_Async" xml:space="preserve">
-    <value>Make the containing scope 'Async'.</value>
-  </data>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
