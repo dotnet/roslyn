@@ -8405,27 +8405,26 @@ End Class
 
         <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
-        Public Sub MissingAsyncMethodBuilder()
-            Dim source = <compilation name="Async">
-                             <file name="a.vb">
+        Public Sub MissingAsyncVoidMethodBuilder()
+            Dim source =
+<compilation name="AsyncVoid">
+    <file name="a.vb">
 Public Class TestCase
     Async Sub M()
     End Sub
 End Class
     </file>
-                         </compilation>
-
+</compilation>
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
-
-            Using stream As New MemoryStream()
-                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors>
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
@@ -8437,8 +8436,80 @@ BC35000: Requested operation is not available because the runtime library functi
 BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
     Async Sub M()
               ~
-                    </errors>)
-            End Using
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder()
+            Dim source =
+<compilation name="AsyncTask">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task
+                   ~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder_T()
+            Dim source =
+<compilation name="AsyncTask_T">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task(Of Integer)
+        Return 3
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task(Of Integer)
+                   ~
+</errors>)
         End Sub
 
         <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>

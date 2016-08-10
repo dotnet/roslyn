@@ -3124,13 +3124,13 @@ class Driver
 
         [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
         [Fact]
-        public void MissingAsyncMethodBuilder()
+        public void MissingAsyncVoidMethodBuilder()
         {
             var source = @"
 class C
 {
     async void M() {}
-    }
+}
 ";
 
             var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
@@ -3152,6 +3152,68 @@ class C
                 // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void MissingAsyncTaskMethodBuilder()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    async Task M() {}
+}";
+            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            comp.VerifyEmitDiagnostics(
+                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M() {}
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
+                // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder' is not defined or imported
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder", "Create").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder", "Task").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(4, 20),
+                // (4,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                //     async Task M() {}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{}").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void MissingAsyncTaskMethodBuilder_T()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    async Task<int> F() => 3;
+}";
+            var comp = CSharpTestBaseBase.CreateCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            comp.VerifyEmitDiagnostics(
+                // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(4, 21),
+                // (4,25): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Create'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Create").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.Task'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1", "Task").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "MoveNext").WithLocation(4, 25),
+                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine'
+                //     async Task<int> F() => 3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 25));
         }
 
         [Fact]

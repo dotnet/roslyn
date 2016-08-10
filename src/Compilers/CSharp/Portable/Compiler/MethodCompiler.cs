@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
-                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
+                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
         }
 
@@ -817,6 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImportChain oldImportChain = compilationState.CurrentImportChain;
+            bool instrumentForDynamicAnalysis = _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
             DiagnosticBag diagsForCurrentMethod = DiagnosticBag.GetInstance();
@@ -885,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor)
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || instrumentForDynamicAnalysis))
                         {
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
@@ -994,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             flowAnalyzedBody,
                             previousSubmissionFields,
                             compilationState,
-                            _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true,
+                            instrumentForDynamicAnalysis,
                             _debugDocumentProvider,
                             ref dynamicAnalysisSpans,
                             diagsForCurrentMethod,
@@ -1032,8 +1033,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (analyzedInitializers != null)
                             {
-                                // Eventually we will instrument field initializers, but for now we skip them.
-                                const bool instrumentFieldInitializersForDynamicAnalysis = false;
+                                // For dynamic analysis, field initializers are instrumented as part of constructors,
+                                // and so are never instrumented here.
+                                Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
@@ -1042,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
-                                    instrumentFieldInitializersForDynamicAnalysis,
+                                    instrumentForDynamicAnalysis,
                                     _debugDocumentProvider,
                                     ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,

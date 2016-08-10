@@ -106,8 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
                                                                      rewritten.ConstantValueOpt,
-                                                                     rewritten.SuppressObjectClone,
-                                                                     rewritten.Type))
+                                                                     isLValue:=rewritten.IsLValue,
+                                                                     suppressObjectClone:=rewritten.SuppressObjectClone,
+                                                                     type:=rewritten.Type))
             End Function
 
             Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression) As BoundNode

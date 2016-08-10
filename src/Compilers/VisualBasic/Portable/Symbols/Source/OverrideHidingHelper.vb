@@ -3,11 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -15,7 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Methods, Properties, and Events all can override or hide members. 
     ''' This class has helper methods and extensions for sharing by multiple symbol types.
     ''' </summary>
-    ''' 
     Friend Class OverrideHidingHelper
         ''' <summary>
         ''' Check for overriding and hiding errors in container and report them via diagnostics.
@@ -579,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits OverrideHidingHelper
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        Private Shared ReadOnly s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()

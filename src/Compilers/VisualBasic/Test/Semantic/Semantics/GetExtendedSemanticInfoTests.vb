@@ -2067,16 +2067,16 @@ End Module
 Module Mod1
     Sub Main()
         Dim scen3(, 5,6,) As Integer
-        Dim x((,)) As Integer 'BIND:"("'BIND:"("
+        Dim x((,)) As Integer 'BIND:"(,)"
     End Sub
 End Module
     ]]></file>
 </compilation>)
 
-            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of ParenthesizedExpressionSyntax)(compilation, "a.vb")
+            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of TupleExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind)
+            Assert.Equal("(?, ?)", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind)
             Assert.Equal("System.Int32", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(Nothing, semanticInfo.ImplicitConversion.Kind)

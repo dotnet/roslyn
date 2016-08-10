@@ -138,5 +138,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
         }
-    }
+
+        public static INamedTypeSymbol TupleElementNamesAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.TupleElementNamesAttribute");
+        }
+
+        public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+        }
+     }
 }

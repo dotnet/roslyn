@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 
-        Protected Overrides Function GetNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
+        Protected Overrides Function GetImportNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
             Return semanticModel.GetImportNamespacesInScope(node)
         End Function
 

@@ -2314,7 +2314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, diagnostics))
                 {
                     return false;
                 }
@@ -2379,54 +2379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
-        }
-
-        // TODO: consider unifying with VB
-        private bool StartSourceChecksumCalculation(PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
-        {
-            var syntaxTrees = this.SyntaxTrees;
-
-            // Check that all syntax trees are debuggable:
-            bool allTreesDebuggable = true;
-            foreach (var tree in syntaxTrees)
-            {
-                if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation());
-                    allTreesDebuggable = false;
-                }
-            }
-
-            if (!allTreesDebuggable)
-            {
-                return false;
-            }
-
-            // Add debug documents for all trees with distinct paths.
-            foreach (var tree in syntaxTrees)
-            {
-                if (!string.IsNullOrEmpty(tree.FilePath))
-                {
-                    // compilation does not guarantee that all trees will have distinct paths.
-                    // Do not attempt adding a document for a particular path if we already added one.
-                    string normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
-                    var existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath);
-                    if (existingDoc == null)
-                    {
-                        moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree));
-                    }
-                }
-            }
-
-            // Add debug documents for all pragmas. 
-            // If there are clashes with already processed directives, report warnings.
-            // If there are clashes with debug documents that came from actual trees, ignore the pragma.
-            foreach (var tree in syntaxTrees)
-            {
-                AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics);
-            }
-
-            return true;
         }
 
         private IEnumerable<string> AddedModulesResourceNames(DiagnosticBag diagnostics)
@@ -2509,8 +2461,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return emitOptions.RuntimeMetadataVersion;
         }
 
-        private static void AddDebugSourceDocumentsForChecksumDirectives(
-            PEModuleBuilder moduleBeingBuilt,
+        internal override void AddDebugSourceDocumentsForChecksumDirectives(
+            DebugDocumentsBuilder documentsBuilder,
             SyntaxTree tree,
             DiagnosticBag diagnostics)
         {
@@ -2523,8 +2475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var path = checksumDirective.File.ValueText;
 
                 var checksumText = checksumDirective.Bytes.ValueText;
-                var normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath: tree.FilePath);
-                var existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                var normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath: tree.FilePath);
+                var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
 
                 // duplicate checksum pragmas are valid as long as values match
                 // if we have seen this document already, check for matching values.
@@ -2562,7 +2514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeChecksumBytes(checksumDirective.Bytes.ValueText),
                         Guid.Parse(checksumDirective.Guid.ValueText));
 
-                    moduleBeingBuilt.AddDebugDocument(newDocument);
+                    documentsBuilder.AddDebugDocument(newDocument);
                 }
             }
         }
@@ -2606,10 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private static Cci.DebugSourceDocument MakeDebugSourceDocumentForTree(string normalizedPath, SyntaxTree tree)
-        {
-            return new Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp, () => tree.GetChecksumAndAlgorithm());
-        }
+        internal override Guid DebugSourceDocumentLanguageId => Cci.DebugSourceDocument.CorSymLanguageTypeCSharp;
 
         internal override bool HasCodeToEmit()
         {
@@ -2826,7 +2775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
             }
 
-            var fields = memberTypes.SelectAsArray((type, index, loc) => new AnonymousTypeField(memberNames[index], loc, (TypeSymbol)type), Location.None);
+            var fields = memberTypes.ZipAsArray(memberNames, (type, name) => new AnonymousTypeField(name, Location.None, (TypeSymbol)type));
             var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);

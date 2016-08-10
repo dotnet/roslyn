@@ -10,15 +10,17 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class PatternVariableFinder : CSharpSyntaxWalker
+    internal class ExpressionVariableFinder : CSharpSyntaxWalker
     {
-        private Binder _binder;
+        private Binder _scopeBinder;
+        private Binder _enclosingBinderOpt;
         private ArrayBuilder<LocalSymbol> _localsBuilder;
 
-        internal static void FindPatternVariables(
-            Binder binder,
+        internal static void FindExpressionVariables(
+            Binder scopeBinder,
             ArrayBuilder<LocalSymbol> builder,
-            CSharpSyntaxNode node)
+            CSharpSyntaxNode node,
+            Binder enclosingBinderOpt = null)
         {
             if (node == null)
             {
@@ -26,17 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var finder = s_poolInstance.Allocate();
-            finder._binder = binder;
+            finder._scopeBinder = scopeBinder;
+            finder._enclosingBinderOpt = enclosingBinderOpt;
             finder._localsBuilder = builder;
 
             finder.Visit(node);
 
-            finder._binder = null;
+            finder._scopeBinder = null;
+            finder._enclosingBinderOpt = null;
             finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
 
-        internal static void FindPatternVariables(
+        internal static void FindExpressionVariables(
             Binder binder,
             ArrayBuilder<LocalSymbol> builder,
             SeparatedSyntaxList<ExpressionSyntax> nodes)
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var finder = s_poolInstance.Allocate();
-            finder._binder = binder;
+            finder._scopeBinder = binder;
             finder._localsBuilder = builder;
 
             foreach (var n in nodes)
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finder.Visit(n);
             }
 
-            finder._binder = null;
+            finder._scopeBinder = null;
             finder._localsBuilder = null;
             s_poolInstance.Free(finder);
         }
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
+            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
@@ -159,35 +163,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            var contextKind = node?.Parent // ArgumentSyntax
-                                  ?.Parent // ArgumentListSyntax
-                                  ?.Parent // invocation/constructor initializer
-                                  ?.Kind();
-
-            switch (contextKind)
+            var context = node?.Parent  // ArgumentSyntax
+                              ?.Parent  // ArgumentListSyntax
+                              ?.Parent; // invocation/constructor initializer
+            switch (context?.Kind())
             {
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.BaseConstructorInitializer:
+                    var local = SourceLocalSymbol.MakeOutVariable(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(), node.Identifier(), context);
+                    _localsBuilder.Add(local);
                     break;
                 default:
 
                     // It looks like we are deling with a syntax tree that has a shape that could never be
                     // produced by the LanguageParser, including all error conditions. 
                     // Out Variable declarations can only appear in an argument list of the syntax nodes mentioned above.
-                    throw ExceptionUtilities.UnexpectedValue(contextKind);
+                    throw ExceptionUtilities.UnexpectedValue(context?.Kind());
             }
-
-            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, false, node.Type(), node.Identifier(), LocalDeclarationKind.RegularVariable));
         }
 
         #region pool
-        private static readonly ObjectPool<PatternVariableFinder> s_poolInstance = CreatePool();
+        private static readonly ObjectPool<ExpressionVariableFinder> s_poolInstance = CreatePool();
 
-        public static ObjectPool<PatternVariableFinder> CreatePool()
+        public static ObjectPool<ExpressionVariableFinder> CreatePool()
         {
-            return new ObjectPool<PatternVariableFinder>(() => new PatternVariableFinder(), 10);
+            return new ObjectPool<ExpressionVariableFinder>(() => new ExpressionVariableFinder(), 10);
         }
         #endregion
     }

@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CollectLocalsFromDeconstruction(
                             syntax.VariableComponent,
                             LocalDeclarationKind.ForEachIterationVariable,
-                            locals);
+                            locals,
+                            syntax);
                         return locals.ToImmutableAndFree();
                     }
                 case SyntaxKind.ForEachStatement:

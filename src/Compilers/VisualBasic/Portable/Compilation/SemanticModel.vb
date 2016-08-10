@@ -944,7 +944,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Let's account for that.
             If lowestExpr.Kind = BoundKind.ArrayCreation AndAlso DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralOpt IsNot Nothing Then
                 type = Nothing
-                conversion = New conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+                conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+            ElseIf lowestExpr.Kind = BoundKind.ConvertedTupleLiteral Then
+                type = DirectCast(lowestExpr, BoundConvertedTupleLiteral).NaturalTypeOpt
             Else
                 type = lowestExpr.Type
             End If

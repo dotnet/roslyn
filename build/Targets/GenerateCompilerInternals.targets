@@ -5,12 +5,6 @@
     <AvailableItemName Include="SyntaxTestDefinition" />
     <AvailableItemName Include="BoundTreeDefinition" />
   </ItemGroup>
-  <ItemDefinitionGroup>
-    <SyntaxDefinition>
-      <GenerateSource>True</GenerateSource>
-      <GenerateTests>False</GenerateTests>
-    </SyntaxDefinition>
-  </ItemDefinitionGroup>
 
   <PropertyGroup>
     <CompileDependsOn>
@@ -43,6 +37,12 @@
       <VBErrorFactsGeneratorToolPath>$(CompilerGeneratorToolsDir)VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
       <VBSyntaxGeneratorToolPath>$(CompilerGeneratorToolsDir)VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
       <BoundTreeGeneratorToolPath>$(CompilerGeneratorToolsDir)BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
+
+      <!-- The syntax generation actually outputs three files: .Syntax, .Internal and .Main -->
+      <SyntaxDefinitionFileName>$([System.IO.Path]::GetFileName($(SyntaxDefinition)))</SyntaxDefinitionFileName>
+      <GeneratedSyntaxFileSyntax>$(IntermediateOutputPath)$(SyntaxDefinitionFileName).Syntax.Generated$(DefaultLanguageSourceExtension)</GeneratedSyntaxFileSyntax>
+      <GeneratedSyntaxFileMain>$(IntermediateOutputPath)$(SyntaxDefinitionFileName).Main.Generated$(DefaultLanguageSourceExtension)</GeneratedSyntaxFileMain>
+      <GeneratedSyntaxFileInternal>$(IntermediateOutputPath)$(SyntaxDefinitionFileName).Internal.Generated$(DefaultLanguageSourceExtension)</GeneratedSyntaxFileInternal>
   </PropertyGroup>
 
   <Target Name="MarkCoreRunExecutable" Condition="'$(OS)' != 'Windows_NT' And Exists('$(CoreRunExe)')">
@@ -51,19 +51,18 @@
 
   <Target
     Name="GenerateSyntaxModel"
-    Inputs="@(SyntaxDefinition);$(VBSyntaxGeneratorToolPath);$(CSharpSyntaxGeneratorToolPath)"
-    Outputs="@(SyntaxDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
-    Condition="'@(SyntaxDefinition)' != '' AND '$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
+    Inputs="$(SyntaxDefinition);$(VBSyntaxGeneratorToolPath);$(CSharpSyntaxGeneratorToolPath)"
+    Outputs="$(GeneratedSyntaxFileSyntax);$(GeneratedSyntaxFileMain);$(GeneratedSyntaxFileInternal)"
+    Condition="'$(SyntaxDefinition)' != '' AND '$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
   >
     <PropertyGroup>
       <SyntaxGenerator Condition="'$(Language)' == 'VB'">"$(CoreRunExe)" "$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
       <SyntaxGenerator Condition="'$(Language)' == 'C#'">"$(CoreRunExe)" "$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
-      <GeneratedSyntaxModel>@(SyntaxDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModel>
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) "@(SyntaxDefinition)" "$(GeneratedSyntaxModel)"'
-      Outputs="$(GeneratedSyntaxModel)">
+      Command='$(SyntaxGenerator) "$(SyntaxDefinition)" "$(IntermediateOutputPath)"'
+      Outputs="$(GeneratedSyntaxFileSyntax);$(GeneratedSyntaxFileMain);$(GeneratedSyntaxFileInternal)">
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
     </Exec>
 
@@ -72,11 +71,9 @@
   <Target
     Name="CleanSyntaxModel"
   >
-    <PropertyGroup>
-      <GeneratedSyntaxModel>@(SyntaxDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModel>
-    </PropertyGroup>
-
-    <Delete Files="$(GeneratedSyntaxModel)" />
+    <Delete Files="$(GeneratedSyntaxFileSyntax)" />
+    <Delete Files="$(GeneratedSyntaxFileMain)" />
+    <Delete Files="$(GeneratedSyntaxFileInternal)" />
   </Target>
 
   <Target
