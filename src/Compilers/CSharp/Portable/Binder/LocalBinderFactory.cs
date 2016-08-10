@@ -337,8 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var whileBinder = new WhileBinder(patternBinder, node);
+            var whileBinder = new WhileBinder(_enclosing, node);
             AddToMap(node, whileBinder);
 
             Visit(node.Condition, whileBinder);
@@ -719,6 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != null)
             {
+                BlockBinder blockBinder;
+
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
@@ -730,9 +731,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.ExpressionStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
-                        var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
+                        blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         AddToMap(statement, blockBinder);
                         Visit(statement, blockBinder);
+                        return;
+
+                    case SyntaxKind.WhileStatement:
+                        Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
+                        blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
+                        Visit(statement, blockBinder);
+                        Debug.Assert(_map.ContainsKey(statement));
                         return;
 
                     default:
