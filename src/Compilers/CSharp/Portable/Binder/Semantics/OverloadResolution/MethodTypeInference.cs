@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateParameters = delegateType.DelegateParameters();
-            if (delegateParameters.IsEmpty)
+            if (delegateParameters.IsDefaultOrEmpty)
             {
                 return false;
             }

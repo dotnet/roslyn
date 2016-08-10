@@ -22,8 +22,8 @@ struct ValueTask<T> { public static Task<T> CreateAsyncMethodBuilder() => null; 
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
-            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            var methodf = compilation.GetMember<MethodSymbol>("C.f");
+            var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
@@ -313,8 +313,8 @@ class ValueTaskMethodBuilder {}
 class ValueTaskMethodBuilder<T> {}
 ";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
-            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            var methodf = compilation.GetMember<MethodSymbol>("C.f");
+            var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
