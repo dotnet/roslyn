@@ -2088,8 +2088,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // foreach ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
             VisitRvalue(node.Expression);
-            var breakState = this.State.Clone();
             LoopHead(node);
+            var breakState = this.State.Clone();
             VisitForEachIterationVariable(node);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);
