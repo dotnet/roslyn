@@ -7,11 +7,18 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     public partial class AddAsyncTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        {
+            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                null, new CSharpMakeMethodAsynchronousCodeFixProvider());
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers()
         {
@@ -33,7 +40,7 @@ using System.Threading.Tasks;
 
 class Program 
 {
-    public static async void Test() 
+    public static async void TestAsync() 
     {
         await Task.Delay(1);
     }
@@ -61,7 +68,7 @@ using System.Threading.Tasks;
 
 class Program 
 {
-    public static async Task Test() 
+    public static async Task TestAsync() 
     {
         await Task.Delay(1);
     }
@@ -90,7 +97,7 @@ using System.Threading.Tasks;
 
 class Program 
 {
-    async Task Test() 
+    async Task TestAsync() 
     {
         await Task.Delay(1);
     }
@@ -119,7 +126,7 @@ using System.Threading.Tasks;
 
 class Program
 {
-    public/*Comment*/static/*Comment*/async Task/*Comment*/Test()
+    public/*Comment*/static/*Comment*/async Task/*Comment*/TestAsync()
     {
         await Task.Delay(1);
     }
@@ -204,7 +211,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async void Test()
+    async void TestAsync()
     {
         await Task.Delay(1);
     }
@@ -229,7 +236,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async Task Test()
+    async Task TestAsync()
     {
         await Task.Delay(1);
     }
@@ -254,7 +261,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async Task<int> Test()
+    async Task<int> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -279,7 +286,7 @@ class Program
 @"using System.Threading.Tasks;
 class Program
 {
-    async Task<int> Test()
+    async Task<int> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -302,7 +309,7 @@ class Program
             var expected =
 @"class Program
 {
-    async void Test()
+    async void TestAsync()
     {
         await Task.Delay(1);
     }
@@ -325,7 +332,7 @@ class Program
             var expected =
 @"class Program
 {
-    async Task Test()
+    async Task TestAsync()
     {
         await Task.Delay(1);
     }
@@ -348,7 +355,7 @@ class Program
             var expected =
 @"class Program
 {
-    async Task<int> Test()
+    async Task<int> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -371,7 +378,7 @@ class Program
             var expected =
 @"class Program
 {
-    async System.Threading.Tasks.Task<int> Test()
+    async System.Threading.Tasks.Task<int> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -394,7 +401,7 @@ class Program
             var expected =
 @"class Program
 {
-    async System.Threading.Tasks.Task<Program> Test()
+    async System.Threading.Tasks.Task<Program> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -417,7 +424,7 @@ class Program
             var expected =
 @"class Program
 {
-    async System.Threading.Tasks.Task<asdf> Test()
+    async System.Threading.Tasks.Task<asdf> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -483,11 +490,6 @@ class C
         }
     }
 }");
-        }
-
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpAddAsyncCodeFixProvider());
         }
     }
 }

@@ -235,6 +235,7 @@
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
