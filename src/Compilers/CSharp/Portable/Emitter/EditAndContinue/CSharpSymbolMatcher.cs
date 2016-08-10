@@ -731,12 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (type.IsTupleType)
                 {
-                    if (!other.IsTupleType)
-                    {
-                        return false;
-                    }
-
-                    type.TupleElementTypes.SequenceEqual(other.TupleElementTypes, AreTypesEqual);
+                    return other.IsTupleType && type.TupleElementTypes.SequenceEqual(other.TupleElementTypes, AreTypesEqual);
                 }
 
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
