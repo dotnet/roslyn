@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
+namespace Microsoft.CodeAnalysis.MakeMethodAsyncOrSync
 {
-    internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractMakeMethodAsyncOrAsyncCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
@@ -137,28 +137,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             var newDocument = document.WithSyntaxRoot(newRoot);
             return newDocument.Project.Solution;
-        }
-
-        protected static bool IsTaskLike(
-            ITypeSymbol returnType, ITypeSymbol taskType, INamedTypeSymbol taskOfTType)
-        {
-            if (returnType.Equals(taskType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(taskOfTType))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType() &&
-                returnType.Name.Equals("Task"))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction

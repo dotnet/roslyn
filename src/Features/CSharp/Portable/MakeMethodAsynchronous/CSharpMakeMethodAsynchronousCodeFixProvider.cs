@@ -87,27 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         }
 
-        private bool IsTaskLike(ITypeSymbol returnType, ITypeSymbol taskType, INamedTypeSymbol taskOfTType)
-        {
-            if (returnType.Equals(taskType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(taskOfTType))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType() &&
-                returnType.Name.Equals("Task"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
         {
             return lambda.WithoutLeadingTrivia()

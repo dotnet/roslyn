@@ -139,28 +139,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             return newDocument.Project.Solution;
         }
 
-        protected static bool IsTaskLike(
-            ITypeSymbol returnType, ITypeSymbol taskType, INamedTypeSymbol taskOfTType)
-        {
-            if (returnType.Equals(taskType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(taskOfTType))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType() &&
-                returnType.Name.Equals("Task"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
