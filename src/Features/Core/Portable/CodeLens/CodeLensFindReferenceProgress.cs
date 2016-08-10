@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
@@ -88,8 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// </summary>
         private static bool FilterReference(ISymbol queriedSymbol, ISymbol definition, ReferenceLocation reference)
         {
-            var isAccessor = (definition as IMethodSymbol)?.AssociatedSymbol != null;
-            var isImplicitlyDeclared = definition.IsImplicitlyDeclared || isAccessor;
+            var isImplicitlyDeclared = definition.IsImplicitlyDeclared || definition.IsAccessor();
             // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
             // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
             // reference location for the invocation while computing references count for the named type symbol. 

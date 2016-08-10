@@ -43,7 +43,7 @@ Class A
         C();
     End Sub
 
-    {|c1: Sub C()|}
+    {|capped1: Sub C()|}
         D();
     End Sub
 

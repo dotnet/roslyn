@@ -52,7 +52,7 @@ public class A
         C();
     }|}
 
-    {|c1: public void C()
+    {|capped1: public void C()
     {
         D();
     }|}

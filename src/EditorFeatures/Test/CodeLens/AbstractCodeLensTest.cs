@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                     var syntaxNode = await document.GetSyntaxRootAsync();
                     foreach (var annotatedSpan in annotatedDocument.AnnotatedSpans)
                     {
-                        var isCapped = annotatedSpan.Key.StartsWith("c");
+                        var isCapped = annotatedSpan.Key.StartsWith("capped");
                         var expected = int.Parse(annotatedSpan.Key.Substring(isCapped ? 1 : 0));
 
                         foreach (var span in annotatedSpan.Value)
