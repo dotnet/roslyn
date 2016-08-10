@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
                     Binder binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics)); 
@@ -3004,7 +3005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loopBinder = this.GetBinder(node);
             Debug.Assert(loopBinder != null);
 
-            return loopBinder.WrapWithVariablesIfAny(node, loopBinder.BindDoParts(diagnostics, loopBinder));
+            return loopBinder.BindDoParts(diagnostics, loopBinder);
         }
 
         internal virtual BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)

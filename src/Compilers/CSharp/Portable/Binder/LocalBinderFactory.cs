@@ -347,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var whileBinder = new WhileBinder(patternBinder, node);
+            var whileBinder = new WhileBinder(_enclosing, node);
             AddToMap(node, whileBinder);
 
             Visit(node.Condition, whileBinder);
@@ -737,6 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
 
                     case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                         blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         Visit(statement, blockBinder);
