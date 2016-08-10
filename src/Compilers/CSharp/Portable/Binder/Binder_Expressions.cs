@@ -628,6 +628,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleExpression:
                     return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.RefType:
+                    {
+                        var firstToken = node.GetFirstToken();
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        return new BoundTypeExpression(node, null, CreateErrorType("ref"));
+                    }
+
+                case SyntaxKind.RefExpression:
+                    {
+                        var firstToken = node.GetFirstToken();
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        return new BoundBadExpression(
+                            node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty,
+                            CreateErrorType("ref"));
+                    }
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
