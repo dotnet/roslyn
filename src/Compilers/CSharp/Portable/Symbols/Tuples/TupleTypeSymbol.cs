@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceName = sourceNames[i];
                 if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
-                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Location, sourceName);
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName);
                 }
             }
         }
