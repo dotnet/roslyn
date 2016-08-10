@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
-            await FindResultsInAllProjectSymbolsAsync(
+            await FindResultsInAllSymbolsInStartingProjectAsync(
                 allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
             // Only bother doing this for host workspaces.  We don't want this for 
@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return allReferences;
         }
 
-        private async Task FindResultsInAllProjectSymbolsAsync(
+        private async Task FindResultsInAllSymbolsInStartingProjectAsync(
             List<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
             bool exact, CancellationToken cancellationToken)
         {
-            var references = await finder.FindInAllSymbolsInProjectAsync(exact, cancellationToken).ConfigureAwait(false);
+            var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
             AddRange(allSymbolReferences, references);
         }
 

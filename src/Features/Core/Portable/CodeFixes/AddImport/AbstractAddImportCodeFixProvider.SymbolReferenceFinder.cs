@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return _semanticModel.Compilation.GetCompilationNamespace(containingNamespace) ?? containingNamespace;
             }
 
-            internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
+            internal Task<List<SymbolReference>> FindInAllSymbolsInStartingProjectAsync(
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new AllSymbolsProjectSearchScope(_owner, _document.Project, exact, cancellationToken);
