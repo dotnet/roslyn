@@ -384,6 +384,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
             {
+                // when VS is loading new solution, we will try to find out all diagnostics persisted from previous VS session.
+                // in that situation, it is possible that we have a lot of deserialization returning empty result. previously we used to
+                // return default(ImmutableArray) for such case, but it turns out async/await framework has allocation issues with returning
+                // default(value type), so we are using StrongBox to return no data as null. async/await has optimization where it will return
+                // cached empty task if given value is null for reference type. (see AsyncMethodBuilder.GetTaskForResult)
+                // 
+                // right now, we can't use Nullable either, since it is not one of value type the async/await will reuse cached task. in future,
+                // if they do, we can change it to return Nullable<ImmutableArray>
+                //
+                // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
+                // case.
+
                 // check cache first
                 CacheEntry entry;
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
