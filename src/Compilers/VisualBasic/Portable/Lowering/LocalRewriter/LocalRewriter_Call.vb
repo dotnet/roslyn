@@ -86,8 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                receiver,
                                RewriteCallArguments(arguments, method.Parameters, temporaries, copyBack, suppressObjectClone),
                                Nothing,
-                               True,
-                               node.Type)
+                               isLValue:=node.IsLValue,
+                               suppressObjectClone:=True,
+                               type:=node.Type)
 
             If Not copyBack.IsDefault Then
                 Return GenerateSequenceValueSideEffects(_currentMethodOrLambda, node, StaticCast(Of LocalSymbol).From(temporaries), copyBack)
@@ -254,7 +255,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim originalArgument As BoundExpression = argument.OriginalArgument
 
             If originalArgument.IsPropertyOrXmlPropertyAccess Then
-                Debug.Assert(originalArgument.GetAccessKind() = (PropertyAccessKind.Get Or PropertyAccessKind.Set))
+                Debug.Assert(originalArgument.GetAccessKind() = If(
+                             originalArgument.IsPropertyReturnsByRef(),
+                             PropertyAccessKind.Get,
+                             PropertyAccessKind.Get Or PropertyAccessKind.Set))
                 originalArgument = originalArgument.SetAccessKind(PropertyAccessKind.Unknown)
             ElseIf originalArgument.IsLateBound() Then
                 Debug.Assert(originalArgument.GetLateBoundAccessKind() = (LateBoundAccessKind.Get Or LateBoundAccessKind.Set))
@@ -295,8 +299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, originalArgument, tempsArray)
 
             If originalArgument.IsPropertyOrXmlPropertyAccess Then
-                firstUse = useTwice.First.SetAccessKind(PropertyAccessKind.Get)
-                secondUse = useTwice.Second.SetAccessKind(PropertyAccessKind.Set)
+                firstUse = useTwice.First.SetAccessKind(PropertyAccessKind.Get).MakeRValue()
+                secondUse = useTwice.Second.SetAccessKind(If(originalArgument.IsPropertyReturnsByRef(), PropertyAccessKind.Get, PropertyAccessKind.Set))
 
             ElseIf originalArgument.IsLateBound() Then
                 firstUse = useTwice.First.SetLateBoundAccessKind(LateBoundAccessKind.Get)

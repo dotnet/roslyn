@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     GetNextToken()
 
                 Case SyntaxKind.OpenParenToken
-                    term = ParseParenthesizedExpression()
+                    term = ParseParenthesizedExpressionOrTupleLiteral()
 
                 'XML
                 Case SyntaxKind.LessThanToken,
@@ -1220,21 +1220,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ReportSyntaxError(SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken("", SyntaxKind.XmlNameToken, Nothing, Nothing)), ERRID.ERR_ExpectedXmlName)
         End Function
 
-        ' File: Parser.cpp
-        ' Lines: 1501 - 1501
-        ' Expression* .Parser::ParseParenthesizedExpression( [ _Inout_ bool& ErrorInConstruct ] )
-        Private Function ParseParenthesizedExpression() As ParenthesizedExpressionSyntax
+        Private Function ParseParenthesizedExpressionOrTupleLiteral() As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
 
-            ' "(" expr ")"
+            ' "(" expr ")"              'parenthesized
+            ' "(" Name:= ....           'parse a tuple
+            ' "(" expr, ....            'parse a tuple
+
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
-            Dim Operand = ParseExpressionCore()
+
+            If (CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
+                PeekToken(1).Kind = SyntaxKind.ColonEqualsToken) Then
+
+                Dim argumentName = ParseIdentifierNameAllowingKeyword()
+                Dim colonEquals As PunctuationSyntax = Nothing
+                TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
+
+                Dim nameColonEquals = SyntaxFactory.NameColonEquals(argumentName, colonEquals)
+                Dim firstArgument = SyntaxFactory.SimpleArgument(nameColonEquals, ParseExpressionCore())
+
+                Return ParseTheRestOfTupleLiteral(openParen, firstArgument)
+            End If
+
+            Dim operand = ParseExpressionCore()
+
+            If (CurrentToken.Kind = SyntaxKind.CommaToken) Then
+                Dim firstArgument = SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=operand)
+
+                Return ParseTheRestOfTupleLiteral(openParen, firstArgument)
+            End If
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
-            Return SyntaxFactory.ParenthesizedExpression(openParen, Operand, closeParen)
+            Return SyntaxFactory.ParenthesizedExpression(openParen, operand, closeParen)
+        End Function
+
+        Private Function ParseTheRestOfTupleLiteral(openParen As PunctuationSyntax, firstArgument As SimpleArgumentSyntax) As TupleExpressionSyntax
+
+            Dim argumentBuilder = _pool.AllocateSeparated(Of SimpleArgumentSyntax)()
+            argumentBuilder.Add(firstArgument)
+
+            While CurrentToken.Kind = SyntaxKind.CommaToken
+                Dim commaToken As PunctuationSyntax = Nothing
+                TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken)
+
+                argumentBuilder.AddSeparator(commaToken)
+                Dim nameColonEquals As NameColonEqualsSyntax = Nothing
+
+                If (CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
+                    PeekToken(1).Kind = SyntaxKind.ColonEqualsToken) Then
+
+                    Dim argumentName = ParseIdentifierNameAllowingKeyword()
+                    Dim colonEquals As PunctuationSyntax = Nothing
+                    TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
+
+                    nameColonEquals = SyntaxFactory.NameColonEquals(argumentName, colonEquals)
+                End If
+
+                Dim argument = SyntaxFactory.SimpleArgument(nameColonEquals, ParseExpressionCore())
+                argumentBuilder.Add(argument)
+            End While
+
+            Dim closeParen As PunctuationSyntax = Nothing
+            TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            Dim arguments = argumentBuilder.ToList
+            _pool.Free(argumentBuilder)
+
+            Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen)
+
+            tupleExpression = CheckFeatureAvailability(Feature.Tuples, tupleExpression)
+            Return tupleExpression
         End Function
 
         ' Parse an argument list enclosed in parentheses.
@@ -1409,7 +1467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
                     PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
 
-                    argumentName = SyntaxFactory.IdentifierName(ParseIdentifierAllowingKeyword())
+                    argumentName = ParseIdentifierNameAllowingKeyword()
                     TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
                 Else
                     argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())

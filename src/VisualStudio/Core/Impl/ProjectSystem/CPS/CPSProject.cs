@@ -59,6 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         protected sealed override bool LastDesignTimeBuildSucceeded => _lastDesignTimeBuildSucceeded;
 
         // We might we invoked from a background thread, so schedule the disconnect on foreground task scheduler.
-        public sealed override void Disconnect() => InvokeBelowInputPriority(() => base.Disconnect());
+        public sealed override void Disconnect()
+        {
+            InvokeBelowInputPriority(() =>
+            {
+                // clear code model cache and shutdown instances, if any exists.
+                _projectCodeModel?.OnProjectClosed();
+
+                base.Disconnect();
+            });
+        }
     }
 }

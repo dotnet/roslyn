@@ -454,6 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          Not argument.IsNothingLiteral() OrElse
                          TypeOf argument.Syntax.Parent Is BinaryExpressionSyntax OrElse
                          TypeOf argument.Syntax.Parent Is UnaryExpressionSyntax OrElse
+                         TypeOf argument.Syntax.Parent Is TupleExpressionSyntax OrElse
                          (TypeOf argument.Syntax.Parent Is AssignmentStatementSyntax AndAlso argument.Syntax.Parent.Kind <> SyntaxKind.SimpleAssignmentStatement),
                          "Applying yet another conversion to an implicit conversion from NOTHING, probably MakeRValue was called too early.")
 
@@ -1230,6 +1231,12 @@ DoneWithDiagnostics:
                     argument = ReclassifyInterpolatedStringExpression(conversionSemantics, tree, convKind, isExplicit, DirectCast(argument, BoundInterpolatedStringExpression), targetType, diagnostics)
                     Return argument.Kind = BoundKind.Conversion
 
+                Case BoundKind.TupleLiteral
+                    Dim literal = DirectCast(argument, BoundTupleLiteral)
+                    argument = ReclassifyTupleLiteral(convKind, tree, isExplicit, literal, targetType, diagnostics)
+
+                    Return argument IsNot literal
+
             End Select
 
             Return False
@@ -1561,6 +1568,74 @@ DoneWithDiagnostics:
 
             Return node
 
+        End Function
+
+        Private Function ReclassifyTupleLiteral(
+                       convKind As ConversionKind,
+                       tree As VisualBasicSyntaxNode,
+                       isExplicit As Boolean,
+                       sourceTuple As BoundTupleLiteral,
+                       destination As TypeSymbol,
+                       diagnostics As DiagnosticBag) As BoundExpression
+
+            ' We have a successful tuple conversion rather than producing a separate conversion node 
+            ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
+            Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
+            Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
+
+            Dim targetType = destination
+
+            If isNullableTupleConversion Then
+                targetType = destination.GetNullableUnderlyingType()
+            End If
+
+            Dim arguments = sourceTuple.Arguments
+            If Not targetType.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return sourceTuple
+            End If
+
+            If targetType.IsTupleType Then
+                Dim destTupleType = DirectCast(targetType, TupleTypeSymbol)
+                ' do not lose the original element names in the literal if different from names in the target
+                ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
+                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)
+            End If
+
+            Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Length)
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = targetType.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(targetElementTypes.Length = arguments.Length, "converting a tuple literal to incompatible type?")
+
+            For i As Integer = 0 To arguments.Length - 1
+                Dim argument = arguments(i)
+                Dim destType = targetElementTypes(i)
+
+                convertedArguments.Add(ApplyConversion(argument.Syntax, destType, argument, isExplicit, diagnostics))
+            Next
+
+            Dim result As BoundExpression = New BoundConvertedTupleLiteral(
+                sourceTuple.Syntax,
+                sourceTuple.Type,
+                convertedArguments.ToImmutableAndFree(),
+                targetType)
+
+            If sourceTuple.Type <> destination AndAlso convKind <> Nothing Then
+                ' literal cast is applied to the literal 
+                result = New BoundConversion(sourceTuple.Syntax, result, convKind, checked:=False, explicitCastInCode:=isExplicit, type:=destination)
+            End If
+
+            ' If we had a cast in the code, keep conversion in the tree.
+            ' even though the literal is already converted to the target type.
+            If isExplicit Then
+                result = New BoundConversion(
+                    tree,
+                    result,
+                    ConversionKind.Identity,
+                    checked:=False,
+                    explicitCastInCode:=isExplicit,
+                    type:=destination)
+            End If
+
+            Return result
         End Function
 
         Private Sub WarnOnNarrowingConversionBetweenSealedClassAndAnInterface(

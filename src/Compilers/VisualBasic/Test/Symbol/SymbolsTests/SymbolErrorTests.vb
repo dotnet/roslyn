@@ -22240,9 +22240,7 @@ End Class
             Assert.Equal(ImmutableArray.Create(Of Location)(), errTypeSym.Locations)
             Assert.Equal(ImmutableArray.Create(Of SyntaxReference)(), errTypeSym.DeclaringSyntaxReferences)
             Assert.Equal(0, errTypeSym.Arity)
-            Assert.Throws(Of InvalidOperationException)(Sub()
-                                                            Dim tmp = errTypeSym.EnumUnderlyingType
-                                                        End Sub)
+            Assert.Null(errTypeSym.EnumUnderlyingType)
             Assert.Equal("B", errTypeSym.Name)
             Assert.Equal(0, errTypeSym.TypeArguments.Length)
             Assert.Equal(0, errTypeSym.TypeParameters.Length)

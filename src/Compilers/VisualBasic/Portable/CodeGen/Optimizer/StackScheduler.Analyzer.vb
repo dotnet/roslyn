@@ -677,7 +677,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = VisitArguments(node.Arguments, method.Parameters)
 
                 Debug.Assert(node.MethodGroupOpt Is Nothing)
-                Return node.Update(method, node.MethodGroupOpt, receiver, rewrittenArguments, node.ConstantValueOpt, node.SuppressObjectClone, node.Type)
+                Return node.Update(
+                    method,
+                    node.MethodGroupOpt,
+                    receiver,
+                    rewrittenArguments,
+                    node.ConstantValueOpt,
+                    isLValue:=node.IsLValue,
+                    suppressObjectClone:=node.SuppressObjectClone,
+                    type:=node.Type)
             End Function
 
             Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of BoundExpression)

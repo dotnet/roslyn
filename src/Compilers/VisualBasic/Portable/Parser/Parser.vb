@@ -2865,6 +2865,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Debug.Assert(CanTokenStartTypeName(Start), "Inconsistency in type parsing routines!!!")
                         GoTo checkNullable
 
+                    Case SyntaxKind.OpenParenToken
+                        ' tuple type
+                        ' (a as Integer, b as Long)
+                        Dim openParen As PunctuationSyntax = Nothing
+                        TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
+                        typeName = ParseTupleType(openParen)
+                        GoTo checkNullable
+
                     Case Else
                         If Start.Kind = SyntaxKind.NewKeyword AndAlso PeekToken(1).Kind = SyntaxKind.IdentifierToken Then
                             errorID = ERRID.ERR_InvalidNewInType
@@ -2926,6 +2934,48 @@ checkNullable:
             End If
 
             Return typeName
+        End Function
+
+        Private Function ParseTupleType(openParen As PunctuationSyntax) As TypeSyntax
+            Dim elementBuilder = _pool.AllocateSeparated(Of TupleElementSyntax)()
+
+            Do
+                Dim identifierNameOpt As IdentifierNameSyntax = Nothing
+                Dim asKeywordOpt As KeywordSyntax = Nothing
+
+                If CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
+                        PeekNextToken().Kind = SyntaxKind.AsKeyword Then
+
+                    identifierNameOpt = ParseIdentifierNameAllowingKeyword()
+                    TryGetToken(SyntaxKind.AsKeyword, asKeywordOpt)
+
+                End If
+
+                Dim type = ParseGeneralType()
+                Dim element = SyntaxFactory.TupleElement(identifierNameOpt, asKeywordOpt, type)
+
+                elementBuilder.Add(element)
+
+                If CurrentToken.Kind = SyntaxKind.CommaToken Then
+                    Dim commaToken As PunctuationSyntax = Nothing
+                    TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken)
+
+                    elementBuilder.AddSeparator(commaToken)
+                Else
+                    Exit Do
+                End If
+            Loop
+
+            Dim closeParen As PunctuationSyntax = Nothing
+            TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            Dim tupleElements = elementBuilder.ToList
+            _pool.Free(elementBuilder)
+
+            Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
+
+            tupleType = CheckFeatureAvailability(Feature.Tuples, tupleType)
+            Return tupleType
         End Function
 
         Private Function ReportUnrecognizedTypeInGeneric(typeName As TypeSyntax) As TypeSyntax

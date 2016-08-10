@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -9,6 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A class that represents all the arguments necessary to create a new document instance.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
     {
         /// <summary>
@@ -145,6 +147,11 @@ namespace Microsoft.CodeAnalysis
         public DocumentInfo WithFilePath(string filePath)
         {
             return this.With(filePath: filePath);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
         }
     }
 }

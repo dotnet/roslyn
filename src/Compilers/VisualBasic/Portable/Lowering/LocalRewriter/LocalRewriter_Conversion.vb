@@ -101,6 +101,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
 
+            ElseIf node.ConversionKind = ConversionKind.WideningTuple OrElse
+                node.ConversionKind = ConversionKind.NarrowingTuple Then
+                returnValue = RewriteTupleConversion(node)
+
             Else
                 returnValue = MyBase.VisitConversion(node)
                 If returnValue.Kind = BoundKind.Conversion Then
@@ -110,6 +114,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _inExpressionLambda = wasInExpressionlambda
             Return returnValue
+        End Function
+
+        Private Function RewriteTupleConversion(node As BoundConversion) As BoundExpression
+            Dim syntax = node.Syntax
+            Dim rewrittenOperand = VisitExpression(node.Operand)
+            Dim rewrittenType = DirectCast(VisitType(node.Type), NamedTypeSymbol)
+
+            Return MakeTupleConversion(syntax, rewrittenOperand, rewrittenType, node.Checked)
+        End Function
+
+        Private Function MakeTupleConversion(syntax As VisualBasicSyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, isChecked As Boolean) As BoundExpression
+            If destinationType.IsSameTypeIgnoringCustomModifiers(rewrittenOperand.Type) Then
+                'binder keeps some tuple conversions just for the purpose of semantic model
+                'otherwisw they are as good as identity conversions
+
+                Return rewrittenOperand
+            End If
+
+            Dim destElementTypes = destinationType.GetElementTypesOfTupleOrCompatible()
+            Dim numElements = destElementTypes.Length
+
+            Dim srcElementFields As ImmutableArray(Of FieldSymbol)
+            Dim srcType As TypeSymbol = rewrittenOperand.Type
+
+            If (srcType.IsTupleType) Then
+                srcElementFields = DirectCast(srcType, TupleTypeSymbol).TupleElementFields
+            Else
+                ' The following codepath should be very uncommon (if reachable at all)
+                ' we should generally not see tuple compatible types in bound trees and 
+                ' see actual tuple types instead.
+                Debug.Assert(srcType.IsTupleCompatible())
+
+                ' PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
+                '       in the type symbols that can actually be tuple compatible
+                srcElementFields = TupleTypeSymbol.Create(DirectCast(srcType, NamedTypeSymbol)).TupleElementFields
+            End If
+
+            Dim fieldAccessorsBuilder = ArrayBuilder(Of BoundExpression).GetInstance(numElements)
+            Dim assignmentToTemp As BoundExpression = Nothing
+            Dim tupleTemp As SynthesizedLocal = Nothing
+            Dim savedTuple As BoundExpression = CaptureOperand(rewrittenOperand, tupleTemp, assignmentToTemp)
+
+            Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, syntax, _compilationState, _diagnostics)
+
+            For i As Integer = 0 To numElements - 1
+                Dim field = srcElementFields(i)
+
+                Dim useSiteInfo As DiagnosticInfo = field.CalculateUseSiteErrorInfo()
+
+                If useSiteInfo IsNot Nothing AndAlso useSiteInfo.Severity = DiagnosticSeverity.Error Then
+                    ReportDiagnostic(rewrittenOperand, useSiteInfo, _diagnostics)
+                End If
+
+                Dim fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, constantValueOpt:=Nothing, isLValue:=False)
+                Dim elementType = destElementTypes(i)
+                Dim conv = Conversions.ClassifyConversion(fieldAccess.Type, elementType, useSiteDiagnostics:=Nothing)
+
+                Dim convertedFieldAccess = If(conv.Value Is Nothing,
+                                                TransformRewrittenConversion(factory.Convert(elementType, fieldAccess, conv.Key, isChecked)),
+                                                MakeUserDefinedTupleFieldConversion(factory, elementType, fieldAccess, conv.Value, isChecked))
+
+                fieldAccessorsBuilder.Add(convertedFieldAccess)
+            Next
+
+            Dim result = MakeTupleCreationExpression(syntax, DirectCast(destinationType, NamedTypeSymbol), fieldAccessorsBuilder.ToImmutableAndFree())
+            Return factory.Sequence(tupleTemp, assignmentToTemp, result)
+        End Function
+
+        Private Function MakeUserDefinedTupleFieldConversion(factory As SyntheticBoundNodeFactory, elementType As TypeSymbol, fieldAccess As BoundExpression, method As MethodSymbol, isChecked As Boolean) As BoundExpression
+            ' User defined conversion here would be applied like:
+            '                    field -> [predefined conv] -> [call] -> [predefined conv] -> result
+            '
+            ' NOTE: predefined conversions here may themselves be tuple conversions,
+            '       which may contain more tuple conversions and so on, so we have to lower them.
+            '       We do not want to lower the field access though, so use a placeholder instead.
+            Dim placeholder = New BoundRValuePlaceholder(fieldAccess.Syntax, fieldAccess.Type)
+
+            Dim convIn = factory.Convert(method.Parameters(0).Type, placeholder, isChecked)
+            Dim [call] = factory.Call(Nothing, method, convIn)
+            Dim convOut = factory.Convert(elementType, [call], isChecked)
+
+            ' lower the conversions
+            AddPlaceholderReplacement(placeholder, fieldAccess)
+            Dim result = VisitExpression(convOut)
+            RemovePlaceholderReplacement(placeholder)
+
+            Return result
         End Function
 
         Private Function RewriteLambdaRelaxationConversion(node As BoundConversion) As BoundNode
@@ -420,8 +511,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Else
                     _diagnostics.Add(node, useSiteDiagnostics)
-                    operand = TransformRewrittenConversion(
-                                New BoundConversion(node.Syntax,
+
+                    If (convKind And ConversionKind.Tuple) <> 0 Then
+                        operand = MakeTupleConversion(node.Syntax, operand, unwrappedResultType, node.Checked)
+
+                    Else
+                        operand = TransformRewrittenConversion(New BoundConversion(node.Syntax,
                                                     operand,
                                                     convKind,
                                                     node.Checked,
@@ -431,6 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     node.RelaxationLambdaOpt,
                                                     node.RelaxationReceiverPlaceholderOpt,
                                                     unwrappedResultType))
+                    End If
                 End If
             End If
 
@@ -635,8 +731,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       operatorCall.ReceiverOpt,
                                                                       ImmutableArray.Create(inputToOperatorMethod),
                                                                       operatorCall.ConstantValueOpt,
-                                                                      operatorCall.SuppressObjectClone,
-                                                                      operatorCall.Type)
+                                                                      isLValue:=operatorCall.IsLValue,
+                                                                      suppressObjectClone:=operatorCall.SuppressObjectClone,
+                                                                      type:=operatorCall.Type)
 
             ' outConversion is a nullable conversion. need to rewrite it.
             whenHasValue = RewriteNullableConversion(outConversion, whenHasValue)
