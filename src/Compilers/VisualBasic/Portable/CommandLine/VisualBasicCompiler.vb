@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    errorLogger As ErrorLogger) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
-            Dim content = ReadFileContent(file, fileReadDiagnostics)
+            Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
                 ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
@@ -206,6 +207,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
             Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
         End Function
+
+        Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(tree As SyntaxTree, resolver As SourceReferenceResolver, embeddedFiles As OrderedSet(Of String), diagnostics As IList(Of Diagnostic))
+            ' Embedded files not yet supported by VB and we should not get this far.
+            Debug.Assert(False)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
     End Class
 End Namespace
 

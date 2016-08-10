@@ -474,4 +474,7 @@
   <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
     <value>Options did not come from Workspace</value>
   </data>
+  <data name="Stream_is_too_long" xml:space="preserve">
+    <value>Stream is too long.</value>
+  </data>
 </root>

@@ -141,6 +141,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -173,6 +174,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new object() });
 
                 result.Diagnostics.Verify(
@@ -205,6 +207,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(

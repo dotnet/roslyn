@@ -910,6 +910,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream is too long..
+        /// </summary>
+        internal static string Stream_is_too_long {
+            get {
+                return ResourceManager.GetString("Stream_is_too_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Supplied diagnostic cannot be null..
         /// </summary>
         internal static string Supplied_diagnostic_cannot_be_null {

@@ -3,6 +3,10 @@
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -17,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> _debugDocuments;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache;
         private readonly SourceReferenceResolver _resolverOpt;
+        private ImmutableArray<Cci.DebugSourceDocument> _embeddedDocuments;
 
         public DebugDocumentsBuilder(SourceReferenceResolver resolverOpt, bool isDocumentNameCaseSensitive)
         {
@@ -28,6 +33,13 @@ namespace Microsoft.CodeAnalysis.Emit
                     StringComparer.OrdinalIgnoreCase);
 
             _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
+            _embeddedDocuments = ImmutableArray<Cci.DebugSourceDocument>.Empty;
+        }
+
+        internal ImmutableArray<Cci.DebugSourceDocument> EmbeddedDocuments
+        {
+            get { return _embeddedDocuments; }
+            set { Debug.Assert(value != null); _embeddedDocuments = value; }
         }
 
         internal int DebugDocumentCount => _debugDocuments.Count;
@@ -71,5 +83,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return normalizedPath;
         }
+
+
     }
 }

@@ -23,6 +23,7 @@
     <SystemDynamicRuntimeVersion>4.0.11</SystemDynamicRuntimeVersion>
     <SystemGlobalizationVersion>4.0.11</SystemGlobalizationVersion>
     <SystemIOVersion>4.1.0</SystemIOVersion>
+    <SystemIOCompressionVersion>4.1.0</SystemIOCompressionVersion>
     <SystemIOFileSystemVersion>4.0.1</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.0.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.0.1</SystemIOFileSystemPrimitivesVersion>
