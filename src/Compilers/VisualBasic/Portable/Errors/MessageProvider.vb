@@ -456,6 +456,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' PDB Writer
+        Public Overrides ReadOnly Property ERR_EncodinglessSyntaxTree As Integer
+            Get
+                Return ERRID.ERR_EncodinglessSyntaxTree
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property WRN_PdbUsingNameTooLong As Integer
             Get
                 Return ERRID.WRN_PdbUsingNameTooLong

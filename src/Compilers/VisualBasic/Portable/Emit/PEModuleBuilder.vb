@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Sub AddSymbolLocation(result As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation), location As Location, definition As Cci.IDefinition)
             Dim span As FileLinePositionSpan = location.GetLineSpan()
 
-            Dim doc As Cci.DebugSourceDocument = Me.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
+            Dim doc As Cci.DebugSourceDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
             If (doc IsNot Nothing) Then
                 result.Add(doc,
                        New Cci.DefinitionWithLocation(
