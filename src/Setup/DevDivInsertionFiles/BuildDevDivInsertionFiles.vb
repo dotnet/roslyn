@@ -371,7 +371,8 @@ Public Class BuildDevDivInsertionFiles
 
         ' Build a dependency map
         Dim dependencies = BuildDependencyMap(_binDirectory)
-        GenerateContractList(dependencies)
+        GenerateContractsListMsbuild(dependencies)
+        GenerateImplementationsListWxi(dependencies)
         GenerateAssemblyVersionList(dependencies)
         CopyDependencies(dependencies)
 
@@ -529,27 +530,57 @@ Public Class BuildDevDivInsertionFiles
         Return result
     End Function
 
-    Private Sub GenerateContractList(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
-        Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("ContractAssemblies.props"))
+    Private Sub GenerateContractsListMsbuild(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
+        Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("ProductData\ContractAssemblies.props"))
             writer.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
             writer.WriteLine("<Project ToolsVersion=""14.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">")
             writer.WriteLine("  <!-- Generated file, do not directly edit. Contact mlinfraswat@microsoft.com if you need to add a library that's not listed -->")
             writer.WriteLine("  <PropertyGroup>")
 
-            For Each entry In dependencies.OrderBy(Function(e) e.Key)
-                Dim fileName = entry.Key
-                Dim dependency = entry.Value
-                If dependency.ContractDir IsNot Nothing Then
-                    Dim variableName = "FXContract_" + dependency.PackageName.Replace(".", "_")
-                    Dim dir = Path.Combine(dependency.PackageName, dependency.ContractDir)
-                    writer.WriteLine($"    <{variableName}>{Path.Combine(dir, fileName)}</{variableName}>")
-                End If
+            For Each entry In GetContracts(dependencies)
+                writer.WriteLine($"    <{entry.Key}>{entry.Value}</{entry.Key}>")
             Next
 
             writer.WriteLine("  </PropertyGroup>")
             writer.WriteLine("</Project>")
         End Using
     End Sub
+
+    Private Sub GenerateImplementationsListWxi(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
+        Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("SetupAuthoring\netfx\Common\CoreFX.wxi"))
+            writer.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
+            writer.WriteLine("<Include xmlns=""http://schemas.microsoft.com/wix/2006/wi"">")
+            writer.WriteLine("  <!-- Generated file, do not directly edit. Contact mlinfraswat@microsoft.com if you need to add a library that's not listed -->")
+
+            For Each entry In GetImplementations(dependencies)
+                writer.WriteLine($"  <?define {entry.Key} = ""{entry.Value}"" ?>")
+            Next
+
+            writer.WriteLine("</Include>")
+        End Using
+    End Sub
+
+    Private Iterator Function GetContracts(dependencies As IReadOnlyDictionary(Of String, DependencyInfo)) As IEnumerable(Of KeyValuePair(Of String, String))
+        For Each entry In dependencies.OrderBy(Function(e) e.Key)
+            Dim fileName = entry.Key
+            Dim dependency = entry.Value
+            If dependency.ContractDir IsNot Nothing Then
+                Dim variableName = "FXContract_" + Path.GetFileNameWithoutExtension(fileName).Replace(".", "_")
+                Dim dir = Path.Combine(dependency.PackageName, dependency.ContractDir)
+                Yield New KeyValuePair(Of String, String)(variableName, Path.Combine(dir, fileName))
+            End If
+        Next
+    End Function
+
+    Private Iterator Function GetImplementations(dependencies As IReadOnlyDictionary(Of String, DependencyInfo)) As IEnumerable(Of KeyValuePair(Of String, String))
+        For Each entry In dependencies.OrderBy(Function(e) e.Key)
+            Dim fileName = entry.Key
+            Dim dependency = entry.Value
+            Dim variableName = "CoreFXLib_" + Path.GetFileNameWithoutExtension(fileName).Replace(".", "_")
+            Dim dir = Path.Combine(dependency.PackageName, dependency.ImplementationDir)
+            Yield New KeyValuePair(Of String, String)(variableName, Path.Combine(dir, fileName))
+        Next
+    End Function
 
     Private Sub GenerateAssemblyVersionList(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("DependentAssemblyVersions.csv"))
@@ -771,7 +802,7 @@ Public Class BuildDevDivInsertionFiles
     End Sub
 
     ''' <summary>
-    ''' Takes a list of paths relative to <see cref="outputDirectory"/> and generates a nuspec file that includes them.
+    ''' Takes a list of paths relative to <see cref="_outputDirectory"/> and generates a nuspec file that includes them.
     ''' </summary>
     Private Sub GenerateRoslynNuSpec(filesToInsert As List(Of NugetFileInfo))
         Const PackageName As String = "VS.ExternalAPIs.Roslyn"
