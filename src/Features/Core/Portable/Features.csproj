@@ -110,8 +110,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\AbstractAddAsyncCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Async\AbstractAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAsyncCodeFix.cs" />
     <Compile Include="CodeFixes\CodeFixCollection.cs" />
@@ -242,6 +241,7 @@
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />

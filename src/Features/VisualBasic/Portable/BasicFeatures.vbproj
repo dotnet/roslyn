@@ -91,7 +91,6 @@
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.vb" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\Async\VisualBasicAddAsyncCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicAddAwaitCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
@@ -352,6 +351,7 @@
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.SymbolDescriptionBuilder.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDisplayServiceFactory.vb" />
+    <Compile Include="MakeMethodAsynchronous\VisualBasicMakeMethodAsynchronousCodeFixProvider.vb" />
     <Compile Include="MakeMethodSynchronous\VisualBasicMakeMethodSynchronousCodeFixProvider.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceService.vb" />
     <Compile Include="MetadataAsSource\VisualBasicMetadataAsSourceServiceFactory.vb" />

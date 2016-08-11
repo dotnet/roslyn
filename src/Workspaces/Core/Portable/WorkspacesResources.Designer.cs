@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
+        /// </summary>
+        internal static string _0_encountered_an_error_and_has_been_disabled {
+            get {
+                return ResourceManager.GetString("_0_encountered_an_error_and_has_been_disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already part of the workspace..
         /// </summary>
         internal static string _0_is_already_part_of_the_workspace {
@@ -531,6 +540,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable and ignore future errors.
+        /// </summary>
+        internal static string Enable_and_ignore_future_errors {
+            get {
+                return ResourceManager.GetString("Enable_and_ignore_future_errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exceptions:.
         /// </summary>
         internal static string Exceptions_colon {
@@ -888,6 +915,15 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_th" +
                         "e_workspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show Stack Trace.
+        /// </summary>
+        internal static string Show_Stack_Trace {
+            get {
+                return ResourceManager.GetString("Show_Stack_Trace", resourceCulture);
             }
         }
         

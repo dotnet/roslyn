@@ -1354,6 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (type.Kind)
             {
                 case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
                     {
                         var namedType = (NamedTypeSymbol)type;
                         var changed = type.IsTupleType ?
@@ -1367,6 +1368,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arrayType = (ArrayTypeSymbol)type;
                         var changed = NormalizeTaskTypesInArray(compilation, ref arrayType);
                         type = arrayType;
+                        return changed;
+                    }
+                case SymbolKind.PointerType:
+                    {
+                        var pointerType = (PointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInPointer(compilation, ref pointerType);
+                        type = pointerType;
                         return changed;
                     }
             }
@@ -1453,6 +1461,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             arrayType = arrayType.WithElementType(elementType);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInPointer(CSharpCompilation compilation, ref PointerTypeSymbol pointerType)
+        {
+            var pointedAtType = pointerType.PointedAtType;
+            if (!NormalizeTaskTypesInType(compilation, ref pointedAtType))
+            {
+                return false;
+            }
+            // Preserve custom modifiers but without normalizing those types.
+            pointerType = new PointerTypeSymbol(pointedAtType, pointerType.CustomModifiers);
             return true;
         }
 

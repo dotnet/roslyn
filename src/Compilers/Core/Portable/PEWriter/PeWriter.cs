@@ -198,8 +198,7 @@ namespace Microsoft.Cci
                 deterministicIdProvider);
 
             var peBlob = new BlobBuilder();
-            BlobContentId peContentId;
-            peBuilder.Serialize(peBlob, out peContentId);
+            var peContentId = peBuilder.Serialize(peBlob);
 
             PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
 

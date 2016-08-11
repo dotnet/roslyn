@@ -158,9 +158,13 @@
     <Compile Include="Implementation\Watson\Watson.cs" />
     <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
+    <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
+      <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
@@ -712,6 +716,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ServicesVSResources.resx">
@@ -733,7 +741,6 @@
     <Compile Include="SymbolSearch\SymbolSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
-    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">

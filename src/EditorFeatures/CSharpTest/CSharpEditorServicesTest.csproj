@@ -211,7 +211,7 @@
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_Queries.cs" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.cs" />
+    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.cs" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />

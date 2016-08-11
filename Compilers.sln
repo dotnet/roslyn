@@ -69,8 +69,6 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicErrorFactsGenera
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AnalyzerDriver", "src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.shproj", "{D0BC9BE7-24F6-40CA-8DC6-FCB93BD44B34}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedCollections", "src\Compilers\Core\SharedCollections\SharedCollections.shproj", "{C1930979-C824-496B-A630-70F5369A636F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "src\Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
@@ -142,7 +140,6 @@ Global
 		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
-		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Test\Utilities\Shared\TestUtilities.projitems*{ccbd3438-3e84-40a9-83ad-533f23bcfca5}*SharedItemsImports = 4
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{cd77a8cc-2885-47a7-b99c-fbf13353400b}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
@@ -1052,7 +1049,6 @@ Global
 		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{909B656F-6095-4AC2-A5AB-C3F032315C45} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{D0BC9BE7-24F6-40CA-8DC6-FCB93BD44B34} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{C1930979-C824-496B-A630-70F5369A636F} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{E3CD2895-76A8-4D11-A316-EA67CB5EA42C} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
