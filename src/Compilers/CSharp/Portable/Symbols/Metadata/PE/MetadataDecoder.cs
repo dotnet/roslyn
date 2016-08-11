@@ -212,7 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SymbolKind.ErrorType:
                     goto case SymbolKind.NamedType;
                 case SymbolKind.NamedType:
-
                     var namedType = (NamedTypeSymbol)symbol;
                     AssemblySymbol containingAssembly = symbol.OriginalDefinition.ContainingAssembly;
                     int i;
@@ -230,10 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
-                        if (namedType.IsTupleType)
-                        {
-                            namedType = namedType.TupleUnderlyingType;
-                        }
+                        Debug.Assert(!namedType.IsTupleType);
 
                         var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
                         int count = arguments.Length;
