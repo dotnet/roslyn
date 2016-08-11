@@ -472,6 +472,7 @@ True
 True
 True
 True
+True
 False
 True
 Method 5
@@ -506,18 +507,18 @@ Module Program
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
     End Sub
     
-    Sub TestMain()
+    Sub TestMain()                                                      ' Method 2
         Console.WriteLine(Outer("Goo").Result)
     End Sub
 
-    Async Function Outer(s As String) As Task(Of String)
+    Async Function Outer(s As String) As Task(Of String)                ' Method 3
         Dim s1 As String = Await First(s)
         Dim s2 As String = Await Second(s)
 
         Return s1 + s2
     End Function
 
-    Async Function First(s As String) As Task(Of String)
+    Async Function First(s As String) As Task(Of String)                ' Method 4
         Dim result As String = Await Second(s) + "Glue"
         If result.Length > 2 Then
             Return result
@@ -526,7 +527,7 @@ Module Program
         End If
     End Function
 
-    Async Function Second(s As String) As Task(Of String)
+    Async Function Second(s As String) As Task(Of String)               ' Method 5
         Dim doubled As String = ""
         If s.Length > 2 Then
             doubled = s + s
@@ -573,6 +574,7 @@ True
 True
 True
 False
+True
 True
 True
 Method 8
@@ -1405,6 +1407,117 @@ File 1
 True
 True
 Method 12
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub TestImplicitConstructorsWithLambdasCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        Dim y As Integer = C.s_c._function()
+        Dim dd As New D()
+        Dim z As Integer = dd._c._function()
+        Dim zz As Integer = D.s_c._function()
+        Dim zzz As Integer = dd._c1._function()
+    End Sub
+End Module
+
+Class C
+    Public Sub New(f As System.Func(Of Integer))                        ' Method 4
+        _function = f
+    End Sub
+
+    Shared Public s_c As New C(Function () 15)
+    Public _function as System.Func(Of Integer)
+End Class
+
+Class D
+    Public _c As C = New C(Function() 120)
+    Public Shared s_c As C = New C(Function() 144)
+    Public _c1 As New C(Function()
+                            Return 130
+                        End Function)
+    Public Shared s_c1 As New C(Function()
+                                    Return 156
+                                End Function)
+End Class
+
+Structure E
+    Public Shared s_c As C = New C(Function() 1444)
+    Public Shared s_c1 As New C(Function()
+                                    Return 1567
+                                End Function)
+End Structure
+
+' Method 3 is the synthesized shared constructor for C.
+' Method 5 is the synthesized shared constructor for D.
+' Method 6 is the synthesized instance constructor for D.
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+Method 5
+File 1
+True
+True
+False
+True
+Method 6
+File 1
+True
+True
+True
+True
+Method 10
 File 1
 True
 True

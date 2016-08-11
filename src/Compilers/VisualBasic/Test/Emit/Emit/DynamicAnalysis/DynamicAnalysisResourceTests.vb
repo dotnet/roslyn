@@ -740,26 +740,30 @@ End Structure
                         New SpanResult(12, 29, 12, 47, "dd._c1._function()"))
 
             VerifySpans(reader, reader.Methods(2), sourceLines,                                         ' Synthesized shared constructor for C
-                        New SpanResult(21, 22, 21, 46, "As New C(Function () 15)"))
+                        New SpanResult(21, 43, 21, 45, "15"),
+                        New SpanResult(21, 25, 21, 46, "New C(Function () 15)"))
 
             VerifySpans(reader, reader.Methods(3), sourceLines,
                         New SpanResult(17, 4, 19, 11, "Public Sub New(f As System.Func(Of Integer))"),
                         New SpanResult(18, 8, 18, 21, "_function = f"))
 
             VerifySpans(reader, reader.Methods(4), sourceLines,                                         ' Synthesized shared constructor for D
+                        New SpanResult(27, 46, 27, 49, "144"),
                         New SpanResult(27, 29, 27, 50, "New C(Function() 144)"),
                         New SpanResult(32, 36, 32, 46, "Return 156"),
-                        New SpanResult(31, 23, 33, 45, "As New C(Function()"))
+                        New SpanResult(31, 26, 33, 45, "New C(Function()"))
 
             VerifySpans(reader, reader.Methods(5), sourceLines,                                         ' Synthesized instance constructor for D
+                        New SpanResult(26, 38, 26, 41, "120"),
                         New SpanResult(26, 21, 26, 42, "New C(Function() 120)"),
                         New SpanResult(29, 28, 29, 38, "Return 130"),
-                        New SpanResult(28, 15, 30, 37, "As New C(Function()"))
+                        New SpanResult(28, 18, 30, 37, "New C(Function()"))
 
             VerifySpans(reader, reader.Methods(6), sourceLines,                                         ' Synthesized shared constructor for E
+                        New SpanResult(37, 46, 37, 50, "1444"),
                         New SpanResult(37, 29, 37, 51, "New C(Function() 1444)"),
                         New SpanResult(39, 36, 39, 47, "Return 1567"),
-                        New SpanResult(38, 23, 40, 45, "As New C(Function()"))
+                        New SpanResult(38, 26, 40, 45, "New C(Function()"))
         End Sub
 
         <Fact>
