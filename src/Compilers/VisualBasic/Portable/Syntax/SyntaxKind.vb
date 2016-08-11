@@ -3174,6 +3174,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         EndOfInterpolatedStringToken = 787                              ' PunctuationSyntax : SyntaxToken
 
+        ''' <summary>
+        ''' Represents tuple literal expression.
+        ''' </summary>
+        TupleExpression = 788
+
+        ''' <summary>
+        ''' Represents tuple type.
+        ''' </summary>
+        TupleType = 789
+
+        ''' <summary>
+        ''' Represents an element of a tuple type.
+        ''' </summary>
+        TupleElement = 790
     End Enum
 
 End Namespace

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
-        internal static CSharpCompilation CreateCompilationRef(
+        private static CSharpCompilation CreateCompilationRef(
             string text,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
@@ -31,7 +31,7 @@ class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (6,17): error CS8935: A declaration of a by-reference variable must have an initializer
+    // (6,17): error CS8174: A declaration of a by-reference variable must have an initializer
     //         ref int x;
     Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "x").WithLocation(6, 17),
     // (6,17): warning CS0168: The variable 'x' is declared but never used
@@ -55,7 +55,7 @@ class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (7,17): error CS8933: Cannot initialize a by-reference variable with a value
+    // (7,17): error CS8172: Cannot initialize a by-reference variable with a value
     //         ref int x = a;
     Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "x = a").WithLocation(7, 17)
                 );
@@ -76,7 +76,7 @@ class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (8,13): error CS8932: Cannot initialize a by-value variable with a reference
+    // (8,13): error CS8171: Cannot initialize a by-value variable with a reference
     //         var y = ref x;
     Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "y = ref x").WithLocation(8, 13)
                 );
@@ -120,19 +120,19 @@ class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (6,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (6,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref 2 + 2;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2 + 2").WithLocation(6, 20),
-    // (11,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (11,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref 2;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(11, 20),
-    // (16,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (16,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref null;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "null").WithLocation(16, 20),
-    // (23,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (23,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref VoidMethod();
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(23, 20),
-    // (30,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (30,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref P1;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(30, 20)
             );
@@ -161,19 +161,19 @@ class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (9,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (9,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d1 = () => ref 2 + 2;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2 + 2").WithLocation(9, 27),
-    // (10,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (10,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d2 = () => ref 2;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(10, 27),
-    // (11,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (11,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D2 d3 = () => ref null;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "null").WithLocation(11, 27),
-    // (12,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (12,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D2 d4 = () => ref VoidMethod();
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(12, 27),
-    // (13,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
+    // (13,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d5 = () => ref P1;
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(13, 27));
         }
@@ -234,16 +234,16 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (18,24): error CS8924: Cannot return local 'l' by reference because it is not a ref local
+    // (18,24): error CS8168: Cannot return local 'l' by reference because it is not a ref local
     //             return ref l;
     Diagnostic(ErrorCode.ERR_RefReturnLocal, "l").WithArguments("l").WithLocation(18, 24),
-    // (28,24): error CS8925: Cannot return a member of local 'l' by reference because it is not a ref local
+    // (28,24): error CS8169: Cannot return a member of local 'l' by reference because it is not a ref local
     //             return ref l.x;
     Diagnostic(ErrorCode.ERR_RefReturnLocal2, "l").WithArguments("l").WithLocation(28, 24),
-    // (37,24): error CS8922: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
+    // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
     //             return ref arg1;
     Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
-    // (46,24): error CS8923: Cannot return or a member of parameter 'arg2' by reference because it is not a ref or out parameter
+    // (46,24): error CS8167: Cannot return or a member of parameter 'arg2' by reference because it is not a ref or out parameter
     //             return ref arg2.x;
     Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
             );
@@ -292,13 +292,13 @@ public class Test
     // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
     //             ref char r = ref ro;
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "ro").WithArguments("ro", "foreach iteration variable").WithLocation(13, 30),
-    // (18,24): error CS8924: Cannot return local 'ro' by reference because it is not a ref local
+    // (18,24): error CS8168: Cannot return local 'ro' by reference because it is not a ref local
     //             return ref ro;
     Diagnostic(ErrorCode.ERR_RefReturnLocal, "ro").WithArguments("ro").WithLocation(18, 24),
     // (23,30): error CS1655: Cannot use fields of 'ro' as a ref or out value because it is a 'foreach iteration variable'
     //             ref char r = ref ro.x;
     Diagnostic(ErrorCode.ERR_RefReadonlyLocal2Cause, "ro.x").WithArguments("ro", "foreach iteration variable").WithLocation(23, 30),
-    // (28,24): error CS8925: Cannot return a member of local 'ro' by reference because it is not a ref local
+    // (28,24): error CS8169: Cannot return a member of local 'ro' by reference because it is not a ref local
     //             return ref ro.x;
     Diagnostic(ErrorCode.ERR_RefReturnLocal2, "ro").WithArguments("ro").WithLocation(28, 24)
             );
@@ -514,25 +514,25 @@ public class Test
     // (65,33): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
     //             ref char temp = ref i1;
     Diagnostic(ErrorCode.ERR_RefReadonly, "i1").WithLocation(65, 33),
-    // (68,24): error CS8916: A readonly field cannot be returned by reference
+    // (68,24): error CS8160: A readonly field cannot be returned by reference
     //             return ref i1;
     Diagnostic(ErrorCode.ERR_RefReturnReadonly, "i1").WithLocation(68, 24),
     // (72,33): error CS1649: Members of readonly field 'Test.i2' cannot be used as a ref or out value (except in a constructor)
     //             ref char temp = ref i2.x;
     Diagnostic(ErrorCode.ERR_RefReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(72, 33),
-    // (75,24): error CS8918: Members of readonly field 'Test.i2' cannot be returned by reference
+    // (75,24): error CS8162: Members of readonly field 'Test.i2' cannot be returned by reference
     //             return ref i2.x;
     Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(75, 24),
     // (83,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
     //             ref char temp = ref s1;
     Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s1").WithLocation(83, 33),
-    // (86,24): error CS8917: A static readonly field cannot be returned by reference
+    // (86,24): error CS8161: A static readonly field cannot be returned by reference
     //             return ref s1;
     Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "s1").WithLocation(86, 24),
     // (90,33): error CS1651: Fields of static readonly field 'Test.s2' cannot be used as a ref or out value (except in a static constructor)
     //             ref char temp = ref s2.x;
     Diagnostic(ErrorCode.ERR_RefReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(90, 33),
-    // (93,24): error CS8919: Fields of static readonly field 'Test.s2' cannot be returned by reference
+    // (93,24): error CS8163: Fields of static readonly field 'Test.s2' cannot be returned by reference
     //             return ref s2.x;
     Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(93, 24)
             );
@@ -598,31 +598,31 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (10,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
     //             return ref this;
     Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
-    // (15,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
     //             return ref x;
     Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
-    // (20,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
     //             return ref this.x;
     Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
-    // (36,32): error CS8924: Cannot return local 'M1' by reference because it is not a ref local
+    // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
     //             return ref Foo(ref M1);
     Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-    // (36,24): error CS8920: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+    // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
     //             return ref Foo(ref M1);
     Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
-    // (41,32): error CS8925: Cannot return a member of local 'M2' by reference because it is not a ref local
+    // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
     //             return ref Foo(ref M2.x);
     Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-    // (41,24): error CS8920: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+    // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
     //             return ref Foo(ref M2.x);
     Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
-    // (46,32): error CS8924: Cannot return local 'M2' by reference because it is not a ref local
+    // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
     //             return ref Foo(ref M2).x;
     Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-    // (46,24): error CS8921: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+    // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
     //             return ref Foo(ref M2).x;
     Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24));
         }
@@ -702,22 +702,22 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (18,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (18,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(18, 24),
-    // (28,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (28,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(28, 24),
-    // (38,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    // (38,24): error CS8158: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
     //             return ref r.x;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(38, 24),
-    // (47,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (47,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(47, 24),
-    // (56,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (56,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(56, 24),
-    // (65,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    // (65,24): error CS8158: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
     //             return ref r.x;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(65, 24)
 
@@ -786,19 +786,19 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (19,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (19,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;   //1
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(19, 24),
-    // (25,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    // (25,24): error CS8158: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
     //             return ref r.x;  //2
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(25, 24),
     // (34,24): error CS0103: The name 'r' does not exist in the current context
     //             return ref r;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "r").WithArguments("r").WithLocation(34, 24),
-    // (43,24): error CS8911: Cannot return 'valid' by reference because it was initialized to a value that cannot be returned by reference
+    // (43,24): error CS8157: Cannot return 'valid' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref valid; //4
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "valid").WithArguments("valid").WithLocation(43, 24),
-    // (52,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    // (52,24): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;  //5
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(52, 24),
     // (18,30): error CS0165: Use of unassigned local variable 'r'
@@ -842,23 +842,21 @@ public class Test
             var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
-    // (14,13): error CS8894: By-reference returns may only be used in methods that return by reference
-    //             return ref b;
-    Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(14, 13),
-    // (19,13): error CS8895: By-value returns may only be used in methods that return by value
-    //             return c;
-    Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
-    // (6,18): warning CS0168: The variable 'Foo' is declared but never used
-    //         ref char Foo(ref char a, ref char b)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 18),
-    // (12,14): warning CS0168: The variable 'Foo1' is declared but never used
-    //         char Foo1(ref char a, ref char b)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
-    // (17,18): warning CS0168: The variable 'Foo2' is declared but never used
-    //         ref char Foo2(ref char c, ref char b)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(17, 18)
-
-            );
+                // (14,13): error CS8149: By-reference returns may only be used in methods that return by reference
+                //             return ref b;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(14, 13),
+                // (19,13): error CS8150: By-value returns may only be used in methods that return by value
+                //             return c;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
+                // (6,18): warning CS0168: The variable 'Foo' is declared but never used
+                //         ref char Foo(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 18),
+                // (12,14): warning CS0168: The variable 'Foo1' is declared but never used
+                //         char Foo1(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
+                // (17,18): warning CS0168: The variable 'Foo2' is declared but never used
+                //         ref char Foo2(ref char c, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(17, 18));
         }
 
         [Fact]
@@ -886,41 +884,39 @@ public class Test
             var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
-    // (9,50): error CS8894: By-reference returns may only be used in methods that return by reference
-    //         char Foo1(ref char a, ref char b) => ref b;
-    Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "b").WithLocation(9, 50),
-    // (11,50): error CS8895: By-value returns may only be used in methods that return by value
-    //         ref char Foo2(ref char c, ref char b) => c;
-    Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "c").WithLocation(11, 50),
-    // (16,54): error CS8940: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
-    //         ref char Moo1(ref char a, ref char b) => ref r;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(16, 54),
-    // (16,54): error CS8896: The return expression must be of type 'char' because this method returns by reference
-    //         ref char Moo1(ref char a, ref char b) => ref r;
-    Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "r").WithArguments("char").WithLocation(16, 54),
-    // (17,46): error CS8940: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
-    //         char Moo3(ref char a, ref char b) => r;
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(17, 46),
-    // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
-    //         char Moo3(ref char a, ref char b) => r;
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
-    // (7,18): warning CS0168: The variable 'Foo' is declared but never used
-    //         ref char Foo(ref char a, ref char b) => ref a;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(7, 18),
-    // (9,14): warning CS0168: The variable 'Foo1' is declared but never used
-    //         char Foo1(ref char a, ref char b) => ref b;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
-    // (11,18): warning CS0168: The variable 'Foo2' is declared but never used
-    //         ref char Foo2(ref char c, ref char b) => c;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
-    // (16,18): warning CS0168: The variable 'Moo1' is declared but never used
-    //         ref char Moo1(ref char a, ref char b) => ref r;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
-    // (17,14): warning CS0168: The variable 'Moo3' is declared but never used
-    //         char Moo3(ref char a, ref char b) => r;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14)
-            );
+                // (9,50): error CS8149: By-reference returns may only be used in methods that return by reference
+                //         char Foo1(ref char a, ref char b) => ref b;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "b").WithLocation(9, 50),
+                // (11,50): error CS8150: By-value returns may only be used in methods that return by value
+                //         ref char Foo2(ref char c, ref char b) => c;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "c").WithLocation(11, 50),
+                // (16,54): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
+                //         ref char Moo1(ref char a, ref char b) => ref r;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(16, 54),
+                // (16,54): error CS8151: The return expression must be of type 'char' because this method returns by reference
+                //         ref char Moo1(ref char a, ref char b) => ref r;
+                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "r").WithArguments("char").WithLocation(16, 54),
+                // (17,46): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
+                //         char Moo3(ref char a, ref char b) => r;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(17, 46),
+                // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
+                //         char Moo3(ref char a, ref char b) => r;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
+                // (7,18): warning CS0168: The variable 'Foo' is declared but never used
+                //         ref char Foo(ref char a, ref char b) => ref a;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(7, 18),
+                // (9,14): warning CS0168: The variable 'Foo1' is declared but never used
+                //         char Foo1(ref char a, ref char b) => ref b;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
+                // (11,18): warning CS0168: The variable 'Foo2' is declared but never used
+                //         ref char Foo2(ref char c, ref char b) => c;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
+                // (16,18): warning CS0168: The variable 'Moo1' is declared but never used
+                //         ref char Moo1(ref char a, ref char b) => ref r;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
+                // (17,14): warning CS0168: The variable 'Moo3' is declared but never used
+                //         char Moo3(ref char a, ref char b) => r;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
         }
-
     }
 }

@@ -192,14 +192,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 return HandleNormalFiltering(
-                    model, filterReason, textSnapshot, document,
+                    model, document, filterReason, textSnapshot,
                     helper, recentItems, filterText, filterResults);
             }
 
             private Model HandleNormalFiltering(
-                Model model, CompletionFilterReason filterReason,
-                ITextSnapshot textSnapshot, Document document,
-                CompletionHelper helper, ImmutableArray<string> recentItems,
+                Model model,
+                Document document,
+                CompletionFilterReason filterReason,
+                ITextSnapshot textSnapshot,
+                CompletionHelper helper,
+                ImmutableArray<string> recentItems,
                 string filterText,
                 List<FilterResult> filterResults)
             {
@@ -212,7 +215,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
                                                            .Select(t => t.PresentationItem.Item)
                                                            .AsImmutable();
-                var chosenItems = service.ChooseBestItems(document, matchingCompletionItems, filterText);
+                var chosenItems = service.FilterItems(
+                    document, matchingCompletionItems, filterText);
 
                 // Of the items the service returned, pick the one most recently committed
                 var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);

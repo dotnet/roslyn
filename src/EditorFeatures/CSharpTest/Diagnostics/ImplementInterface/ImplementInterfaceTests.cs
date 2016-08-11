@@ -27,6 +27,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
+        private static readonly string s_tupleElementNamesAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Event )]
+    public sealed class TupleElementNamesAttribute : Attribute { }
+}
+";
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInMethod()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x); } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x) ; } class Class : IInterface { public (int a, int b)[] Method1 ((int c, string) x) { throw new NotImplementedException ( ) ; } } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInMethod_Explicitly()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x); } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x) ; } class Class : IInterface { (int a, int b)[] IInterface.Method1 ((int c, string) x) { throw new NotImplementedException ( ) ; } } " + s_tupleElementNamesAttribute,
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInProperty()
+        {
+            await TestAsync(
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Property1 { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] get; [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] set; } } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Property1 { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] get; [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] set; } } class Class : IInterface { public (int a, int b)[] Property1 { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } } } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInEvent()
+        {
+            await TestAsync(
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : IInterface { public event Func<(int a, int b)> Event1; } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoDynamicAttributeInMethod()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.DynamicAttribute()] object Method1 (); } class Class : [|IInterface|] { } ",
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.DynamicAttribute()] object Method1 (); } class Class : IInterface { public object Method1 () { throw new NotImplementedException ( ) ; } } ");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {

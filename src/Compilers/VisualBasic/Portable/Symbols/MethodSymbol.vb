@@ -576,11 +576,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
-            ' Check returns by ref.
-            If Me.ReturnsByRef Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-            End If
-
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ReturnType)
 
@@ -779,6 +774,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property PreserveOriginalLocals As Boolean
             Get
                 Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Is this a method of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleMethod() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a method of a tuple type, return corresponding underlying method from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingMethod() As MethodSymbol
+            Get
+                Return Nothing
             End Get
         End Property
 

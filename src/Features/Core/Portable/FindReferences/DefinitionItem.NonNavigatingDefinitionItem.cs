@@ -13,13 +13,15 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// </summary>
         private sealed class NonNavigatingDefinitionItem : DefinitionItem
         {
+            internal override bool IsExternal => false;
+
             public NonNavigatingDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<TaggedText> originationParts,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, originationParts, 
-                      ImmutableArray<DocumentLocation>.Empty,
+                      ImmutableArray<DocumentSpan>.Empty,
                       displayIfNoReferences)
             {
             }

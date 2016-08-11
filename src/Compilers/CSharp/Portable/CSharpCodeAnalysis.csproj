@@ -19,6 +19,7 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
+    <SyntaxDefinition>$(MSBuildThisFileDirectory)Syntax\Syntax.xml</SyntaxDefinition>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -109,7 +110,6 @@
     <Compile Include="Binder\ForLoopBinder.cs" />
     <Compile Include="Binder\HostObjectModeBinder.cs" />
     <Compile Include="Binder\ImplicitlyTypedFieldBinder.cs" />
-    <Compile Include="Binder\ImplicitlyTypedLocalBinder.cs" />
     <Compile Include="Binder\ImportChain.cs" />
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
@@ -127,9 +127,9 @@
     <Compile Include="Binder\MethodGroupResolution.cs" />
     <Compile Include="Binder\NameofBinder.cs" />
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
-    <Compile Include="Binder\PatternVariableFinder.cs" />
+    <Compile Include="Binder\ExpressionVariableFinder.cs" />
     <Compile Include="Binder\ScriptLocalScopeBinder.cs" />
-    <Compile Include="Binder\PatternVariableBinder.cs" />
+    <Compile Include="Binder\ExpressionVariableBinder.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
     <Compile Include="Binder\Semantics\Conversions\BestIndex.cs" />
@@ -768,14 +768,10 @@
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
+    <Compile Include="Syntax\ForStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
-    <Compile Include="Syntax\ForStatementSyntax.cs" />
-    <Compile Include="Syntax\LocalDeclarationStatementSyntax.cs" />
-    <Compile Include="Syntax\ParenthesizedLambdaExpressionSyntax.cs" />
-    <Compile Include="Syntax\ReturnStatementSyntax.cs" />
-    <Compile Include="Syntax\SimpleLambdaExpressionSyntax.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
@@ -825,9 +821,6 @@
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
-    <Compile Include="Syntax\ArrowExpressionClauseSyntax.cs" />
-    <Compile Include="Syntax\EqualsValueClauseSyntax.cs" />
-    <Compile Include="Syntax\IncompleteMemberSyntax.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />
@@ -887,7 +880,9 @@
     </BoundTreeDefinition>
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.cs" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.cs" />
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Syntax.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Main.Generated.cs" />
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Internal.Generated.cs" />
     <Compile Include="Errors\ErrorCode.cs" />
     <EmbeddedResource Include="CSharpResources.resx">
       <SubType>Designer</SubType>
@@ -895,9 +890,6 @@
       <LastGenOutput>CSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <ErrorCode Include="Errors\ErrorCode.cs" />
-    <SyntaxDefinition Include="Syntax\Syntax.xml">
-      <SubType>Designer</SubType>
-    </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />

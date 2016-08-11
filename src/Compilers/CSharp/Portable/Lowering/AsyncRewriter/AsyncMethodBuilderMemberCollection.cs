@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsVoidReturningAsync())
             {
                 var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
+                Debug.Assert((object)builderType != null);
                 MethodSymbol createBuilderMethod;
                 bool customBuilder = false;
                 TryGetBuilderMember<MethodSymbol>(
@@ -110,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builderType,
                     customBuilder,
                     out createBuilderMethod);
-                if ((object)builderType == null ||
-                    (object)createBuilderMethod == null)
+                if ((object)createBuilderMethod == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
                     return false;
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
+                    Debug.Assert((object)builderType != null);
                     TryGetBuilderMember<MethodSymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
@@ -159,8 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         customBuilder,
                         out taskProperty);
                 }
-                if ((object)builderType == null ||
-                    (object)createBuilderMethod == null ||
+                if ((object)createBuilderMethod == null ||
                     (object)taskProperty == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
@@ -202,11 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!customBuilder)
                 {
                     builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
-                    if ((object)builderType == null)
-                    {
-                        collection = default(AsyncMethodBuilderMemberCollection);
-                        return false;
-                    }
+                    Debug.Assert((object)builderType != null);
                     builderType = builderType.Construct(resultType);
                 }
                 if (customBuilder)

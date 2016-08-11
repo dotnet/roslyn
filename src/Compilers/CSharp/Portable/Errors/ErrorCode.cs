@@ -1354,9 +1354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternWrongType = 8121,
         #endregion diagnostics for pattern-matching introduced in C# 7
 
-        // Available = 8122, 8123
+        // Available = 8122
 
         #region tuple diagnostics introduced in C# 7
+        WRN_TupleLiteralNameMismatch = 8123,
         ERR_TupleTooFewElements = 8124,
         ERR_TupleReservedMemberName = 8125,
         ERR_TupleReservedMemberNameAnyPosition = 8126,
@@ -1368,17 +1369,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,
         ERR_DeconstructTooFewElements = 8134,
-
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
-
         ERR_TupleElementNamesAttributeMissing = 8137,
         ERR_ExplicitTupleElementNames = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
-
         #endregion tuple diagnostics introduced in C# 7
 
         // Available = 8143, 8144
@@ -1392,44 +1390,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MustHaveRefReturn = 8150,
         ERR_RefReturnMustHaveIdentityConversion = 8151,
         ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8152,
-        ERR_VoidReturningMethodCannotReturnByRef = 8153,
+        ERR_RefReturningCallInExpressionTree = 8153,
         ERR_BadIteratorReturnRef = 8154,
         ERR_BadRefReturnExpressionTree = 8155,
-        ERR_RefReturningCallInExpressionTree = 8156,
-
-        ERR_RefReturnLvalueExpected = 8157,
-        ERR_RefReturnNonreturnableLocal = 8158,
-        ERR_RefReturnNonreturnableLocal2 = 8159,
-        ERR_RefReturnRangeVariable = 8160,
-        ERR_RefReturnRangeVariable2 = 8170,
-        ERR_RefReturnReadonly = 8171,
-        ERR_RefReturnReadonlyStatic = 8172,
-        ERR_RefReturnReadonly2 = 8173,
-        ERR_RefReturnReadonlyStatic2 = 8174,
-        ERR_RefReturnCall = 8175,
-        ERR_RefReturnCall2 = 8176,
-        ERR_RefReturnParameter = 8177,
-        ERR_RefReturnParameter2 = 8178,
-        ERR_RefReturnLocal = 8179,
-        ERR_RefReturnLocal2 = 8180,
-        ERR_RefReturnStructThis = 8181,
-
-        // Available  = 8182, 8183
-
-        ERR_MustBeRefAssignable = 8184,
-        ERR_MustBeRefAssignableLocal = 8185,
-        ERR_InitializeByValueVariableWithReference = 8186,
-        ERR_InitializeByReferenceVariableWithValue = 8187,
-        ERR_RefAssignmentMustHaveIdentityConversion = 8188,
-        ERR_ByReferenceVariableMustBeInitialized = 8189,
-
-        ERR_AnonDelegateCantUseLocal = 8190,
-        ERR_BadIteratorLocalType = 8191,
-        ERR_BadAsyncLocalType = 8192,
-        ERR_RefReturningCallAndAwait = 8193,
+        ERR_RefReturnLvalueExpected = 8156,
+        ERR_RefReturnNonreturnableLocal = 8157,
+        ERR_RefReturnNonreturnableLocal2 = 8158,
+        ERR_RefReturnRangeVariable = 8159,
+        ERR_RefReturnReadonly = 8160,
+        ERR_RefReturnReadonlyStatic = 8161,
+        ERR_RefReturnReadonly2 = 8162,
+        ERR_RefReturnReadonlyStatic2 = 8163,
+        ERR_RefReturnCall = 8164,
+        ERR_RefReturnCall2 = 8165,
+        ERR_RefReturnParameter = 8166,
+        ERR_RefReturnParameter2 = 8167,
+        ERR_RefReturnLocal = 8168,
+        ERR_RefReturnLocal2 = 8169,
+        ERR_RefReturnStructThis = 8170,
+        ERR_InitializeByValueVariableWithReference = 8171,
+        ERR_InitializeByReferenceVariableWithValue = 8172,
+        ERR_RefAssignmentMustHaveIdentityConversion = 8173,
+        ERR_ByReferenceVariableMustBeInitialized = 8174,
+        ERR_AnonDelegateCantUseLocal = 8175,
+        ERR_BadIteratorLocalType = 8176,
+        ERR_BadAsyncLocalType = 8177,
+        ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
-        // Available  = 8194, 8195
+        // Available  = 8179-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

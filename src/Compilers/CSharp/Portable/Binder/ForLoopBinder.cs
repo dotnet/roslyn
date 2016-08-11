@@ -23,30 +23,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            var refKind = _syntax.RefKeyword.Kind().GetRefKind();
 
             // Deconstruction, Declaration, and Initializers are mutually exclusive.
             if (_syntax.Deconstruction != null)
             {
-                CollectLocalsFromDeconstruction(_syntax.Deconstruction.VariableComponent, LocalDeclarationKind.ForInitializerVariable, locals);
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Deconstruction.Value);
+                CollectLocalsFromDeconstruction(
+                    _syntax.Deconstruction.VariableComponent,
+                    LocalDeclarationKind.ForInitializerVariable,
+                    locals,
+                    _syntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Deconstruction.Value);
             }
             else if (_syntax.Declaration != null)
             {
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(refKind, _syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
                     locals.Add(localSymbol);
-                    PatternVariableFinder.FindPatternVariables(this, locals, vdecl.Initializer?.Value);
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl.Initializer?.Value);
                 }
             }
             else
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
             }
 
-            PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
-            PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, node: _syntax.Condition);
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Incrementors);
             return locals.ToImmutableAndFree();
         }
 

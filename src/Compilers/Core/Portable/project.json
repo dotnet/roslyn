@@ -1,8 +1,8 @@
 ﻿{
   "supports": {},
   "dependencies": {
-      "System.Collections.Immutable": "1.2.0",
-      "System.Reflection.Metadata": "1.4.1-beta-24322-03"
+    "System.Collections.Immutable": "1.2.0",
+    "System.Reflection.Metadata": "1.4.1-beta-24410-02"
   },
   "frameworks": {
     ".NETPortable,Version=v4.5,Profile=Profile7": {}

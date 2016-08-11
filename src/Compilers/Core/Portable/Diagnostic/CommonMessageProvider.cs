@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_PermissionSetAttributeFileReadError { get; }
 
         // PDB writing:
+        public abstract int ERR_EncodinglessSyntaxTree { get; }
         public abstract int WRN_PdbUsingNameTooLong { get; }
         public abstract int WRN_PdbLocalNameTooLong { get; }
         public abstract int ERR_PdbWritingFailed { get; }

@@ -162,6 +162,7 @@
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.cs" />
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.cs" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
+    <Compile Include="CodeLens\CSharpCodeLensTests.cs" />
     <Compile Include="Completion\CompletionServiceTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />

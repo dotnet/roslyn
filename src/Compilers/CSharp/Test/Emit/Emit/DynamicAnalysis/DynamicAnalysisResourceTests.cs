@@ -432,6 +432,171 @@ class Student : Person { public double GPA; }
         }
 
         [Fact]
+        public void TestFieldInitializerSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 0
+    {
+        TestMain();
+    }
+
+    static void TestMain()                                      // Method 1
+    {
+        C local = new C(); local = new C(1, 2);
+    }
+
+    static int Init() => 33;                                    // Method 2
+
+    C()                                                         // Method 3
+    {
+        _z = 12;
+    }
+
+    static C()                                                  // Method 4
+    {
+        s_z = 123;
+    }
+
+    int _x = Init();
+    int _y = Init() + 12;
+    int _z;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z;
+
+    C(int x)                                                    // Method 5
+    {
+        _z = x;
+    }
+
+    C(int a, int b)                                             // Method 6
+    {
+        _z = a + b;
+    }
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
+}
+";
+
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 8, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 19, "TestMain()"));
+
+            VerifySpans(reader, reader.Methods[1], sourceLines,
+                new SpanResult(10, 4, 13, 5, "static void TestMain()"),
+                new SpanResult(12, 8, 12, 26, "C local = new C()"),
+                new SpanResult(12, 27, 12, 47, "local = new C(1, 2)"));
+
+            VerifySpans(reader, reader.Methods[2], sourceLines,
+                new SpanResult(15, 4, 15, 28, "static int Init() => 33"),
+                new SpanResult(15, 25, 15, 27, "33"));
+
+            VerifySpans(reader, reader.Methods[3], sourceLines,
+                new SpanResult(17, 4, 20, 5, "C()"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(19, 8, 19, 16, "_z = 12"));
+
+            VerifySpans(reader, reader.Methods[4], sourceLines,
+                new SpanResult(22, 4, 25, 5, "static C()"),
+                new SpanResult(30, 21, 30, 27, "Init()"),
+                new SpanResult(31, 21, 31, 33, "Init() + 153"),
+                new SpanResult(45, 32, 45, 35, "255"),
+                new SpanResult(24, 8, 24, 18, "s_z = 123"));
+
+            VerifySpans(reader, reader.Methods[5], sourceLines,
+                new SpanResult(34, 4, 37, 5, "C(int x)"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(36, 8, 36, 15, "_z = x"));
+
+            VerifySpans(reader, reader.Methods[6], sourceLines,
+                new SpanResult(39, 4, 42, 5, "C(int a, int b)"),
+                new SpanResult(27, 13, 27, 19, "Init()"),
+                new SpanResult(28, 13, 28, 24, "Init() + 12"),
+                new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(41, 8, 41, 19, "_z = a + b"));
+        }
+
+        [Fact]
+        public void TestImplicitConstructorSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 0
+    {
+        TestMain();
+    }
+
+    static void TestMain()                                      // Method 1
+    {
+        C local = new C();
+    }
+
+    static int Init() => 33;                                    // Method 2
+
+    int _x = Init();
+    int _y = Init() + 12;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z = 144;
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
+}
+";
+
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 8, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 19, "TestMain()"));
+
+            VerifySpans(reader, reader.Methods[1], sourceLines,
+                new SpanResult(10, 4, 13, 5, "static void TestMain()"),
+                new SpanResult(12, 8, 12, 26, "C local = new C()"));
+
+            VerifySpans(reader, reader.Methods[2], sourceLines,
+               new SpanResult(15, 4, 15, 28, "static int Init() => 33"),
+               new SpanResult(15, 25, 15, 27, "33"));
+            
+            VerifySpans(reader, reader.Methods[5], sourceLines,                     // Synthesized instance constructor
+                new SpanResult(17, 13, 17, 19, "Init()"),
+                new SpanResult(18, 13, 18, 24, "Init() + 12"),
+                new SpanResult(23, 25, 23, 27, "15"));
+
+            VerifySpans(reader, reader.Methods[6], sourceLines,                     // Synthesized static constructor
+                new SpanResult(19, 21, 19, 27, "Init()"),
+                new SpanResult(20, 21, 20, 33, "Init() + 153"),
+                new SpanResult(21, 21, 21, 24, "144"),
+                new SpanResult(24, 32, 24, 35, "255"));
+        }
+
+        [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));

@@ -579,7 +579,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        private static void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
         {
             for (var i = 0; i < array.Length; i++)
             {

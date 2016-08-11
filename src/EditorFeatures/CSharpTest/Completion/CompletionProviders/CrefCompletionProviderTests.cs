@@ -551,6 +551,11 @@ class C
                 throw new NotImplementedException();
             }
 
+            public bool IsDeclaration(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
             public string GetText(int kind)
             {
                 throw new NotImplementedException();
@@ -827,6 +832,21 @@ class C
             }
 
             public bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDocumentationComment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsUsingOrExternOrImport(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsGlobalAttribute(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }

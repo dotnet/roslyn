@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
-                    RefKind.None,
+                    false, // do not allow ref
                     typeSyntax,
                     identifier,
                     LocalDeclarationKind.PatternVariable);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Check for variable declaration errors.
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            hasErrors |= localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync

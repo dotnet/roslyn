@@ -127,7 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
-                        if (!hasErrors && (object)constantValue != null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
+                        if (!hasErrors &&
+                            (object)constantValue != null &&
+                            pattern.Value.Type == SwitchGoverningType &&
+                            this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, "default");
+                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
                             hasErrors = true;
                         }
 

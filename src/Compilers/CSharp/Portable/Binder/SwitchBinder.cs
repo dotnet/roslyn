@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var section in SwitchSyntax.Sections)
             {
-                builder.AddRange(BuildLocals(section.Statements));
+                builder.AddRange(BuildLocals(section.Statements, GetBinder(section)));
             }
 
             return builder.ToImmutableAndFree();

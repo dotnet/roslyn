@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
-                            Me.Workspace, Me.CancellationToken).ConfigureAwait(False)
+                            Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 

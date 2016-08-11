@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -15,7 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
-    internal abstract partial class AbstractFindReferencesService : IFindReferencesService
+    internal abstract partial class AbstractFindReferencesService :
+        ForegroundThreadAffinitizedObject, IFindReferencesService, IStreamingFindReferencesService
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
@@ -31,6 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             _externalReferencesProviders = externalReferencesProviders;
         }
 
+        /// <summary>
+        /// Common helper for both the synchronous and streaming versions of FAR. 
+        /// It returns the symbol we want to search for and the solution we should
+        /// be searching.
+        /// 
+        /// Note that the <see cref="Solution"/> returned may absolutely *not* be
+        /// the same as <code>document.Project.Solution</code>.  This is because 
+        /// there may be symbol mapping involved (for example in Metadata-As-Source
+        /// scenarios).
+        /// </summary>
         private async Task<Tuple<ISymbol, Solution>> GetRelevantSymbolAndSolutionAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
@@ -84,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var symbol = symbolAndSolution.Item1;
             var solution = symbolAndSolution.Item2;
 
-            var displayName = symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+            var displayName = GetDisplayName(symbol);
 
             waitContext.Message = string.Format(
                 EditorFeaturesResources.Finding_references_of_0, displayName);
@@ -92,6 +104,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var result = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             return Tuple.Create(result, solution);
+        }
+
+        private static string GetDisplayName(ISymbol symbol)
+        {
+            return symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
         }
 
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
@@ -170,6 +187,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
 
             return false;
+        }
+
+        public async Task FindReferencesAsync(
+            Document document, int position, FindReferencesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Find the symbol we want to search and the solution we want to search in.
+            var symbolAndSolution = await GetRelevantSymbolAndSolutionAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndSolution == null)
+            {
+                return;
+            }
+
+            var symbol = symbolAndSolution.Item1;
+            var solution = symbolAndSolution.Item2;
+
+            var displayName = GetDisplayName(symbol);
+            context.SetSearchLabel(displayName);
+
+            var progressAdapter = new ProgressAdapter(solution, context);
+
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindReferencesContext instance we were given.
+            //
+            // Note: we pass along ConfigureAwait(true) because we need to come back
+            // to the UI thread.  There's more work we need to do once the FAR engine
+            // is done.
+            await SymbolFinder.FindReferencesAsync(
+                symbol,
+                solution,
+                progressAdapter,
+                documents: null,
+                cancellationToken: cancellationToken).ConfigureAwait(true);
+
+            // After the FAR engine is done call into any third party extensions to see
+            // if they want to add results.
+            progressAdapter.CallThirdPartyExtensions();
         }
     }
 }

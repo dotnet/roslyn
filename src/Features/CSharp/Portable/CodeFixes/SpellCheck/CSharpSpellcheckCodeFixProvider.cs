@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
 
         protected override SyntaxToken CreateIdentifier(SimpleNameSyntax nameNode, string newName)
         {
-            return SyntaxFactory.Identifier(newName);
+            return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameNode.Identifier);
         }
     }
 }

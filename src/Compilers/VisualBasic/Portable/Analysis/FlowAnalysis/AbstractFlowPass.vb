@@ -2313,6 +2313,21 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Private Function VisitTupleExpression(node As BoundTupleExpression) As BoundNode
+            For Each argument In node.Arguments
+                VisitRvalue(argument)
+            Next
+            Return Nothing
+        End Function
+
         Public Overrides Function VisitDirectCast(node As BoundDirectCast) As BoundNode
             VisitRvalue(node.Operand)
             Return Nothing
