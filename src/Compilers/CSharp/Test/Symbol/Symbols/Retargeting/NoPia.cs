@@ -1403,9 +1403,7 @@ public class C
                                 new MetadataReference[] { },
                                 null);
 
-            var assembly1 = assemblies1[0];
-            var c1 = assembly1.GlobalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(SymbolKind.ErrorType, c1.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
 
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { },
@@ -1413,9 +1411,7 @@ public class C
                                 new MetadataReference[] { comp.ToMetadataReference() },
                                 null);
 
-            var assembly2 = assemblies2[0];
-            var c2 = assembly2.GlobalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(SymbolKind.ErrorType, c2.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
         }
 
         [ClrOnlyFact]
@@ -1452,9 +1448,7 @@ public class C
                                 new MetadataReference[] { },
                                 null);
 
-            var assembly1 = assemblies1[0];
-            var c1 = assembly1.GlobalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(SymbolKind.ErrorType, c1.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
 
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { },
@@ -1462,9 +1456,7 @@ public class C
                                 new MetadataReference[] { comp.ToMetadataReference() },
                                 null);
 
-            var assembly2 = assemblies2[0];
-            var c2 = assembly1.GlobalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(SymbolKind.ErrorType, c2.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
         }
 
         [ClrOnlyFact]
