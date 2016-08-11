@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis
 
             // Add debug documents for all embedded text first. This ensures that embedding
             // takes priority over the syntax tree pass, which will not embed.
-            if (embeddedTexts.Any())
+            if (!embeddedTexts.IsEmpty())
             {
                 var embeddedDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
 
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
                 }
             }
-            if (embeddedTexts != null && embeddedTexts.Any())
+            if (embeddedTexts != null && !embeddedTexts.IsEmpty())
             {
                 if (options == null || 
                     options.DebugInformationFormat == DebugInformationFormat.Pdb ||

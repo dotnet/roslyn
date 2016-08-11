@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// The set of source file paths that are in the set of embedded paths.
         /// This is used to prevent reading source files that are embedded twice.
         /// </summary>
-        public ReadOnlyHashSet<string> EmbeddedSourcePaths { get; }
+        public IReadOnlySet<string> EmbeddedSourcePaths { get; }
 
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -275,11 +275,11 @@ namespace Microsoft.CodeAnalysis
             OrderedSet<string> embeddedFiles,
             IList<Diagnostic> diagnostics);
 
-        private static ReadOnlyHashSet<string> GetEmbedddedSourcePaths(CommandLineArguments arguments)
+        private static IReadOnlySet<string> GetEmbedddedSourcePaths(CommandLineArguments arguments)
         {
             if (arguments.EmbeddedFiles.IsEmpty)
             {
-                return ReadOnlyHashSet<string>.Empty;
+                return SpecializedCollections.EmptyReadOnlySet<string>();
             }
 
             // Note that we require an exact match between source and embedded file paths (case-sensitive
@@ -288,15 +288,9 @@ namespace Microsoft.CodeAnalysis
             // time. This can also lead to more than one document entry in the PDB for the same document
             // if the PDB document de-duping policy in emit (normalize + case-sensitive in C#,
             // normalize + case-insensitive in VB) is not enough to converge them.
-
-            var embedSet = new ReadOnlyHashSet<string>(
-                from file in arguments.EmbeddedFiles
-                select file.Path);
-
-            return new ReadOnlyHashSet<string>(
-                from file in arguments.SourceFiles
-                where embedSet.Contains(file.Path)
-                select file.Path);
+            var set = new HashSet<string>(arguments.EmbeddedFiles.Select(f => f.Path));
+            set.IntersectWith(arguments.SourceFiles.Select(f => f.Path));
+            return SpecializedCollections.StronglyTypedReadOnlySet(set);
         }
 
         internal static DiagnosticInfo ToFileReadDiagnostics(CommonMessageProvider messageProvider, Exception e, string filePath)
