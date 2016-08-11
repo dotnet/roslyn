@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Do not report virtual tuple fields.
                         // They are additional aliases to the fields of the underlying struct or nested extensions.
                         // and as such are already accounted for via the nonvirtual fields.
-                        if (field is TupleVirtualElementFieldSymbol)
+                        if (member is TupleVirtualElementFieldSymbol)
                         {
                             return null;
                         }
