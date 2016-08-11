@@ -16164,6 +16164,23 @@ public class C3 : I0<int>, I0<int> { }
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var c1 = nodes.OfType<ClassDeclarationSyntax>().First();
+            Assert.Equal(2, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[1].ToTestDisplayString());
+
+            var c2 = nodes.OfType<ClassDeclarationSyntax>().Skip(1).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c2).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c2).AllInterfaces[0].ToTestDisplayString());
+
+            var c3 = nodes.OfType<ClassDeclarationSyntax>().Skip(2).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c3).AllInterfaces.Count());
+            Assert.Equal("I0<System.Int32>", model.GetDeclaredSymbol(c3).AllInterfaces[0].ToTestDisplayString());
         }
 
         [Fact]
