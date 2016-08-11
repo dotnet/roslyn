@@ -31,10 +31,21 @@ namespace RepoUtil
         private JObject GoCore()
         {
             var obj = new JObject();
+            obj.Add(GetNuGetFeeds());
             obj.Add(GetFixedPackages());
             obj.Add(GetBuildPackages());
             obj.Add(GetToolsetPackages());
             return obj;
+        }
+
+        private JProperty GetNuGetFeeds()
+        {
+            var obj = new JObject();
+            foreach (var nugetFeed in _repoData.NuGetFeeds)
+            {
+                obj.Add(GetProperty(nugetFeed));
+            }
+            return new JProperty("nugetFeeds", obj);
         }
 
         private JProperty GetFixedPackages()
@@ -66,6 +77,11 @@ namespace RepoUtil
             }
 
             return new JProperty(name, obj);
+        }
+
+        private static JProperty GetProperty(NuGetFeed feed)
+        {
+            return new JProperty(feed.Name, feed.Url);
         }
 
         private static JProperty GetProperty(NuGetPackage package)
