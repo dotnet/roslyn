@@ -850,6 +850,95 @@ class C
         }
 
         [Fact]
+        public void ValueTupleReturnIsNotEmittedIfUnused()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  stloc.2
+  IL_0011:  pop
+  IL_0012:  ret
+}");
+            // TODO: should not emit ctor
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        var z = ((x, y) = new C());
+        z.ToString();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //z
+                int V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  stloc.3
+  IL_0011:  ldloc.3
+  IL_0012:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.ValueTuple<int, int>""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  pop
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
         public void AssigningIntoProperties()
         {
             string source = @"

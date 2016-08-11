@@ -1743,11 +1743,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (!used &&
-                    expression.Constructor.OriginalDefinition == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+                if (!used && ConstructorNotSideEffecting(expression))
                 {
-                    // creating nullable has no side-effects, so we will just evaluate the arg
-                    EmitExpression(expression.Arguments[0], used: false);
+                    // creating nullable has no side-effects, so we will just evaluate the arguments
+                    foreach (var arg in expression.Arguments)
+                    {
+                        EmitExpression(arg, used: false);
+                    }
                 }
                 else
                 {
@@ -1763,6 +1765,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPopIfUnused(used);
                 }
             }
+        }
+
+        private bool ConstructorNotSideEffecting(BoundObjectCreationExpression expression)
+        {
+            var originalDef = expression.Constructor.OriginalDefinition;
+
+            return originalDef == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor) ||
+                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor);
         }
 
         private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, UseKind useKind)

@@ -39,19 +39,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool isUsed = true;
+            BoundExpression returnValue = ApplyConversionsAndMakeReturnValue(node, temps, stores, placeholders, isUsed);
+            ApplyAssignments(node, stores, lhsTargets);
+
+            var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
+
+            RemovePlaceholderReplacements(placeholders);
+            placeholders.Free();
+
+            temps.Free();
+            stores.Free();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Applies the conversions.
+        /// If the deconstruction result is used, locals will be created to form a tuple return value.
+        /// Otherwise, the returned expression is a BoundVoid
+        /// </summary>
+        private BoundExpression ApplyConversionsAndMakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, bool isUsed)
+        {
             int numConversions = node.ConversionSteps.Length;
+            var conversionLocals = ArrayBuilder<BoundExpression>.GetInstance();
+
             for (int i = 0; i < numConversions; i++)
             {
-                // lower the conversions
+                // lower the conversions and assignments to locals
                 var conversionInfo = node.ConversionSteps[i];
-                var conversion = VisitExpression(conversionInfo.Conversion);
 
-                AddPlaceholderReplacement(conversionInfo.OutputPlaceholder, conversion);
+                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, conversionInfo.OutputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
+                var localBound = new BoundLocal(node.Syntax,
+                                               localSymbol,
+                                               null,
+                                               conversionInfo.OutputPlaceholder.Type)
+                    { WasCompilerGenerated = true };
+
+                temps.Add(localSymbol);
+                conversionLocals.Add(localBound);
+
+                AddPlaceholderReplacement(conversionInfo.OutputPlaceholder, localBound);
                 placeholders.Add(conversionInfo.OutputPlaceholder);
+
+                var conversion = VisitExpression(conversionInfo.Assignment);
 
                 stores.Add(conversion);
             }
 
+            return (BoundExpression)Visit(new BoundTupleLiteral(node.Syntax, default(ImmutableArray<string>), conversionLocals.ToImmutableAndFree(), node.Type));
+        }
+
+        private void ApplyAssignments(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ImmutableArray<BoundExpression> lhsTargets)
+        {
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
@@ -65,17 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 stores.Add(assignment);
             }
-
-            BoundExpression returnValue = new BoundVoid(node.Syntax, node.Type);
-            var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
-
-            RemovePlaceholderReplacements(placeholders);
-            placeholders.Free();
-
-            temps.Free();
-            stores.Free();
-
-            return result;
         }
 
         /// <summary>

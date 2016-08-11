@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : CompilingTestBase
     {
         const string commonSource =
@@ -1040,36 +1041,66 @@ class C
         }
 
         [Fact]
-        public void AssignmentTypeIsVoid()
+        public void AssignmentTypeIsValueTuple()
         {
             string source = @"
 class C
 {
-    static void Main()
+    public static void Main()
     {
-        int x, y;
+        long x; string y;
 
-        ((x, y) = new C()).ToString();
+        var z1 = ((x, y) = new C()).ToString();
 
-        var z = ((x, y) = new C());
+        var z2 = ((x, y) = new C());
+        var z3 = (x, y) = new C();
+
+        System.Console.Write($""{z1} {z2.ToString()} {z3.ToString()}"");
     }
 
-    public void Deconstruct(out int a, out int b)
+    public void Deconstruct(out int a, out string b)
     {
         a = 1;
-        b = 2;
+        b = ""hello"";
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(
-                // (8,27): error CS0023: Operator '.' cannot be applied to operand of type 'void'
-                //         ((x, y) = new C()).ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(8, 27),
-                // (10,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var z = ((x, y) = new C());
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = ((x, y) = new C())").WithArguments("void").WithLocation(10, 13)
-                );
+            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignmentReturnsLongValueTuple()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x;
+        var y = (x, x, x, x, x, x, x, x, x) = new C();
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int x1, out int x2, out int x3, out int x4, out int x5, out int x6, out int x7, out int x8, out int x9)
+    {
+        x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = 1;
+        x9 = 9;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var y = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
+
+            Assert.Equal("y = (x, x, x, x, x, x, x, x, x) = new C()", y.ToFullString());
+
+            Assert.Equal("(System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y",
+                model.GetDeclaredSymbol(y).ToTestDisplayString());
         }
 
         [Fact]
