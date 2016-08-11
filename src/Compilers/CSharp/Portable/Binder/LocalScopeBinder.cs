@@ -195,6 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
                         break;
 
+                    case SyntaxKind.WhileStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement));
+                        break;
+
                     default:
                         // no other statement introduces local variables into the enclosing scope
                         break;
