@@ -44,12 +44,10 @@ namespace Roslyn.Utilities
             return Empty.Set<T>.Instance;
         }
 
-#if COMPILERCORE
         public static IReadOnlySet<T> EmptyReadOnlySet<T>()
         {
             return Empty.Set<T>.Instance;
         }
-#endif
 
         public static IDictionary<TKey, TValue> EmptyDictionary<TKey, TValue>()
         {
@@ -100,13 +98,11 @@ namespace Roslyn.Utilities
                 : new ReadOnly.Set<ISet<T>, T>(set);
         }
 
-#if COMPILERCORE
         public static IReadOnlySet<T> StronglyTypedReadOnlySet<T>(ISet<T> set)
         {
             return set == null || set.Count == 0
                 ? EmptyReadOnlySet<T>()
                 : new ReadOnly.Set<ISet<T>, T>(set);
         }
-#endif
     }
 }
