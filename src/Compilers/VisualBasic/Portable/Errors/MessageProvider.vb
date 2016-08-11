@@ -95,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VBDiagnostic(ErrorFactory.ErrorInfo(CType(code, ERRID), args), location)
         End Function
 
+        Public Overrides Function CreateDiagnostic(info As DiagnosticInfo) As Diagnostic
+            Return New VBDiagnostic(info, Location.None)
+        End Function
+
         Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
             ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then

@@ -486,4 +486,7 @@
   <data name="Show_Stack_Trace" xml:space="preserve">
     <value>Show Stack Trace</value>
   </data>
+  <data name="Stream_is_too_long" xml:space="preserve">
+    <value>Stream is too long.</value>
+  </data>
 </root>

@@ -2111,15 +2111,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
             sourceLinkStream As Stream,
+            embeddedTexts As IEnumerable(Of EmbeddedText),
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
+            If embeddedTexts?.Any() Then
+                Throw New ArgumentException(VBResources.EmbeddedTextsNotSupported, NameOf(embeddedTexts))
+            End If
+
             Return CreateModuleBuilder(
                 emitOptions,
                 debugEntryPoint,
                 sourceLinkStream,
+                embeddedTexts,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2131,6 +2137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
             sourceLinkStream As Stream,
+            embeddedTexts As IEnumerable(Of EmbeddedText),
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2219,7 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, diagnostics) Then
+                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
 
@@ -2356,9 +2363,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
                     End If
 
-                    If CheckSumMatches(checkSumText, existingDoc.ChecksumAndAlgorithm.Item1) Then
+                    Dim sourceInfo = existingDoc.GetSourceInfo()
+
+                    If CheckSumMatches(checkSumText, sourceInfo.Checksum) Then
                         Dim guid As Guid = Guid.Parse(checksumDirective.Guid.ValueText)
-                        If guid = existingDoc.ChecksumAndAlgorithm.Item2 Then
+                        If guid = sourceInfo.ChecksumAlgorithmId Then
                             ' all parts match, nothing to do
                             Continue For
                         End If

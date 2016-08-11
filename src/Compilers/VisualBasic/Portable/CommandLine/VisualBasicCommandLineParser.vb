@@ -1143,7 +1143,7 @@ lVbRuntimePlus:
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics))
+                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
                     End Select
                 End If
@@ -1365,7 +1365,8 @@ lVbRuntimePlus:
                 .SourceLink = sourceLink,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
-                .ReportAnalyzer = reportAnalyzer
+                .ReportAnalyzer = reportAnalyzer,
+                .EmbeddedFiles = ImmutableArray(Of CommandLineSourceFile).Empty
             }
         End Function
 

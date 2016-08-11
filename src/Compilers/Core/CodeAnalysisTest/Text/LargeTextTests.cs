@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static SourceText CreateSourceText(Stream stream, Encoding encoding = null)
         {
-            return LargeText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            return LargeText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true, canBeEmbedded: false);
         }
 
         private const string HelloWorld = "Hello, world!";
