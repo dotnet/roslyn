@@ -789,7 +789,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                            cast.Keyword.GetLocation(),
                                                                                            DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
                                                                                            InternalSyntax.Feature.CObjInAttributeArguments)
-
                                         End If
                                     End If
                                     node = conv.Operand

@@ -86,9 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
 
-                    'Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    '    Return LanguageVersion.VBvnext ' TODO: Change to correct version, when offically supported.
-
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

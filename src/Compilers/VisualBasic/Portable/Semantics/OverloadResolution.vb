@@ -56,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-
             ''' <summary>
             ''' Precedence level for an extension method.
             ''' </summary>
@@ -1980,7 +1979,6 @@ ResolutionComplete:
                 Else
                     Debug.Assert(cmp = ApplicabilityComparisonResult.EquallyApplicable)
                 End If
-
             Next
 
             Debug.Assert(Not (leftHasMoreApplicableParameterType AndAlso rightHasMoreApplicableParameterType))

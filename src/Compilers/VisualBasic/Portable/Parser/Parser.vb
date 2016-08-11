@@ -4620,7 +4620,6 @@ checkNullable:
                     value = ParseExpressionCore()
                 End If
             End If
-
             Dim initializer As EqualsValueSyntax = Nothing
 
             If (equals IsNot Nothing) AndAlso (value IsNot Nothing) Then

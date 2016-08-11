@@ -3023,7 +3023,6 @@ ProduceBoundNode:
         End Sub
 
         Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode) As BoundExpression
-
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3056,7 +3055,6 @@ ProduceBoundNode:
                 If param.HasOptionCompare Then
                     CheckOptionCompare(syntax, diagnostics, defaultConstantValue, defaultArgumentType, paramNullableUnderlyingTypeOrSelf)
                 ElseIf defaultSpecialType <> SpecialType.None Then
-
                     If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
                         ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
                         ' use the parameter's enum type.
@@ -3078,7 +3076,6 @@ ProduceBoundNode:
                 ' Section 3 of §11.8.2 Applicable Methods
 
                 If param.Type.SpecialType = SpecialType.System_Object Then
-
                     defaultArgument = CheckSpecialTypeObject(param, syntax, diagnostics, defaultArgument)
                 Else
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
