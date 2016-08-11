@@ -110,7 +110,7 @@ expectedOutput:=<![CDATA[
         <Fact()>
         Public Sub TestOverridingOptionalWithDifferentDefaultValue_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -148,7 +148,7 @@ End Module
         <Fact()>
         Public Sub TestOverridingOptionalWithDifferentDefaultValue_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -290,7 +290,7 @@ End Module
         <Fact()>
         Public Sub TestEventWithOptionalInteger_1()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -321,7 +321,7 @@ End Module
         <Fact()>
         Public Sub TestEventWithOptionalInteger_2()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -481,7 +481,7 @@ End Structure
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableIntegerWithNothingValue_1()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -523,7 +523,7 @@ False
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableIntegerWithNothingValue_2()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -746,11 +746,7 @@ x = nothing
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant_1()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
-            Dim opts = VisualBasicParseOptions.Default
-            Assert.False(InternalSyntax.Parser.CheckFeatureAvailability(opts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts),
                          NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " not supported with this test.")
             Dim libSource =
 <compilation>
@@ -830,7 +826,7 @@ End Module
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=opts, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=useOpts, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 1
 System.Reflection.Missing
 3
@@ -847,7 +843,7 @@ System.Runtime.InteropServices.DispatchWrapper
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant_2()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
 
@@ -945,7 +941,7 @@ System.Runtime.InteropServices.DispatchWrapper
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_1()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim libSource =
@@ -1003,7 +999,7 @@ End Module
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_2()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim libSource =
@@ -1061,7 +1057,7 @@ End Module
         <Fact>
         Public Sub OptionalWithMarshallAs_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim libSource =
@@ -1150,7 +1146,7 @@ System.Runtime.InteropServices.DispatchWrapper
         <Fact>
         Public Sub OptionalWithMarshallAs_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim libSource =
@@ -1238,7 +1234,7 @@ System.Runtime.InteropServices.DispatchWrapper
         <Fact()>
         Public Sub OptionalWithNoDefaultValue_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
             End If
             Dim libSource =
@@ -1309,7 +1305,7 @@ nothing
         <Fact()>
         Public Sub OptionalWithNoDefaultValue_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim libSource =
@@ -1501,7 +1497,7 @@ End Interface
         <Fact()>
         Public Sub Bug578129_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -1565,7 +1561,7 @@ BC30002: Type 'CallerMemberName' is not defined.
         <Fact()>
         Public Sub Bug578129_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -2335,7 +2331,7 @@ Void Main() - 10, Main, a.vb
         <Fact()>
         Public Sub CallerInfo5_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -2399,7 +2395,7 @@ End Class
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         Public Sub CallerInfo5_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -2463,7 +2459,7 @@ End Class
         <Fact()>
         Public Sub CallerInfo6_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -2502,7 +2498,7 @@ y: 15
         <Fact()>
         Public Sub CallerInfo6_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -2540,7 +2536,7 @@ y: 15
         <Fact()>
         Public Sub CallerInfo7_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
@@ -2584,7 +2580,7 @@ End Class
         <Fact()>
         Public Sub CallerInfo7_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
@@ -2630,7 +2626,7 @@ End Class
         <Fact>
         Public Sub TestCallerFilePath1_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source1 = "
@@ -2695,7 +2691,7 @@ End Module
         <Fact>
         Public Sub TestCallerFilePath1_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source1 = "
@@ -2760,7 +2756,7 @@ End Module
         <Fact>
         Public Sub TestCallerFilePath2_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source1 = "
@@ -2849,7 +2845,7 @@ End Module
         <Fact>
         Public Sub TestCallerFilePath2_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source1 = "
@@ -2981,7 +2977,7 @@ a
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -3098,7 +3094,7 @@ End Class
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -3222,7 +3218,7 @@ End Class
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -3313,7 +3309,7 @@ End Structure
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =
@@ -3524,7 +3520,7 @@ End Class
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_Decimal_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -3864,7 +3860,7 @@ End Class
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             Dim source =
@@ -4010,7 +4006,7 @@ End Class
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             Dim source =

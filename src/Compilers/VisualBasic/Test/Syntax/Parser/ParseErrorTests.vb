@@ -2536,7 +2536,7 @@ End Module
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
         Dim useOpts = VisualBasicParseOptions.Default
-        If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) = False Then
+        If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) = False Then
             Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
         End If
         Dim code = <![CDATA[
@@ -2555,7 +2555,7 @@ End Module
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
 
         Dim useOpts = _ImplicitDefaultOptionalParameter_
-        If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+        If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
             Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is Not present")
         End If
         Dim code = <![CDATA[

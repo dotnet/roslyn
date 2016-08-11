@@ -7705,7 +7705,7 @@ End Class
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
 
@@ -7742,7 +7742,7 @@ End Class
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
 
@@ -7814,7 +7814,7 @@ End Class
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             CompileAndVerify(
@@ -7871,7 +7871,7 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
         <Fact()>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             CompileAndVerify(
@@ -7986,7 +7986,7 @@ DERIVED: f(x As Integer, Optional y As String = "")
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not Syntax.InternalSyntax.Parser.CheckFeatureAvailability(useOpts, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             CompileAndVerify(

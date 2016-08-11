@@ -480,7 +480,7 @@ BC30308: 'Public Overrides Sub Format(i As Integer, j As Integer)' cannot overri
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_A()
             Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
             End If
             ' NOTE: this matches Dev11 implementation, not Dev10
@@ -562,7 +562,7 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_B()
             Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatureAvailability(useOpts, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
                 Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
             End If
             ' NOTE: this matches Dev11 implementation, not Dev10

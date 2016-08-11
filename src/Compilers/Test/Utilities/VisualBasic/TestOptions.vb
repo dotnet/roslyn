@@ -60,7 +60,8 @@ Friend Module TestOptionExtensions
 
     <Extension()>
     Public Function WithImplicitDefaultOptionalParameter(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("ImplicitDefaultValueOnOptionalParameter", "true")}))
+        Dim flag = Feature.ImplicitDefaultValueOnOptionalParameter.GetFeatureFlag
+        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)(flag, "true")}))
     End Function
     <Extension()>
     Public Function WithImplicitDefaultOptionalParameter(compilation As VisualBasicCompilation) As Compilation
