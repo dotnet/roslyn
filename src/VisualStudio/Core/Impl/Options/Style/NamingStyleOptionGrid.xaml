@@ -72,8 +72,7 @@
             </DataGrid.RowStyle>
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
-                <Setter Property="IsTabStop" Value="False"/>
-                    
+                    <Setter Property="IsTabStop" Value="False"/>
                 </Style>
             </DataGrid.CellStyle>
             <DataGrid.Resources>
