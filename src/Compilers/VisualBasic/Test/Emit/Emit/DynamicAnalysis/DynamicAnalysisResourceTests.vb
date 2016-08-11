@@ -664,6 +664,63 @@ End Class
                         New SpanResult(23, 28, 23, 32, "1234"))
         End Sub
 
+
+        <Fact>
+        Public Sub TestImplicitSharedConstructorWithLambdaSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                                   ' Method 0
+        TestMain()
+    End Sub
+
+    Sub TestMain()                                      ' Method 1
+        Dim local As Integer = C.s_c._function()
+    End Sub
+End Module
+
+Class C
+    Public Sub New(f As System.Func(Of Integer))        ' Method 3
+        _function = f
+    End Sub
+
+    Shared Public s_c As New C(Function () 15)
+    Public _function as System.Func(Of Integer)
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,
+                        New SpanResult(3, 4, 5, 11, "Public Sub Main()"),
+                        New SpanResult(4, 8, 4, 18, "TestMain()"))
+
+            VerifySpans(reader, reader.Methods(1), sourceLines,
+                        New SpanResult(7, 4, 9, 11, "Sub TestMain()"),
+                        New SpanResult(8, 31, 8, 48, "C.s_c._function()"))
+
+            VerifySpans(reader, reader.Methods(2), sourceLines,                     ' Implicit shared constructor
+                New SpanResult(17, 22, 17, 46, "As New C(Function () 15)"))
+
+            VerifySpans(reader, reader.Methods(3), sourceLines,
+                New SpanResult(13, 4, 15, 11, "Public Sub New(f As System.Func(Of Integer))"),
+                New SpanResult(14, 8, 14, 21, "_function = f"))
+        End Sub
+
         <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>

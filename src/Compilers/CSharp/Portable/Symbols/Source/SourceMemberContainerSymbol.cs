@@ -909,8 +909,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
+            // With instrumentation, a synthesized static constructor has a local variable for the instrumentation payload,
+            // and an ininitializer with a lambda can refer to that local.
+            return position;
+
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
-            throw ExceptionUtilities.Unreachable;
+            // throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

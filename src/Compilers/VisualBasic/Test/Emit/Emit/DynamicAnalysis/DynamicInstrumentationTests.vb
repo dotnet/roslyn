@@ -438,9 +438,9 @@ Module Program
 
                                                              Return x
                                                          End Function
-
+        Dim identity As System.Func(Of Integer, Integer) = Function(x) x
         y = 75
-        If tester(20) > 50 Then
+        If tester(20) > 50 AndAlso identity(20) = 20 Then
             System.Console.WriteLine("OK")
         Else
             System.Console.WriteLine("Bad")
@@ -468,6 +468,7 @@ True
 True
 True
 False
+True
 True
 True
 True

@@ -1565,7 +1565,7 @@ True
         }
 
         [Fact]
-        public void TestFieldInitializerSpans()
+        public void TestFieldInitializerCoverage()
         {
             string source = @"
 using System;
@@ -1675,7 +1675,7 @@ True
         }
 
         [Fact]
-        public void TestImplicitConstructorSpans()
+        public void TestImplicitConstructorCoverage()
         {
             string source = @"
 using System;
@@ -1737,6 +1737,76 @@ True
 True
 True
 Method 9
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestImplicitStaticConstructorWithLambdaCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                      // Method 2
+    {
+        int y = s_c._function();
+    }
+
+    C(Func<int> f)                                              // Method 3
+    {
+        _function = f;
+    }
+
+    static C s_c = new C(() => 115);
+    Func<int> _function;
+
+    // Method 4 is the implicit static constructor.
+}
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+Method 6
 File 1
 True
 True

@@ -74,6 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // With instrumentation, class declarations can be the syntax associated with a synthesized static constructor.
+            if (syntaxOpt.Kind() == SyntaxKind.ClassDeclaration)
+            {
+                return;
+            }
+
             throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
         }
 
