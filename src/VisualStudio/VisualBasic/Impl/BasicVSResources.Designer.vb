@@ -525,15 +525,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
-        '''</summary>
-        Friend Shared ReadOnly Property Some_naming_rules_are_incomplete() As String
-            Get
-                Return ResourceManager.GetString("Some_naming_rules_are_incomplete", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Suggest imports for types in _NuGet packages.
         '''</summary>
         Friend Shared ReadOnly Property Suggest_imports_for_types_in_NuGet_packages() As String

@@ -53,6 +53,7 @@
             GridLinesVisibility="None"
             VerticalAlignment="Stretch"
             SelectionMode="Single"
+            SelectionUnit="Cell"
             HorizontalAlignment="Stretch"
             Style="{StaticResource ResourceKey=DataGridStyle}"
             AlternationCount="2">
@@ -69,6 +70,12 @@
                     <Setter Property="MinHeight" Value="26"/>
                 </Style>
             </DataGrid.RowStyle>
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                <Setter Property="IsTabStop" Value="False"/>
+                    
+                </Style>
+            </DataGrid.CellStyle>
             <DataGrid.Resources>
                 <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
                     <Setter Property="Template">
@@ -81,6 +88,9 @@
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
+                </Style>
+                <Style x:Key="DataGridCellStyle" TargetType="{x:Type DataGridCell}">
+                    <Setter Property="IsTabStop" Value="False"/>
                 </Style>
             </DataGrid.Resources>
             <DataGrid.GroupStyle>

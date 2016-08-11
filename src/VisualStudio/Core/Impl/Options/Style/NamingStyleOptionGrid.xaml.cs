@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Input;
-using Microsoft.CodeAnalysis.Options;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
-using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis.Simplification;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
@@ -38,6 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             _languageName = languageName;
             this.DataContext = _items;
             InitializeComponent();
+            CodeStyleMembers.SelectionChanged += CodeStyleMembers_SelectionChanged;
+        }
+
+        private void CodeStyleMembers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
         }
 
         private ItemViewModel CreateItemWithNoSelections()

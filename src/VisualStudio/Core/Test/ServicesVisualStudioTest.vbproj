@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
+    <Folder Include="Options\Style\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractTextViewFilterTests.vb" />
@@ -286,7 +287,6 @@
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
     <Compile Include="SymbolSearch\SymbolSearchServiceTests.vb" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModelTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
     <Compile Include="VsNavInfo\VsNavInfoTests.vb" />

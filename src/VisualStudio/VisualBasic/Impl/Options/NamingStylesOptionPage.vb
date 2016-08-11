@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Protected Overrides Sub OnApply(e As PageApplyEventArgs)
             If _grid.ContainsErrors() Then
-                MessageBox.Show(BasicVSResources.Some_naming_rules_are_incomplete)
+                MessageBox.Show(ServicesVSResources.Some_naming_rules_are_incomplete)
                 e.ApplyBehavior = ApplyKind.Cancel
                 Return
             End If

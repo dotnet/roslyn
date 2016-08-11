@@ -1087,15 +1087,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
-        /// </summary>
-        internal static string Some_naming_rules_are_incomplete {
-            get {
-                return ResourceManager.GetString("Some_naming_rules_are_incomplete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Split string literals on _enter.
         /// </summary>
         internal static string Split_string_literals_on_enter {

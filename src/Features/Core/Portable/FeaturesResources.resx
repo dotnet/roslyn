@@ -1097,4 +1097,51 @@ This version used in: {2}</value>
   <data name="Static_field" xml:space="preserve">
     <value>Static field</value>
   </data>
+  <data name="Abstract_Method" xml:space="preserve">
+    <value>Abstract Method</value>
+  </data>
+  <data name="Async_Method" xml:space="preserve">
+    <value>Async Method</value>
+  </data>
+  <data name="Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Private_Method" xml:space="preserve">
+    <value>Private Method</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Static_Method" xml:space="preserve">
+    <value>Static Method</value>
+  </data>
+  <data name="Struct" xml:space="preserve">
+    <value>Struct</value>
+    <comment>{locked}</comment>
+  </data>
+  <data name="Type_Parameter_" xml:space="preserve">
+    <value>Type Parameter</value>
+  </data>
 </root>

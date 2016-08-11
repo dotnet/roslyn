@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Editing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new AccessibilityKind(accessibility);
         }
 
-        private static ModifierKindEnum NoModifiers = ModifierKindEnum.None;
+        private static DeclarationModifiers NoModifiers = new DeclarationModifiers();
 
         private static List<AccessibilityKind> AnyAccessibility = new[]
         {
             Kind(Accessibility.Friend), Kind(Accessibility.Internal), Kind(Accessibility.Private),
-            Kind(Accessibility.Protected), Kind(Accessibility.ProtectedAndFriend), Kind(Accessibility.ProtectedAndInternal), Kind(Accessibility.ProtectedOrFriend),
+            Kind(Accessibility.Protected), Kind(Accessibility.ProtectedOrFriend),
             Kind(Accessibility.ProtectedOrInternal), Kind(Accessibility.Public)
         }.ToList();
 
@@ -42,63 +43,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             var result = new List<SymbolSpecification>();
 
-            //public class
-            result.Add(new SymbolSpecification("Class", Kind(TypeKind.Class), NoModifiers, AnyAccessibility, "{5C545A62-B14D-460A-88D8-E936C0A39316}"));
-
+            // class
+            result.Add(new SymbolSpecification(FeaturesResources.Class, Kind(TypeKind.Class), NoModifiers, AnyAccessibility, "{5C545A62-B14D-460A-88D8-E936C0A39316}"));
 
             // interface
-            result.Add(new SymbolSpecification("Interface", Kind(TypeKind.Interface), NoModifiers, AnyAccessibility, "{23D856B4-5089-4405-83CE-749AADA99153}"));
-
+            result.Add(new SymbolSpecification(FeaturesResources.Interface, Kind(TypeKind.Interface), NoModifiers, AnyAccessibility, "{23D856B4-5089-4405-83CE-749AADA99153}"));
 
             // struct
-            result.Add(new SymbolSpecification("Struct", Kind(TypeKind.Struct), NoModifiers, AnyAccessibility, "{D1796E78-FF66-463F-8576-EB46416060C0}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Struct, Kind(TypeKind.Struct), NoModifiers, AnyAccessibility, "{D1796E78-FF66-463F-8576-EB46416060C0}"));
 
             // enum
-            result.Add(new SymbolSpecification("Enum", Kind(TypeKind.Struct), NoModifiers, AnyAccessibility, "{D8AF8DC6-1ADE-441D-9947-8946922E198A}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Enum, Kind(TypeKind.Struct), NoModifiers, AnyAccessibility, "{D8AF8DC6-1ADE-441D-9947-8946922E198A}"));
 
             // namespace
-            result.Add(new SymbolSpecification("Namespace", Kind(SymbolKind.Namespace), NoModifiers, AnyAccessibility, "{B11CDBC4-FCA6-450F-97D2-F5F49D5DA1F7}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Namespace, Kind(SymbolKind.Namespace), NoModifiers, AnyAccessibility, "{B11CDBC4-FCA6-450F-97D2-F5F49D5DA1F7}"));
 
             // type parameter
-            result.Add(new SymbolSpecification("TypeParameter", Kind(SymbolKind.TypeParameter), NoModifiers, AnyAccessibility, "{5C2A9E28-D284-4665-983E-18F7547D98E4}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Type_Parameter_, Kind(SymbolKind.TypeParameter), NoModifiers, AnyAccessibility, "{5C2A9E28-D284-4665-983E-18F7547D98E4}"));
 
             // delegate
-            result.Add(new SymbolSpecification("Delegate", Kind(TypeKind.Delegate), NoModifiers, AnyAccessibility, "{408A3347-B908-4B54-A954-1355E64C1DE3}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Delegate, Kind(TypeKind.Delegate), NoModifiers, AnyAccessibility, "{408A3347-B908-4B54-A954-1355E64C1DE3}"));
 
             // event
-            result.Add(new SymbolSpecification("Event", Kind(SymbolKind.Event), NoModifiers, AnyAccessibility, "{830657F6-E7E5-4830-B328-F109D3B6C165}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Event, Kind(SymbolKind.Event), NoModifiers, AnyAccessibility, "{830657F6-E7E5-4830-B328-F109D3B6C165}"));
 
             // public method
-            result.Add(new SymbolSpecification("Method", Kind(SymbolKind.Method), NoModifiers, Public, "{390CAED4-F0A9-42BB-ADBB-B44C4A302A22}"));
+            result.Add(new SymbolSpecification(FeaturesResources.method, Kind(SymbolKind.Method), NoModifiers, Public, "{390CAED4-F0A9-42BB-ADBB-B44C4A302A22}"));
 
             // private method
-            result.Add(new SymbolSpecification("Private Method", Kind(SymbolKind.Method), NoModifiers, Private, "{AF410767-F189-47C6-B140-AECCF1FF242E}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Private_Method, Kind(SymbolKind.Method), NoModifiers, Private, "{AF410767-F189-47C6-B140-AECCF1FF242E}"));
 
             // abstract method
-            result.Add(new SymbolSpecification("Abstract Method", Kind(SymbolKind.Method), ModifierKindEnum.IsAbstract, AnyAccessibility, "{8076757E-6A4A-47F1-9B4B-AE8A3284E987}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Abstract_Method, Kind(SymbolKind.Method), new DeclarationModifiers(isAbstract: true), AnyAccessibility, "{8076757E-6A4A-47F1-9B4B-AE8A3284E987}"));
 
             // static method
-            result.Add(new SymbolSpecification("Static Method", Kind(SymbolKind.Method), ModifierKindEnum.IsStatic, AnyAccessibility, "{16133061-A8E7-4392-92C3-1D93CD54C218}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Static_Method, Kind(SymbolKind.Method), new DeclarationModifiers(isStatic: true), AnyAccessibility, "{16133061-A8E7-4392-92C3-1D93CD54C218}"));
 
             // async method
-            result.Add(new SymbolSpecification("Async Method", Kind(SymbolKind.Method), ModifierKindEnum.IsAsync, AnyAccessibility, "{03A274DF-B686-4A76-9138-96AECB9BD33B}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Async_Method, Kind(SymbolKind.Method), new DeclarationModifiers(isAsync: true), AnyAccessibility, "{03A274DF-B686-4A76-9138-96AECB9BD33B}"));
 
             // property
-            result.Add(new SymbolSpecification("Property", Kind(SymbolKind.Property), NoModifiers, AnyAccessibility, "{DA6A2919-5AA6-4AD1-A24D-576776ED3974}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Property, Kind(SymbolKind.Property), NoModifiers, AnyAccessibility, "{DA6A2919-5AA6-4AD1-A24D-576776ED3974}"));
 
             // field
             result.Add(new SymbolSpecification(FeaturesResources.Public_or_protected_field, Kind(SymbolKind.Field), NoModifiers, Public.Concat(Protected).ToList(), "{B24A91CE-3501-4799-B6DF-BAF044156C83}"));
 
             // static field
-            result.Add(new SymbolSpecification(FeaturesResources.Static_field, Kind(SymbolKind.Field), 
-                ModifierKindEnum.IsStatic, AnyAccessibility, "{70AF42CB-1741-4027-969C-9EDC4877D965}"));
+            result.Add(new SymbolSpecification(FeaturesResources.Static_field, Kind(SymbolKind.Field),
+                new DeclarationModifiers(isStatic: true), AnyAccessibility, "{70AF42CB-1741-4027-969C-9EDC4877D965}"));
 
             // private or internal field
             result.Add(new SymbolSpecification(FeaturesResources.Private_or_internal_field, Kind(SymbolKind.Field), NoModifiers, Private.Concat(Internal).ToList(), "{10790AA6-0A0B-432D-A52D-D252CA92302B}"));
 
             // static private/internal field
             result.Add(new SymbolSpecification(FeaturesResources.Private_or_internal_static_field, Kind(SymbolKind.Field),
-                ModifierKindEnum.IsStatic, Private.Concat(Internal).ToList(), "{AC995BE4-88DE-4771-9DCC-A456A7C02D89}"));
+                new DeclarationModifiers(isStatic: true), Private.Concat(Internal).ToList(), "{AC995BE4-88DE-4771-9DCC-A456A7C02D89}"));
 
 
             return result;
@@ -118,14 +117,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             result.Add(new NamingStyle()
             {
                 ID = Guid.Parse("{87E7C501-9948-4B53-B1EB-A6CBE918FEEE}"),
-                Name = FeaturesResources.Camel_Case,
+                Name = FeaturesResources.Pascal_Case,
                 CapitalizationScheme = Capitalization.PascalCase
             });
 
             result.Add(new NamingStyle()
             {
                 ID = Guid.Parse("{868DE8A1-CA8D-4190-B7E1-88CB38210C82}"),
-                Name = FeaturesResources.Pascal_Case,
+                Name = FeaturesResources.First_word_capitalized,
                 CapitalizationScheme = Capitalization.FirstUpper
             });
 

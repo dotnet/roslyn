@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Abstract Method.
+        /// </summary>
+        internal static string Abstract_Method {
+            get {
+                return ResourceManager.GetString("Abstract_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
@@ -432,6 +441,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async Method.
+        /// </summary>
+        internal static string Async_Method {
+            get {
+                return ResourceManager.GetString("Async_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Asynchronous method cannot have ref/out parameters : [{0}].
         /// </summary>
         internal static string Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket {
@@ -655,6 +673,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Class.
+        /// </summary>
+        internal static string Class {
+            get {
+                return ResourceManager.GetString("Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to class.
         /// </summary>
         internal static string class_ {
@@ -761,6 +788,15 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_b" +
                         "e_extracted_to_an_interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate.
+        /// </summary>
+        internal static string Delegate {
+            get {
+                return ResourceManager.GetString("Delegate", resourceCulture);
             }
         }
         
@@ -901,6 +937,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enum.
+        /// </summary>
+        internal static string Enum {
+            get {
+                return ResourceManager.GetString("Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to enum.
         /// </summary>
         internal static string enum_ {
@@ -924,6 +969,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Enums {
             get {
                 return ResourceManager.GetString("Enums", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        internal static string Event {
+            get {
+                return ResourceManager.GetString("Event", resourceCulture);
             }
         }
         
@@ -1486,6 +1540,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interface.
+        /// </summary>
+        internal static string Interface {
+            get {
+                return ResourceManager.GetString("Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to interface.
         /// </summary>
         internal static string interface_ {
@@ -1931,6 +1994,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Namespace.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to namespace.
         /// </summary>
         internal static string namespace_ {
@@ -2104,6 +2176,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private Method.
+        /// </summary>
+        internal static string Private_Method {
+            get {
+                return ResourceManager.GetString("Private_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private or internal field.
         /// </summary>
         internal static string Private_or_internal_field {
@@ -2136,6 +2217,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Properties {
             get {
                 return ResourceManager.GetString("Properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property.
+        /// </summary>
+        internal static string Property {
+            get {
+                return ResourceManager.GetString("Property", resourceCulture);
             }
         }
         
@@ -2458,6 +2548,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Static Method.
+        /// </summary>
+        internal static string Static_Method {
+            get {
+                return ResourceManager.GetString("Static_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Struct.
+        /// </summary>
+        internal static string Struct {
+            get {
+                return ResourceManager.GetString("Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -2673,6 +2781,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string type_parameter {
             get {
                 return ResourceManager.GetString("type_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Parameter.
+        /// </summary>
+        internal static string Type_Parameter_ {
+            get {
+                return ResourceManager.GetString("Type_Parameter_", resourceCulture);
             }
         }
         

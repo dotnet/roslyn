@@ -246,34 +246,12 @@
     <Compile Include="Options\InternalOptionSerializer.cs" />
     <Compile Include="Options\PerLanguageOptionBinding.cs" />
     <Compile Include="Options\RadioButtonViewModel.cs" />
+    <Compile Include="Options\Style\NamingPreferences\FocusAttacher.cs" />
     <Compile Include="Options\Style\NamingStyleOptionGrid.ItemViewModel.cs" />
     <Compile Include="Options\Style\NamingStyleOptionGrid.xaml.cs">
       <DependentUpon>NamingStyleOptionGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\Style\NamingPreferences\EnforcementLevel.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingStylesOptionPageControl.xaml.cs">
-      <DependentUpon>NamingStylesOptionPageControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Options\Style\NamingPreferences\NamingStylesOptionPageControlViewModel.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleDialogViewModel.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.DragDropSourcePattern.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.DragDropTargetPattern.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.InteractionPatternProvider.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.InvocationPattern.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.RenamePattern.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleTreeItemViewModel.TreeDisplayItem.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingRuleDialog.xaml.cs">
-      <DependentUpon>NamingRuleDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Options\Style\NamingPreferences\NamingStyleViewModel.cs" />
-    <Compile Include="Options\Style\NamingPreferences\NamingStyleDialog.xaml.cs">
-      <DependentUpon>NamingStyleDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Options\SymbolSpecification\SymbolSpecificationDialog.xaml.cs">
-      <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Options\SymbolSpecification\SymbolSpecificationViewModel.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProject.cs" />
     <Compile Include="ProjectSystem\CPS\CPSCodeModelFactory.cs" />
     <Compile Include="ProjectSystem\CPS\CPSProjectFactory.cs" />
@@ -292,22 +270,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Options\Style\NamingStyleOptionGrid.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Options\Style\NamingPreferences\NamingStylesOptionPageControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Options\Style\NamingPreferences\NamingRuleDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Options\Style\NamingPreferences\NamingStyleDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Options\SymbolSpecification\SymbolSpecificationDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
