@@ -7511,5 +7511,20 @@ End Class
             Await VerifyItemExistsAsync(text, "x")
         End Function
 
+        <WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumMembers() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "A")
+        End Function
+
     End Class
 End Namespace
