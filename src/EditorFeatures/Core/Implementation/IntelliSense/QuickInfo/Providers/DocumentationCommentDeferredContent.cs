@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
+#if false
     internal class DocumentationCommentDeferredContent : IDeferredQuickInfoContent
     {
         private readonly string _documentationComment;
@@ -53,4 +54,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
         }
     }
+#endif
 }

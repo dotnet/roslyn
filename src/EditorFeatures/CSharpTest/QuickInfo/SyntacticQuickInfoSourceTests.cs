@@ -4,16 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
@@ -267,14 +267,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {");
         }
 
-        private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private QuickInfoElementProvider CreateProvider(TestWorkspace workspace)
         {
-            return new SyntacticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            return new CSharpSyntacticQuickInfoElementProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -283,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoElementAsync(document, position, CancellationToken.None));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -294,10 +289,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(state);
+            var info = await provider.GetQuickInfoElementAsync(document, position, cancellationToken: CancellationToken.None);
+            Assert.NotNull(info);
 
-            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
+            Assert.Equal(QuickInfoElementKinds.DocumentText, info.Element.Kind);
+            var tabSize = document.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
+            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.Element.Spans, tabSize);
+            var actualText = string.Concat(spans.Select(s => text.GetSubText(s).ToString()));
+            Assert.Equal(expectedContent, actualText);
+
+            /*
+            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)info.Content).Create();
             try
             {
                 var actualContent = viewHostingControl.ToString();
@@ -307,6 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             {
                 viewHostingControl.TextView_TestOnly.Close();
             }
+            */
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

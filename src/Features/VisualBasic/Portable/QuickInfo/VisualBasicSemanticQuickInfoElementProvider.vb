@@ -1,37 +1,29 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Intellisense.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Projection
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
+Imports Microsoft.CodeAnalysis.QuickInfo
+Imports System.Collections.Immutable
 
-#If False Then
-    <ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.VisualBasic)>
-    Friend Class SemanticQuickInfoProvider
-        Inherits AbstractSemanticQuickInfoProvider
+Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 
-        <ImportingConstructor>
-        Public Sub New(projectionBufferFactoryService As IProjectionBufferFactoryService,
-                       editorOptionsFactoryService As IEditorOptionsFactoryService,
-                       textEditorFactoryService As ITextEditorFactoryService,
-                       glyphService As IGlyphService,
-                       typeMap As ClassificationTypeMap)
-            MyBase.New(projectionBufferFactoryService, editorOptionsFactoryService,
-                       textEditorFactoryService, glyphService, typeMap)
+    <ExportQuickInfoElementProvider("Semantic", LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicSemanticQuickInfoElementProvider
+        Inherits CommonSemanticQuickInfoElementProvider
+
+        Public Sub New()
         End Sub
 
-        Protected Overrides Async Function BuildContentAsync(document As Document,
-                                                  token As SyntaxToken,
-                                                  cancellationToken As CancellationToken) As Task(Of IDeferredQuickInfoContent)
+        Protected Overrides Async Function BuildElementAsync(
+                document As Document,
+                token As SyntaxToken,
+                cancellationToken As CancellationToken) As Task(Of QuickInfoElement)
+
             Dim vbToken = CType(token, SyntaxToken)
             Dim parent = vbToken.Parent
 
@@ -100,13 +92,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                     End If
             End Select
 
-            Return Await MyBase.BuildContentAsync(document, token, cancellationToken).ConfigureAwait(False)
+            Return Await MyBase.BuildElementAsync(document, token, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Overloads Async Function BuildContentAsync(document As Document,
-                                                token As SyntaxToken,
-                                                declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
-                                                cancellationToken As CancellationToken) As Task(Of IDeferredQuickInfoContent)
+        Private Overloads Async Function BuildContentAsync(
+                document As Document,
+                token As SyntaxToken,
+                declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
+                cancellationToken As CancellationToken) As Task(Of QuickInfoElement)
 
             If declarators.Count = 0 Then
                 Return Nothing
@@ -130,9 +123,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
             End If
 
             If types.Count > 1 Then
-                Dim contentBuilder = New List(Of TaggedText)
-                contentBuilder.AddText(VBEditorResources.Multiple_Types)
-                Return Me.CreateClassifiableDeferredContent(contentBuilder)
+                'Dim contentBuilder = New List(Of TaggedText)
+                'contentBuilder.AddText("mulitiple types") 'VBEditorResources.Multiple_Types)
+                Return QuickInfoElement.Create(QuickInfoElementKinds.Text, text:=ImmutableArray.Create(New TaggedText(TextTags.Text, "multiple types")))
             End If
 
             Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, types, supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
@@ -142,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
                                                                      expression As SyntaxNode,
                                                                      documentation As AbstractIntrinsicOperatorDocumentation,
                                                                      glyph As Glyph,
-                                                                     cancellationToken As CancellationToken) As Task(Of IDeferredQuickInfoContent)
+                                                                     cancellationToken As CancellationToken) As Task(Of QuickInfoElement)
             Dim builder = New List(Of SymbolDisplayPart)
 
             builder.AddRange(documentation.PrefixParts)
@@ -161,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
                 If typeNameToBind IsNot Nothing Then
                     ' We'll try to bind the type name 
-                    Dim typeInfo = SemanticModel.GetTypeInfo(typeNameToBind, cancellationToken)
+                    Dim typeInfo = semanticModel.GetTypeInfo(typeNameToBind, cancellationToken)
 
                     If typeInfo.Type IsNot Nothing Then
                         builder.AddRange(typeInfo.Type.ToMinimalDisplayParts(semanticModel, position))
@@ -174,16 +167,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 
             builder.AddRange(documentation.GetSuffix(semanticModel, position, expression, cancellationToken))
 
-            Return CreateQuickInfoDisplayDeferredContent(
-                glyph,
-                builder.ToTaggedText(),
-                CreateDocumentationCommentDeferredContent(documentation.DocumentationText),
-                SpecializedCollections.EmptyList(Of TaggedText),
-                SpecializedCollections.EmptyList(Of TaggedText),
-                SpecializedCollections.EmptyList(Of TaggedText),
-                SpecializedCollections.EmptyList(Of TaggedText))
+            Return CreateQuickInfoDisplayElement(
+                symbolGlyph:=Me.CreateSymbolGlyphElement(glyph),
+                mainDescription:=QuickInfoElement.Create(QuickInfoElementKinds.Description, text:=builder.ToTaggedText()),
+                documentation:=QuickInfoElement.Create(QuickInfoElementKinds.Documentation, text:=ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText))))
         End Function
     End Class
-#End If
-
 End Namespace
+

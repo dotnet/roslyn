@@ -30,17 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
-        private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
             IInlineRenameService inlineRenameService,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
             : this(inlineRenameService,
                    ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   providers, asyncListeners)
+                   asyncListeners)
         {
         }
 
@@ -48,11 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public QuickInfoCommandHandlerAndSourceProvider(
             IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _inlineRenameService = inlineRenameService;
-            _providers = ExtensionOrderer.Order(providers);
             _asyncListeners = asyncListeners;
             _presenter = presenter;
         }
@@ -80,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // Otherwise we'll be affecting the user's typing and they'll have no idea why :)
             controller = Controller.GetInstance(
                 args, _presenter,
-                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo),
-                _providers);
+                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo));
             return true;
         }
 

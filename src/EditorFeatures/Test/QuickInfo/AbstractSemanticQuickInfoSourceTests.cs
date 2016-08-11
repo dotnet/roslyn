@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Xunit;
+using Microsoft.CodeAnalysis.QuickInfo;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         protected void WaitForDocumentationComment(object content)
         {
+/*
             if (content is QuickInfoDisplayDeferredContent)
             {
                 var docCommentDeferredContent = ((QuickInfoDisplayDeferredContent)content).Documentation as DocumentationCommentDeferredContent;
@@ -170,65 +173,85 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                     docCommentDeferredContent.WaitForDocumentationCommentTask_ForTestingPurposesOnly();
                 }
             }
+*/
         }
 
-        internal Action<object> SymbolGlyph(Glyph expectedGlyph)
+        internal Action<QuickInfoElement> ElementGlyph(string elementKind, Glyph expectedGlyph)
         {
-            return (content) =>
+            return (element) =>
             {
-                var actualIcon = ((QuickInfoDisplayDeferredContent)content).SymbolGlyph;
-                Assert.Equal(expectedGlyph, actualIcon.Glyph);
+                var glyphElement = element.Elements.FirstOrDefault(e => e.Kind == elementKind);
+                Assert.NotNull(glyphElement);
+                var actualGlyph = element.Tags.GetGlyph();
+                Assert.Equal(expectedGlyph, actualGlyph);
             };
         }
 
-        protected Action<object> MainDescription(
+        internal Action<QuickInfoElement> SymbolGlyph(Glyph expectedGlyph)
+        {
+            return ElementGlyph(QuickInfoElementKinds.Symbol, expectedGlyph);
+        }
+
+        internal Action<QuickInfoElement> WarningGlyph(Glyph expectedGlyph)
+        {
+            return ElementGlyph(QuickInfoElementKinds.Warning, expectedGlyph);
+        }
+
+        internal Action<QuickInfoElement> ElementText(
+            string elementKind,
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
+            return (element) =>
             {
-                content.TypeSwitch(
-                        (QuickInfoDisplayDeferredContent qiContent) =>
-                        {
-                            var actualContent = qiContent.MainDescription.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        },
-                        (ClassifiableDeferredContent classifiable) =>
-                        {
-                            var actualContent = classifiable.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        });
+                var md = element.Elements.FirstOrDefault(e => e.Kind == elementKind);
+                if (md != null)
+                {
+                    var actualText = md.RawText;
+                    Assert.Equal(expectedText, actualText);
+                }
+                else
+                {
+                    Assert.Equal(expectedText, string.Empty);
+                }
+
+                /*
+                                content.TypeSwitch(
+                                        (QuickInfoDisplayDeferredContent qiContent) =>
+                                        {
+                                            var actualContent = qiContent.MainDescription.ClassifiableContent;
+                                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                                        },
+                                        (ClassifiableDeferredContent classifiable) =>
+                                        {
+                                            var actualContent = classifiable.ClassifiableContent;
+                                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                                        });
+                */
             };
         }
 
-        protected Action<object> Documentation(
+        internal Action<QuickInfoElement> MainDescription(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
-            {
-                var documentationCommentContent = ((QuickInfoDisplayDeferredContent)content).Documentation;
-                documentationCommentContent.TypeSwitch(
-                    (DocumentationCommentDeferredContent docComment) =>
-                    {
-                        var documentationCommentBlock = (TextBlock)docComment.Create();
-                        var actualText = documentationCommentBlock.Text;
-
-                        Assert.Equal(expectedText, actualText);
-                    },
-                    (ClassifiableDeferredContent classifiable) =>
-                    {
-                        var actualContent = classifiable.ClassifiableContent;
-                        Assert.Equal(expectedText, actualContent.GetFullText());
-                        ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                    });
-            };
+            return ElementText(QuickInfoElementKinds.Description, expectedText, expectedClassifications);
         }
 
-        protected Action<object> TypeParameterMap(
+        internal Action<QuickInfoElement> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
+            return ElementText(QuickInfoElementKinds.Documentation, expectedText, expectedClassifications);
+        }
+
+        internal Action<QuickInfoElement> TypeParameterMap(
+            string expectedText,
+            Tuple<string, string>[] expectedClassifications = null)
+        {
+            return ElementText(QuickInfoElementKinds.TypeParameterMap, expectedText, expectedClassifications);
+
+            /*
             return (content) =>
             {
                 var actualContent = ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent;
@@ -240,12 +263,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 // var expectedTextCopy = "\r\n" + expectedText;
                 ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
             };
+            */
         }
 
-        protected Action<object> AnonymousTypes(
+        internal Action<QuickInfoElement> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
+            return ElementText(QuickInfoElementKinds.AnonymousTypes, expectedText, expectedClassifications);
+
+            /*
             return (content) =>
             {
                 var actualContent = ((QuickInfoDisplayDeferredContent)content).AnonymousTypes.ClassifiableContent;
@@ -257,36 +284,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 // var expectedTextCopy = "\r\n" + expectedText;
                 ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
             };
+            */
         }
 
-        protected Action<object> NoTypeParameterMap
+        internal Action<QuickInfoElement> NoTypeParameterMap
         {
             get
             {
-                return (content) =>
+                return ElementText(QuickInfoElementKinds.TypeParameterMap, string.Empty);
+                /*
+                return (element) =>
                 {
+
                     Assert.Equal(string.Empty, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent.GetFullText());
                 };
+                */
             }
         }
 
-        protected Action<object> Usage(string expectedText, bool expectsWarningGlyph = false)
+        internal Action<QuickInfoElement> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return (content) =>
+            return (element) =>
             {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.UsageText.ClassifiableContent.GetFullText());
-                Assert.Equal(expectsWarningGlyph, quickInfoContent.WarningGlyph != null && quickInfoContent.WarningGlyph.Glyph == Glyph.CompletionWarning);
+                ElementText(QuickInfoElementKinds.Usage, expectedText)(element);
+                if (expectsWarningGlyph)
+                {
+                    WarningGlyph(Glyph.CompletionWarning)(element);
+                }
+                else
+                {
+                    Assert.Null(element.Elements.FirstOrDefault(e => e.Kind == QuickInfoElementKinds.Warning));
+                }
             };
         }
 
-        protected Action<object> Exceptions(string expectedText)
+        internal Action<QuickInfoElement> Exceptions(string expectedText)
         {
-            return (content) =>
-            {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
-            };
+            return ElementText(QuickInfoElementKinds.Exception, expectedText);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
@@ -297,6 +331,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected abstract Task TestAsync(string markup, params Action<object>[] expectedResults);
+        internal abstract Task TestAsync(string markup, params Action<QuickInfoElement>[] expectedResults);
     }
 }

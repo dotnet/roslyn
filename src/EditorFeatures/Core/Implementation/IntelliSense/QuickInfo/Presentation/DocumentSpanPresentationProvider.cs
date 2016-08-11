@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -7,37 +8,43 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.QuickInfo;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
-#if false
     /// <summary>
     /// Creates quick info content out of the span of an existing snapshot.  The span will be
     /// used to create an elision buffer out that will then be displayed in the quick info
     /// window.
     /// </summary>
-    internal class ElisionBufferDeferredContent : IDeferredQuickInfoContent
+    [ExportQuickInfoPresentationProvider(QuickInfoElementKinds.DocumentText)]
+    internal class DocumentSpanPresentationProvider : QuickInfoPresentationProvider
     {
-        private readonly SnapshotSpan _span;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
 
-        public ElisionBufferDeferredContent(
-            SnapshotSpan span,
+        [ImportingConstructor]
+        public DocumentSpanPresentationProvider(
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService)
         {
-            _span = span;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
         }
 
-        public FrameworkElement Create()
+        public override FrameworkElement CreatePresentation(QuickInfoElement element, ITextSnapshot snapshot)
         {
-            return new ViewHostingControl(CreateView, CreateBuffer);
+            return new ViewHostingControl(
+                CreateView,
+                () => CreateBuffer(
+                    element.Spans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length)))
+                    ));
         }
 
         private IWpfTextView CreateView(ITextBuffer buffer)
@@ -54,11 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return view;
         }
 
-        private IElisionBuffer CreateBuffer()
+        private IElisionBuffer CreateBuffer(IEnumerable<SnapshotSpan> spans)
         {
             return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
-                            _editorOptionsFactoryService.GlobalOptions, _span);
+                            _editorOptionsFactoryService.GlobalOptions, spans.ToArray());
         }
     }
-#endif
 }

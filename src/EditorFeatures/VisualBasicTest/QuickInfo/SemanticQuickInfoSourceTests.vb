@@ -7,29 +7,26 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
-    Public Class SemanticQuickInfoSourceTests
+    Friend Class SemanticQuickInfoSourceTests
         Inherits AbstractSemanticQuickInfoSourceTests
 
-        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoElement)) As Task
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoElement)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
-            Dim provider = New SemanticQuickInfoProvider(
-             workspace.GetService(Of IProjectionBufferFactoryService),
-             workspace.GetService(Of IEditorOptionsFactoryService),
-             workspace.GetService(Of ITextEditorFactoryService),
-             workspace.GetService(Of IGlyphService),
-             workspace.GetService(Of ClassificationTypeMap))
+            Dim service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of QuickInfoService)
 
-            Await TestSharedAsync(workspace, provider, position, expectedResults)
+            Await TestSharedAsync(workspace, service, position, expectedResults)
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -40,25 +37,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                     edit.Apply()
                 End Using
 
-                Await TestSharedAsync(workspace, provider, position, expectedResults)
+                Await TestSharedAsync(workspace, service, position, expectedResults)
             End If
         End Function
 
-        Private Async Function TestSharedAsync(workspace As TestWorkspace, provider As SemanticQuickInfoProvider, position As Integer, expectedResults() As Action(Of Object)) As Task
-            Dim state = Await provider.GetItemAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
+        Private Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoElement)) As Task
+            Dim info = Await service.GetQuickInfoAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
                                          position, cancellationToken:=CancellationToken.None)
 
-            If state IsNot Nothing Then
-                WaitForDocumentationComment(state.Content)
+            If info IsNot Nothing Then
             End If
 
             If expectedResults Is Nothing Then
-                Assert.Null(state)
+                Assert.Null(info)
             Else
-                Assert.NotNull(state)
+                Assert.NotNull(info)
 
                 For Each expected In expectedResults
-                    expected(state.Content)
+                    expected(info.Element)
                 Next
             End If
         End Function
@@ -69,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End Using
         End Function
 
-        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoElement)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)

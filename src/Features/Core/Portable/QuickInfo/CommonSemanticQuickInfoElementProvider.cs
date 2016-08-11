@@ -1,40 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-#if false
-    internal abstract partial class AbstractSemanticQuickInfoProvider : AbstractQuickInfoProvider
+    internal abstract partial class CommonSemanticQuickInfoElementProvider : CommonQuickInfoElementProvider
     {
-        public AbstractSemanticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
-        protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
+        protected override async Task<QuickInfoElement> BuildElementAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -137,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return default(SyntaxToken);
         }
 
-        protected async Task<IDeferredQuickInfoContent> CreateContentAsync(
+        protected async Task<QuickInfoElement> CreateContentAsync(
             Workspace workspace,
             SyntaxToken token,
             SemanticModel semanticModel,
@@ -211,23 +193,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>().IsAwaitKeyword(token) &&
                 (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
-                documentationContent = CreateDocumentationCommentDeferredContent(null);
+                documentationContent = null;
                 showSymbolGlyph = false;
             }
 
-            return this.CreateQuickInfoDisplayDeferredContent(
-                symbol: symbols.First(),
-                showWarningGlyph: showWarningGlyph,
-                showSymbolGlyph: showSymbolGlyph,
-                mainDescription: mainDescriptionBuilder,
+            return this.CreateQuickInfoDisplayElement(
+                symbolGlyph: showSymbolGlyph ? this.CreateSymbolGlyphElement(symbols.First().GetGlyph()) : null,
+                warningGlyph: showWarningGlyph ? this.CreateWarningGlyphElement() : null,
+                mainDescription: QuickInfoElement.Create(QuickInfoElementKinds.Description, text: mainDescriptionBuilder.ToImmutableArray()),
                 documentation: documentationContent,
-                typeParameterMap: typeParameterMapBuilder,
-                anonymousTypes: anonymousTypesBuilder,
-                usageText: usageTextBuilder,
-                exceptionText: exceptionsTextBuilder);
+                typeParameterMap: QuickInfoElement.Create(QuickInfoElementKinds.TypeParameterMap, text: typeParameterMapBuilder.ToImmutableArray()),
+                anonymousTypes: QuickInfoElement.Create(QuickInfoElementKinds.AnonymousTypes, text: anonymousTypesBuilder.ToImmutableArray()),
+                usageText: QuickInfoElement.Create(QuickInfoElementKinds.Usage, text: usageTextBuilder.ToImmutableArray()),
+                exceptionText: QuickInfoElement.Create(QuickInfoElementKinds.Exception, text: exceptionsTextBuilder.ToImmutableArray()));
         }
 
-        private IDeferredQuickInfoContent GetDocumentationContent(
+        private QuickInfoElement GetDocumentationContent(
             IEnumerable<ISymbol> symbols,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -240,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             {
                 var documentationBuilder = new List<TaggedText>();
                 documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
-                return CreateClassifiableDeferredContent(documentationBuilder);
+                return QuickInfoElement.Create(QuickInfoElementKinds.Documentation, text: documentationBuilder.ToImmutableArray());
             }
             else if (symbols.Any())
             {
@@ -257,11 +238,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 if (documentation != null)
                 {
-                    return CreateClassifiableDeferredContent(documentation.ToList());
+                    return QuickInfoElement.Create(QuickInfoElementKinds.Documentation, text: documentation.ToImmutableArray());
                 }
             }
 
-            return CreateDocumentationCommentDeferredContent(null);
+            return null;
         }
 
         private async Task<ValueTuple<SemanticModel, IList<ISymbol>>> BindTokenAsync(
@@ -317,5 +298,4 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return within == null || symbol.IsAccessibleWithin(within);
         }
     }
-#endif
 }

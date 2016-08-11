@@ -240,12 +240,14 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarSelectedItems.cs" />
     <Compile Include="Extensibility\Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="Extensibility\Peek\IPeekableItemFactory.cs" />
+    <Compile Include="Extensibility\QuickInfo\ExportQuickInfoPresentationProviderAttribute.cs" />
     <Compile Include="Extensibility\QuickInfo\ExportQuickInfoProviderAttribute.cs" />
     <Compile Include="Extensibility\QuickInfo\IDeferredQuickInfoContent.cs" />
     <Compile Include="Extensibility\QuickInfo\IQuickInfoPresenterSession.cs" />
     <Compile Include="Extensibility\QuickInfo\IQuickInfoProvider.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoPresenterNames.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoProviderNames.cs" />
+    <Compile Include="Extensibility\QuickInfo\QuickInfoPresentationProvider.cs" />
     <Compile Include="Extensibility\QuickInfo\QuickInfoItem.cs" />
     <Compile Include="Extensibility\SignatureHelp\ISignatureHelpPresenterSession.cs" />
     <Compile Include="Extensibility\SignatureHelp\PredefinedSignatureHelpPresenterNames.cs" />
@@ -277,6 +279,13 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\DocumentationCommentPresentationProvider.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\DocumentSpanPresentationProvider.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\GroupPresentationProvider.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\QuickInfoPresentationProviderExtensions.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\QuickInfoPresentationProviderInfo.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\SymbolGlyphPresentationProvider.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\TaggedTextPresentationProvider.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
@@ -511,7 +520,7 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\AbstractSemanticQuickInfoProvider.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\AbstractSemanticQuickInfoProvider.SymbolComparer.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\DocumentationCommentDeferredContent.cs" />
-    <Compile Include="Implementation\Intellisense\QuickInfo\Providers\QuickInfoDisplayPanel.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\QuickInfoDisplayPanel.cs" />
     <Compile Include="Implementation\Intellisense\SignatureHelp\Controller.cs" />
     <Compile Include="Implementation\Intellisense\SignatureHelp\Controller.Session.cs" />
     <Compile Include="Implementation\Intellisense\SignatureHelp\Controller.Session_ComputeModel.cs" />

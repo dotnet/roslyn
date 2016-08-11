@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 {
+#if false
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.CSharp)]
     internal class SemanticQuickInfoProvider : AbstractSemanticQuickInfoProvider
     {
@@ -30,4 +31,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
         }
     }
+#endif
 }

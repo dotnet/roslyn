@@ -4,27 +4,28 @@ using System.Collections.Generic;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.VisualStudio.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
-#if false
-    internal class ClassifiableDeferredContent : IDeferredQuickInfoContent
+    [ExportQuickInfoPresentationProvider(QuickInfoElementKinds.Text)]
+    internal class TaggedTextPresentationProvider : QuickInfoPresentationProvider
     {
-        // Internal for testing purposes.
-        internal readonly IList<TaggedText> ClassifiableContent;
         private readonly ClassificationTypeMap _typeMap;
 
-        public ClassifiableDeferredContent(
-            IList<TaggedText> content,
+        [ImportingConstructor]
+        public TaggedTextPresentationProvider(
             ClassificationTypeMap typeMap)
         {
-            this.ClassifiableContent = content;
             _typeMap = typeMap;
         }
 
-        public virtual FrameworkElement Create()
+        public override FrameworkElement CreatePresentation(QuickInfoElement element, ITextSnapshot snapshot)
         {
-            var classifiedTextBlock = ClassifiableContent.ToTextBlock(_typeMap);
+            var classifiedTextBlock = element.Text.ToTextBlock(_typeMap);
 
             if (classifiedTextBlock.Inlines.Count == 0)
             {
@@ -34,5 +35,4 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return classifiedTextBlock;
         }
     }
-#endif
 }

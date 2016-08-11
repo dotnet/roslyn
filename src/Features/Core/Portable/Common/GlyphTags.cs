@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis
 {
     internal static class GlyphTags
     {
@@ -222,6 +223,5 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static readonly ImmutableArray<string> CSharpProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.CSharp);
         private static readonly ImmutableArray<string> VisualBasicProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.VisualBasic);
-
     }
 }

@@ -1,61 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-#if false
-    internal abstract partial class AbstractQuickInfoProvider : IQuickInfoProvider
+    internal abstract class CommonQuickInfoElementProvider : QuickInfoElementProvider
     {
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly IGlyphService _glyphService;
-        private readonly ClassificationTypeMap _typeMap;
-
-        protected AbstractQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-        {
-            _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
-            _textEditorFactoryService = textEditorFactoryService;
-            _glyphService = glyphService;
-            _typeMap = typeMap;
-        }
-
-        public async Task<QuickInfoItem> GetItemAsync(
-            Document document,
-            int position,
-            CancellationToken cancellationToken)
+        public override async Task<QuickInfoData> GetQuickInfoElementAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            var state = await GetQuickInfoItemAsync(document, token, position, cancellationToken).ConfigureAwait(false);
-            if (state != null)
+            var element = await GetQuickInfoElementAsync(document, token, position, cancellationToken).ConfigureAwait(false);
+            if (element != null)
             {
-                return state;
+                return new QuickInfoData(token.Span, element);
             }
 
             if (ShouldCheckPreviousToken(token))
             {
                 var previousToken = token.GetPreviousToken();
 
-                if ((state = await GetQuickInfoItemAsync(document, previousToken, position, cancellationToken).ConfigureAwait(false)) != null)
+                if ((element = await GetQuickInfoElementAsync(document, previousToken, position, cancellationToken).ConfigureAwait(false)) != null)
                 {
-                    return state;
+                    return new QuickInfoData(previousToken.Span, element);
                 }
             }
 
@@ -67,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return true;
         }
 
-        private async Task<QuickInfoItem> GetQuickInfoItemAsync(
+        private async Task<QuickInfoElement> GetQuickInfoElementAsync(
             Document document,
             SyntaxToken token,
             int position,
@@ -76,18 +52,80 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (token != default(SyntaxToken) &&
                 token.Span.IntersectsWith(position))
             {
-                var deferredContent = await BuildContentAsync(document, token, cancellationToken).ConfigureAwait(false);
-                if (deferredContent != null)
-                {
-                    return new QuickInfoItem(token.Span, deferredContent);
-                }
+                return await BuildElementAsync(document, token, cancellationToken).ConfigureAwait(false);
             }
 
             return null;
         }
 
-        protected abstract Task<IDeferredQuickInfoContent> BuildContentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken);
+        protected abstract Task<QuickInfoElement> BuildElementAsync(Document document, SyntaxToken token, CancellationToken cancellationToken);
 
+        protected QuickInfoElement CreateSymbolGlyphElement(Glyph glyph)
+        {
+            return QuickInfoElement.Create(QuickInfoElementKinds.Symbol, tags: GlyphTags.GetTags(glyph));
+        }
+
+        protected QuickInfoElement CreateWarningGlyphElement()
+        {
+            return QuickInfoElement.Create(QuickInfoElementKinds.Warning, tags: ImmutableArray.Create(Completion.CompletionTags.Warning));
+        }
+
+        protected QuickInfoElement CreateQuickInfoDisplayElement(
+            QuickInfoElement symbolGlyph = null,
+            QuickInfoElement warningGlyph = null,
+            QuickInfoElement mainDescription = null,
+            QuickInfoElement documentation = null,
+            QuickInfoElement typeParameterMap = null,
+            QuickInfoElement anonymousTypes = null,
+            QuickInfoElement usageText = null,
+            QuickInfoElement exceptionText = null)
+        {
+            var elements = new List<QuickInfoElement>();
+
+            if (symbolGlyph != null)
+            {
+                elements.Add(symbolGlyph);
+            }
+
+            if (warningGlyph != null)
+            {
+                elements.Add(warningGlyph);
+            }
+
+            if (mainDescription != null)
+            {
+                elements.Add(mainDescription);
+            }
+
+            if (documentation != null)
+            {
+                elements.Add(documentation);
+            }
+
+            if (typeParameterMap != null)
+            {
+                elements.Add(typeParameterMap);
+            }
+
+            if (anonymousTypes != null)
+            {
+                elements.Add(anonymousTypes);
+            }
+
+            if (usageText != null)
+            {
+                elements.Add(usageText);
+            }
+
+            if (exceptionText != null)
+            {
+                elements.Add(exceptionText);
+            }
+
+            return QuickInfoElement.Create(QuickInfoElementKinds.Group, elements: elements.ToImmutableArray());
+        }
+
+#if false
         protected IDeferredQuickInfoContent CreateQuickInfoDisplayDeferredContent(
             ISymbol symbol,
             bool showWarningGlyph,
@@ -157,6 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return new ElisionBufferDeferredContent(
                 span, _projectionBufferFactoryService, _editorOptionsFactoryService, _textEditorFactoryService);
         }
-    }
 #endif
+    }
 }

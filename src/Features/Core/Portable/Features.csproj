@@ -171,6 +171,7 @@
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Common\Glyph.cs" />
+    <Compile Include="Common\GlyphExtensions.cs" />
     <Compile Include="Common\TaggedText.cs" />
     <Compile Include="Common\TextTags.cs" />
     <Compile Include="Completion\CharacterSetModificationKind.cs" />
@@ -196,7 +197,7 @@
     <Compile Include="Completion\CompletionTrigger.cs" />
     <Compile Include="Completion\CompletionTriggerKind.cs" />
     <Compile Include="Completion\EnterKeyRule.cs" />
-    <Compile Include="Completion\GlyphTags.cs" />
+    <Compile Include="Common\GlyphTags.cs" />
     <Compile Include="Completion\Providers\AbstractDocCommentCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractMemberInsertingCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.cs" />
@@ -234,6 +235,19 @@
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="QuickInfo\CommonQuickInfoElementProvider.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoElementProvider.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoElementProvider.ErrorVisitor.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoElementProvider.SymbolComparer.cs" />
+    <Compile Include="QuickInfo\ExportQuickInfoElementProviderAttribute.cs" />
+    <Compile Include="QuickInfo\IndentationHelper.cs" />
+    <Compile Include="QuickInfo\QuickInfo.cs" />
+    <Compile Include="QuickInfo\QuickInfoElement.cs" />
+    <Compile Include="QuickInfo\QuickInfoElementProvider.cs" />
+    <Compile Include="QuickInfo\QuickInfoProviderMetadata.cs" />
+    <Compile Include="QuickInfo\QuickInfoService.cs" />
+    <Compile Include="QuickInfo\QuickInfoServiceWithProviders.cs" />
+    <Compile Include="QuickInfo\QuickInfoElementKinds.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />

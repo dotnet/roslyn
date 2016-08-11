@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.CodeAnalysis.QuickInfo;
+using System.Windows;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
@@ -17,28 +20,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private readonly IQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly ImmutableArray<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> _presentationProviders;
 
             private IQuickInfoSession _editorSessionOpt;
 
-            private QuickInfoItem _item;
+            private QuickInfoData _item;
             private ITrackingSpan _triggerSpan;
 
             public event EventHandler<EventArgs> Dismissed;
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, textView, subjectBuffer, null)
+            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer, ImmutableArray<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> presentationProviders)
+                : this(quickInfoBroker, textView, subjectBuffer, null, presentationProviders)
             {
             }
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt, ImmutableArray<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> presentationProviders)
             {
                 _quickInfoBroker = quickInfoBroker;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
                 _editorSessionOpt = sessionOpt;
+                _presentationProviders = presentationProviders;
             }
 
-            public void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse)
+            public void PresentItem(ITrackingSpan triggerSpan, QuickInfoData item, bool trackMouse)
             {
                 AssertIsForeground();
 
@@ -101,7 +106,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = _triggerSpan;
-                quickInfoContent.Add(_item.Content.Create());
+
+                var content = CreateContent(_item.Element, _subjectBuffer.CurrentSnapshot);
+                if (content != null)
+                {
+                    quickInfoContent.Add(content);
+                }
+            }
+
+            private FrameworkElement CreateContent(QuickInfoElement element, ITextSnapshot snapshot)
+            {
+                QuickInfoPresentationProvider provider;
+
+                if (_presentationProviders.TryGetValue(element.Kind, out provider)
+                    || _presentationProviders.TryGetValue(QuickInfoElementKinds.Text, out provider))
+                {
+                    return provider.CreatePresentation(element, snapshot);
+                }
+
+                return null;
             }
         }
     }

@@ -7,28 +7,26 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.VisualStudio.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
-#if false
-    internal class SymbolGlyphDeferredContent : IDeferredQuickInfoContent
+    [ExportQuickInfoPresentationProvider(QuickInfoElementKinds.Symbol, QuickInfoElementKinds.Warning)]
+    internal class SymbolGlyphPresentationProvider : QuickInfoPresentationProvider
     {
-        private readonly IGlyphService _glyphService;
-        private readonly Glyph _glyph;
-
-        public SymbolGlyphDeferredContent(Glyph glyph, IGlyphService glyphService)
+        [ImportingConstructor]
+        public SymbolGlyphPresentationProvider()
         {
-            Contract.ThrowIfNull(glyphService);
-
-            _glyph = glyph;
-            _glyphService = glyphService;
         }
 
-        public FrameworkElement Create()
+        public override FrameworkElement CreatePresentation(QuickInfoElement element, ITextSnapshot snapshot)
         {
             var image = new CrispImage
             {
-                Moniker = _glyph.GetImageMoniker(),
+                Moniker = element.Tags.GetGlyph().GetImageMoniker()
             };
 
             // Inform the ImageService of the background color so that images have the correct background.
@@ -41,12 +39,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
             return image;
         }
-
-        // For Testing.
-        internal Glyph Glyph
-        {
-            get { return _glyph; }
-        }
     }
-#endif
 }

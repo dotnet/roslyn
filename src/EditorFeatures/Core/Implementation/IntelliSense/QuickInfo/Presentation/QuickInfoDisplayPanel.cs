@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             FrameworkElement typeParameterMap,
             FrameworkElement anonymousTypes,
             FrameworkElement usageText,
-            FrameworkElement exceptionText)
+            FrameworkElement exceptionText,
+            List<FrameworkElement> other)
         {
             this.MainDescription = (TextBlock)mainDescription;
             this.Documentation = (TextBlock)documentation;
@@ -37,28 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             this.Orientation = Orientation.Vertical;
 
-            Border symbolGlyphBorder = null;
-            if (symbolGlyph != null)
-            {
-                symbolGlyph.Margin = new Thickness(1, 1, 3, 1);
-                symbolGlyphBorder = new Border()
-                {
-                    BorderThickness = new Thickness(0),
-                    BorderBrush = Brushes.Transparent,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Child = symbolGlyph
-                };
-            }
-
-            mainDescription.Margin = new Thickness(1);
-            var mainDescriptionBorder = new Border()
-            {
-                BorderThickness = new Thickness(0),
-                BorderBrush = Brushes.Transparent,
-                VerticalAlignment = VerticalAlignment.Center,
-                Child = mainDescription
-            };
-
             var symbolGlyphAndMainDescriptionDock = new DockPanel()
             {
                 LastChildFill = true,
@@ -66,12 +46,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 Background = Brushes.Transparent
             };
 
-            if (symbolGlyphBorder != null)
+            if (symbolGlyph != null)
             {
+                symbolGlyph.Margin = new Thickness(1, 1, 3, 1);
+                var symbolGlyphBorder = new Border()
+                {
+                    BorderThickness = new Thickness(0),
+                    BorderBrush = Brushes.Transparent,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Child = symbolGlyph
+                };
+
                 symbolGlyphAndMainDescriptionDock.Children.Add(symbolGlyphBorder);
             }
 
-            symbolGlyphAndMainDescriptionDock.Children.Add(mainDescriptionBorder);
+            if (mainDescription != null)
+            {
+                mainDescription.Margin = new Thickness(1);
+                var mainDescriptionBorder = new Border()
+                {
+                    BorderThickness = new Thickness(0),
+                    BorderBrush = Brushes.Transparent,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Child = mainDescription
+                };
+
+                symbolGlyphAndMainDescriptionDock.Children.Add(mainDescriptionBorder);
+            }
 
             if (warningGlyph != null)
             {
@@ -88,45 +89,79 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 symbolGlyphAndMainDescriptionDock.Children.Add(warningGlyphBorder);
             }
 
-            this.Children.Add(symbolGlyphAndMainDescriptionDock);
-            this.Children.Add(documentation);
-            this.Children.Add(usageText);
-            this.Children.Add(typeParameterMap);
-            this.Children.Add(anonymousTypes);
-            this.Children.Add(exceptionText);
+            if (symbolGlyph != null || mainDescription != null || warningGlyph != null)
+            {
+                this.Children.Add(symbolGlyphAndMainDescriptionDock);
+            }
+
+            if (documentation != null)
+            {
+                this.Children.Add(documentation);
+            }
+
+            if (usageText != null)
+            {
+                this.Children.Add(usageText);
+            }
+
+            if (typeParameterMap != null)
+            {
+                this.Children.Add(typeParameterMap);
+            }
+
+            if (anonymousTypes != null)
+            {
+                this.Children.Add(anonymousTypes);
+            }
+
+            if (exceptionText != null)
+            {
+                this.Children.Add(exceptionText);
+            }
+
+            if (other != null)
+            {
+                foreach (var element in other)
+                {
+                    this.Children.Add(element);
+                }
+            }
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            BuildStringFromInlineCollection(this.MainDescription.Inlines, sb);
+            if (this.MainDescription != null)
+            {
+                BuildStringFromInlineCollection(this.MainDescription.Inlines, sb);
+            }
 
-            if (this.Documentation.Inlines.Count > 0)
+            if (this.Documentation != null && this.Documentation.Inlines.Count > 0)
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.Documentation.Inlines, sb);
             }
 
-            if (this.TypeParameterMap.Inlines.Count > 0)
+            if (this.TypeParameterMap != null && this.TypeParameterMap.Inlines.Count > 0)
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.TypeParameterMap.Inlines, sb);
             }
 
-            if (this.AnonymousTypes.Inlines.Count > 0)
+            if (this.AnonymousTypes != null && this.AnonymousTypes.Inlines.Count > 0)
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.AnonymousTypes.Inlines, sb);
             }
 
-            if (this.UsageText.Inlines.Count > 0)
+            if (this.UsageText != null && this.UsageText.Inlines.Count > 0)
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.UsageText.Inlines, sb);
             }
 
-            if (this.ExceptionText.Inlines.Count > 0)
+            if (this.ExceptionText != null && this.ExceptionText.Inlines.Count > 0)
             {
                 sb.AppendLine();
                 BuildStringFromInlineCollection(this.ExceptionText.Inlines, sb);

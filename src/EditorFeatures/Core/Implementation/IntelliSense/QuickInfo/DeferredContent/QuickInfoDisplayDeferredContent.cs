@@ -5,6 +5,7 @@ using System.Windows;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
+#if false
     internal class QuickInfoDisplayDeferredContent : IDeferredQuickInfoContent
     {
         private readonly IDeferredQuickInfoContent _symbolGlyph;
@@ -136,4 +137,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
         }
     }
+#endif
 }
