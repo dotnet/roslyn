@@ -1353,9 +1353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
+        ERR_ExpressionTreeContainsIsMatch = 8122,
         #endregion diagnostics for pattern-matching introduced in C# 7
-
-        // Available = 8122
 
         #region tuple diagnostics introduced in C# 7
         WRN_TupleLiteralNameMismatch = 8123,
@@ -1378,9 +1377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
-        #endregion tuple diagnostics introduced in C# 7
+        ERR_ExpressionTreeContainsTupleLiteral = 8143,
+        ERR_ExpressionTreeContainsTupleConversion = 8144,
 
-        // Available = 8143, 8144
+        #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8145,
@@ -1424,6 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
+        ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
     }
 }
