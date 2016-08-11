@@ -407,6 +407,67 @@ class MyTaskMethodBuilder<T>
         }
 
         [Fact]
+        public void Dynamic()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+class C
+{
+    static void F<T>(Func<MyTask<T>> f) { }
+    static void G(Func<MyTask<dynamic>> f) { }
+    static void M(object o)
+    {
+#pragma warning disable CS1998
+        F(async () => (dynamic)o);
+        F(async () => new[] { (dynamic)o });
+        G(async () => o);
+#pragma warning restore CS1998
+    }
+}
+class MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => null;
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder<T>
+{
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask<T> Task => default(MyTask<T>);
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef });
+            var verifier = CompileAndVerify(
+                compilation,
+                expectedSignatures: new[]
+                {
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__0",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__0>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__0() cil managed"),
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__1",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__1>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object[]] <M>b__1() cil managed"),
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__2",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__2() cil managed"),
+                });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NonTaskBuilder()
         {
             var source =
@@ -472,6 +533,43 @@ struct MyTask<T>
                 // (8,35): error CS0656: Missing compiler required member 'IEquatable<T>.Task'
                 //         async MyTask<T> F<T>(T t) => t;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Task").WithLocation(8, 35));
+        }
+
+        [Fact]
+        public void NonTaskBuilder_Array()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+class C
+{
+    static async void M()
+    {
+#pragma warning disable CS1998
+        async MyTask F() { };
+        await F();
+#pragma warning restore CS1998
+    }
+}
+struct MyTask
+{
+    public static object[] CreateAsyncMethodBuilder() => null;
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyEmitDiagnostics(
+                // (8,22): error CS0161: 'F()': not all code paths return a value
+                //         async MyTask F() { };
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("F()").WithLocation(8, 22),
+                // (8,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //         async MyTask F() { };
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F").WithLocation(8, 22));
         }
     }
 }

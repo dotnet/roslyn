@@ -290,14 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.GetIteratorElementType(node, diagnostics);
         }
 
-        public virtual ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
-        {
-            get
-            {
-                return _next.ImplicitlyTypedLocalsBeingBound;
-            }
-        }
-
         /// <summary>
         /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
         /// or null if there are none.

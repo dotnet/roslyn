@@ -273,7 +273,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
-            return BindStatement(node, diagnostics);
+            switch (node.Kind())
+            {
+                case SyntaxKind.ExpressionStatement:
+                    Binder binder = this.GetBinder(node);
+                    Debug.Assert(binder != null);
+                    return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics)); 
+
+                default:
+                    return BindStatement(node, diagnostics);
+            }
         }
 
         private BoundExpression BindThrownExpression(ExpressionSyntax exprSyntax, DiagnosticBag diagnostics, ref bool hasErrors)
@@ -504,9 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
-            return binder.WrapWithVariablesIfAny(node, binder.BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics));
+            return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);
         }
 
         private BoundExpressionStatement BindExpressionStatement(CSharpSyntaxNode node, ExpressionSyntax syntax, bool allowsAnyExpression, DiagnosticBag diagnostics)
@@ -817,8 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 aliasOpt = null;
 
-                var binder = new ImplicitlyTypedLocalBinder(this, localSymbol);
-                initializerOpt = binder.BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
+                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
                 if ((object)initializerOpt?.Type != null)
@@ -3655,13 +3661,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds a lambda with expression e as either { return e;} or { e; }.
         /// </summary>
-        public BoundBlock BindLambdaExpressionAsBlock(RefKind refKind, ExpressionSyntax body, DiagnosticBag diagnostics)
+        public BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            Binder bodyBinder = this.GetBinder(refKind != RefKind.None ? body.Parent : body);
+            Binder bodyBinder = this.GetBinder(body);
             Debug.Assert(bodyBinder != null);
 
-            BoundExpression expression = bodyBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
-            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, body, diagnostics);
+            RefKind refKind;
+            var expressionSyntax = ((ExpressionSyntax)body).SkipRef(out refKind);
+            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals

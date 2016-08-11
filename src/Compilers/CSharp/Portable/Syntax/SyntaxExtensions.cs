@@ -363,26 +363,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
         }
-
-        internal static bool IsIdentifierOfOutVariableDeclaration(this SyntaxToken identifier, out DeclarationExpressionSyntax declarationExpression)
-        {
-            Debug.Assert(identifier.Kind() == SyntaxKind.IdentifierToken || identifier.Kind() == SyntaxKind.None);
-
-            SyntaxNode parent;
-            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.SingleVariableDesignation &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.TypedVariableComponent &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.DeclarationExpression)
-            {
-                declarationExpression = (DeclarationExpressionSyntax)parent;
-                if (declarationExpression.Identifier() == identifier && declarationExpression.Parent.Kind() == SyntaxKind.Argument)
-                {
-                    return true;
-                }
-            }
-
-            declarationExpression = null;
-            return false;
-        }
-
     }
 }

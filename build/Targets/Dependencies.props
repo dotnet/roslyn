@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
-    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
+    <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -31,10 +31,11 @@
     <SystemLinqVersion>4.1.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.1.0</SystemLinqExpressionsVersion>
     <SystemNetNameResolutionVersion>4.0.0</SystemNetNameResolutionVersion>
+    <SystemNetSecurityVersion>4.0.0</SystemNetSecurityVersion>
     <SystemNetSocketsVersion>4.1.0</SystemNetSocketsVersion>
     <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
     <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
-    <SystemReflectionMetadataVersion>1.4.1-beta-24322-03</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24410-02</SystemReflectionMetadataVersion>
     <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
     <SystemReflectionTypeExtensionsVersion>4.1.0</SystemReflectionTypeExtensionsVersion>
     <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>

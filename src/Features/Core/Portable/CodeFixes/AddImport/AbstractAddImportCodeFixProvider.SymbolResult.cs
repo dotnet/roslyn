@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -48,6 +49,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 Debug.Assert(DesiredNameDiffersFromSourceName());
                 return StringComparer.OrdinalIgnoreCase.Equals(
                     this.NameNode.GetFirstToken().ValueText, this.DesiredName);
+            }
+
+            public bool DesiredNameMatchesSourceName(Document document)
+            {
+                if (!this.DesiredNameDiffersFromSourceName())
+                {
+                    // Names match in any language.
+                    return true;
+                }
+
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                // Names differ.  But in a case insensitive language they may match.
+                if (!syntaxFacts.IsCaseSensitive &&
+                    this.DesiredNameDiffersFromSourceNameOnlyByCase())
+                {
+                    return true;
+                }
+
+                // Name are totally different in any language.
+                return false;
             }
         }
 

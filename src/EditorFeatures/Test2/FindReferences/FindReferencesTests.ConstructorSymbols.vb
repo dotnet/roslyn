@@ -25,7 +25,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -49,7 +49,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -77,7 +77,7 @@ partial class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -105,7 +105,7 @@ partial class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -132,7 +132,7 @@ class BaseType
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -159,7 +159,7 @@ class BaseType
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -187,7 +187,7 @@ class BaseType
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -215,7 +215,7 @@ class BaseType
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -248,7 +248,7 @@ class BaseType
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
@@ -271,7 +271,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
@@ -294,7 +294,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
@@ -315,7 +315,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541658")>
@@ -336,7 +336,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -357,7 +357,7 @@ class Program
         this</Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -383,7 +383,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -411,7 +411,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -441,7 +441,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -469,7 +469,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -497,7 +497,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -525,7 +525,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -553,7 +553,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -581,7 +581,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -609,7 +609,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542218")>
@@ -637,7 +637,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542979")>
@@ -657,7 +657,7 @@ class C { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
 #If False Then
@@ -705,7 +705,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
@@ -735,7 +735,7 @@ namespace Tester
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(531200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531200")>
@@ -763,7 +763,7 @@ End Namespace
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(652809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652809")>
@@ -789,7 +789,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

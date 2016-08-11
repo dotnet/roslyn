@@ -2138,21 +2138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     {
-                        var left = (BoundCall)assignmentOperator.Left;
+                        var left = (BoundCall)assignmentTarget;
 
                         Debug.Assert(left.Method.RefKind != RefKind.None);
                         EmitCallExpression(left, UseKind.UsedAsAddress);
-
-                        lhsUsesStack = true;
-                    }
-                    break;
-
-                case BoundKind.AssignmentOperator:
-                    {
-                        var left = (BoundAssignmentOperator)assignmentOperator.Left;
-
-                        Debug.Assert(left.RefKind != RefKind.None);
-                        EmitAssignmentExpression(left, UseKind.UsedAsAddress);
 
                         lhsUsesStack = true;
                     }
@@ -2169,6 +2158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget);
                     lhsUsesStack = true;
                     break;
+
+                case BoundKind.ModuleVersionId:
+                case BoundKind.InstrumentationPayloadRoot:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
             }
 
             return lhsUsesStack;
@@ -2311,11 +2307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)expression).Method.RefKind != RefKind.None);
-                    EmitIndirectStore(expression.Type, expression.Syntax);
-                    break;
-
-                case BoundKind.AssignmentOperator:
-                    Debug.Assert(((BoundAssignmentOperator)expression).RefKind != RefKind.None);
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

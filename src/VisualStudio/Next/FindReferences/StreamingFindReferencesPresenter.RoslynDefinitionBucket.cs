@@ -64,14 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 case StandardTableKeyNames2.DefinitionIcon:
                     return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
-
-                    //case StandardTableKeyNames2.TextInlines:
-                    //    // content of the bucket displayed as a rich text
-                    //    var inlines = new List<Inline>();
-                    //    inlines.Add(new Run("testing") { FontWeight = FontWeights.Bold });
-                    //    inlines.Add(new Run(": defined in "));
-
-                    //    return inlines;
                 }
 
                 return null;

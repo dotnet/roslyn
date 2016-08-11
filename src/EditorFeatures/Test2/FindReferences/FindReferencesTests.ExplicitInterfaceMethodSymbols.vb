@@ -24,7 +24,7 @@ class C : I
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
@@ -46,7 +46,7 @@ class C : I
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -72,7 +72,7 @@ class B : C, A
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

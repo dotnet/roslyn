@@ -2721,7 +2721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        typeArguments = InferMethodTypeArguments(method, leastOverriddenMethod.ConstructedFrom.TypeParameters, arguments, originalEffectiveParameters, out inferenceError, ref useSiteDiagnostics);
+                        typeArguments = InferMethodTypeArguments(method,
+                                            leastOverriddenMethod.ConstructedFrom.TypeParameters,
+                                            arguments,
+                                            originalEffectiveParameters,
+                                            out inferenceError,
+                                            ref useSiteDiagnostics);
                         if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);

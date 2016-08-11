@@ -5349,6 +5349,9 @@
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
   </data>
+  <data name="FEATURE_Tuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5364,10 +5367,25 @@
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
-  <data name="TuplesNotSupported" xml:space="preserve">
-    <value>Tuples are not supported in VB.</value>
-  </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
+    <value>Tuple member names must be unique.</value>
+  </data>
+  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
+    <value>Tuple member names must all be provided, if any one is provided.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
+    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
+    <value>Tuple membername '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
   </data>
 </root>

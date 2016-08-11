@@ -890,9 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.IsExpressionLambda)
             {
-                var refKind = CodeAnalysis.RefKind.None;
-                var body = ((ExpressionSyntax)this.Body).SkipRef(out refKind);
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(refKind, body, diagnostics);
+                return lambdaBodyBinder.BindLambdaExpressionAsBlock((ExpressionSyntax)this.Body, diagnostics);
             }
             else
             {

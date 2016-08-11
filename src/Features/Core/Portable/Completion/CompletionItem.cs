@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
-        [Obsolete("Use the Create overload that does not take a span")]
+        [Obsolete("Use the Create overload that does not take a span", error: true)]
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
-        [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.")]
+        [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
         public CompletionItem WithSpan(TextSpan span)
         {
             return this;

@@ -524,6 +524,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
+            Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaration
+                Throw New NotImplementedException
+            End Function
+
             Public Function GetText(kind As Integer) As String Implements ISyntaxFactsService.GetText
                 Throw New NotImplementedException()
             End Function
@@ -746,6 +750,18 @@ End Class]]></a>.Value.NormalizeLineEndings()
 
             Public Function IsTypeNamedDynamic(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedDynamic
                 Throw New NotImplementedException()
+            End Function
+
+            Public Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
+                Throw New NotImplementedException
+            End Function
+
+            Public Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrExternOrImport
+                Throw New NotImplementedException
+            End Function
+
+            Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGlobalAttribute
+                Throw New NotImplementedException
             End Function
 
             Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration

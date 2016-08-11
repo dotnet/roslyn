@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
-        public ImmutableArray<DocumentLocation> SourceLocations { get; }
+        public ImmutableArray<DocumentSpan> SourceSpans { get; }
 
         /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.FindReferences
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
-            ImmutableArray<DocumentLocation> sourceLocations = default(ImmutableArray<DocumentLocation>),
+            ImmutableArray<DocumentSpan> sourceSpans = default(ImmutableArray<DocumentSpan>),
             bool displayIfNoReferences = true)
         {
             Tags = tags;
             DisplayParts = displayParts;
             OriginationParts = originationParts.NullToEmpty();
-            SourceLocations = sourceLocations.NullToEmpty();
+            SourceSpans = sourceSpans.NullToEmpty();
             DisplayIfNoReferences = displayIfNoReferences;
         }
 
@@ -75,25 +75,25 @@ namespace Microsoft.CodeAnalysis.FindReferences
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            DocumentLocation sourceLocation,
+            DocumentSpan sourceSpan,
             bool displayIfNoReferences = true)
         {
-            return Create(tags, displayParts, ImmutableArray.Create(sourceLocation), displayIfNoReferences);
+            return Create(tags, displayParts, ImmutableArray.Create(sourceSpan), displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
            ImmutableArray<string> tags,
            ImmutableArray<TaggedText> displayParts,
-           ImmutableArray<DocumentLocation> sourceLocations,
+           ImmutableArray<DocumentSpan> sourceSpans,
            bool displayIfNoReferences = true)
         {
-            if (sourceLocations.Length == 0)
+            if (sourceSpans.Length == 0)
             {
-                throw new ArgumentException($"{nameof(sourceLocations)} cannot be empty.");
+                throw new ArgumentException($"{nameof(sourceSpans)} cannot be empty.");
             }
 
             return new DocumentLocationDefinitionItem(
-                tags, displayParts, sourceLocations, displayIfNoReferences);
+                tags, displayParts, sourceSpans, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(

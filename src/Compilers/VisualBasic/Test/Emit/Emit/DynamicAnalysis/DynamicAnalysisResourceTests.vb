@@ -490,6 +490,181 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestFieldInitializerSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                           ' Method 0
+        TestMain()
+    End Sub
+
+    Sub TestMain()                              ' Method 1
+        Dim local As New C() : local = New C(1, 2)
+    End Sub
+End Module
+
+Class C
+    Shared Function Init() As Integer           ' Method 2
+        Return 33
+    End Function
+
+    Sub New()                                   ' Method 3
+        _z = 12
+    End Sub
+
+    Shared Sub New()                            ' Method 4
+        s_z = 123
+    End Sub
+
+    Private _x As Integer = Init()
+    Private _y As Integer = Init() + 12
+    Private _z As Integer
+    Private Shared s_x As Integer = Init()
+    Private Shared s_y As Integer = Init() + 153
+    Private Shared s_z As Integer
+
+    Sub New(x As Integer)                       ' Method 5
+        _z = x
+    End Sub
+
+    Sub New(a As Integer, b As Integer)         ' Method 6
+        _z = a + b
+    End Sub
+
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,
+                        New SpanResult(3, 4, 5, 11, "Public Sub Main()"),
+                        New SpanResult(4, 8, 4, 18, "TestMain()"))
+
+            VerifySpans(reader, reader.Methods(1), sourceLines,
+                        New SpanResult(7, 4, 9, 11, "Sub TestMain()"),
+                        New SpanResult(8, 21, 8, 28, "New C()"),
+                        New SpanResult(8, 31, 8, 50, "local = New C(1, 2)"))
+
+            VerifySpans(reader, reader.Methods(2), sourceLines,
+                        New SpanResult(13, 4, 15, 16, "Shared Function Init() As Integer"),
+                        New SpanResult(14, 8, 14, 17, "Return 33"))
+
+            VerifySpans(reader, reader.Methods(3), sourceLines,
+                        New SpanResult(17, 4, 19, 11, "Sub New()"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
+                        New SpanResult(40, 28, 40, 32, "1234"),
+                        New SpanResult(18, 8, 18, 15, "_z = 12"))
+
+            VerifySpans(reader, reader.Methods(4), sourceLines,
+                        New SpanResult(21, 4, 23, 11, "Shared Sub New()"),
+                        New SpanResult(28, 36, 28, 42, "Init()"),
+                        New SpanResult(29, 36, 29, 48, "Init() + 153"),
+                        New SpanResult(41, 35, 41, 39, "5678"),
+                        New SpanResult(22, 8, 22, 17, "s_z = 123"))
+
+            VerifySpans(reader, reader.Methods(5), sourceLines,
+                        New SpanResult(32, 4, 34, 11, "Sub New(x As Integer)"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
+                        New SpanResult(40, 28, 40, 32, "1234"),
+                        New SpanResult(33, 8, 33, 14, "_z = x"))
+
+            VerifySpans(reader, reader.Methods(6), sourceLines,
+                        New SpanResult(36, 4, 38, 11, "Sub New(a As Integer, b As Integer)"),
+                        New SpanResult(25, 28, 25, 34, "Init()"),
+                        New SpanResult(26, 28, 26, 39, "Init() + 12"),
+                        New SpanResult(40, 28, 40, 32, "1234"),
+                        New SpanResult(37, 8, 37, 18, "_z = a + b"))
+        End Sub
+
+        <Fact>
+        Public Sub TestImplicitConstructorSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                           ' Method 0
+        TestMain()
+    End Sub
+
+    Sub TestMain()                              ' Method 1
+        Dim local As New C()
+    End Sub
+End Module
+
+Class C
+    Shared Function Init() As Integer           ' Method 4
+        Return 33
+    End Function
+
+    Private _x As Integer = Init()
+    Private _y As Integer = Init() + 12
+    Private Shared s_x As Integer = Init()
+    Private Shared s_y As Integer = Init() + 153
+    Private Shared s_z As Integer = 144
+
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,
+                        New SpanResult(3, 4, 5, 11, "Public Sub Main()"),
+                        New SpanResult(4, 8, 4, 18, "TestMain()"))
+
+            VerifySpans(reader, reader.Methods(1), sourceLines,
+                        New SpanResult(7, 4, 9, 11, "Sub TestMain()"),
+                        New SpanResult(8, 21, 8, 28, "New C()"))
+
+            VerifySpans(reader, reader.Methods(4), sourceLines,
+                        New SpanResult(13, 4, 15, 16, "Shared Function Init() As Integer"),
+                        New SpanResult(14, 8, 14, 17, "Return 33"))
+
+            VerifySpans(reader, reader.Methods(2), sourceLines,                     ' implicit shared constructor
+                        New SpanResult(19, 36, 19, 42, "Init()"),
+                        New SpanResult(20, 36, 20, 48, "Init() + 153"),
+                        New SpanResult(21, 36, 21, 39, "144"),
+                        New SpanResult(24, 35, 24, 39, "5678"))
+
+            VerifySpans(reader, reader.Methods(3), sourceLines,                     ' implicit default constructor
+                        New SpanResult(17, 28, 17, 34, "Init()"),
+                        New SpanResult(18, 28, 18, 39, "Init() + 12"),
+                        New SpanResult(23, 28, 23, 32, "1234"))
+        End Sub
+
+        <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(ExampleSource)

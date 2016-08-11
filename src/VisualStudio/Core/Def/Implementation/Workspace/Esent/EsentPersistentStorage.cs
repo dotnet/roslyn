@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
 
             var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
 
             var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
 
             var stream = EsentExceptionWrapper(nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         private Stream ReadStream(EsentStorage.Key key, int nameId, object unused1, object unused2, CancellationToken cancellationToken)

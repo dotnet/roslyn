@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(_statements);
+            return BuildLocals(_statements, this);
         }
 
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()

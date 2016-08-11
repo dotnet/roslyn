@@ -128,17 +128,31 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+  
+  <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
+       Basically, we check for a registry key that will only exist in legacy VS installs, and assume
+       we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
+  <PropertyGroup>
+    <VisualStudioInstallDirectoryFromRegistry Condition="'$(OS)' == 'Windows_NT'">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)</VisualStudioInstallDirectoryFromRegistry>
+    <VisualStudioInstallDirectoryFromRegistry Condition="'$(OS)' == 'Windows_NT' AND '$(VisualStudioInstallDirectoryFromRegistry)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)</VisualStudioInstallDirectoryFromRegistry>
+  </PropertyGroup>
 
   <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '15.0'">
+    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(VisualStudioInstallDirectoryFromRegistry)' != ''">
       <PropertyGroup>
         <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
+      </PropertyGroup>
+    </When>
+    
+    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(VisualStudioInstallDirectoryFromRegistry)' == ''">
+      <PropertyGroup>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
       </PropertyGroup>
     </When>
 
     <Otherwise>
       <PropertyGroup>
-        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25407</VisualStudioBuildToolsNuGetPackagePath>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25420</VisualStudioBuildToolsNuGetPackagePath>
       </PropertyGroup>
     </Otherwise>
   </Choose>

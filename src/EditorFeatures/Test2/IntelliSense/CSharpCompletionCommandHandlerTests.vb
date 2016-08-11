@@ -1906,5 +1906,49 @@ Anonymous Types:
     'a is new { int x }")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRecursiveGenericSymbolKey() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+
+class Program
+{
+    static void ReplaceInList<T>(List<T> list, T oldItem, T newItem)
+    {
+        $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                state.SendTypeChars("list")
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("Add")
+
+                Await state.AssertSelectedCompletionItem("Add", description:="void List<T>.Add(T item)")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitNamedParameterWithColon() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(int args)
+    {
+        Main(args$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+
+                state.SendInvokeCompletionList()
+                state.SendTypeChars(":")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("args:", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
     End Class
 End Namespace

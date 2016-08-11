@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_syntax.Filter != null)
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Filter.FilterExpression);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Filter.FilterExpression);
             }
 
             return locals.ToImmutableAndFree();

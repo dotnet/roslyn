@@ -141,10 +141,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       propertyDef,
                                                                       Nothing,
                                                                       PropertyAccessKind.Get,
-                                                                      False,
-                                                                      anonymousTypeInstance,
-                                                                      ImmutableArray(Of BoundExpression).Empty,
-                                                                      propertyDef.Type)
+                                                                      isWriteable:=False,
+                                                                      isLValue:=False,
+                                                                      receiverOpt:=anonymousTypeInstance,
+                                                                      arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod
                     getCallOrPropertyAccess = New BoundCall(syntax,

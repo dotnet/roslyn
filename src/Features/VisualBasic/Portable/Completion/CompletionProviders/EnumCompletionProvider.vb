@@ -18,6 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
 
+            ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
+            ' Don't run after dot because SymbolCompletionProvider will provide
+            ' members in situations like Dim x = DayOfWeek.$$
+            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
+                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+            End If
+
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
 
@@ -41,6 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetSymbolsWorker(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
+                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+            End If
+
+            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
 

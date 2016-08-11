@@ -109,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
+            Return CaptureOperand(operand, temp, init)
+        End Function
+
+        Private Function CaptureOperand(operand As BoundExpression, <Out> ByRef temp As SynthesizedLocal, <Out> ByRef init As BoundExpression) As BoundExpression
             temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
@@ -171,8 +175,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueOrDefaultMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -194,8 +199,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -221,8 +227,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 hasValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=hasValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),

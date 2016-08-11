@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return null;
         }
 
-        protected override ISet<INamespaceSymbol> GetNamespacesInScope(
+        protected override ISet<INamespaceSymbol> GetImportNamespacesInScope(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)

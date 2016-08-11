@@ -411,7 +411,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private Array ReadBooleanArray(int length)
+        private bool[] ReadBooleanArray(int length)
         {
             if (length == 0)
             {
@@ -441,7 +441,7 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        private T[] ReadPrimitiveTypeArrayElements<T>(int length, Func<T> read)
+        private static T[] ReadPrimitiveTypeArrayElements<T>(int length, Func<T> read)
         {
             if (length == 0)
             {

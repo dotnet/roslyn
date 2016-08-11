@@ -139,6 +139,7 @@
     <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
     <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
+    <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
     <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
@@ -166,7 +167,7 @@
     <Compile Include="Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests.vb" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.vb" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.vb" />
     <Compile Include="Diagnostics\CorrectNextControlVariable\CorrectNextControlVariableTests.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
