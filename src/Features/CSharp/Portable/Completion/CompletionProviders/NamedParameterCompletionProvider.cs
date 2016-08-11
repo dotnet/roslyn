@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
-        private static readonly CompletionItemRules CompletionItemRules = CompletionItemRules.Default
+
+        // Explicitly remove ":" from the set of filter characters because (by default)
+        // any character that appears in DisplayText gets treated as a filter char.
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     symbol: parameter,
                     contextPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules,
+                    rules: s_rules,
                     matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }
