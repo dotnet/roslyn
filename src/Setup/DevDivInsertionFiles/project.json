@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1",
+    "System.Reflection.Metadata": "1.4.1-beta-24410-02"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": {}
+  }
+}

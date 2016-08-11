@@ -6,20 +6,42 @@ Imports System.IO.Packaging
 Imports System.IO
 Imports System.Threading
 Imports System.IO.Compression
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
+Imports System.Reflection.PortableExecutable
+Imports System.Reflection.Metadata
 
-Public Module BuildDevDivInsertionFiles
-    Private Const InsertionFilesDirName = "DevDivInsertionFiles"
+Public Class BuildDevDivInsertionFiles
+    Private Const DevDivInsertionFilesDirName = "DevDivInsertionFiles"
+    Private Const DevDivPackagesDirName = "DevDivPackages"
     Private Const ExternalApisDirName = "ExternalAPIs"
     Private Const NetFX20DirectoryName = "NetFX20"
+    Private Const PublicKeyToken = "31BF3856AD364E35"
 
-    Public Function Main(args As String()) As Integer
+    Private ReadOnly _binDirectory As String
+    Private ReadOnly _outputDirectory As String
+    Private ReadOnly _outputPackageDirectory As String
+    Private ReadOnly _setupDirectory As String
+    Private ReadOnly _nugetPackageRoot As String
+    Private ReadOnly _assemblyVersion As String
+
+    Private Sub New(args As String())
+        _binDirectory = Path.GetFullPath(args(0))
+        _setupDirectory = Path.GetFullPath(args(1))
+        _nugetPackageRoot = Path.GetFullPath(args(2))
+        _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
+        _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
+        _assemblyVersion = args(3)
+    End Sub
+
+    Public Shared Function Main(args As String()) As Integer
+        If args.Length <> 4 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+            Return 1
+        End If
+
         Try
-            Dim inputDirectory = Path.GetFullPath(args(0))
-            Dim outputDirectory = Path.Combine(inputDirectory, InsertionFilesDirName)
-            Dim assemblyVersion = args(1)
-            Dim publicKeyToken = args(2)
-
-            Call New Worker(inputDirectory, outputDirectory, assemblyVersion, publicKeyToken).Execute()
+            Call New BuildDevDivInsertionFiles(args).Execute()
             Return 0
         Catch ex As Exception
             Console.Error.WriteLine(ex.ToString())
@@ -27,7 +49,6 @@ Public Module BuildDevDivInsertionFiles
         End Try
     End Function
 
-    Private Class Worker
         Private ReadOnly BinariesToSkipLocalization As String() = {
             "Microsoft.CodeAnalysis.Elfie.dll"
         }
@@ -330,34 +351,30 @@ Public Module BuildDevDivInsertionFiles
             "Tao.Utilities.dll"
         }
 
-        Private ReadOnly inputDirectory As String
-        Private ReadOnly outputDirectory As String
-        Private ReadOnly assemblyVersion As String
-        Private ReadOnly publicKeyToken As String
+        Private Sub DeleteDirContents(dir As String)
+            If Directory.Exists(dir) Then
+                ' Delete everything within it. We'll keep the top-level one around.
+                For Each file In New DirectoryInfo(dir).GetFiles()
+                    file.Delete()
+                Next
 
-        Public Sub New(inputDirectory As String, outputDirectory As String, assemblyVersion As String, publicKeyToken As String)
-            Me.inputDirectory = inputDirectory
-            Me.outputDirectory = outputDirectory
-            Me.assemblyVersion = assemblyVersion
-            Me.publicKeyToken = publicKeyToken
+                For Each directory In New DirectoryInfo(dir).GetDirectories()
+                    directory.Delete(recursive:=True)
+                Next
+            End If
         End Sub
 
         Public Sub Execute()
             Retry(Sub()
-                      If Directory.Exists(outputDirectory) Then
-                          ' Delete everything within it. We'll keep the top-level one around.
-                          For Each file In New DirectoryInfo(outputDirectory).GetFiles()
-                              file.Delete()
-                          Next
-
-                          For Each directory In New DirectoryInfo(outputDirectory).GetDirectories()
-                              directory.Delete(recursive:=True)
-                          Next
-                      End If
+                      DeleteDirContents(_outputDirectory)
+                      DeleteDirContents(_outputPackageDirectory)
                   End Sub)
 
             ' Build a dependency map
-            Dim dependencies = BuildDependencyMap(inputDirectory)
+            Dim dependencies = BuildDependencyMap(_binDirectory)
+            GenerateContractList(dependencies)
+            GenerateAssemblyVersionList(dependencies)
+            CopyDependencies(dependencies)
 
             ' List of files to add to VS.ExternalAPI.Roslyn.nuspec.
             ' Paths are relative to input directory.
@@ -377,14 +394,15 @@ Public Module BuildDevDivInsertionFiles
                 End If
 
                 If NeedsLocalization(fileName) Then
-                    Dim relativeOutputDir = GetExternalApiDirectory(dependency)
+                    ' use implementation assembly for loc and setup authoring
+                    Dim relativeOutputDir = GetExternalApiDirectory(dependency, contract:=False)
                     GenerateLocProject(fileName, Path.Combine(relativeOutputDir, fileName), locProjects)
                 End If
             Next
 
             ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
             ' These are for msvsmon, whose setup authoring is done by the debugger.
-            For Each relativePath In Directory.EnumerateFiles(Path.Combine(inputDirectory, NetFX20DirectoryName), "*.ExpressionEvaluator.*.dll", SearchOption.TopDirectoryOnly)
+            For Each relativePath In Directory.EnumerateFiles(Path.Combine(_binDirectory, NetFX20DirectoryName), "*.ExpressionEvaluator.*.dll", SearchOption.TopDirectoryOnly)
                 filesToInsert.Add(New NugetFileInfo(Path.Combine(NetFX20DirectoryName, Path.GetFileName(relativePath)), NetFX20DirectoryName))
             Next
 
@@ -404,10 +422,14 @@ Public Module BuildDevDivInsertionFiles
             GenerateTestFileDependencyList(NameOf(IntegrationTestFilesExtra), IntegrationTestFilesExtra, insertedFiles)
         End Sub
 
-        Private Shared Function GetExternalApiDirectory(Optional dependency As DependencyInfo = Nothing) As String
+        Private Shared Function GetExternalApiDirectory() As String
+            Return Path.Combine(ExternalApisDirName, "Roslyn")
+        End Function
+
+        Private Shared Function GetExternalApiDirectory(dependency As DependencyInfo, contract As Boolean) As String
             Return If(dependency Is Nothing,
-                Path.Combine(ExternalApisDirName, "Roslyn"),
-                Path.Combine(ExternalApisDirName, dependency.PackageName, dependency.Target))
+                    GetExternalApiDirectory(),
+                    Path.Combine(ExternalApisDirName, dependency.PackageName, If(contract, dependency.ContractDir, dependency.ImplementationDir)))
         End Function
 
         Private Class NugetFileInfo
@@ -431,100 +453,144 @@ Public Module BuildDevDivInsertionFiles
 
             Public Function IEquatableEquals(other As NugetFileInfo) As Boolean Implements IEquatable(Of NugetFileInfo).Equals
                 Return other IsNot Nothing AndAlso
-                    StringComparer.OrdinalIgnoreCase.Equals(Path, other.Path) AndAlso
-                    StringComparer.OrdinalIgnoreCase.Equals(Target, other.Target)
+                        StringComparer.OrdinalIgnoreCase.Equals(Path, other.Path) AndAlso
+                        StringComparer.OrdinalIgnoreCase.Equals(Target, other.Target)
             End Function
         End Class
 
         Private Class DependencyInfo
-            Public Target As String
+            ' For example, "ref/net46"
+            Public ContractDir As String
+
+            ' For example, "lib/net46"
+            Public ImplementationDir As String
+
+            ' For example, "System.AppContext"
             Public PackageName As String
+
+            ' For example, "4.1.0"
             Public PackageVersion As String
 
-            Sub New(target As String, packageName As String, packageVersion As String)
-                Me.Target = target
+            Public IsNative As Boolean
+
+            Sub New(contractDir As String, implementationDir As String, packageName As String, packageVersion As String, isNative As Boolean)
+                Me.ContractDir = contractDir
+                Me.ImplementationDir = implementationDir
                 Me.PackageName = packageName
                 Me.PackageVersion = packageVersion
+                Me.IsNative = isNative
             End Sub
         End Class
-
-        ' If a package contains multiple targets we pick the one that has the highest listed number.
-        ' Only platforms used by the packages we insert need to be listed.
-        Private Shared m_platformPreference As String() =
-        {
-            "net20",
-            "netcore45",
-            "net40",
-            "net45",
-            "net451",
-            "net452",
-            "net46",
-            "net461",
-            "net462",
-            "dotnet",
-            "dotnet5.1",
-            "dotnet5.2",
-            "portable-net45+win8",
-            "portable-net45+win8+wp8+wpa81",
-            "netstandard1.0",
-            "netstandard1.1",
-            "netstandard1.2",
-            "netstandard1.3",
-            "netstandard1.4",
-            "netstandard1.5",
-            "native"
-        }
-
-        Private Shared Function GetPlatformId(target As String) As String
-            Return Path.GetFileName(target).Replace("%2B", "+")
-        End Function
 
         Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
             Dim result = New Dictionary(Of String, DependencyInfo)
 
-            For Each nupkgPath In Directory.EnumerateFiles(Path.Combine(inputDirectory, "DevDivPackages", "ManagedDependencies"), "*.nupkg", SearchOption.TopDirectoryOnly)
-                Using zip = ZipFile.OpenRead(nupkgPath)
-                    Dim packageName As String = Nothing
-                    Dim packageVersion As String = Nothing
-                    NugetUtilities.ParsePackageFileName(Path.GetFileName(nupkgPath), packageName, packageVersion)
+            For Each projectLockJson In Directory.EnumerateFiles(Path.Combine(_setupDirectory, DevDivPackagesDirName), "*.lock.json", SearchOption.AllDirectories)
+                Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
+                Const targetFx = ".NETFramework,Version=v4.6.1/win"
 
-                    For Each entry In zip.Entries
-                        If IsExecutableCodeFileName(entry.FullName) Then
-                            Dim fileName = Path.GetFileName(entry.FullName)
-                            Dim target = Path.GetDirectoryName(entry.FullName)
+                Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
+                If targetObj Is Nothing Then
+                    Throw New InvalidDataException($"Expected platform not found in '{projectLockJson}': '{targetFx}'")
+                End If
 
-                            Dim platformPreference = Array.IndexOf(m_platformPreference, GetPlatformId(target))
-                            If platformPreference < 0 Then
-                                Throw New InvalidOperationException($"Unknown platform: '{GetPlatformId(target)}' (package '{nupkgPath}')")
+                For Each targetProperty In targetObj.Properties
+                    Dim packageNameAndVersion = targetProperty.Name.Split("/"c)
+                    Dim packageName = packageNameAndVersion(0)
+                    Dim packageVersion = packageNameAndVersion(1)
+                    Dim packageObj = DirectCast(targetProperty.Value, JObject)
+
+                    Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
+                    Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
+                    Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
+
+                    Dim implementations = If(runtime, native)
+                    If implementations Is Nothing Then
+                        Continue For
+                    End If
+
+                    For Each assemblyProperty In implementations.Properties()
+                        Dim fileName = Path.GetFileName(assemblyProperty.Name)
+                        If fileName <> "_._" Then
+                            If result.ContainsKey(fileName) Then
+                                Continue For
                             End If
 
-                            Dim existing As DependencyInfo = Nothing
-                            If result.TryGetValue(fileName, existing) Then
-                                If Not existing.PackageName.Equals(packageName) OrElse Not existing.PackageName.Equals(packageName) Then
-                                    Throw New InvalidOperationException($"Multiple packages contain the same file '{fileName}'")
-                                End If
+                            Dim runtimeTarget = Path.GetDirectoryName(assemblyProperty.Name)
 
-                                If platformPreference > Array.IndexOf(m_platformPreference, GetPlatformId(existing.Target)) Then
-                                    result(fileName) = New DependencyInfo(target, packageName, packageVersion)
-                                End If
-                            Else
-                                result.Add(fileName, New DependencyInfo(target, packageName, packageVersion))
-                            End If
+                            Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
+                            Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
+
+                            result.Add(fileName, New DependencyInfo(compileTarget, runtimeTarget, packageName, packageVersion, native IsNot Nothing))
                         End If
                     Next
-                End Using
+                Next
             Next
 
             Return result
         End Function
+
+        Private Sub GenerateContractList(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
+            Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("ContractAssemblies.props"))
+                writer.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
+                writer.WriteLine("<Project ToolsVersion=""14.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">")
+                writer.WriteLine("  <!-- Generated file, do not directly edit. Contact mlinfraswat@microsoft.com if you need to add a library that's not listed -->")
+                writer.WriteLine("  <PropertyGroup>")
+
+                For Each entry In dependencies.OrderBy(Function(e) e.Key)
+                    Dim fileName = entry.Key
+                    Dim dependency = entry.Value
+                    If dependency.ContractDir IsNot Nothing Then
+                        Dim variableName = "FXContract_" + dependency.PackageName.Replace(".", "_")
+                        Dim dir = Path.Combine(dependency.PackageName, dependency.ContractDir)
+                        writer.WriteLine($"    <{variableName}>{Path.Combine(dir, fileName)}</{variableName}>")
+                    End If
+                Next
+
+                writer.WriteLine("  </PropertyGroup>")
+                writer.WriteLine("</Project>")
+            End Using
+        End Sub
+
+        Private Sub GenerateAssemblyVersionList(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
+            Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("DependentAssemblyVersions.csv"))
+                For Each entry In dependencies.OrderBy(Function(e) e.Key)
+                    Dim fileName = entry.Key
+                    Dim dependency = entry.Value
+                    If Not dependency.IsNative Then
+
+                        Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+
+                        Dim version As Version
+                        Using peReader = New PEReader(File.OpenRead(dllPath))
+                            version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
+                        End Using
+
+                        writer.WriteLine($"{Path.GetFileNameWithoutExtension(fileName)},{version}")
+                    End If
+                Next
+            End Using
+        End Sub
+
+        Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
+            For Each dependency In dependencies.Values
+                Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
+                Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
+                Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
+                Dim dstPath = Path.Combine(dstDir, nupkg)
+
+                Directory.CreateDirectory(dstDir)
+                File.Copy(srcPath, dstPath, overwrite:=True)
+            Next
+        End Sub
 
         ''' <summary>
         ''' Generate a list of files which were not inserted and place them in the named file.
         ''' </summary>
         Private Sub GenerateTestFileDependencyList(outputFileName As String, fileSpecs As IEnumerable(Of String), insertedFiles As HashSet(Of String))
             File.WriteAllLines(
-                Path.Combine(outputDirectory, Path.ChangeExtension(outputFileName, ".txt")),
-                fileSpecs.Where(Function(f) Not insertedFiles.Contains(f)))
+                    Path.Combine(_outputDirectory, Path.ChangeExtension(outputFileName, ".txt")),
+                    fileSpecs.Where(Function(f) Not insertedFiles.Contains(f)))
         End Sub
 
         ''' <summary>
@@ -539,20 +605,20 @@ Public Module BuildDevDivInsertionFiles
         Private Iterator Function ExpandTestDependencies(fileSpecs As String()) As IEnumerable(Of String)
             For Each spec In fileSpecs
                 If spec.Contains("*") Then
-                    For Each path In Directory.EnumerateFiles(inputDirectory, spec, SearchOption.TopDirectoryOnly)
-                        Yield path.Substring(inputDirectory.Length)
+                    For Each path In Directory.EnumerateFiles(_binDirectory, spec, SearchOption.TopDirectoryOnly)
+                        Yield path.Substring(_binDirectory.Length)
                     Next
                 Else
-                    Dim inputItem = Path.Combine(inputDirectory, spec)
+                    Dim inputItem = Path.Combine(_binDirectory, spec)
 
                     If Directory.Exists(inputItem) Then
                         For Each path In Directory.EnumerateFiles(inputItem, "*.*", SearchOption.AllDirectories)
-                            Yield path.Substring(inputDirectory.Length)
+                            Yield path.Substring(_binDirectory.Length)
                         Next
                     ElseIf File.Exists(inputItem) Then
                         Yield spec
                     Else
-                        Throw New FileNotFoundException($"File or directory '{spec}' listed in test dependencies doesn't exist.", spec)
+                        Throw New FileNotFoundException($"File Or directory '{spec}' listed in test dependencies doesn't exist.", spec)
                     End If
                 End If
             Next
@@ -586,7 +652,7 @@ Public Module BuildDevDivInsertionFiles
             ' We build our language service authoring by cracking our .vsixes and pulling out the bits that matter
             For Each vsixFileName In VsixesToInstall
                 Dim vsixName As String = Path.GetFileNameWithoutExtension(vsixFileName)
-                Using vsix = Package.Open(Path.Combine(inputDirectory, vsixFileName), FileMode.Open, FileAccess.Read, FileShare.Read)
+                Using vsix = Package.Open(Path.Combine(_binDirectory, vsixFileName), FileMode.Open, FileAccess.Read, FileShare.Read)
                     For Each vsixPart In vsix.GetParts()
 
                         ' This part might be metadata for the digital signature. In that case, skip it
@@ -610,7 +676,8 @@ Public Module BuildDevDivInsertionFiles
                         If IsLanguageServiceRegistrationFile(partFileName) Then
                             relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
                         ElseIf dependencies.TryGetValue(partFileName, dependency) Then
-                            relativeOutputDir = GetExternalApiDirectory(dependency)
+                            ' use implementation assembly for loc and setup authoring
+                            relativeOutputDir = GetExternalApiDirectory(dependency, contract:=False)
                         Else
                             relativeOutputDir = GetExternalApiDirectory()
                         End If
@@ -631,8 +698,8 @@ Public Module BuildDevDivInsertionFiles
                                         RewriteVsixManifest(absoluteOutputFilePath)
                                 End Select
                             ElseIf dependency Is Nothing Then
-                                If Not File.Exists(Path.Combine(inputDirectory, partRelativePath)) Then
-                                    Throw New InvalidOperationException($"File '{vsixPart.Uri}' is contained in '{vsixFileName}' but not present in '{inputDirectory}'.")
+                                If Not File.Exists(Path.Combine(_binDirectory, partRelativePath)) Then
+                                    Throw New InvalidOperationException($"File '{vsixPart.Uri}' is contained in '{vsixFileName}' but not present in '{_binDirectory}'.")
                                 End If
 
                                 ' paths are relative to input directory:
@@ -691,7 +758,7 @@ Public Module BuildDevDivInsertionFiles
         Private Sub AddXmlDocumentationFile(filesToInsert As List(Of NugetFileInfo), fileName As String)
             If IsExecutableCodeFileName(fileName) Then
                 Dim xmlDocFile = Path.ChangeExtension(fileName, ".xml")
-                If File.Exists(Path.Combine(inputDirectory, xmlDocFile)) Then
+                If File.Exists(Path.Combine(_binDirectory, xmlDocFile)) Then
                     ' paths are relative to input directory
                     filesToInsert.Add(New NugetFileInfo(xmlDocFile))
                 End If
@@ -720,7 +787,7 @@ Public Module BuildDevDivInsertionFiles
                               <version>0.0</version>
                           </metadata>
                           <files>
-                              <file src=<%= Path.Combine(InsertionFilesDirName, ExternalApisDirName, "Roslyn", "**") %> target=""/>
+                              <file src=<%= Path.Combine(DevDivInsertionFilesDirName, ExternalApisDirName, "Roslyn", "**") %> target=""/>
                               <%= filesToInsert.
                                   OrderBy(Function(f) f.Path).
                                   Distinct().
@@ -909,7 +976,7 @@ Public Module BuildDevDivInsertionFiles
         End Function
 
         Private Function GetAbsolutePathInOutputDirectory(relativePath As String) As String
-            Dim absolutePath = Path.Combine(outputDirectory, relativePath)
+            Dim absolutePath = Path.Combine(_outputDirectory, relativePath)
 
             ' Ensure that the parent directories are all created
             Directory.CreateDirectory(Path.GetDirectoryName(absolutePath))
@@ -984,7 +1051,7 @@ Public Module BuildDevDivInsertionFiles
                     ElseIf parts(1).StartsWith("""") AndAlso parts(1).EndsWith("""") Then
                         Dim valueWithoutQuotes = parts(1).Substring(1, parts(1).Length - 2)
                         Dim assemblyName = Path.GetFileNameWithoutExtension(valueWithoutQuotes)
-                        Dim qualifiedName = assemblyName + ", Version=" + assemblyVersion + ", Culture=neutral, PublicKeyToken=" + publicKeyToken
+                        Dim qualifiedName = assemblyName + ", Version=" + _assemblyVersion + ", Culture=neutral, PublicKeyToken=" + PublicKeyToken
                         lines(i) = """Assembly""=""" + qualifiedName + """"
                     End If
                 ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
@@ -996,4 +1063,3 @@ Public Module BuildDevDivInsertionFiles
             File.WriteAllLines(fileToRewrite, lines.Where(Function(l) l IsNot Nothing))
         End Sub
     End Class
-End Module

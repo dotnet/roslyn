@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "ManagedEsent": "1.9.2",
+    "ManagedEsent": "1.9.4",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
     "Microsoft.VisualStudio.Shell.14.0": {
         "version": "14.3.25407",
