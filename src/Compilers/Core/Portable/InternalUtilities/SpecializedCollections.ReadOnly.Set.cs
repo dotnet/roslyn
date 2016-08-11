@@ -9,7 +9,10 @@ namespace Roslyn.Utilities
     {
         private partial class ReadOnly
         {
-            internal class Set<TUnderlying, T> : Collection<TUnderlying, T>, ISet<T>, IReadOnlySet<T>
+            internal class Set<TUnderlying, T> : Collection<TUnderlying, T>, ISet<T>
+#if COMPILERCORE
+                , IReadOnlySet<T>
+#endif
                 where TUnderlying : ISet<T>
             {
                 public Set(TUnderlying underlying)

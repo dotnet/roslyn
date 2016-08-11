@@ -9,7 +9,10 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal class Set<T> : Collection<T>, ISet<T>, IReadOnlySet<T>
+            internal class Set<T> : Collection<T>, ISet<T>
+#if COMPILERCORE
+                , IReadOnlySet<T>
+#endif
             {
                 public static readonly new Set<T> Instance = new Set<T>();
 
