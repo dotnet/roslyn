@@ -74,10 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // With instrumentation, class declarations can be the syntax associated with a synthesized static constructor.
-            if (syntaxOpt.Kind() == SyntaxKind.ClassDeclaration)
+            switch (syntaxOpt.Kind())
             {
-                return;
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                    // With instrumentation, type declarations can be the syntax associated with a synthesized constructor.
+                    // This is not truly a closure scope syntax, but must be allowed to pass here.
+                    return;
             }
 
             throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());

@@ -658,7 +658,7 @@ End Class
                         New SpanResult(21, 36, 21, 39, "144"),
                         New SpanResult(24, 35, 24, 39, "5678"))
 
-            VerifySpans(reader, reader.Methods(3), sourceLines,                     ' implicit default constructor
+            VerifySpans(reader, reader.Methods(3), sourceLines,                     ' implicit instance constructor
                         New SpanResult(17, 28, 17, 34, "Init()"),
                         New SpanResult(18, 28, 18, 39, "Init() + 12"),
                         New SpanResult(23, 28, 23, 32, "1234"))
@@ -666,7 +666,7 @@ End Class
 
 
         <Fact>
-        Public Sub TestImplicitSharedConstructorWithLambdaSpans()
+        Public Sub TestImplicitConstructorsWithLambdasSpans()
             Dim testSource As XElement = <file name="c.vb">
                                              <![CDATA[
 Module Program
@@ -677,7 +677,11 @@ Module Program
     End Sub
 
     Sub TestMain()                                      ' Method 1
-        Dim local As Integer = C.s_c._function()
+        Dim y As Integer = C.s_c._function()
+        Dim dd As New D()
+        Dim z As Integer = dd._c._function()
+        Dim zz As Integer = D.s_c._function()
+        Dim zzz As Integer = dd._c1._function()
     End Sub
 End Module
 
@@ -689,6 +693,24 @@ Class C
     Shared Public s_c As New C(Function () 15)
     Public _function as System.Func(Of Integer)
 End Class
+
+Class D
+    Public _c As C = New C(Function() 120)
+    Public Shared s_c As C = New C(Function() 144)
+    Public _c1 As New C(Function()
+                            Return 130
+                        End Function)
+    Public Shared s_c1 As New C(Function()
+                                    Return 156
+                                End Function)
+End Class
+
+Structure E
+    Public Shared s_c As C = New C(Function() 1444)
+    Public Shared s_c1 As New C(Function()
+                                    Return 1567
+                                End Function)
+End Structure
 ]]>
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
@@ -710,15 +732,34 @@ End Class
                         New SpanResult(4, 8, 4, 18, "TestMain()"))
 
             VerifySpans(reader, reader.Methods(1), sourceLines,
-                        New SpanResult(7, 4, 9, 11, "Sub TestMain()"),
-                        New SpanResult(8, 31, 8, 48, "C.s_c._function()"))
+                        New SpanResult(7, 4, 13, 11, "Sub TestMain()"),
+                        New SpanResult(8, 27, 8, 44, "C.s_c._function()"),
+                        New SpanResult(9, 18, 9, 25, "New D()"),
+                        New SpanResult(10, 27, 10, 44, "dd._c._function()"),
+                        New SpanResult(11, 28, 11, 45, "D.s_c._function()"),
+                        New SpanResult(12, 29, 12, 47, "dd._c1._function()"))
 
-            VerifySpans(reader, reader.Methods(2), sourceLines,                     ' Implicit shared constructor
-                New SpanResult(17, 22, 17, 46, "As New C(Function () 15)"))
+            VerifySpans(reader, reader.Methods(2), sourceLines,                                         ' Synthesized shared constructor for C
+                        New SpanResult(21, 22, 21, 46, "As New C(Function () 15)"))
 
             VerifySpans(reader, reader.Methods(3), sourceLines,
-                New SpanResult(13, 4, 15, 11, "Public Sub New(f As System.Func(Of Integer))"),
-                New SpanResult(14, 8, 14, 21, "_function = f"))
+                        New SpanResult(17, 4, 19, 11, "Public Sub New(f As System.Func(Of Integer))"),
+                        New SpanResult(18, 8, 18, 21, "_function = f"))
+
+            VerifySpans(reader, reader.Methods(4), sourceLines,                                         ' Synthesized shared constructor for D
+                        New SpanResult(27, 29, 27, 50, "New C(Function() 144)"),
+                        New SpanResult(32, 36, 32, 46, "Return 156"),
+                        New SpanResult(31, 23, 33, 45, "As New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(5), sourceLines,                                         ' Synthesized instance constructor for D
+                        New SpanResult(26, 21, 26, 42, "New C(Function() 120)"),
+                        New SpanResult(29, 28, 29, 38, "Return 130"),
+                        New SpanResult(28, 15, 30, 37, "As New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(6), sourceLines,                                         ' Synthesized shared constructor for E
+                        New SpanResult(37, 29, 37, 51, "New C(Function() 1444)"),
+                        New SpanResult(39, 36, 39, 47, "Return 1567"),
+                        New SpanResult(38, 23, 40, 45, "As New C(Function()"))
         End Sub
 
         <Fact>

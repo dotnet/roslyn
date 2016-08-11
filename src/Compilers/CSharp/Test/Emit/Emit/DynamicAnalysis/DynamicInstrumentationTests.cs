@@ -1758,34 +1758,54 @@ True
         }
 
         [Fact]
-        public void TestImplicitStaticConstructorWithLambdaCoverage()
+        public void TestImplicitConstructorsWithLambdasCoverage()
         {
             string source = @"
 using System;
 
 public class C
 {
-    public static void Main()                                   // Method 1
+    public static void Main()                                               // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()                                      // Method 2
+    static void TestMain()                                                  // Method 2
     {
         int y = s_c._function();
+        D d = new D();
+        int z = d._c._function();
+        int zz = D.s_c._function();
+        int zzz = d._c1._function();
     }
 
-    C(Func<int> f)                                              // Method 3
+    public C(Func<int> f)                                                   // Method 3
     {
         _function = f;
     }
 
     static C s_c = new C(() => 115);
     Func<int> _function;
-
-    // Method 4 is the implicit static constructor.
 }
+
+class D
+{
+    public C _c = new C(() => 120);
+    public static C s_c = new C(() => 144);
+    public C _c1 = new C(() => 130);
+    public static C s_c1 = new C(() => 156);
+}
+
+struct E
+{
+    public static C s_c = new C(() => 1444);
+    public static C s_c1 = new C(() => { return 1567; });
+}
+
+// Method 4 is the synthesized static constructor for C.
+// Method 5 is the synthesized instance constructor for D.
+// Method 6 is the synthesized static constructor for D.
 ";
             string expectedOutput = @"
 Flushing
@@ -1798,6 +1818,10 @@ Method 2
 File 1
 True
 True
+True
+True
+True
+True
 Method 3
 File 1
 True
@@ -1806,7 +1830,19 @@ Method 4
 File 1
 True
 True
+Method 5
+File 1
+True
+True
+True
+True
 Method 6
+File 1
+True
+False
+True
+True
+Method 9
 File 1
 True
 True

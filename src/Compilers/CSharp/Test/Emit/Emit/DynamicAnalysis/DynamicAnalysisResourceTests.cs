@@ -597,7 +597,7 @@ public class C
         }
 
         [Fact]
-        public void TestImplicitStaticConstructorWithLambdaSpans()
+        public void TestImplicitConstructorsWithLambdasSpans()
         {
             string source = @"
 using System;
@@ -612,15 +612,32 @@ public class C
     static void TestMain()                                      // Method 1
     {
         int y = s_c._function();
+        D d = new D();
+        int z = d._c._function();
+        int zz = D.s_c._function();
     }
 
-    C(Func<int> f)                                              // Method 2
+    public C(Func<int> f)                                       // Method 2
     {
         _function = f;
     }
 
     static C s_c = new C(() => 115);
     Func<int> _function;
+}
+
+class D
+{
+    public C _c = new C(() => 120);
+    public static C s_c = new C(() => 144);
+    public C _c1 = new C(() => 130);
+    public static C s_c1 = new C(() => 156);
+}
+
+struct E
+{
+    public static C s_c = new C(() => 1444);
+    public static C s_c1 = new C(() => { return 1567; });
 }
 ";
 
@@ -637,16 +654,37 @@ public class C
                 new SpanResult(7, 8, 7, 19, "TestMain()"));
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
-                new SpanResult(10, 4, 13, 5, "static void TestMain()"),
-                new SpanResult(12, 8, 12, 32, "int y = s_c._function()"));
+                new SpanResult(10, 4, 16, 5, "static void TestMain()"),
+                new SpanResult(12, 8, 12, 32, "int y = s_c._function()"),
+                new SpanResult(13, 8, 13, 22, "D d = new D()"),
+                new SpanResult(14, 8, 14, 33, "int z = d._c._function()"),
+                new SpanResult(15, 8, 15, 35, "int zz = D.s_c._function()"));
 
             VerifySpans(reader, reader.Methods[2], sourceLines,
-                new SpanResult(15, 4, 18, 5, "C(Func<int> f)"),
-                new SpanResult(17, 8, 17, 22, "_function = f"));
+                new SpanResult(18, 4, 21, 5, "public C(Func<int> f)"),
+                new SpanResult(20, 8, 20, 22, "_function = f"));
 
-            VerifySpans(reader, reader.Methods[3], sourceLines,                     // Synthesized static constructor
-               new SpanResult(20, 31, 20, 34, "115"),
-               new SpanResult(20, 19, 20, 35, "new C(() => 115)"));
+            VerifySpans(reader, reader.Methods[3], sourceLines,                     // Synthesized static constructor for C
+                new SpanResult(23, 31, 23, 34, "115"),
+                new SpanResult(23, 19, 23, 35, "new C(() => 115)"));
+
+            VerifySpans(reader, reader.Methods[4], sourceLines,                     // Synthesized instance constructor for D
+                new SpanResult(29, 30, 29, 33, "120"),
+                new SpanResult(31, 31, 31, 34, "130"),
+                new SpanResult(29, 18, 29, 34, "new C(() => 120)"),
+                new SpanResult(31, 19, 31, 35, "new C(() => 130)"));
+
+            VerifySpans(reader, reader.Methods[5], sourceLines,                     // Synthesized static constructor for D
+                new SpanResult(30, 38, 30, 41, "144"),
+                new SpanResult(32, 39, 32, 42, "156"),
+                new SpanResult(30, 26, 30, 42, "new C(() => 144)"),
+                new SpanResult(32, 27, 32, 43, "new C(() => 156"));
+
+            VerifySpans(reader, reader.Methods[6], sourceLines,                     // Synthesized static constructor for E
+                new SpanResult(37, 38, 37, 42, "1444"),
+                new SpanResult(38, 41, 38, 53, "return 1567"),
+                new SpanResult(37, 26, 37, 43, "new C(() => 1444)"),
+                new SpanResult(38, 27, 38, 56, "new C(() => { return 1567; })"));
         }
 
         [Fact]

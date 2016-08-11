@@ -3258,9 +3258,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return syntaxOffset
             End If
 
+            ' With instrumentation, a synthesized constructor has a local variable for the instrumentation payload,
+            ' and an ininitializer with a lambda can refer to that local.
+            Return 0
+
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
-            Throw ExceptionUtilities.Unreachable
+            ' Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).
