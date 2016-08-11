@@ -143,7 +143,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns the specified parser language version.
+        ''' Returns the specified language version, which is the value that was specified in the call to the
+        ''' constructor, or modified using the <see cref="WithLanguageVersion"/> method, or provided on the command line.
         ''' </summary>        
         Public ReadOnly Property SpecifiedLanguageVersion As LanguageVersion
             Get
@@ -152,7 +153,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns the effective parser language version.
+        ''' Returns the effective language version, which the compiler uses to select the
+        ''' language rules to apply to the program.
         ''' </summary>        
         Public ReadOnly Property LanguageVersion As LanguageVersion
             Get

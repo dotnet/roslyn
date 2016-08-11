@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return If(result, VisualBasicParseOptions.Default.LanguageVersion.MapSpecifiedToEffectiveVersion)
+            Return If(result, LanguageVersion.Default.MapSpecifiedToEffectiveVersion)
         End Function
 
         ''' <summary>

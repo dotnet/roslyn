@@ -21,12 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableDictionary<string, string> _features;
 
         /// <summary>
-        /// Gets the effective language version.
+        /// Gets the effective language version, which the compiler uses to select the
+        /// language rules to apply to the program.
         /// </summary>
         public LanguageVersion LanguageVersion { get; private set; }
 
         /// <summary>
-        /// Gets the specified language version.
+        /// Gets the specified language version, which is the value that was specified in
+        /// the call to the constructor, or modified using the <see cref="WithLanguageVersion"/> method,
+        /// or provided on the command line.
         /// </summary>
         public LanguageVersion SpecifiedLanguageVersion { get; private set; }
 
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
                     {
-                        throw new ArgumentException("preprocessorSymbols");
+                        throw new ArgumentException(nameof(preprocessorSymbol));
                     }
                 }
             }
