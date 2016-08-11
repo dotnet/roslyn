@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Execution.Serialization
+namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
     /// this is default implementation of IReferenceSerializationService

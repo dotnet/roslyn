@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Execution
                         return (T)(object)DeserializeChecksumObjectWithChildren(reader, cancellationToken);
 
                     case WellKnownChecksumObjects.SolutionChecksumObjectInfo:
-                        return (T)(object)DeserializeSolutionSnapshotInfo(reader, cancellationToken);
+                        return (T)(object)DeserializeSolutionChecksumObjectInfo(reader, cancellationToken);
                     case WellKnownChecksumObjects.ProjectChecksumObjectInfo:
-                        return (T)(object)DeserializeProjectSnapshotInfo(reader, cancellationToken);
+                        return (T)(object)DeserializeProjectChecksumObjectInfo(reader, cancellationToken);
                     case WellKnownChecksumObjects.DocumentChecksumObjectInfo:
-                        return (T)(object)DeserializeDocumentSnapshotInfo(reader, cancellationToken);
+                        return (T)(object)DeserializeDocumentChecksumObjectInfo(reader, cancellationToken);
                     case WellKnownChecksumObjects.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
                     case WellKnownChecksumObjects.ParseOptions:

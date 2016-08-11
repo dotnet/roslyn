@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = new Serializer(workspace.Services);
-            var trees = new ChecksumTreeNodeCacheCollection();
-            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNodeCache(workspace.CurrentSolution));
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution));
 
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);

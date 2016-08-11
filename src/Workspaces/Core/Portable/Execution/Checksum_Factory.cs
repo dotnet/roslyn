@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
-using Microsoft.CodeAnalysis.Execution.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution

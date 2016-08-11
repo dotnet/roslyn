@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Execution
     internal struct SnapshotBuilder
     {
         private readonly Serializer _serializer;
-        private readonly ChecksumTreeNodeCache _checksumTree;
+        private readonly IChecksumTreeNode _checksumTree;
 
-        public SnapshotBuilder(ChecksumTreeNodeCache checksumTree)
+        public SnapshotBuilder(IChecksumTreeNode checksumTree)
         {
             _checksumTree = checksumTree;
             _serializer = checksumTree.Serializer;
