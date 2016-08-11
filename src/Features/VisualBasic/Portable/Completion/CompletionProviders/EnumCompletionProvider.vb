@@ -18,6 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
 
+            ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
+            ' Don't run after dot because SymbolCompletionProvider will provide
+            ' members in situations like Dim x = DayOfWeek.$$
             If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
