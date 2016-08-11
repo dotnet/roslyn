@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
-    internal interface ICodeLensReferencesService : IWorkspaceService
+    public interface ICodeLensReferencesService : IWorkspaceService
     {
         /// <summary>
         /// Given a document and syntax node, returns the number of locations where the located node is referenced.
