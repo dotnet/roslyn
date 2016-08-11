@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis
         public Type HostObjectType { get; }
 
         /// <summary>
+        /// The command line arguments to compile this project.  May be <see langword="null" />
+        /// </summary>
+        public string CommandLineOpt { get; }
+
+        /// <summary>
         /// True if project information is complete. In some workspace hosts, it is possible
         /// a project only has partial information. In such cases, a project might not have all
         /// information on its files or references.
@@ -118,6 +123,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
             Type hostObjectType,
+            string commandLineOpt,
             bool hasAllInformation)
         {
             if (id == null)
@@ -156,6 +162,7 @@ namespace Microsoft.CodeAnalysis
             this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             this.IsSubmission = isSubmission;
             this.HostObjectType = hostObjectType;
+            this.CommandLineOpt = commandLineOpt;
             this.HasAllInformation = hasAllInformation;
         }
 
@@ -179,6 +186,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
             Type hostObjectType,
+            string commandLineOpt,
             bool hasAllInformation)
         {
             return new ProjectInfo(
@@ -198,6 +206,7 @@ namespace Microsoft.CodeAnalysis
                 additionalDocuments,
                 isSubmission,
                 hostObjectType,
+                commandLineOpt,
                 hasAllInformation);
         }
 
@@ -220,13 +229,14 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null)
+            Type hostObjectType = null,
+            string commandLineOpt = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, hasAllInformation: true);
+                isSubmission, hostObjectType, commandLineOpt, hasAllInformation: true);
         }
 
         private ProjectInfo With(
@@ -246,6 +256,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments = null,
             Optional<bool> isSubmission = default(Optional<bool>),
             Optional<Type> hostObjectType = default(Optional<Type>),
+            Optional<string> commandLineOpt = default(Optional<string>),
             Optional<bool> hasAllInformation = default(Optional<bool>))
         {
             var newId = id ?? this.Id;
@@ -264,6 +275,7 @@ namespace Microsoft.CodeAnalysis
             var newAdditionalDocuments = additionalDocuments ?? this.AdditionalDocuments;
             var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : this.IsSubmission;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : this.HostObjectType;
+            var newCommandLineOpt = commandLineOpt.HasValue ? commandLineOpt.Value : this.CommandLineOpt;
             var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : this.HasAllInformation;
 
             if (newId == this.Id &&
@@ -282,6 +294,7 @@ namespace Microsoft.CodeAnalysis
                 newAdditionalDocuments == this.AdditionalDocuments &&
                 newIsSubmission == this.IsSubmission &&
                 newHostObjectType == this.HostObjectType &&
+                newCommandLineOpt == this.CommandLineOpt &&
                 newHasAllInformation == this.HasAllInformation)
             {
                 return this;
@@ -304,6 +317,7 @@ namespace Microsoft.CodeAnalysis
                     newAdditionalDocuments,
                     newIsSubmission,
                     newHostObjectType,
+                    newCommandLineOpt,
                     newHasAllInformation);
         }
 

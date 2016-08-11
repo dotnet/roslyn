@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void InitializeStandardVisualStudioWorkspace(SVsServiceProvider serviceProvider, SaveEventsService saveEventsService)
         {
-            var projectTracker = new VisualStudioProjectTracker(serviceProvider);
+            var projectTracker = new VisualStudioProjectTracker(serviceProvider, this);
 
             // Ensure the document tracking service is initialized on the UI thread
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();

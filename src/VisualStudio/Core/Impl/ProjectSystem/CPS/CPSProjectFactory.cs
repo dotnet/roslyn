@@ -59,13 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            Contract.ThrowIfNull(hierarchy);
+            //Contract.ThrowIfNull(hierarchy);
             var vsHierarchy = hierarchy as IVsHierarchy;
-            if (vsHierarchy == null)
-            {
-                throw new ArgumentException(nameof(hierarchy));
-            }
-            
+            //if (vsHierarchy == null)
+            //{
+            //    throw new ArgumentException(nameof(hierarchy));
+            //}
+
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
             return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,

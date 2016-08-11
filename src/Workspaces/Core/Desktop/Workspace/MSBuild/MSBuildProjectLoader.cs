@@ -428,7 +428,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     analyzerReferences: analyzerReferences,
                     additionalDocuments: additionalDocs,
                     isSubmission: false,
-                    hostObjectType: null));
+                    hostObjectType: null,
+                    commandLineOpt: string.Join(" ", projectFileInfo.CommandLineArgs)));
 
             return projectId;
         }

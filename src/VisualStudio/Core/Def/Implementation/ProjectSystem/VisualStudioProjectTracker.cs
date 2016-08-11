@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<WorkspaceHostState> _workspaceHosts;
 
         /// <summary>
+        /// TODO: Figure out the right way to get this to the MSBuildProjectLoader.
+        /// </summary>
+        private readonly Workspace _workspace;
+
+        /// <summary>
         /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
         /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool)"/>.
         /// </summary>
@@ -97,10 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             var abstractProject = (AbstractProject)project;
-            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject), s_getProjectInfoForProject);
         }
 
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider)
+        private static readonly Func<AbstractProject, ProjectInfo> s_getProjectInfoForProject = GetProjectInfoForProject;
+        private static ProjectInfo GetProjectInfoForProject(AbstractProject project)
+        {
+            return project.CreateProjectInfoForCurrentState();
+        }
+
+        public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
             : base(assertIsForeground: true)
         {
             _projectMap = new Dictionary<ProjectId, AbstractProject>();
@@ -108,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
+            _workspace = workspace;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -242,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (interactiveProjects.Any())
             {
-                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects);
+                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects, s_getProjectInfoForProject);
             }
         }
 
@@ -312,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (_solutionLoadComplete)
             {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project));
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project), s_getProjectInfoForProject);
             }
             else
             {
@@ -326,12 +338,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Otherwise, it is scheduled on foreground task scheduler.
         /// </summary>
         /// <remarks>This method may be called on a background thread.</remarks>
-        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
+        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects));
+            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects, getProjectInfo));
         }
 
-        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
+        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
         {
             AssertIsForeground();
 
@@ -339,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 foreach (var hostState in _workspaceHosts)
                 {
-                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects, getProjectInfo);
                 }
             }
         }

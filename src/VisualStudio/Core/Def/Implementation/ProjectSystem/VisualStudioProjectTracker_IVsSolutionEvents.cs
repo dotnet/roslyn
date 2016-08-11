@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -59,6 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionLoadComplete = false;
+            _solutionFilename = null;
+            _solutionParsingCancellationTokenSource.Cancel();
+            _solutionParsingCancellationTokenSource = new CancellationTokenSource();
 
             return VSConstants.S_OK;
         }
