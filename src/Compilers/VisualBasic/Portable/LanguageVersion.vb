@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic14 = 14
         VisualBasic15 = 15
         Latest = Integer.MaxValue
-        VBvnext = Integer.MaxValue - 1
     End Enum
 
     Friend Module LanguageVersionEnumBounds
@@ -28,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic12,
                     LanguageVersion.VisualBasic14,
                     LanguageVersion.VisualBasic15,
-                    LanguageVersion.VBvnext
                     Return True
             End Select
 
@@ -51,8 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "14.0"
                 Case LanguageVersion.VisualBasic15
                     Return "15.0"
-                Case LanguageVersion.VBvnext
-                    Return "vNext"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
