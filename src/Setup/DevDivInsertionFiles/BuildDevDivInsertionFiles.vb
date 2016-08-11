@@ -23,6 +23,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _setupDirectory As String
     Private ReadOnly _nugetPackageRoot As String
     Private ReadOnly _assemblyVersion As String
+    Private ReadOnly _interactiveWindowPackageVersion As String
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
@@ -31,10 +32,11 @@ Public Class BuildDevDivInsertionFiles
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
         _assemblyVersion = args(3)
+        _interactiveWindowPackageVersion = args(4)
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 4 Then
+        If args.Length <> 5 Then
             Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
             Return 1
         End If
@@ -480,6 +482,13 @@ Public Class BuildDevDivInsertionFiles
             Me.PackageVersion = packageVersion
             Me.IsNative = isNative
         End Sub
+
+        ' TODO: remove
+        Public ReadOnly Property IsInteractiveWindow As Boolean
+            Get
+                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
+            End Get
+        End Property
     End Class
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
@@ -527,6 +536,10 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
+        ' TODO: remove once we have a proper package
+        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+
         Return result
     End Function
 
@@ -549,7 +562,7 @@ Public Class BuildDevDivInsertionFiles
     Private Sub GenerateImplementationsListWxi(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("SetupAuthoring\netfx\Common\CoreFX.wxi"))
             writer.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
-            writer.WriteLine("<Include xmlns=""http://schemas.microsoft.com/wix/2006/wi"">")
+            writer.WriteLine("<Include xmlns=""http://schemas.microsoft.com/wix/2006/wix"">")
             writer.WriteLine("  <!-- Generated file, do not directly edit. Contact mlinfraswat@microsoft.com if you need to add a library that's not listed -->")
 
             For Each entry In GetImplementations(dependencies)
@@ -589,12 +602,16 @@ Public Class BuildDevDivInsertionFiles
                 Dim dependency = entry.Value
                 If Not dependency.IsNative Then
 
-                    Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
-
                     Dim version As Version
-                    Using peReader = New PEReader(File.OpenRead(dllPath))
-                        version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
-                    End Using
+                    If dependency.IsInteractiveWindow Then
+                        version = Version.Parse(_interactiveWindowPackageVersion.Split("-"c)(0))
+                    Else
+                        Dim dllPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+
+                        Using peReader = New PEReader(File.OpenRead(dllPath))
+                            version = peReader.GetMetadataReader().GetAssemblyDefinition().Version
+                        End Using
+                    End If
 
                     writer.WriteLine($"{Path.GetFileNameWithoutExtension(fileName)},{version}")
                 End If
@@ -604,8 +621,12 @@ Public Class BuildDevDivInsertionFiles
 
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
+            If dependency.IsInteractiveWindow Then
+                Continue For
+            End If
+
             Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
-            Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
+                Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
             Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
             Dim dstPath = Path.Combine(dstDir, nupkg)
 
