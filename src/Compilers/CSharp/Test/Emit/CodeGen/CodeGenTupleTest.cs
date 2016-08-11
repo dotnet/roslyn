@@ -16184,6 +16184,59 @@ public class C3 : I0<int>, I0<int> { }
         }
 
         [Fact]
+        public void AccessCheckLooksInsideTuples()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    (C2.C3, int) M() { throw new System.Exception(); }
+}
+public class C2
+{
+    private class C3 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0122: 'C2.C3' is inaccessible due to its protection level
+                //     (C2.C3, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadAccess, "C3").WithArguments("C2.C3").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void AccessCheckLooksInsideTuples2()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    public (C2, int) M() { throw new System.Exception(); }
+    private class C2 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,22): error CS0050: Inconsistent accessibility: return type '(C.C2, int)' is less accessible than method 'C.M()'
+                //     public (C2, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M").WithArguments("C.M()", "(C.C2, int)").WithLocation(11, 22)
+                );
+        }
+
+        [Fact]
         public void ImplicitInterfaceImplementationWithDifferentTupleNames()
         {
             var source = @"
