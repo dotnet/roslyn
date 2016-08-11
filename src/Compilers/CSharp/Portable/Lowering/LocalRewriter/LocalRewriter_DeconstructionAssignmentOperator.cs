@@ -39,10 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            int numConversions = node.ConversionSteps.Length;
+            for (int i = 0; i < numConversions; i++)
+            {
+                // lower the conversions
+                var conversionInfo = node.ConversionSteps[i];
+                var conversion = VisitExpression(conversionInfo.Conversion);
+
+                AddPlaceholderReplacement(conversionInfo.OutputPlaceholder, conversion);
+                placeholders.Add(conversionInfo.OutputPlaceholder);
+
+                stores.Add(conversion);
+            }
+
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
-                // lower the assignment and replace the placeholders for its outputs in the process
+                // lower the assignments
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
@@ -53,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stores.Add(assignment);
             }
 
-            var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), new BoundVoid(node.Syntax, node.Type));
+            BoundExpression returnValue = new BoundVoid(node.Syntax, node.Type);
+            var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
 
             RemovePlaceholderReplacements(placeholders);
             placeholders.Free();
@@ -91,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // save the target as we need to access it multiple times
             BoundAssignmentOperator assignmentToTemp;
-            var savedTuple = _factory.StoreToTemp(target, out assignmentToTemp);
+            BoundLocal savedTuple = _factory.StoreToTemp(target, out assignmentToTemp);
             stores.Add(assignmentToTemp);
             temps.Add(savedTuple.LocalSymbol);
 

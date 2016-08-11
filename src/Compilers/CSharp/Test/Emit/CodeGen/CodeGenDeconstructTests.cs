@@ -201,8 +201,8 @@ getHolderforY
 getDeconstructReceiver
 Deconstruct
 Conversion1
-setX
 Conversion2
+setX
 setY
 ";
             var comp = CompileAndVerify(source, expectedOutput: expected);

@@ -404,7 +404,7 @@
     <Field Name="Right" Type="BoundExpression"/>
 
     <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
-
+    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionConversionStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
     <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
   </Node>
 
@@ -412,6 +412,12 @@
     <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
     <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionConversionStep" Base="BoundNode">
+    <Field Name="Conversion" Type="BoundExpression" Null="disallow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">

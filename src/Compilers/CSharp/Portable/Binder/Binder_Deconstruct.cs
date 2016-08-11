@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, bool isDeclaration, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
         {
-            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+            TypeSymbol returnType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
             // receiver for first Deconstruct step
             var boundRHS = rhsPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
@@ -79,19 +79,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundDeconstructionAssignmentOperator(
                                 node, isDeclaration, FlattenDeconstructVariables(checkedVariables), boundRHS,
-                                ImmutableArray<BoundDeconstructionDeconstructStep>.Empty, ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
-                                voidType, hasErrors: true);
+                                ImmutableArray<BoundDeconstructionDeconstructStep>.Empty,
+                                ImmutableArray<BoundDeconstructionConversionStep>.Empty,
+                                ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
+                                returnType, hasErrors: true);
                 }
             }
             var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
+            var conversionSteps = ArrayBuilder<BoundDeconstructionConversionStep>.GetInstance(1);
             var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
-            bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(boundRHS.Syntax, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
+            bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(boundRHS.Syntax, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, conversionSteps, assignmentSteps);
 
             var deconstructions = deconstructionSteps.ToImmutableAndFree();
+            var conversions = conversionSteps.ToImmutableAndFree();
             var assignments = assignmentSteps.ToImmutableAndFree();
 
             FailRemainingInferences(checkedVariables, diagnostics);
-            return new BoundDeconstructionAssignmentOperator(node, isDeclaration, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
+            return new BoundDeconstructionAssignmentOperator(node, isDeclaration, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, conversions, assignments, returnType, hasErrors: hasErrors);
         }
 
         /// <summary>
@@ -106,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         DiagnosticBag diagnostics,
                         ArrayBuilder<DeconstructionVariable> variables,
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                        ArrayBuilder<BoundDeconstructionConversionStep> conversionSteps,
                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             Debug.Assert(targetPlaceholder.Type != null);
@@ -115,11 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetPlaceholder.Type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-                step = MakeTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
+                step = MakeTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables);
             }
             else
             {
-                step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
+                step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables);
             }
 
             if (step == null)
@@ -130,20 +135,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             deconstructionSteps.Add(step);
 
             // outputs will either need a conversion step and assignment step, or if they are nested variables, they will need further deconstruction
-            return DeconstructOrAssignOutputs(step, variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
+            return DeconstructOrAssignOutputs(step, variables, syntax, diagnostics, deconstructionSteps, conversionSteps, assignmentSteps);
         }
 
         /// <summary>
-        /// This will generate and stack appropriate deconstruction and assignment steps for a tuple type.
-        /// The produced deconstruction step has no Deconstruct method since the tuple already has distinct elements.
+        /// The produces a deconstruction step with no Deconstruct method since the tuple already has distinct elements.
         /// </summary>
         private static BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
                                                         BoundDeconstructValuePlaceholder targetPlaceholder,
                                                         CSharpSyntaxNode syntax,
                                                         DiagnosticBag diagnostics,
-                                                        ArrayBuilder<DeconstructionVariable> variables,
-                                                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
-                                                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+                                                        ArrayBuilder<DeconstructionVariable> variables)
         {
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
@@ -167,9 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             BoundDeconstructValuePlaceholder targetPlaceholder,
                                                             CSharpSyntaxNode syntax,
                                                             DiagnosticBag diagnostics,
-                                                            ArrayBuilder<DeconstructionVariable> variables,
-                                                            ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
-                                                            ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+                                                            ArrayBuilder<DeconstructionVariable> variables)
         {
             // symbol and parameters for Deconstruct
             ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
@@ -252,7 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Takes the outputs from the previous deconstructionStep and depending on the structure of variables, will generate further deconstructions, or simply assignments.
+        /// Takes the outputs from the previous deconstructionStep and depending on the structure of variables, will:
+        /// - generate further deconstructions,
+        /// - or simply conversions and assignments.
+        ///
         /// Returns true for success, but false if has errors.
         /// </summary>
         private bool DeconstructOrAssignOutputs(
@@ -261,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CSharpSyntaxNode syntax,
                         DiagnosticBag diagnostics,
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                        ArrayBuilder<BoundDeconstructionConversionStep> conversionSteps,
                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             bool hasErrors = false;
@@ -274,14 +278,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (variable.HasNestedVariables)
                 {
                     var nested = variable.NestedVariables;
-                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nested, deconstructionSteps, assignmentSteps))
+                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nested, deconstructionSteps, conversionSteps, assignmentSteps))
                     {
                         hasErrors = true;
                     }
                 }
                 else
                 {
-                    var assignment = MakeDeconstructionAssignmentStep(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
+                    var conversion = MakeDeconstructionConversionStep(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
+                    conversionSteps.Add(conversion);
+
+                    var assignment = MakeDeconstructionAssignmentStep(variable.Single, conversion.OutputPlaceholder.Type, conversion.OutputPlaceholder, syntax, diagnostics);
                     assignmentSteps.Add(assignment);
                 }
             }
@@ -401,6 +408,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator op = BindAssignment(receivingVariable.Syntax, outputPlaceholder, inputPlaceholder, diagnostics);
 
             return new BoundDeconstructionAssignmentStep(node, op, inputPlaceholder, outputPlaceholder);
+        }
+
+        private BoundDeconstructionConversionStep MakeDeconstructionConversionStep(BoundExpression receivingVariable, TypeSymbol type, BoundDeconstructValuePlaceholder inputPlaceholder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            var outputPlaceholder = new BoundDeconstructValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
+
+            BoundExpression op = GenerateConversionForAssignment(receivingVariable.Type, inputPlaceholder, diagnostics);
+
+            return new BoundDeconstructionConversionStep(node, op, inputPlaceholder, outputPlaceholder);
         }
 
         private static ImmutableArray<BoundExpression> FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables)
