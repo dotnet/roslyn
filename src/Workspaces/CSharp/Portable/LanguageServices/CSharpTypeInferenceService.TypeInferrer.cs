@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var outerTypes = InferTypes(arrayCreationExpression);
-                return outerTypes.Where(o => o is IArrayTypeSymbol);
+                return outerTypes.Where(o => o.InferredType is IArrayTypeSymbol);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrayRankSpecifier(ArrayRankSpecifierSyntax arrayRankSpecifier, SyntaxToken? previousToken = null)
