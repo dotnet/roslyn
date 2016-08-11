@@ -3032,7 +3032,7 @@ ProduceBoundNode:
 
             If defaultConstantValue Is Nothing Then
                 If param.HasExplicitDefaultValue = False Then
-                    If InternalSyntax.Parser.CheckFeatureAvailability(_compilation.Options.ParseOptions, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) Then
+                    If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _compilation.Options.ParseOptions) Then
                         defaultConstantValue = ConstantValue.Nothing
 
                     End If

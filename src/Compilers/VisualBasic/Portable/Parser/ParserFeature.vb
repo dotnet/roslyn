@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.IOperation
                     Return "IOperation"
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return "implicitDefaultValueOnOptionalParameter"
+                    Return "ImplicitDefaultValueOnOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.DigitSeparators
                     Return LanguageVersion.VisualBasic15
 
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return LanguageVersion.VBvnext ' TODO: Change to correct version, when offically supported.
+                    'Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    '    Return LanguageVersion.VBvnext ' TODO: Change to correct version, when offically supported.
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -150,6 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_BinaryLiterals
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return ERRID.FEATURE_ImplicitDefaultValueOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
