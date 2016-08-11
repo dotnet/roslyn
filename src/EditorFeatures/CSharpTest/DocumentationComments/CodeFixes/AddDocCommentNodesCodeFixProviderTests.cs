@@ -202,35 +202,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-        public async Task AddsParamTag_InsertsAfterTypeparamTag()
-        {
-            var initial =
-@"class Program
-{
-    /// <summary>
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""j""></param>
-    public void Fizz<T>(int i, int j, int [|k|]) {}
-}
-";
-
-            var expected =
-@"class Program
-{
-    /// <summary>
-    /// </summary>
-    /// <typeparam name=""T""></typeparam>
-    /// <param name=""i""></param>
-    /// <param name=""j""></param>
-    /// <param name=""k""></param>
-    public void Fizz<T>(int i, int j, int k) {}
-}
-";
-            await TestAsync(initial, expected);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_BeforeNode_EverythingOnOneLine()
         {
             var initial =

@@ -49,15 +49,21 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected override XmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment)
         {
+            // This is the simplest way of getting the XML node with the correct leading trivia
+            // However, trying to add a `DocumentationCommentTriviaSyntax` to the node in the abstract
+            // implementation causes an exception, so we have to add an XmlElementSyntax
             var newDocCommentNode = SyntaxFactory.DocumentationComment(SyntaxFactory.XmlParamElement(parameterName));
             var elementNode = (XmlElementSyntax)newDocCommentNode.ChildNodes().ElementAt(0);
 
             // return node on new line
-            return !isFirstNodeInComment
-                ? elementNode.WithLeadingTrivia(
-                    SyntaxFactory.ParseLeadingTrivia(Environment.NewLine)
-                        .AddRange(elementNode.GetLeadingTrivia()))
-                : elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
+            if (isFirstNodeInComment)
+            {
+                return elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
+            }
+
+            return elementNode.WithLeadingTrivia(
+                SyntaxFactory.ParseLeadingTrivia(Environment.NewLine)
+                    .AddRange(elementNode.GetLeadingTrivia()));
         }
     }
 }

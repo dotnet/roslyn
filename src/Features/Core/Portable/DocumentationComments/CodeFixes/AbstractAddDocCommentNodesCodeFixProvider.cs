@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var newDocComment = docCommentNode;
             var parameterNames = GetParameterNames(parentMethod);
 
-            foreach (var parameterName in parameterNames)
+            for (var index = 0; index < parameterNames.Count; index++)
             {
-                var paramNodes = GetNodes(newDocComment);
+                var parameterName = parameterNames[index];
+                var paramNodes = GetParameterNodes(newDocComment, NodeName);
                 if (NodeExists(paramNodes, parameterName))
                 {
                     continue;
@@ -67,62 +68,66 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 var paramsAfterCurrentParam = parameterNames.Except(paramsBeforeCurrentParam).ToList();
                 paramsAfterCurrentParam.Remove(parameterName);
 
-                // First, try to get the node before the param node so we know where to insert the new node
-                SyntaxNode nodeBeforeNewParamNode = null;
-                if (paramsBeforeCurrentParam.Any())
+                // If the index is not `0`, there is a node before the current one for sure
+                // If the index is `0`, try to add the node after the `summary` node,
+                // only if any existing nodes are at the top level--this route will not
+                // be taken if the existing node is nested in another node
+                var summaryNode = GetParameterNodes(newDocComment, "summary").FirstOrDefault();
+                if (index != 0 || !paramNodes.Any() && summaryNode != null)
                 {
-                    nodeBeforeNewParamNode = GetLastParamNodeCorrespondingToParamInList(paramNodes, paramsBeforeCurrentParam);
-                }
+                    // First, try to get the node before the param node so we know where to insert the new node
+                    SyntaxNode nodeBeforeNewParamNode =  GetLastParamNodeCorrespondingToParameterInList(paramNodes, paramsBeforeCurrentParam) ??
+                                    summaryNode;
 
-                // This value is only useful if there are no nodes before the new node
-                // I placed it here to keep related code together
-                SyntaxNode nodeAfterNewParamNode = null;
-                if (paramsAfterCurrentParam.Any())
-                {
-                    nodeAfterNewParamNode = GetLastParamNodeCorrespondingToParamInList(paramNodes.Reverse(), paramsAfterCurrentParam);
-
-                    // Adjust for doc comment marker before `param` node
-                    if (nodeAfterNewParamNode != null)
-                    {
-                        var paramNodeSiblings = nodeAfterNewParamNode.Parent.ChildNodes().ToList();
-                        var indexOfNode = paramNodeSiblings.IndexOf(nodeAfterNewParamNode);
-
-                        // set insert node to be the doc comment signifier of the closest param before the new node
-                        if (indexOfNode > 0 && paramNodeSiblings[indexOfNode - 1] is TXmlTextSyntax)
-                        {
-                            nodeAfterNewParamNode = paramNodeSiblings[indexOfNode - 1];
-                        }
-                    }
+                    newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode, new[] { GetNewNode(parameterName, false) });
+                    continue;
                 }
                 
-                var newNodeList = new SyntaxNode[]
-                {
-                    GetNewNode(parameterName, isFirstNodeInComment: newDocComment.ChildNodes().First() == nodeAfterNewParamNode)
-                };
+                // At this point, the node has to go at the beginning of the comment
+                var nodeAfterNewParamNode = GetLastParamNodeCorrespondingToParameterInList(paramNodes.AsEnumerable().Reverse(), paramsAfterCurrentParam) ??
+                                                   newDocComment.ChildNodes().First();
 
-                newDocComment = nodeBeforeNewParamNode != null
-                    ? newDocComment.InsertNodesAfter(nodeBeforeNewParamNode, newNodeList)
-                    : newDocComment.InsertNodesBefore(nodeAfterNewParamNode, newNodeList);
+                // Adjust for doc comment marker before the node
+                if (nodeAfterNewParamNode != null)
+                {
+                    var paramNodeSiblings = nodeAfterNewParamNode.Parent.ChildNodes().ToList();
+                    var indexOfNode = paramNodeSiblings.IndexOf(nodeAfterNewParamNode);
+
+                    // set insert node to be the doc comment signifier of the closest param before the new node
+                    if (indexOfNode > 0 && paramNodeSiblings[indexOfNode - 1] is TXmlTextSyntax)
+                    {
+                        nodeAfterNewParamNode = paramNodeSiblings[indexOfNode - 1];
+                    }
+                }
+
+                var newNodeList = new[]
+                {
+                    // the last value will almost always be true, unless the node is embedded in another doc comment node
+                    GetNewNode(parameterName, nodeAfterNewParamNode == newDocComment.ChildNodes().First())
+                };
+                newDocComment = newDocComment.InsertNodesBefore(nodeAfterNewParamNode, newNodeList);
             }
 
             var newRoot = root.ReplaceNode(docCommentNode, newDocComment.WithAdditionalAnnotations(Formatter.Annotation));
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private IEnumerable<TXmlElementSyntax> GetNodes(SyntaxNode docComment)
+        private List<TXmlElementSyntax> GetParameterNodes(SyntaxNode docComment, string nodeName)
         {
-            var paramNodes = docComment.ChildNodes().OfType<TXmlElementSyntax>()
-                                                    .Where(w => GetXmlElementLocalName(w) == NodeName);
+            var nodes = docComment.ChildNodes().OfType<TXmlElementSyntax>()
+                                               .Where(w => GetXmlElementLocalName(w) == nodeName)
+                                               .ToList();
 
             // Prefer to place the doc comment in the outer level, as in auto-created comments
-            if (!paramNodes.Any())
+            if (!nodes.Any())
             {
-                paramNodes = docComment.DescendantNodes(descendIntoChildren: _ => true)
-                    .OfType<TXmlElementSyntax>()
-                    .Where(w => GetXmlElementLocalName(w) == NodeName);
+                nodes = docComment.DescendantNodes(descendIntoChildren: _ => true)
+                                  .OfType<TXmlElementSyntax>()
+                                  .Where(w => GetXmlElementLocalName(w) == nodeName)
+                                  .ToList();
             }
 
-            return paramNodes;
+            return nodes;
         }
 
         private bool NodeExists(IEnumerable<TXmlElementSyntax> paramNodes, string name)
@@ -132,7 +137,9 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                              .Any(nameAttributes => nameAttributes.Select(GetValueFromNameAttribute).Contains(name));
         }
 
-        protected TXmlElementSyntax GetLastParamNodeCorrespondingToParamInList(IEnumerable<TXmlElementSyntax> paramNodeList, List<string> methodParamSubset)
+        protected TXmlElementSyntax GetLastParamNodeCorrespondingToParameterInList(
+            IEnumerable<TXmlElementSyntax> paramNodeList,
+            List<string> methodParamSubset)
         {
             TXmlElementSyntax nodeAfterNewParamNode = null;
 
