@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -17,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAwait), Shared]
-    internal class CSharpAddAwaitCodeFixProvider : AbstractAddAsyncAwaitCodeFixProvider
+    internal class CSharpAddAwaitCodeFixProvider : AbstractAddAwaitCodeFixProvider
     {
         /// <summary>
         /// Because this call is not awaited, execution of the current method continues before the call is completed.
@@ -36,10 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
-        protected override string GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken) =>
-            CSharpFeaturesResources.Insert_await;
+        protected override async Task<DescriptionAndNode> GetDescriptionAndNodeAsync(
+            SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        {
+            var newRoot = await GetNewRootAsync(
+                root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
+            if (newRoot == null)
+            {
+                return default(DescriptionAndNode);
+            }
 
-        protected override Task<SyntaxNode> GetNewRoot(
+            return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);
+        }
+
+        private Task<SyntaxNode> GetNewRootAsync(
             SyntaxNode root,
             SyntaxNode oldNode,
             SemanticModel semanticModel,

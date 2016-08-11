@@ -255,9 +255,6 @@
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
   </data>
-  <data name="Make_the_containing_scope_async" xml:space="preserve">
-    <value>Make the containing scope 'async'.</value>
-  </data>
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>
   </data>
