@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SyntaxKind.ExpressionStatement:
+                    case SyntaxKind.IfStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
                         break;
 

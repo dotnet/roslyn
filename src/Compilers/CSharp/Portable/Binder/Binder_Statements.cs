@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
+                case SyntaxKind.IfStatement: 
                     Binder binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics)); 
@@ -2825,17 +2826,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)
         {
-            Binder binder = this.GetBinder(node.Condition);
-            Debug.Assert(binder != null);
-
-            var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-
-            // Note that the else clause does not use the pattern variable binder;
-            // pattern variables from the condition are not in scope in the else statement.
+            var condition = BindBooleanExpression(node.Condition, diagnostics);
+            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
 
-            BoundStatement result = new BoundIfStatement(node, binder.GetDeclaredLocalsForScope(node.Condition), condition, consequence, alternative);
+            BoundStatement result = new BoundIfStatement(node, condition, consequence, alternative);
             return result;
         }
 
