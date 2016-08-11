@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Text
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Encoding s_fallbackEncoding = GetFallbackEncoding();
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
 
         private static Encoding GetFallbackEncoding()
         {
@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.Text
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             return Create(stream,
-                () => s_fallbackEncoding,
+                s_fallbackEncoding,
                 defaultEncoding: defaultEncoding,
                 checksumAlgorithm: checksumAlgorithm);
         }
 
         // internal for testing
-        internal static SourceText Create(Stream stream, Func<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
             Encoding defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? getEncoding(), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {

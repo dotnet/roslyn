@@ -66,7 +66,6 @@
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
     <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\CSharpAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
@@ -330,6 +329,7 @@
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayServiceFactory.cs" />
+    <Compile Include="MakeMethodAsynchronous\CSharpMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />

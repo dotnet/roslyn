@@ -1630,6 +1630,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make containing scope async.
+        /// </summary>
+        internal static string Make_containing_scope_async {
+            get {
+                return ResourceManager.GetString("Make_containing_scope_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make containing scope async (return Task).
+        /// </summary>
+        internal static string Make_containing_scope_async_return_Task {
+            get {
+                return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async.
+        /// </summary>
+        internal static string Make_method_async {
+            get {
+                return ResourceManager.GetString("Make_method_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async (return Task).
+        /// </summary>
+        internal static string Make_method_async_return_Task {
+            get {
+                return ResourceManager.GetString("Make_method_async_return_Task", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make method synchronous..
         /// </summary>
         internal static string Make_method_synchronous {

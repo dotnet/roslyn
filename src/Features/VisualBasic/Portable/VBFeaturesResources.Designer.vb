@@ -1521,15 +1521,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Make the containing scope &apos;Async&apos;..
-        '''</summary>
-        Friend ReadOnly Property Make_the_containing_scope_Async() As String
-            Get
-                Return ResourceManager.GetString("Make_the_containing_scope_Async", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Mid statement.
         '''</summary>
         Friend ReadOnly Property Mid_statement() As String
