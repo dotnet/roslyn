@@ -56,17 +56,14 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override XmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment)
         {
             var newDocCommentNode = SyntaxFactory.DocumentationComment(SyntaxFactory.XmlParamElement(parameterName));
-            XmlElementSyntax elementNode = (XmlElementSyntax)newDocCommentNode.ChildNodes().ElementAt(0);
+            var elementNode = (XmlElementSyntax)newDocCommentNode.ChildNodes().ElementAt(0);
 
             // return node on new line
-            if (!isFirstNodeInComment)
-            {
-                return elementNode.WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(Environment.NewLine).AddRange(elementNode.GetLeadingTrivia().Select(s => s)));
-            }
-            else
-            {
-                return elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
-            }
+            return !isFirstNodeInComment
+                ? elementNode.WithLeadingTrivia(
+                    SyntaxFactory.ParseLeadingTrivia(Environment.NewLine)
+                        .AddRange(elementNode.GetLeadingTrivia().Select(s => s)))
+                : elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
         }
     }
 }

@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// </summary>
     /// <param name=""i""></param>
     /// <param name=""j""></param>
+    /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
 }
 ";
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// 
     /// </summary>
+    /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
@@ -111,6 +113,68 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_NodesBeforeAndAfter_RawTextInComment()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i""></param>
+    /// text
+    /// <param name=""k""></param>
+    public void Fizz(int i, int [|j|], int k) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i""></param>
+    /// <param name=""j""></param>
+    /// text
+    /// <param name=""k""></param>
+    public void Fizz(int i, int j, int k) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_NodesBeforeAndAfter_WithContent()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i"">Parameter `i` does something</param>
+    /// <param name=""k"">Parameter `k` does something else</param>
+    public void Fizz(int i, int [|j|], int k) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i"">Parameter `i` does something</param>
+    /// <param name=""j""></param>
+    /// <param name=""k"">Parameter `k` does something else</param>
+    public void Fizz(int i, int j, int k) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
         public async Task AddsParamTag_NestedInSummaryTag()
         {
             var initial =
@@ -127,10 +191,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
 @"class Program
 {
     /// <summary>
+    /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
     /// </summary>
     public void Fizz(int i, int j, int k) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentParamNode)]
+        public async Task AddsParamTag_InsertsAfterTypeparamTag()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""j""></param>
+    public void Fizz<T>(int i, int j, int [|k|]) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""i""></param>
+    /// <param name=""j""></param>
+    /// <param name=""k""></param>
+    public void Fizz<T>(int i, int j, int k) {}
 }
 ";
             await TestAsync(initial, expected);
@@ -152,6 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
 {
     /// <summary></summary>
     /// <param name=""i""></param> <param name=""j""></param>
+    /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
 }
 ";
@@ -172,7 +267,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             var expected =
 @"class Program
 {
-    /// <summary></summary> <param name=""j""></param>
+    /// <summary></summary>
+    /// <param name=""i""></param> <param name=""j""></param>
     /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
 }
@@ -196,6 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
 {
     /// <param name=""i""></param>
     /// <param name=""j""></param>
+    /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
 }
 ";
@@ -216,6 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
             var expected =
 @"class Program
 {
+    /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
     public void Fizz(int i, int j, int k) {}
@@ -246,6 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// </summary>
     /// <param name=""i""></param>
     /// <param name=""j""></param>
+    /// <param name=""k""></param>
     public Program(int i, int j, int k) {}
 }
 ";
@@ -274,6 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// </summary>
     /// <param name=""i""></param>
     /// <param name=""j""></param>
+    /// <param name=""k""></param>
     public delegate int Foo(int [|i|], int j, int k);
 }
 ";
@@ -351,6 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// <param name=""i""></param>
     /// </summary>
+    /// <param name=""i""></param>
     /// <param name=""j""></param>
     /// <param name=""k""></param>
     /// <param name=""l""></param>
