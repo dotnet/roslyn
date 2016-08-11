@@ -13,37 +13,36 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
-    internal abstract class AbstractAddDocCommentParamNodeCodeFixProvider
-        <TXmlElementSyntax, TXmlNameAttributeSyntax, TXmlTextSyntax, TMemberDeclarationSyntax, TParameterSyntax> : CodeFixProvider
+    internal abstract class AbstractAddDocCommentNodesCodeFixProvider
+        <TXmlElementSyntax, TXmlNameAttributeSyntax, TXmlTextSyntax, TMemberDeclarationSyntax> : CodeFixProvider
         where TXmlElementSyntax : SyntaxNode
         where TXmlNameAttributeSyntax : SyntaxNode
         where TXmlTextSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
-        where TParameterSyntax : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
-            var parameter = root.FindNode(context.Span) as TParameterSyntax;
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var parentMethod = root.FindNode(context.Span)?.FirstAncestorOrSelf<TMemberDeclarationSyntax>();
 
-            var parentMethod = parameter?.FirstAncestorOrSelf<TMemberDeclarationSyntax>();
             if (parentMethod != null)
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        c => AddParamTagAsync(context.Document, context.Span, c), GetParameterName(parameter)),
+                        c => AddParamTagAsync(context.Document, context.Span, c)),
                     context.Diagnostics);
             }
         }
-        
+
+        protected abstract string NodeName { get; }
+
         protected abstract List<TXmlNameAttributeSyntax> GetNameAttributes(TXmlElementSyntax node);
         protected abstract string GetValueFromNameAttribute(TXmlNameAttributeSyntax attribute);
         protected abstract SyntaxNode GetDocCommentNode(SyntaxTriviaList parameter);
         protected abstract string GetXmlElementLocalName(TXmlElementSyntax element);
         protected abstract List<string> GetParameterNames(TMemberDeclarationSyntax method);
-        protected abstract string GetParameterName(TParameterSyntax parameter);
         protected abstract TXmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment);
 
         protected async Task<Document> AddParamTagAsync(
@@ -54,24 +53,30 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var docCommentNode = GetDocCommentNode(parentMethod.GetLeadingTrivia());
 
             var newDocComment = docCommentNode;
-            var methodParamNames = GetParameterNames(parentMethod);
+            var parameterNames = GetParameterNames(parentMethod);
 
-            foreach (var name in methodParamNames)
+            foreach (var parameterName in parameterNames)
             {
-                var paramNodes = GetParamNodes(newDocComment);
+                var paramNodes = GetNodes(newDocComment);
+                if (NodeExists(paramNodes, parameterName))
+                {
+                    continue;
+                }
 
-                if (NodeExists(paramNodes, name)) { continue; }
+                var paramsBeforeCurrentParam = parameterNames.TakeWhile(t => t != parameterName).ToList();
+                var paramsAfterCurrentParam = parameterNames.Except(paramsBeforeCurrentParam).ToList();
+                paramsAfterCurrentParam.Remove(parameterName);
 
-                var paramsBeforeCurrentParam = methodParamNames.TakeWhile(t => t != name).ToList();
-                var paramsAfterCurrentParam = methodParamNames.Except(paramsBeforeCurrentParam).ToList();
-                paramsAfterCurrentParam.Remove(name);
-
+                // First, try to get the node before the param node so we know where to insert the new node
                 SyntaxNode nodeBeforeNewParamNode = null;
-                SyntaxNode nodeAfterNewParamNode = null;
                 if (paramsBeforeCurrentParam.Any())
                 {
                     nodeBeforeNewParamNode = GetLastParamNodeCorrespondingToParamInList(paramNodes, paramsBeforeCurrentParam);
                 }
+
+                // This value is only useful if there are no nodes before the new node
+                // I placed it here to keep related code together
+                SyntaxNode nodeAfterNewParamNode = null;
                 if (paramsAfterCurrentParam.Any())
                 {
                     nodeAfterNewParamNode = GetLastParamNodeCorrespondingToParamInList(paramNodes.Reverse(), paramsAfterCurrentParam);
@@ -92,7 +97,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 
                 var newNodeList = new SyntaxNode[]
                 {
-                    GetNewNode(name, isFirstNodeInComment: newDocComment.ChildNodes().First() == nodeAfterNewParamNode)
+                    GetNewNode(parameterName, isFirstNodeInComment: newDocComment.ChildNodes().First() == nodeAfterNewParamNode)
                 };
 
                 newDocComment = nodeBeforeNewParamNode != null
@@ -104,17 +109,17 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private IEnumerable<TXmlElementSyntax> GetParamNodes(SyntaxNode docComment)
+        private IEnumerable<TXmlElementSyntax> GetNodes(SyntaxNode docComment)
         {
             var paramNodes = docComment.ChildNodes().OfType<TXmlElementSyntax>()
-                                                    .Where(w => GetXmlElementLocalName(w) == "param");
+                                                    .Where(w => GetXmlElementLocalName(w) == NodeName);
 
             // Prefer to place the doc comment in the outer level, as in auto-created comments
             if (!paramNodes.Any())
             {
                 paramNodes = docComment.DescendantNodes(descendIntoChildren: _ => true)
                     .OfType<TXmlElementSyntax>()
-                    .Where(w => GetXmlElementLocalName(w) == "param");
+                    .Where(w => GetXmlElementLocalName(w) == NodeName);
             }
 
             return paramNodes;
@@ -152,8 +157,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string parameterName)
-                : base(string.Format(FeaturesResources.Add_missing_param_nodes, parameterName), createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument)
             {
             }
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -7,14 +8,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 
 namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAttribute), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddDocCommentNodes), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpAddDocCommentParamNodeCodeFixProvider
-        : AbstractAddDocCommentParamNodeCodeFixProvider<XmlElementSyntax, XmlNameAttributeSyntax, XmlTextSyntax, MemberDeclarationSyntax, ParameterSyntax>
+    internal class CSharpAddDocCommentNodesCodeFixProvider
+        : AbstractAddDocCommentNodesCodeFixProvider<XmlElementSyntax, XmlNameAttributeSyntax, XmlTextSyntax, MemberDeclarationSyntax>
     {
         /// <summary>
         /// Parameter has no matching param tag in XML comment
@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         private const string CS1573 = nameof(CS1573);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1573);
+
+        protected override string NodeName { get; } = "param";
 
         protected override List<XmlNameAttributeSyntax> GetNameAttributes(XmlElementSyntax node)
             => node.StartTag.Attributes.OfType<XmlNameAttributeSyntax>().ToList();
@@ -37,11 +39,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected override List<string> GetParameterNames(MemberDeclarationSyntax member)
         {
-            if (member is BaseMethodDeclarationSyntax)
-            {
-                return ((BaseMethodDeclarationSyntax)member).ParameterList.Parameters.Select(s => s.Identifier.ValueText).ToList();
-            }
-
             var parameterList = (ParameterListSyntax)member.DescendantNodes(descendIntoChildren: _ => true, descendIntoTrivia: false)
                                                            .FirstOrDefault(f => f is ParameterListSyntax);
 
@@ -49,9 +46,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                    ? parameterList.Parameters.Select(s => s.Identifier.ValueText).ToList()
                    : new List<string>();
         }
-
-        protected override string GetParameterName(ParameterSyntax parameter)
-            => parameter.Identifier.ValueText;
 
         protected override XmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment)
         {
@@ -62,7 +56,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             return !isFirstNodeInComment
                 ? elementNode.WithLeadingTrivia(
                     SyntaxFactory.ParseLeadingTrivia(Environment.NewLine)
-                        .AddRange(elementNode.GetLeadingTrivia().Select(s => s)))
+                        .AddRange(elementNode.GetLeadingTrivia()))
                 : elementNode.WithTrailingTrivia(SyntaxFactory.ParseTrailingTrivia(Environment.NewLine));
         }
     }
