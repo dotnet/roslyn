@@ -1104,6 +1104,33 @@ class C
         }
 
         [Fact]
+        public void DeconstructWithoutValueTupleLibrary()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x;
+        var y = (x, x) = new C();
+        System.Console.Write(y.ToString());
+    }
+
+    public void Deconstruct(out int x1, out int x2)
+    {
+        x1 = x2 = 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var y = (x, x) = new C();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
         public void NestedTypelessTupleAssignment2()
         {
             string source = @"

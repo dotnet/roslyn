@@ -385,7 +385,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.Add(type);
             }
 
-            return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
+            return TupleTypeSymbol.Create(locationOpt: null,
+                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementLocations: default(ImmutableArray<Location>),
+                elementNames: default(ImmutableArray<string>),
+                compilation: compilation,
+                diagnostics: diagnostics,
+                syntax: syntax);
         }
 
         /// <summary>
