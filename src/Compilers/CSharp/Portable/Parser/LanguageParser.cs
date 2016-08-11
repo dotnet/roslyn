@@ -9782,9 +9782,10 @@ tryAgain:
                 // According to Language Specification, section 7.6.7 Element access
                 //      The argument-list of an element-access is not allowed to contain ref or out arguments.
                 // However, due to backward compatibility, compiler overlooks this restriction during parsing
-                // and even ignores out/ref modifiers in element access during binding.
+                // and even ignores out/ref modifiers in element access during binding. The "strict" feature
+                // causes the compiler to diagnose this situation.
                 //
-                // We will enforce that language rule for out variables declarations at the parser level. 
+                // We will enforce that language rule for out variable declarations at the parser level. 
                 if (!isIndexer &&
                     refOrOutKeyword != null && refOrOutKeyword.Kind == SyntaxKind.OutKeyword &&
                     IsPossibleOutVarDeclaration())
@@ -9798,6 +9799,11 @@ tryAgain:
                 }
                 else
                 {
+                    if (isIndexer && refOrOutKeyword != null && IsStrict)
+                    {
+                        refOrOutKeyword = this.AddError(refOrOutKeyword, ErrorCode.ERR_UnexpectedToken, refOrOutKeyword.Text);
+                    }
+
                     expression = this.ParseSubExpression(Precedence.Expression);
                 }
             }

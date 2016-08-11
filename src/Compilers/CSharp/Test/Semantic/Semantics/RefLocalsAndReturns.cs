@@ -918,5 +918,32 @@ public class Test
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
         }
+
+        [Fact]
+        public void NoRefInIndex()
+        {
+            // Quoting LanguageParser.cs:
+            //
+            // According to Language Specification, section 7.6.7 Element access
+            //      The argument-list of an element-access is not allowed to contain ref or out arguments.
+            // However, due to backward compatibility, compiler overlooks this restriction during parsing
+            // and even ignores out/ref modifiers in element access during binding. The "strict" feature
+            // causes the compiler to diagnose this situation.
+            var text = @"
+class C
+{
+    static object F(object[] a, int i)
+    {
+        return a[ref i];
+    }
+}";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                );
+            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (6,18): error CS1073: Unexpected token 'ref'
+                //         return a[ref i];
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 18)
+                );
+        }
     }
 }
