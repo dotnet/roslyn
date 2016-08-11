@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
         internal const string TupleTypeName = "ValueTuple";
+        internal const string RestFieldName = "Rest";
 
         private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
@@ -813,21 +814,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (namesOfVirtualFields[tupleFieldIndex] != defaultName)
                                     {
                                         // The name given doesn't match default name Item8, etc.
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, defaultName, -members.Count - 1, null));
+                                        // Add a field with default name and make it virtual since we are not at the top level
+                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, -members.Count - 1, null));
                                     }
 
                                     // Add a field with the given name
                                     var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
+                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex],
+                                                        tupleFieldIndex, location));
 
-                                    if (field.Name == namesOfVirtualFields[tupleFieldIndex])
-                                    {
-                                        members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex, location));
-                                    }
-                                    else
-                                    {
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex],
-                                                                                                tupleFieldIndex, location));
-                                    }
                                 }
                                 else if (field.Name == namesOfVirtualFields[tupleFieldIndex])
                                 {
@@ -842,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // Add a field with the given name
                                     if (namesOfVirtualFields[tupleFieldIndex] != null)
                                     {
-                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
+                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
                                                                                                 _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
                                     }
                                 }

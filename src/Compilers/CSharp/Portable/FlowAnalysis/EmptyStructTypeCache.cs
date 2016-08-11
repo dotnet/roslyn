@@ -166,6 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (member.Kind)
                 {
                     case SymbolKind.Field:
+                        // Do not report virtual tuple fields.
+                        // They are additional aliases to the fields of the underlying struct or nested extensions.
+                        // and as such are already accounted for via the nonvirtual fields.
+                        if (field is TupleVirtualElementFieldSymbol)
+                        {
+                            return null;
+                        }
+
                         var field = (FieldSymbol)member;
                         return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
