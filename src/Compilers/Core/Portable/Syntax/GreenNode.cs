@@ -155,7 +155,20 @@ namespace Microsoft.CodeAnalysis
             return _slotCount;
         }
 
-        public abstract int GetSlotOffset(int index);
+        public virtual int GetSlotOffset(int index)
+        {
+            int offset = 0;
+            for (int i = 0; i < index; i++)
+            {
+                var child = this.GetSlot(i);
+                if (child != null)
+                {
+                    offset += child.FullWidth;
+                }
+            }
+
+            return offset;
+        }
 
         /// <summary>
         /// Find the slot that contains the given offset.

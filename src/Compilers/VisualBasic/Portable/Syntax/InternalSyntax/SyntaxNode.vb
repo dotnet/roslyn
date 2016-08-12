@@ -340,22 +340,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Public Overrides Function GetSlotOffset(index As Integer) As Integer
-            ' This implementation should not support arbitrary
-            ' length lists since the implementation is O(n).
-            Debug.Assert(index < 12) ' Max. slots 12 (DeclareStatement)
-
-            Dim offset = 0
-
-            For i = 0 To index - 1
-                Dim child = GetSlot(i)
-                If child IsNot Nothing Then
-                    offset += child.FullWidth
-                End If
-            Next
-            Return offset
-        End Function
-
         Friend Function ChildNodesAndTokens() As CommonChildSyntaxList
             Return New CommonChildSyntaxList(Me)
         End Function

@@ -96,25 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public override int GetSlotOffset(int index)
-        {
-            // This implementation should not support arbitrary
-            // length lists since the implementation is O(n).
-            System.Diagnostics.Debug.Assert(index < 11); // Max. slots 11 (TypeDeclarationSyntax)
-
-            int offset = 0;
-            for (int i = 0; i < index; i++)
-            {
-                var child = this.GetSlot(i);
-                if (child != null)
-                {
-                    offset += child.FullWidth;
-                }
-            }
-
-            return offset;
-        }
-
         internal CommonChildSyntaxList ChildNodesAndTokens()
         {
             return new CommonChildSyntaxList(this);
