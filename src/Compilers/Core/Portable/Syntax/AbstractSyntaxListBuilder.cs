@@ -79,6 +79,30 @@ namespace Microsoft.CodeAnalysis.Syntax
             Validate(start, Count);
         }
 
+        public void AddRange(SyntaxNodeOrTokenList list)
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
+        public void AddRange(SyntaxNodeOrTokenList list, int offset, int count)
+        {
+            if (Nodes == null || this.Count + count > Nodes.Length)
+            {
+                this.Grow(Count + count);
+            }
+
+            var dst = this.Count;
+            for (int i = offset, limit = offset + count; i < limit; i++)
+            {
+                Nodes[dst].Value = list[i].UnderlyingNode;
+                dst++;
+            }
+
+            int start = Count;
+            Count += count;
+            Validate(start, Count);
+        }
+
         [Conditional("DEBUG")]
         protected void Validate(int start, int end)
         {

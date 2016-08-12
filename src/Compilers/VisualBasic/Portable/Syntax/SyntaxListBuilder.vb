@@ -18,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AddRange(list, 0, list.Count)
         End Function
 
-        Friend Shadows Function AddRange(list As SyntaxNodeOrTokenList) As SyntaxListBuilder
-            Return Me.AddRange(list, 0, list.Count)
-        End Function
+        Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList)
+            MyBase.AddRange(list)
+        End Sub
 
         Friend Shadows Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
             If (Me.Count + length) > Me.Nodes.Length Then
@@ -47,22 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
         End Function
 
-        Friend Shadows Function AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me.Count + length) > Me.Nodes.Length Then
-                Me.Grow(Me.Count + length)
-            End If
-
-            Dim dst = Count
-            For i = offset To offset + length - 1
-                Me.Nodes(dst).Value = list(i).UnderlyingNode
-                dst += 1
-            Next i
-
-            Dim start As Integer = Me.Count
-            Me.Count = start + length
-            Me.Validate(start, Me.Count)
-            Return Me
-        End Function
+        Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer)
+            MyBase.AddRange(list, offset, length)
+        End Sub
 
         Friend Shadows Function AddRange(list As SyntaxTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
             Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
