@@ -96,6 +96,21 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Array.Resize(ref Nodes, newSize);
         }
 
+        public void AddRange(TGreenNode[] items, int offset, int length)
+        {
+            // Necessary, but not sufficient (e.g. for nested lists).
+            EnsureAdditionalCapacity(length - offset);
+
+            int oldCount = this.Count;
+
+            for (int i = offset; i < length; i++)
+            {
+                Add(items[i]);
+            }
+
+            Validate(oldCount, this.Count);
+        }
+
         public TGreenNode[] ToArray()
         {
             var array = new TGreenNode[this.Count];

@@ -17,21 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddRange(items, 0, items.Length);
         }
 
-        public void AddRange(CSharpSyntaxNode[] items, int offset, int length)
-        {
-            // Necessary, but not sufficient (e.g. for nested lists).
-            EnsureAdditionalCapacity(length - offset);
-
-            int oldCount = this.Count;
-
-            for (int i = offset; i < length; i++)
-            {
-                Add(items[i]);
-            }
-
-            Validate(oldCount, this.Count);
-        }
-
         public void AddRange(SyntaxList<CSharpSyntaxNode> list)
         {
             this.AddRange(list, 0, list.Count);
