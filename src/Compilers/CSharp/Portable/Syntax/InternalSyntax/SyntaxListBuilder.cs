@@ -2,10 +2,11 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class SyntaxListBuilder
+    internal class SyntaxListBuilder : AbstractSyntaxListBuilder
     {
         private ArrayElement<CSharpSyntaxNode>[] _nodes;
         public int Count { get; private set; }
