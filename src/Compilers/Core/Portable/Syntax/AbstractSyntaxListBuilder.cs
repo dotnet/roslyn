@@ -127,6 +127,16 @@ namespace Microsoft.CodeAnalysis.Syntax
             Validate(start, Count);
         }
 
+        public void AddRange<TNode>(SyntaxList<TNode> list) where TNode : SyntaxNode
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
+        public void AddRange<TNode>(SyntaxList<TNode> list, int offset, int count) where TNode : SyntaxNode
+        {
+            this.AddRange(new SyntaxList<SyntaxNode>(list.Node), offset, count);
+        }
+
         [Conditional("DEBUG")]
         protected void Validate(int start, int end)
         {
