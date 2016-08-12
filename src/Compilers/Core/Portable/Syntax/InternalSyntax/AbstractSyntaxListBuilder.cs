@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Array.Resize(ref Nodes, newSize);
         }
 
+        public void AddRange(TGreenNode[] items)
+        {
+            this.AddRange(items, 0, items.Length);
+        }
+
         public void AddRange(TGreenNode[] items, int offset, int length)
         {
             // Necessary, but not sufficient (e.g. for nested lists).

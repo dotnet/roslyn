@@ -13,11 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        public void AddRange(CSharpSyntaxNode[] items)
-        {
-            this.AddRange(items, 0, items.Length);
-        }
-
         public void AddRange(SyntaxList<CSharpSyntaxNode> list)
         {
             this.AddRange(list, 0, list.Count);
