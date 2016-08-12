@@ -11,16 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public void AddRange(SyntaxTokenList list)
-        {
-            this.AddRange(list, 0, list.Count);
-        }
-
-        public void AddRange(SyntaxTokenList list, int offset, int length)
-        {
-            this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
-        }
-
         public bool Any(SyntaxKind kind) => Any((int)kind);
 
         internal Syntax.InternalSyntax.CSharpSyntaxNode ToListNode()

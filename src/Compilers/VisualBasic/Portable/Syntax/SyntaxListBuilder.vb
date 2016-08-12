@@ -10,38 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MyBase.New(size)
         End Sub
 
-        Friend Shadows Sub AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode))
-            MyBase.AddRange(list)
-        End Sub
-
-        Friend Shadows Sub AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer)
-            MyBase.AddRange(list, offset, length)
-        End Sub
-
-        Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList)
-            MyBase.AddRange(list)
-        End Sub
-
-        Friend Shadows Sub AddRange(list As SyntaxList(Of SyntaxNode))
-            MyBase.AddRange(list)
-        End Sub
-
-        Friend Shadows Sub AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer)
-            MyBase.AddRange(list, offset, length)
-        End Sub
-
-        Public Shadows Sub AddRange(items As SyntaxNode(), offset As Integer, length As Integer)
-            MyBase.AddRange(items, offset, length)
-        End Sub
-
-        Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer)
-            MyBase.AddRange(list, offset, length)
-        End Sub
-
-        Friend Shadows Sub AddRange(list As SyntaxTokenList, offset As Integer, length As Integer)
-            Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
-        End Sub
-
         Friend Shadows Function Any(kind As SyntaxKind) As Boolean
             Return MyBase.Any(kind)
         End Function
