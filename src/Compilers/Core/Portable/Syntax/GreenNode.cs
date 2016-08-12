@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
@@ -125,6 +126,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool IsStructuredTrivia { get { return false; } }
         public virtual bool IsDirective { get { return false; } }
         public virtual bool IsToken { get { return false; } }
+        public virtual bool IsTrivia => false;
 
         #endregion
 
@@ -638,30 +640,94 @@ namespace Microsoft.CodeAnalysis
             this.WriteTo(writer, leading: true, trailing: true);
         }
 
-        protected internal virtual void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        protected internal void WriteTo(TextWriter writer, bool leading, bool trailing)
         {
-            bool first = true;
-            int n = this.SlotCount;
-            int lastIndex = n - 1;
-            for (; lastIndex >= 0; lastIndex--)
+            // Use an actual Stack so we can write out deeply recursive structures without overflowing.
+            var stack = new Stack<ValueTuple<GreenNode, bool, bool>>();
+            stack.Push(ValueTuple.Create(this, leading, trailing));
+
+            // Separated out stack processing logic so that it does not unintentially refer to 
+            // "this", "leading" or "trailing.
+            ProcessStack(writer, stack);
+        }
+
+        private static void ProcessStack(TextWriter writer, Stack<ValueTuple<GreenNode, bool, bool>> stack)
+        {
+            while (stack.Count > 0)
             {
-                var child = this.GetSlot(lastIndex);
+                var current = stack.Pop();
+                var currentNode = current.Item1;
+                var currentLeading = current.Item2;
+                var currentTrailing = current.Item3;
+
+                if (currentNode.IsToken)
+                {
+                    currentNode.WriteTokenTo(writer, currentLeading, currentTrailing);
+                    continue;
+                }
+
+                if (currentNode.IsTrivia)
+                {
+                    currentNode.WriteTriviaTo(writer);
+                    continue;
+                }
+
+                var firstIndex = GetFirstNonNullChildIndex(currentNode);
+                var lastIndex = GetLastNonNullChildIndex(currentNode);
+
+                for (var i = lastIndex; i >= firstIndex; i--)
+                {
+                    var child = currentNode.GetSlot(i);
+                    if (child != null)
+                    {
+                        var first = i == firstIndex;
+                        var last = i == lastIndex;
+                        stack.Push(ValueTuple.Create(child, currentLeading | !first, currentTrailing | !last));
+                    }
+                }
+            }
+        }
+
+        private static int GetFirstNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int firstIndex = 0;
+            for (; firstIndex < n; firstIndex++)
+            {
+                var child = node.GetSlot(firstIndex);
                 if (child != null)
                 {
                     break;
                 }
             }
 
-            for (var i = 0; i <= lastIndex; i++)
+            return firstIndex;
+        }
+
+        private static int GetLastNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int lastIndex = n - 1;
+            for (; lastIndex >= 0; lastIndex--)
             {
-                var child = this.GetSlot(i);
+                var child = node.GetSlot(lastIndex);
                 if (child != null)
                 {
-                    var last = i == lastIndex;
-                    child.WriteTo(writer, leading | !first, trailing | !last);
-                    first = false;
+                    break;
                 }
             }
+
+            return lastIndex;
+        }
+
+        protected virtual void WriteTriviaTo(TextWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual void WriteTokenTo(TextWriter writer, bool leading, bool trailing)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

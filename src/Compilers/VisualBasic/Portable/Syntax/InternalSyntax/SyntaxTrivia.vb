@@ -60,6 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsTrivia As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Friend NotOverridable Overrides Function GetSlot(index As Integer) As GreenNode
             Throw ExceptionUtilities.Unreachable
         End Function
@@ -80,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Protected Overrides Sub WriteTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
+        Protected Overrides Sub WriteTriviaTo(writer As System.IO.TextWriter)
             writer.Write(Text) 'write text of trivia itself
         End Sub
 

@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Protected Overrides Sub WriteTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
+        Protected Overrides Sub WriteTokenTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
             If leading Then
                 Dim leadingTrivia = GetLeadingTrivia()
                 If leadingTrivia IsNot Nothing Then
