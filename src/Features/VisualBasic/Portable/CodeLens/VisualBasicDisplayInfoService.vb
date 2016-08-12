@@ -144,19 +144,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
             Return symbolName
         End Function
-
-        Private Shared Function GetRootNamespace(symbol As ISymbol) As String
-            Dim containingNamespace = symbol.ContainingNamespace
-
-            Dim rootName = String.Empty
-            If containingNamespace IsNot Nothing Then
-                Dim name = containingNamespace.ToDisplayString()
-                If String.Compare(name, "Global", StringComparison.OrdinalIgnoreCase) <> 0 Then
-                    rootName = name
-                End If
-            End If
-
-            Return rootName
-        End Function
     End Class
 End Namespace
