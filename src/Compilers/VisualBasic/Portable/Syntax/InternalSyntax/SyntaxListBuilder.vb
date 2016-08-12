@@ -6,9 +6,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class SyntaxListBuilder
         Inherits AbstractSyntaxListBuilder(Of VisualBasicSyntaxNode)
 
-        Private _count As Integer
-        Private Nodes As ArrayElement(Of VisualBasicSyntaxNode)()
-
         Public Shared Function Create() As SyntaxListBuilder
             Return New SyntaxListBuilder(8)
         End Function
@@ -120,16 +117,6 @@ enter:
                 Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
             Next i
         End Sub
-
-        Public Property Count As Integer
-            Get
-                Return Me._count
-            End Get
-
-            Private Set
-                _count = Value
-            End Set
-        End Property
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get

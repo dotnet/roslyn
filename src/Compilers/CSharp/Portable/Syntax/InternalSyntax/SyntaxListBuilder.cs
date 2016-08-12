@@ -8,9 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal class SyntaxListBuilder : AbstractSyntaxListBuilder<CSharpSyntaxNode>
     {
-        private ArrayElement<CSharpSyntaxNode>[] Nodes;
-        public int Count { get; private set; }
-
         public SyntaxListBuilder(int size)
         {
             Nodes = new ArrayElement<CSharpSyntaxNode>[size];
