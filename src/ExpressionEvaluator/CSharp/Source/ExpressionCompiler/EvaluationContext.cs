@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,
