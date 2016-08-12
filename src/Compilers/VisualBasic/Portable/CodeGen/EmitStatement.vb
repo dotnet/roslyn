@@ -1329,7 +1329,7 @@ OtherExpressions:
 
             If _ilEmitStyle = ILEmitStyle.Debug Then
                 Dim syntax = local.GetDeclaratorSyntax()
-                Dim syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, instrumentForDynamicAnalysis:=False)
+                Dim syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, instrumentForDynamicAnalysis:=_module.EmitOptions.EmitDynamicAnalysisData)
 
                 Dim ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset)
 

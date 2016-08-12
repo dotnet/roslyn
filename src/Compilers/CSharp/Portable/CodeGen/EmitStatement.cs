@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, instrumentForDynamicAnalysis: false);
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, instrumentForDynamicAnalysis: _module.EmitOptions.EmitDynamicAnalysisData);
 
                 int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
