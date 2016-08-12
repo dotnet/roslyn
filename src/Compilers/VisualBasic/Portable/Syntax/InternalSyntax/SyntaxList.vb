@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Shared Function List(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode) As WithTwoChildren
 
             Dim hash As Integer
-            Dim cached As GreenNode = SyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, hash)
+            Dim cached As GreenNode = CommonSyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, hash)
             If cached IsNot Nothing Then
                 Return DirectCast(cached, WithTwoChildren)
             End If
 
             Dim result = New WithTwoChildren(child0, child1)
             If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
+                CommonSyntaxNodeCache.AddNode(result, hash)
             End If
 
             Return result
@@ -40,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Shared Function List(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode) As WithThreeChildren
             Dim hash As Integer
-            Dim cached As GreenNode = SyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, child2, hash)
+            Dim cached As GreenNode = CommonSyntaxNodeCache.TryGetNode(SyntaxKind.List, child0, child1, child2, hash)
             If cached IsNot Nothing Then
                 Return DirectCast(cached, WithThreeChildren)
             End If
 
             Dim result = New WithThreeChildren(child0, child1, child2)
             If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
+                CommonSyntaxNodeCache.AddNode(result, hash)
             End If
 
             Return result

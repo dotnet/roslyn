@@ -30,6 +30,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using System.Collections.Generic;");
             WriteLine("using System.Linq;");
             WriteLine("using System.Threading;");
+            WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine();
         }
@@ -796,7 +797,14 @@ namespace CSharpSyntaxGenerator
                 //int hash;
                 WriteLine("      int hash;");
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
-                Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                if (withSyntaxFactoryContext)
+                {
+                    Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                }
+                else
+                {
+                    Write("      var cached = CommonSyntaxNodeCache.TryGetNode((int)");
+                }
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(", out hash);");
                 //    if (cached != null) return (IdentifierNameSyntax)cached;
@@ -812,7 +820,7 @@ namespace CSharpSyntaxGenerator
                 //{
                 WriteLine("      {");
                 //    SyntaxNodeCache.AddNode(result, hash);
-                WriteLine("          SyntaxNodeCache.AddNode(result, hash);");
+                WriteLine("          CommonSyntaxNodeCache.AddNode(result, hash);");
                 //}
                 WriteLine("      }");
                 WriteLine();
