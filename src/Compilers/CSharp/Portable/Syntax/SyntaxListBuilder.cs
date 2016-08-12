@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal class SyntaxListBuilder
+    internal class SyntaxListBuilder : AbstractSyntaxListBuilder
     {
-        private ArrayElement<GreenNode>[] _nodes;
+        private ArrayElement<GreenNode>[] Nodes;
         public int Count { get; private set; }
 
         public SyntaxListBuilder(int size)
         {
-            _nodes = new ArrayElement<GreenNode>[size];
+            Nodes = new ArrayElement<GreenNode>[size];
             this.Count = 0;
         }
 
@@ -35,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 throw new ArgumentNullException();
             }
 
-            if (_nodes == null || Count >= _nodes.Length)
+            if (Nodes == null || Count >= Nodes.Length)
             {
-                this.Grow(Count == 0 ? 8 : _nodes.Length * 2);
+                this.Grow(Count == 0 ? 8 : Nodes.Length * 2);
             }
 
-            _nodes[Count++].Value = item;
+            Nodes[Count++].Value = item;
         }
 
         public void AddRange(SyntaxNode[] items)
@@ -50,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public void AddRange(SyntaxNode[] items, int offset, int length)
         {
-            if (_nodes == null || Count + length > _nodes.Length)
+            if (Nodes == null || Count + length > Nodes.Length)
             {
                 this.Grow(Count + length);
             }
 
             for (int i = offset, j = Count; i < offset + length; ++i, ++j)
             {
-                _nodes[j].Value = items[i].Green;
+                Nodes[j].Value = items[i].Green;
             }
 
             int start = Count;
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             for (int i = start; i < end; i++)
             {
-                if (_nodes[i].Value == null)
+                if (Nodes[i].Value == null)
                 {
                     throw new ArgumentException("Cannot add a null CSharpSyntaxNode.");
                 }
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public void AddRange(SyntaxList<SyntaxNode> list, int offset, int count)
         {
-            if (_nodes == null || this.Count + count > _nodes.Length)
+            if (Nodes == null || this.Count + count > Nodes.Length)
             {
                 this.Grow(Count + count);
             }
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
-                _nodes[dst].Value = list.ItemInternal(i).Green;
+                Nodes[dst].Value = list.ItemInternal(i).Green;
                 dst++;
             }
 
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public void AddRange(SyntaxNodeOrTokenList list, int offset, int count)
         {
-            if (_nodes == null || this.Count + count > _nodes.Length)
+            if (Nodes == null || this.Count + count > Nodes.Length)
             {
                 this.Grow(Count + count);
             }
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
-                _nodes[dst].Value = list[i].UnderlyingNode;
+                Nodes[dst].Value = list[i].UnderlyingNode;
                 dst++;
             }
 
@@ -148,15 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private void Grow(int size)
         {
             var tmp = new ArrayElement<GreenNode>[size];
-            Array.Copy(_nodes, tmp, _nodes.Length);
-            _nodes = tmp;
+            Array.Copy(Nodes, tmp, Nodes.Length);
+            Nodes = tmp;
         }
 
         public bool Any(SyntaxKind kind)
         {
             for (int i = 0; i < Count; i++)
             {
-                if (_nodes[i].Value.RawKind == (int)kind)
+                if (Nodes[i].Value.RawKind == (int)kind)
                 {
                     return true;
                 }
@@ -172,16 +170,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case 0:
                     return null;
                 case 1:
-                    return (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].Value;
+                    return (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value;
                 case 2:
-                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].Value);
+                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value);
                 case 3:
-                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[2].Value);
+                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[2].Value);
                 default:
                     var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[this.Count];
                     for (int i = 0; i < this.Count; i++)
                     {
-                        tmp[i].Value = (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[i].Value;
+                        tmp[i].Value = (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[i].Value;
                     }
 
                     return Syntax.InternalSyntax.SyntaxList.List(tmp);

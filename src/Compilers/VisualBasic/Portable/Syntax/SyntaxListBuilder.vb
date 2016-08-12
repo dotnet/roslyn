@@ -1,12 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class SyntaxListBuilder
+        Inherits AbstractSyntaxListBuilder
+
         Private _count As Integer
-        Private _nodes As ArrayElement(Of GreenNode)()
+        Private Nodes As ArrayElement(Of GreenNode)()
 
         Friend Sub New(size As Integer)
-            Me._nodes = New ArrayElement(Of GreenNode)(size - 1) {}
+            Me.Nodes = New ArrayElement(Of GreenNode)(size - 1) {}
         End Sub
 
         Friend Function Add(item As SyntaxNode) As SyntaxListBuilder
@@ -15,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Function AddInternal(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            If Me._count >= Me._nodes.Length Then
-                Me.Grow(Math.Max(8, Me._nodes.Length * 2))
+            If Me.Count >= Me.Nodes.Length Then
+                Me.Grow(Math.Max(8, Me.Nodes.Length * 2))
             End If
-            Me._nodes(Me._count).Value = item
-            Me._count += 1
+            Me.Nodes(Me.Count).Value = item
+            Me.Count += 1
             Return Me
         End Function
 
@@ -40,36 +44,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (Me.Count + length) > Me.Nodes.Length Then
+                Me.Grow(Me.Count + length)
             End If
 
-            Dim dst = _count
+            Dim dst = Count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = list.ItemInternal(i).Green
+                Me.Nodes(dst).Value = list.ItemInternal(i).Green
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = (Me._count + length)
-            Me.Validate(start, Me._count)
+            Dim start As Integer = Me.Count
+            Me.Count = (Me.Count + length)
+            Me.Validate(start, Me.Count)
             Return Me
         End Function
 
         Friend Function AddRange(items As SyntaxNode(), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (Me.Count + length) > Me.Nodes.Length Then
+                Me.Grow(Me.Count + length)
             End If
 
-            Dim dst = _count
+            Dim dst = Count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = items(i).Green
+                Me.Nodes(dst).Value = items(i).Green
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = start + length
-            Me.Validate(start, Me._count)
+            Dim start As Integer = Me.Count
+            Me.Count = start + length
+            Me.Validate(start, Me.Count)
             Return Me
         End Function
 
@@ -78,19 +82,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Function AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (Me.Count + length) > Me.Nodes.Length Then
+                Me.Grow(Me.Count + length)
             End If
 
-            Dim dst = _count
+            Dim dst = Count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = list(i).UnderlyingNode
+                Me.Nodes(dst).Value = list(i).UnderlyingNode
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = start + length
-            Me.Validate(start, Me._count)
+            Dim start As Integer = Me.Count
+            Me.Count = start + length
+            Me.Validate(start, Me.Count)
             Return Me
         End Function
 
@@ -100,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Function Any(kind As SyntaxKind) As Boolean
             Dim i As Integer
-            For i = 0 To Me._count - 1
-                If (Me._nodes(i).Value.RawKind = kind) Then
+            For i = 0 To Me.Count - 1
+                If (Me.Nodes(i).Value.RawKind = kind) Then
                     Return True
                 End If
             Next i
@@ -109,37 +113,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Sub RemoveLast()
-            Me._count -= 1
-            Me._nodes(_count) = Nothing
+            Me.Count -= 1
+            Me.Nodes(Count) = Nothing
         End Sub
 
         Friend Sub Clear()
-            Me._count = 0
+            Me.Count = 0
         End Sub
 
         Private Sub Grow(size As Integer)
-            Array.Resize(Me._nodes, size)
+            Array.Resize(Me.Nodes, size)
         End Sub
 
         Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)()
-            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me.Count - 1) {}
             Dim i As Integer
             For i = 0 To array.Length - 1
-                array(i).Value = DirectCast(Me._nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
+                array(i).Value = DirectCast(Me.Nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
             Next i
             Return array
         End Function
 
         Friend Function ToListNode() As GreenNode
-            Select Case Me._count
+            Select Case Me.Count
                 Case 0
                     Return Nothing
                 Case 1
-                    Return DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
+                    Return DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
                 Case 2
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
                 Case 3
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
             End Select
             Return InternalSyntax.SyntaxList.List(Me.ToGreenArray)
         End Function
@@ -148,14 +152,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private Sub Validate(start As Integer, [end] As Integer)
             Dim i As Integer
             For i = start To [end] - 1
-                Debug.Assert(Me._nodes(i).Value IsNot Nothing)
+                Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
             Next i
         End Sub
 
-        Friend ReadOnly Property Count As Integer
+        Friend Property Count As Integer
             Get
-                Return Me._count
+                Return _count
             End Get
+
+            Private Set(value As Integer)
+                _count = value
+            End Set
         End Property
     End Class
 End Namespace
