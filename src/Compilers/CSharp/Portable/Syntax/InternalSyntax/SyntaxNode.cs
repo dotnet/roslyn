@@ -96,11 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal CommonChildSyntaxList ChildNodesAndTokens()
-        {
-            return new CommonChildSyntaxList(this);
-        }
-
         /// <summary>
         /// Enumerates all nodes of the tree rooted by this node (including this node).
         /// </summary>

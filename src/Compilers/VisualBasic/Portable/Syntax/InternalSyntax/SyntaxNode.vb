@@ -340,10 +340,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Friend Function ChildNodesAndTokens() As CommonChildSyntaxList
-            Return New CommonChildSyntaxList(Me)
-        End Function
-
         ' Use conditional weak table so we always return same identity for structured trivia
         Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, Dictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
 

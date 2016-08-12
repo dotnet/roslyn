@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -168,6 +169,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return offset;
+        }
+
+        internal CommonChildSyntaxList ChildNodesAndTokens()
+        {
+            return new CommonChildSyntaxList(this);
         }
 
         /// <summary>
