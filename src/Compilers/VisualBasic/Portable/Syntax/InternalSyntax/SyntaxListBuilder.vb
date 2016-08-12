@@ -58,10 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me.Nodes(Me.Count) = Nothing
         End Sub
 
-        Public Sub Clear()
-            Me.Count = 0
-        End Sub
-
         Private Sub EnsureAdditionalCapacity(additionalCount As Integer)
             Dim currentSize As Integer = Me.Nodes.Length
             Dim requiredSize As Integer = Me.Count + additionalCount

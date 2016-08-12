@@ -17,5 +17,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             Nodes = new ArrayElement<TGreenNode>[size];
         }
+
+        public void Clear()
+        {
+            this.Count = 0;
+        }
     }
 }

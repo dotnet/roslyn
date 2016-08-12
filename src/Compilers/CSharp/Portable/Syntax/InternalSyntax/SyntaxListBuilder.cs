@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        public void Clear()
-        {
-            this.Count = 0;
-        }
-
         public CSharpSyntaxNode this[int index]
         {
             get
