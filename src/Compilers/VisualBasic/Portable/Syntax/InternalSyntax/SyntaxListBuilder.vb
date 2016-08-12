@@ -114,15 +114,6 @@ enter:
             Next i
         End Sub
 
-        Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
-            Get
-                Return Me.Nodes(index)
-            End Get
-            Set(value As VisualBasicSyntaxNode)
-                Me.Nodes(index).Value = value
-            End Set
-        End Property
-
         Public Function ToList() As SyntaxList(Of VisualBasicSyntaxNode)
             Return New SyntaxList(Of VisualBasicSyntaxNode)(ToListNode)
         End Function

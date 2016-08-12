@@ -12,19 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        public CSharpSyntaxNode this[int index]
-        {
-            get
-            {
-                return Nodes[index];
-            }
-
-            set
-            {
-                Nodes[index].Value = value;
-            }
-        }
-
         public void Add(CSharpSyntaxNode item)
         {
             if (item == null) return;

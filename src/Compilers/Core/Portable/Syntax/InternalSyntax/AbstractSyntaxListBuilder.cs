@@ -22,5 +22,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             this.Count = 0;
         }
+
+        public TGreenNode this[int index]
+        {
+            get
+            {
+                return Nodes[index];
+            }
+
+            set
+            {
+                Nodes[index].Value = value;
+            }
+        }
     }
 }
