@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -32,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(child1 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, out hash);
+            GreenNode cached = CommonSyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, out hash);
             if (cached != null)
                 return (WithTwoChildren)cached;
 
             var result = new WithTwoChildren(child0, child1);
             if (hash >= 0)
             {
-                SyntaxNodeCache.AddNode(result, hash);
+                CommonSyntaxNodeCache.AddNode(result, hash);
             }
 
             return result;
@@ -52,14 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(child2 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, child2, out hash);
+            GreenNode cached = CommonSyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, child2, out hash);
             if (cached != null)
                 return (WithThreeChildren)cached;
 
             var result = new WithThreeChildren(child0, child1, child2);
             if (hash >= 0)
             {
-                SyntaxNodeCache.AddNode(result, hash);
+                CommonSyntaxNodeCache.AddNode(result, hash);
             }
 
             return result;
