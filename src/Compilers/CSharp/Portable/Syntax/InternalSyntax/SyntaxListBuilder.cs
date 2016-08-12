@@ -12,30 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        public void Add(CSharpSyntaxNode item)
-        {
-            if (item == null) return;
-
-            if (item.IsList)
-            {
-                int slotCount = item.SlotCount;
-
-                // Necessary, but not sufficient (e.g. for nested lists).
-                EnsureAdditionalCapacity(slotCount);
-
-                for (int i = 0; i < slotCount; i++)
-                {
-                    this.Add((CSharpSyntaxNode)item.GetSlot(i));
-                }
-            }
-            else
-            {
-                EnsureAdditionalCapacity(1);
-
-                Nodes[Count++].Value = item;
-            }
-        }
-
         public void AddRange(CSharpSyntaxNode[] items)
         {
             this.AddRange(items, 0, items.Length);
@@ -90,22 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Count--;
             Nodes[Count].Value = null;
-        }
-
-        private void EnsureAdditionalCapacity(int additionalCount)
-        {
-            int currentSize = Nodes.Length;
-            int requiredSize = this.Count + additionalCount;
-
-            if (requiredSize <= currentSize) return;
-
-            int newSize =
-                requiredSize < 8 ? 8 :
-                requiredSize >= (int.MaxValue / 2) ? int.MaxValue :
-                Math.Max(requiredSize, currentSize * 2); // NB: Size will *at least* double.
-            Debug.Assert(newSize >= requiredSize);
-
-            Array.Resize(ref Nodes, newSize);
         }
 
         public bool Any(SyntaxKind kind)

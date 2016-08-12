@@ -14,11 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(size)
         End Sub
 
-        Public Function Add(item As VisualBasicSyntaxNode) As SyntaxListBuilder
-            EnsureAdditionalCapacity(1)
-            Return Me.AddUnsafe(item)
-        End Function
-
         Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
             Me.Nodes(Me.Count).Value = DirectCast(item, VisualBasicSyntaxNode)
@@ -56,23 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub RemoveLast()
             Me.Count -= 1
             Me.Nodes(Me.Count) = Nothing
-        End Sub
-
-        Private Sub EnsureAdditionalCapacity(additionalCount As Integer)
-            Dim currentSize As Integer = Me.Nodes.Length
-            Dim requiredSize As Integer = Me.Count + additionalCount
-
-            If requiredSize <= currentSize Then
-                Return
-            End If
-
-            Dim newSize As Integer =
-                If(requiredSize < 8, 8,
-                If(requiredSize >= Integer.MaxValue / 2, Integer.MaxValue,
-                Math.Max(requiredSize, currentSize * 2))) ' Guaranteed to at least double
-            Debug.Assert(newSize >= requiredSize)
-
-            Array.Resize(Me.Nodes, newSize)
         End Sub
 
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
