@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct CommonChildSyntaxList
     {

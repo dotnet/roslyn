@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {

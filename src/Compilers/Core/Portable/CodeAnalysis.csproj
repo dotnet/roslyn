@@ -108,6 +108,10 @@
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
     <Compile Include="Syntax\InternalSyntax\AbstractSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\ISyntaxList.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />

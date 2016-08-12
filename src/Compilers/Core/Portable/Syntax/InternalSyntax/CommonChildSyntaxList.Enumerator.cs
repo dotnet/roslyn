@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct CommonChildSyntaxList
     {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             continue;
                         }
 
-                        if ((SyntaxKind)child.RawKind == SyntaxKind.List)
+                        if (child.RawKind == GreenNode.ListKind)
                         {
                             _list = child;
                             _listIndex++;
