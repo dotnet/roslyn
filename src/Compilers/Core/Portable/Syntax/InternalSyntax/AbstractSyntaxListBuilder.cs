@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             this.Count = 0;
         }
 
+        public void RemoveLast()
+        {
+            Count--;
+            Nodes[Count].Value = null;
+        }
+
         public TGreenNode this[int index]
         {
             get

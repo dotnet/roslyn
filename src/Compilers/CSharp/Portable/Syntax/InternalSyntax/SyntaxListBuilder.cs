@@ -62,12 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddRange(new SyntaxList<CSharpSyntaxNode>(list.Node), offset, length);
         }
 
-        internal void RemoveLast()
-        {
-            Count--;
-            Nodes[Count].Value = null;
-        }
-
         public bool Any(SyntaxKind kind)
         {
             for (int i = 0; i < Count; i++)

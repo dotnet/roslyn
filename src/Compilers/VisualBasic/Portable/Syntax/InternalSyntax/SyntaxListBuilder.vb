@@ -48,11 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
-        Friend Sub RemoveLast()
-            Me.Count -= 1
-            Me.Nodes(Me.Count) = Nothing
-        End Sub
-
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
             Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me.Count - 1) {}
 
