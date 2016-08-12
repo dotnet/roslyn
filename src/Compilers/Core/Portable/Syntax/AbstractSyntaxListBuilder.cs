@@ -35,5 +35,27 @@ namespace Microsoft.CodeAnalysis.Syntax
 
             return false;
         }
+
+        internal void AddInternal(GreenNode item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (Nodes == null || Count >= Nodes.Length)
+            {
+                this.Grow(Count == 0 ? 8 : Nodes.Length * 2);
+            }
+
+            Nodes[Count++].Value = item;
+        }
+
+        protected void Grow(int size)
+        {
+            var tmp = new ArrayElement<GreenNode>[size];
+            Array.Copy(Nodes, tmp, Nodes.Length);
+            Nodes = tmp;
+        }
     }
 }

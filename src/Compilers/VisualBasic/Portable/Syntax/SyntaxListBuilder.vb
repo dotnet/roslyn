@@ -10,19 +10,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MyBase.New(size)
         End Sub
 
-        Friend Function Add(item As SyntaxNode) As SyntaxListBuilder
-            Return AddInternal(item.Green)
-        End Function
-
-        Friend Function AddInternal(item As GreenNode) As SyntaxListBuilder
-            Debug.Assert(item IsNot Nothing)
-            If Me.Count >= Me.Nodes.Length Then
-                Me.Grow(Math.Max(8, Me.Nodes.Length * 2))
-            End If
-            Me.Nodes(Me.Count).Value = item
-            Me.Count += 1
-            Return Me
-        End Function
+        Friend Sub Add(item As SyntaxNode)
+            AddInternal(item.Green)
+        End Sub
 
         Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
             Return Me.AddRange(Of TNode)(list, 0, list.Count)
@@ -106,10 +96,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Friend Sub RemoveLast()
             Me.Count -= 1
             Me.Nodes(Count) = Nothing
-        End Sub
-
-        Private Sub Grow(size As Integer)
-            Array.Resize(Me.Nodes, size)
         End Sub
 
         Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)()

@@ -16,21 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             AddInternal(item.Green);
         }
 
-        internal void AddInternal(GreenNode item)
-        {
-            if (item == null)
-            {
-                throw new ArgumentNullException();
-            }
-
-            if (Nodes == null || Count >= Nodes.Length)
-            {
-                this.Grow(Count == 0 ? 8 : Nodes.Length * 2);
-            }
-
-            Nodes[Count++].Value = item;
-        }
-
         public void AddRange(SyntaxNode[] items)
         {
             this.AddRange(items, 0, items.Length);
@@ -131,13 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public void AddRange(SyntaxTokenList list, int offset, int length)
         {
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
-        }
-
-        private void Grow(int size)
-        {
-            var tmp = new ArrayElement<GreenNode>[size];
-            Array.Copy(Nodes, tmp, Nodes.Length);
-            Nodes = tmp;
         }
 
         public bool Any(SyntaxKind kind) => Any((int)kind);
