@@ -963,6 +963,7 @@
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
+    <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.vb" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
