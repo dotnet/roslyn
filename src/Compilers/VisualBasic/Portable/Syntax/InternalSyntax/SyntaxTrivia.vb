@@ -80,8 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend Overrides Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-            writer.Write(Text) 'write text of token itself
+        Protected Overrides Sub WriteTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
+            writer.Write(Text) 'write text of trivia itself
         End Sub
 
         Public NotOverridable Overrides Function ToFullString() As String

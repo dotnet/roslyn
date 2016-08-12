@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -565,9 +566,17 @@ namespace Microsoft.CodeAnalysis
         #region Text
         public abstract string ToFullString();
 
-        public virtual void WriteTo(System.IO.TextWriter writer)
+        public override string ToString()
         {
-            this.WriteTo(writer, true, true);
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: false, trailing: false);
+            return sb.ToStringAndFree();
+        }
+
+        public void WriteTo(System.IO.TextWriter writer)
+        {
+            this.WriteTo(writer, leading: true, trailing: true);
         }
 
         protected internal virtual void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)

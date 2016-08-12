@@ -273,18 +273,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Friend Overrides Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-
-            Dim leadingTrivia = GetLeadingTrivia()
-            If leadingTrivia IsNot Nothing Then
-                leadingTrivia.WriteTo(writer) 'Append leading trivia
+        Protected Overrides Sub WriteTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
+            If leading Then
+                Dim leadingTrivia = GetLeadingTrivia()
+                If leadingTrivia IsNot Nothing Then
+                    leadingTrivia.WriteTo(writer) 'Append leading trivia
+                End If
             End If
 
             writer.Write(_text) 'Append text of token itself
 
-            Dim trailingTrivia = GetTrailingTrivia()
-            If trailingTrivia IsNot Nothing Then
-                trailingTrivia.WriteTo(writer) ' Append trailing trivia
+            If trailing Then
+                Dim trailingTrivia = GetTrailingTrivia()
+                If trailingTrivia IsNot Nothing Then
+                    trailingTrivia.WriteTo(writer) ' Append trailing trivia
+                End If
             End If
         End Sub
 

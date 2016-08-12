@@ -67,37 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 context.IsWithinIteratorContext = Me.ParsedInIterator
         End Function
 
-        ''' <summary>
-        ''' Append the full text of this node including children and trivia to the given stringbuilder.
-        ''' </summary>
-        Public Overrides Sub WriteTo(writer As IO.TextWriter)
-            Dim stack = ArrayBuilder(Of GreenNode).GetInstance
-            stack.Push(Me)
-
-            While stack.Count > 0
-                DirectCast(stack.Pop(), InternalSyntax.VisualBasicSyntaxNode).WriteToOrFlatten(writer, stack)
-            End While
-
-            stack.Free()
-        End Sub
-
-        Protected Overrides Sub WriteTo(writer As IO.TextWriter, leading As Boolean, trailing As Boolean)
-            Me.WriteTo(writer)
-        End Sub
-
-        ''' <summary>
-        ''' NOTE: the method should write OR push children, but never do both
-        ''' </summary>
-        Friend Overridable Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-            ' By default just push children to the stack
-            For i = Me.SlotCount() - 1 To 0 Step -1
-                Dim node As GreenNode = GetSlot(i)
-                If node IsNot Nothing Then
-                    stack.Push(GetSlot(i))
-                End If
-            Next
-        End Sub
-
 #Region "Serialization"
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
@@ -131,29 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
-
-        ''' <summary>
-        ''' Returns the string representation of this node, not including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        Public Overrides Function ToString() As String
-            ' We get the full text into the string builder, and then only
-            ' grab the part that doesn't contain the preceding and trailing trivia.
-
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture)
-
-            WriteTo(writer)
-
-            Dim leadingWidth = GetLeadingTriviaWidth()
-            Dim trailingWidth = GetTrailingTriviaWidth()
-
-            Debug.Assert(FullWidth = builder.Length)
-            Debug.Assert(FullWidth >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, FullWidth - leadingWidth - trailingWidth)
-        End Function
 
         ''' <summary>
         ''' Returns full string representation of this node including its leading and trailing trivia.
