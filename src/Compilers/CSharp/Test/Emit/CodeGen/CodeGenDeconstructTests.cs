@@ -1859,10 +1859,10 @@ class C
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
 
-                var nestedLiteral = literal.Arguments[1];
+                var nestedLiteral = literal.Arguments[1].Expression;
                 Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
-                Assert.Null(model.GetTypeInfo(nestedLiteral).Type);
-                Assert.Null(model.GetTypeInfo(nestedLiteral).ConvertedType);
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
