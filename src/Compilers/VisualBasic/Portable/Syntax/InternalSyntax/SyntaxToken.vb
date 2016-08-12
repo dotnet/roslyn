@@ -277,16 +277,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If leading Then
                 Dim leadingTrivia = GetLeadingTrivia()
                 If leadingTrivia IsNot Nothing Then
-                    leadingTrivia.WriteTo(writer) 'Append leading trivia
+                    leadingTrivia.WriteTo(writer, True, True) 'Append leading trivia
                 End If
             End If
 
-            writer.Write(_text) 'Append text of token itself
+            writer.Write(Me.Text) 'Append text of token itself
 
             If trailing Then
                 Dim trailingTrivia = GetTrailingTrivia()
                 If trailingTrivia IsNot Nothing Then
-                    trailingTrivia.WriteTo(writer) ' Append trailing trivia
+                    trailingTrivia.WriteTo(writer, True, True) ' Append trailing trivia
                 End If
             End If
         End Sub
