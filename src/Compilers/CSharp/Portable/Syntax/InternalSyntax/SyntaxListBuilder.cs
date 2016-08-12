@@ -56,15 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
-        [Conditional("DEBUG")]
-        private void Validate(int start, int end)
-        {
-            for (int i = start; i < end; i++)
-            {
-                Debug.Assert(Nodes[i].Value != null);
-            }
-        }
-
         public void AddRange(SyntaxList<CSharpSyntaxNode> list)
         {
             this.AddRange(list, 0, list.Count);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,15 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             set
             {
                 Nodes[index].Value = value;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        protected void Validate(int start, int end)
+        {
+            for (int i = start; i < end; i++)
+            {
+                Debug.Assert(Nodes[i].Value != null);
             }
         }
     }

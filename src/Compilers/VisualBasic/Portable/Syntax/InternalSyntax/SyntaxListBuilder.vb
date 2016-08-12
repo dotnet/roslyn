@@ -106,14 +106,6 @@ enter:
             Return SyntaxList.List(Me.ToArray)
         End Function
 
-        <Conditional("DEBUG")>
-        Private Sub Validate(start As Integer, [end] As Integer)
-            Dim i As Integer
-            For i = start To [end] - 1
-                Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
-            Next i
-        End Sub
-
         Public Function ToList() As SyntaxList(Of VisualBasicSyntaxNode)
             Return New SyntaxList(Of VisualBasicSyntaxNode)(ToListNode)
         End Function
