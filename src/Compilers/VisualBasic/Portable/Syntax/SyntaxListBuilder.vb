@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Inherits AbstractSyntaxListBuilder
 
         Friend Sub New(size As Integer)
-            Me.Nodes = New ArrayElement(Of GreenNode)(size - 1) {}
+            MyBase.New(size)
         End Sub
 
         Friend Function Add(item As SyntaxNode) As SyntaxListBuilder
