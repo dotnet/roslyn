@@ -7,14 +7,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Inherits AbstractSyntaxListBuilder
 
         Private _count As Integer
-        Private _nodes As ArrayElement(Of VisualBasicSyntaxNode)()
+        Private Nodes As ArrayElement(Of VisualBasicSyntaxNode)()
 
         Public Shared Function Create() As SyntaxListBuilder
             Return New SyntaxListBuilder(8)
         End Function
 
         Public Sub New(size As Integer)
-            Me._nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
+            Me.Nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
         End Sub
 
         Public Function Add(item As VisualBasicSyntaxNode) As SyntaxListBuilder
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            Me._nodes(Me._count).Value = DirectCast(item, VisualBasicSyntaxNode)
+            Me.Nodes(Me._count).Value = DirectCast(item, VisualBasicSyntaxNode)
             Me._count += 1
             Return Me
         End Function
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Public Function Any(kind As SyntaxKind) As Boolean
             Dim i As Integer
             For i = 0 To Me._count - 1
-                If (Me._nodes(i).Value.Kind = kind) Then
+                If (Me.Nodes(i).Value.Kind = kind) Then
                     Return True
                 End If
             Next i
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub RemoveLast()
             Me._count -= 1
-            Me._nodes(Me._count) = Nothing
+            Me.Nodes(Me._count) = Nothing
         End Sub
 
         Public Sub Clear()
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub EnsureAdditionalCapacity(additionalCount As Integer)
-            Dim currentSize As Integer = Me._nodes.Length
+            Dim currentSize As Integer = Me.Nodes.Length
             Dim requiredSize As Integer = Me._count + additionalCount
 
             If requiredSize <= currentSize Then
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Math.Max(requiredSize, currentSize * 2))) ' Guaranteed to at least double
             Debug.Assert(newSize >= requiredSize)
 
-            Array.Resize(Me._nodes, newSize)
+            Array.Resize(Me.Nodes, newSize)
         End Sub
 
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim i As Integer = 0
             GoTo enter
             Do
-                dst(i) = Me._nodes(i)
+                dst(i) = Me.Nodes(i)
                 i += 1
 enter:
             Loop While i < dst.Length
@@ -104,11 +104,11 @@ enter:
                 Case 0
                     Return Nothing
                 Case 1
-                    Return Me._nodes(0)
+                    Return Me.Nodes(0)
                 Case 2
-                    Return SyntaxList.List(Me._nodes(0), Me._nodes(1))
+                    Return SyntaxList.List(Me.Nodes(0), Me.Nodes(1))
                 Case 3
-                    Return SyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2))
+                    Return SyntaxList.List(Me.Nodes(0), Me.Nodes(1), Me.Nodes(2))
             End Select
             Return SyntaxList.List(Me.ToArray)
         End Function
@@ -117,7 +117,7 @@ enter:
         Private Sub Validate(start As Integer, [end] As Integer)
             Dim i As Integer
             For i = start To [end] - 1
-                Debug.Assert(Me._nodes(i).Value IsNot Nothing)
+                Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
             Next i
         End Sub
 
@@ -129,10 +129,10 @@ enter:
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
-                Return Me._nodes(index)
+                Return Me.Nodes(index)
             End Get
             Set(value As VisualBasicSyntaxNode)
-                Me._nodes(index).Value = value
+                Me.Nodes(index).Value = value
             End Set
         End Property
 
