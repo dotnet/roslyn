@@ -17,5 +17,10 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             Nodes = new ArrayElement<GreenNode>[size];
         }
+
+        public void Clear()
+        {
+            this.Count = 0;
+        }
     }
 }

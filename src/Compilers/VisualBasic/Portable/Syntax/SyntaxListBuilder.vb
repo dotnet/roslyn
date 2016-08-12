@@ -114,10 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Me.Nodes(Count) = Nothing
         End Sub
 
-        Friend Sub Clear()
-            Me.Count = 0
-        End Sub
-
         Private Sub Grow(size As Integer)
             Array.Resize(Me.Nodes, size)
         End Sub

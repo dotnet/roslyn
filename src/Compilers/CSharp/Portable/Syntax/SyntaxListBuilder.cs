@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public void Clear()
-        {
-            this.Count = 0;
-        }
-
         public void Add(SyntaxNode item)
         {
             AddInternal(item.Green);
