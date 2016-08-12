@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public bool Any(SyntaxKind kind) => Any((int)kind);
 
-        internal Syntax.InternalSyntax.CSharpSyntaxNode ToListNode()
+        internal GreenNode ToListNode()
         {
             switch (this.Count)
             {
