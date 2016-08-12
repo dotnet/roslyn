@@ -657,7 +657,8 @@ namespace Microsoft.CodeAnalysis
                 var child = this.GetSlot(i);
                 if (child != null)
                 {
-                    child.WriteTo(writer, leading | !first, trailing | (i < lastIndex));
+                    var last = i == lastIndex;
+                    child.WriteTo(writer, leading | !first, trailing | !last);
                     first = false;
                 }
             }
