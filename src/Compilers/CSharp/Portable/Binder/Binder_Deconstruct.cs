@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outputPlaceholder = new BoundDeconstructValuePlaceholder(node, tuple) { WasCompilerGenerated = true };
 
             BoundExpression construction = new BoundTupleLiteral(node, default(ImmutableArray<string>), constructionInputs.CastArray<BoundExpression>(), tuple);
-            return new BoundDeconstructionConstructionStep(node, construction, constructionInputs, outputPlaceholder);
+            return new BoundDeconstructionConstructionStep(node, construction, outputPlaceholder);
         }
 
         /// <summary>
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // each assignment has a placeholder for a receiver and another for the source
             BoundAssignmentOperator op = BindAssignment(receivingVariable.Syntax, outputPlaceholder, inputPlaceholder, diagnostics);
 
-            return new BoundDeconstructionAssignmentStep(node, op, inputPlaceholder, outputPlaceholder);
+            return new BoundDeconstructionAssignmentStep(node, op, outputPlaceholder);
         }
 
         private static ImmutableArray<BoundExpression> FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables)

@@ -417,13 +417,11 @@
 
   <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
     <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
     <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
-    <Field Name="InputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
