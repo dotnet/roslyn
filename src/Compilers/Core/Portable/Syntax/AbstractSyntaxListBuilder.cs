@@ -22,5 +22,18 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             this.Count = 0;
         }
+
+        public bool Any(int kind)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (Nodes[i].Value.RawKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -140,18 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             Nodes = tmp;
         }
 
-        public bool Any(SyntaxKind kind)
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                if (Nodes[i].Value.RawKind == (int)kind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        public bool Any(SyntaxKind kind) => Any((int)kind);
 
         internal Syntax.InternalSyntax.CSharpSyntaxNode ToListNode()
         {

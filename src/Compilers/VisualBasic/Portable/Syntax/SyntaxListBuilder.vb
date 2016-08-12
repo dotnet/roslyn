@@ -99,14 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
         End Function
 
-        Friend Function Any(kind As SyntaxKind) As Boolean
-            Dim i As Integer
-            For i = 0 To Me.Count - 1
-                If (Me.Nodes(i).Value.RawKind = kind) Then
-                    Return True
-                End If
-            Next i
-            Return False
+        Friend Shadows Function Any(kind As SyntaxKind) As Boolean
+            Return MyBase.Any(kind)
         End Function
 
         Friend Sub RemoveLast()
