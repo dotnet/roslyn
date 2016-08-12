@@ -96,39 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
-        /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
-        {
-            yield return this;
-
-            var stack = new Stack<CommonChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
-            {
-                var en = stack.Pop();
-                if (!en.MoveNext())
-                {
-                    // no more down this branch
-                    continue;
-                }
-
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!(current is SyntaxToken))
-                {
-                    // not token, so consider children
-                    stack.Push(((CSharpSyntaxNode)current).ChildNodesAndTokens().GetEnumerator());
-                    continue;
-                }
-            }
-        }
-
         public SyntaxToken GetFirstToken()
         {
             return (SyntaxToken)this.GetFirstTerminal();
