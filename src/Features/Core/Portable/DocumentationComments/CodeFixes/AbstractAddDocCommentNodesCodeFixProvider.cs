@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var parentMethod = root.FindNode(context.Span).FirstAncestorOrSelf<TMemberDeclarationSyntax>();
 
-            if (parentMethod != null)
+            if (parentMethod != null && TryGetDocCommentNode(parentMethod.GetLeadingTrivia()) != null)
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected abstract List<TXmlNameAttributeSyntax> GetNameAttributes(TXmlElementSyntax node);
         protected abstract string GetValueFromNameAttribute(TXmlNameAttributeSyntax attribute);
-        protected abstract SyntaxNode GetDocCommentNode(SyntaxTriviaList parameter);
+        protected abstract SyntaxNode TryGetDocCommentNode(SyntaxTriviaList parameter);
         protected abstract string GetXmlElementLocalName(TXmlElementSyntax element);
         protected abstract List<string> GetParameterNames(TMemberDeclarationSyntax method);
         protected abstract TXmlElementSyntax GetNewNode(string parameterName, bool isFirstNodeInComment);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var parentMethod = root.FindNode(span).FirstAncestorOrSelf<TMemberDeclarationSyntax>();
-            var docCommentNode = GetDocCommentNode(parentMethod.GetLeadingTrivia());
+            var docCommentNode = TryGetDocCommentNode(parentMethod.GetLeadingTrivia());
 
             var newDocComment = docCommentNode;
             var parameterNames = GetParameterNames(parentMethod);

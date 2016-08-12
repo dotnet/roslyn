@@ -294,6 +294,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
+        public async Task AddsParamTag_MultipleDocComments()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary></summary>
+    // ...
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""j""></param>
+    public void Fizz(int [|i|], int j, int k) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary></summary>
+    // ...
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""i""></param>
+    /// <param name=""j""></param>
+    /// <param name=""k""></param>
+    public void Fizz(int i, int j, int k) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_Ctor()
         {
             var initial =

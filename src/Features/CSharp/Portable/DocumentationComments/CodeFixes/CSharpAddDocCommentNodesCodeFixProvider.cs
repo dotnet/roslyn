@@ -31,8 +31,23 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected override string GetValueFromNameAttribute(XmlNameAttributeSyntax attribute)
             => attribute.Identifier.Identifier.ValueText;
 
-        protected override SyntaxNode GetDocCommentNode(SyntaxTriviaList leadingTrivia)
-            => leadingTrivia.FirstOrDefault(f => f.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).GetStructure();
+        protected override SyntaxNode TryGetDocCommentNode(SyntaxTriviaList leadingTrivia)
+        {
+            var docCommentNodes = leadingTrivia.Where(f => f.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
+
+            foreach (var node in docCommentNodes)
+            {
+                var nodeStructure = node.GetStructure();
+                var descendentXmlElements = nodeStructure.DescendantNodes().OfType<XmlElementSyntax>();
+
+                if (descendentXmlElements.Any(element => GetXmlElementLocalName(element) == NodeName))
+                {
+                    return nodeStructure;
+                }
+            }
+
+            return null;
+        }
 
         protected override string GetXmlElementLocalName(XmlElementSyntax element)
             => element.StartTag.Name.LocalName.ValueText;
