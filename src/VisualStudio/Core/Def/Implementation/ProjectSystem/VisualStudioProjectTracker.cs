@@ -451,6 +451,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        private void AddProjectIdForPath(string projectPath, string projectSystemName, ProjectId projectId)
+        {
+            string key = projectPath + projectSystemName;
+            _projectPathToIdMap.Add(key, projectId);
+        }
+
         /// <summary>
         /// Gets or creates a project ID for the given project file path and display name.
         /// </summary>

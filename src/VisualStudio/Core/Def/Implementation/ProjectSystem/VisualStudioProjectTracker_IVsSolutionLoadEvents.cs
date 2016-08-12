@@ -1,27 +1,32 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.CodeAnalysis.MSBuild;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class VisualStudioProjectTracker : IVsSolutionLoadEvents
     {
-        private string _solutionFilename;
         private CancellationTokenSource _solutionParsingCancellationTokenSource = new CancellationTokenSource();
-        private bool _inDeferredProjectLoad = true;
 
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            this._solutionFilename = pszSolutionFilename;
+            Task.Delay(TimeSpan.FromSeconds(10), _solutionParsingCancellationTokenSource.Token)
+                .ContinueWith(
+                    _ => LoadSolutionInBackground(pszSolutionFilename),
+                    _solutionParsingCancellationTokenSource.Token,
+                    TaskContinuationOptions.OnlyOnRanToCompletion,
+                    TaskScheduler.FromCurrentSynchronizationContext());
+
             return VSConstants.S_OK;
         }
 
@@ -63,91 +68,108 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
         {
             AssertIsForeground();
-
-            if (_inDeferredProjectLoad)
-            {
-                var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-                var workspaceProjectFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
-                LoadSolutionInBackground(workspaceProjectFactory);
-            }
-            else
-            {
+            // TODO: Not called in DPL scenarios?
+            //if (_inDeferredProjectLoad)
+            //{
+            //    LoadSolutionInBackground();
+            //}
+            //else
+            //{
                 PushCompleteSolutionToWorkspace(s_getProjectInfoForProject);
-            }
+            //}
 
             return VSConstants.S_OK;
         }
 
-        private async void LoadSolutionInBackground(IWorkspaceProjectContextFactory workspaceProjectContextFactory)
+        private async void LoadSolutionInBackground(string solutionFilename)
         {
-            var solutionInfo = await Task.Run(LoadSolutionInfoAsync, _solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
+            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
+            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename), _solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
 
             var projectToProjectInfo = new Dictionary<AbstractProject, ProjectInfo>();
-
-            // TODO: Sort this topologically somehow?
             foreach (var projectInfo in solutionInfo.Projects)
             {
-                if (_projectPathToIdMap.ContainsKey(projectInfo.FilePath))
-                {
-                    continue;
-                }
-
-                var projectContext = workspaceProjectContextFactory.CreateProjectContext(
-                    projectInfo.Language,
-                    projectInfo.Name,
-                    projectInfo.FilePath,
-                    Guid.Empty,
-                    null,
-                    projectInfo.CommandLineOpt);
-
-                foreach (var documentInfo in projectInfo.Documents)
-                {
-                    projectContext.AddSourceFile(documentInfo.FilePath, folderNames: documentInfo.Folders);
-                }
-
-                foreach (var documentInfo in projectInfo.AdditionalDocuments)
-                {
-                    projectContext.AddAdditionalFile(documentInfo.FilePath);
-                }
-
-                foreach (var reference in projectInfo.MetadataReferences)
-                {
-                    projectContext.AddMetadataReference(reference.Display, reference.Properties);
-                }
-
-                foreach (var reference in projectInfo.ProjectReferences)
-                {
-                    // TODO: If this was eagerly loaded already, this cast will fail?
-                    projectContext.AddProjectReference(
-                        (IWorkspaceProjectContext)_projectMap[reference.ProjectId],
-                        new MetadataReferenceProperties(aliases: reference.Aliases, embedInteropTypes: reference.EmbedInteropTypes));
-                }
-
-                foreach (var reference in projectInfo.AnalyzerReferences)
-                {
-                    projectContext.AddAnalyzerReference(reference.FullPath);
-                }
-
-                projectToProjectInfo[(AbstractProject)projectContext] = projectInfo;
+                CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, projectInfo, solutionInfo);
             }
 
             PushCompleteSolutionToWorkspace(p => projectToProjectInfo[p]);
         }
 
-        private IVisualStudioHostDocument CreateHostDocument(AbstractProject project, DocumentInfo documentInfo)
+        private IWorkspaceProjectContext CreateProjectFromProjectInfo(IWorkspaceProjectContextFactory workspaceProjectContextFactory, Dictionary<AbstractProject, ProjectInfo> projectToProjectInfo, ProjectInfo projectInfo, SolutionInfo solutionInfo)
         {
-            return DocumentProvider.TryGetDocumentForFile(
-                                        project,
-                                        documentInfo.FilePath,
-                                        SourceCodeKind.Regular,
-                                        tb => true,
-                                        itemid => SpecializedCollections.EmptyReadOnlyList<string>());
+            // Pre-prime our list of project Ids, so that the ones in solutionInfo will get re-used
+            // by the Project's we create 
+            AddProjectIdForPath(projectInfo.FilePath, projectInfo.Name, projectInfo.Id);
+
+            // If this project already exists, either because it was loaded by VS, or because
+            // we demand loaded it to satisfy a project reference from another project, then
+            // there is nothing to do.
+            var existingProject = Projects.SingleOrDefault(p => p.Id == projectInfo.Id);
+            if (existingProject != null)
+            {
+                return existingProject as IWorkspaceProjectContext;
+            }
+
+            var projectContext = workspaceProjectContextFactory.CreateProjectContext(
+                projectInfo.Language,
+                projectInfo.Name,
+                projectInfo.FilePath,
+                Guid.Empty,
+                null,
+                projectInfo.CommandLineOpt);
+
+            foreach (var documentInfo in projectInfo.Documents)
+            {
+                using (DocumentProvider.ProvideDocumentIdHint(documentInfo.FilePath, documentInfo.Id))
+                {
+                    projectContext.AddSourceFile(documentInfo.FilePath, folderNames: documentInfo.Folders);
+                }
+            }
+
+            foreach (var documentInfo in projectInfo.AdditionalDocuments)
+            {
+                using (DocumentProvider.ProvideDocumentIdHint(documentInfo.FilePath, documentInfo.Id))
+                {
+                    projectContext.AddAdditionalFile(documentInfo.FilePath);
+                }
+            }
+
+            foreach (var reference in projectInfo.MetadataReferences)
+            {
+                projectContext.AddMetadataReference(reference.Display, reference.Properties);
+            }
+
+            foreach (var reference in projectInfo.ProjectReferences)
+            {
+                var referencedProject = (IWorkspaceProjectContext)projectToProjectInfo.SingleOrDefault(kvp => kvp.Value.Id == reference.ProjectId).Key;
+
+                if (referencedProject == null)
+                {
+                    var referencedProjectInfo = solutionInfo.Projects.Single(pi => pi.Id == reference.ProjectId);
+                    referencedProject = CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, referencedProjectInfo, solutionInfo);
+                }
+
+                // TODO: If VS loaded a full project for this already, we will get null back from CreateProjectFromProjectInfo.
+
+                projectContext.AddProjectReference(
+                    referencedProject,
+                    new MetadataReferenceProperties(aliases: reference.Aliases, embedInteropTypes: reference.EmbedInteropTypes));
+            }
+
+            foreach (var reference in projectInfo.AnalyzerReferences)
+            {
+                projectContext.AddAnalyzerReference(reference.FullPath);
+            }
+
+            projectToProjectInfo[(AbstractProject)projectContext] = projectInfo;
+            return projectContext;
         }
 
-        private Task<SolutionInfo> LoadSolutionInfoAsync()
+        private Task<SolutionInfo> LoadSolutionInfoAsync(string solutionFilename)
         {
             var loader = new MSBuildProjectLoader(_workspace);
-            return loader.LoadSolutionInfoAsync(_solutionFilename, _solutionParsingCancellationTokenSource.Token);
+            return loader.LoadSolutionInfoAsync(solutionFilename, _solutionParsingCancellationTokenSource.Token);
         }
 
         private void PushCompleteSolutionToWorkspace(Func<AbstractProject, ProjectInfo> getProjectInfo)
