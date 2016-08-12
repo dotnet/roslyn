@@ -409,8 +409,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return offset
         End Function
 
-        Friend Function ChildNodesAndTokens() As ChildSyntaxList
-            Return New ChildSyntaxList(Me)
+        Friend Function ChildNodesAndTokens() As CommonChildSyntaxList
+            Return New CommonChildSyntaxList(Me)
         End Function
 
         ' Use conditional weak table so we always return same identity for structured trivia

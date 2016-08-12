@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial struct ChildSyntaxList
+    internal partial struct CommonChildSyntaxList
     {
         internal struct Enumerator
         {

@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Friend Structure ChildSyntaxList
+    Partial Friend Structure CommonChildSyntaxList
         Private ReadOnly _node As VisualBasicSyntaxNode
 
         Friend Sub New(node As VisualBasicSyntaxNode)

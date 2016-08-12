@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Partial Friend Structure ChildSyntaxList
+    Partial Friend Structure CommonChildSyntaxList
         Friend Structure Enumerator
             Private ReadOnly _node As GreenNode
             Private _childIndex As Integer
