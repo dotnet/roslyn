@@ -7,9 +7,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class SyntaxListBuilder : AbstractSyntaxListBuilder
     {
-        private ArrayElement<GreenNode>[] Nodes;
-        public int Count { get; private set; }
-
         public SyntaxListBuilder(int size)
         {
             Nodes = new ArrayElement<GreenNode>[size];

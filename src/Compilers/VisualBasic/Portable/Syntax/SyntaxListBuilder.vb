@@ -6,9 +6,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class SyntaxListBuilder
         Inherits AbstractSyntaxListBuilder
 
-        Private _count As Integer
-        Private Nodes As ArrayElement(Of GreenNode)()
-
         Friend Sub New(size As Integer)
             Me.Nodes = New ArrayElement(Of GreenNode)(size - 1) {}
         End Sub
@@ -155,15 +152,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
             Next i
         End Sub
-
-        Friend Property Count As Integer
-            Get
-                Return _count
-            End Get
-
-            Private Set(value As Integer)
-                _count = value
-            End Set
-        End Property
     End Class
 End Namespace

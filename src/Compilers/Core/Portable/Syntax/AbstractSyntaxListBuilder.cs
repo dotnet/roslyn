@@ -10,5 +10,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal abstract class AbstractSyntaxListBuilder
     {
+        protected ArrayElement<GreenNode>[] Nodes;
+        public int Count { get; protected set; }
     }
 }
