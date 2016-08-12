@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Public Sub New(size As Integer)
-            Me.Nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
+            MyBase.New(size)
         End Sub
 
         Public Function Add(item As VisualBasicSyntaxNode) As SyntaxListBuilder

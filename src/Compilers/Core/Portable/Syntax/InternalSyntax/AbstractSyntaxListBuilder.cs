@@ -12,5 +12,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         protected ArrayElement<TGreenNode>[] Nodes;
         public int Count { get; protected set; }
+
+        protected AbstractSyntaxListBuilder(int size)
+        {
+            Nodes = new ArrayElement<TGreenNode>[size];
+        }
     }
 }
