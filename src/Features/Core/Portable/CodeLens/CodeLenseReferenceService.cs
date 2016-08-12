@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return node;
         }
 
-        private async Task<ReferenceMethodDescriptor> TryCreateMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ReferenceMethodDescriptor> TryCreateMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
             var doc = solution.GetDocument(commonLocation.SourceTree);
             if (doc == null)
