@@ -10,10 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MyBase.New(size)
         End Sub
 
-        Friend Sub Add(item As SyntaxNode)
-            AddInternal(item.Green)
-        End Sub
-
         Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
             Return Me.AddRange(Of TNode)(list, 0, list.Count)
         End Function

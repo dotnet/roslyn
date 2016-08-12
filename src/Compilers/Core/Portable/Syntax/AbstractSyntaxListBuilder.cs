@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Syntax
             return false;
         }
 
+        public void Add(SyntaxNode item)
+        {
+            AddInternal(item.Green);
+        }
+
         internal void AddInternal(GreenNode item)
         {
             if (item == null)

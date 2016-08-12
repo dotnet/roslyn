@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public void Add(SyntaxNode item)
-        {
-            AddInternal(item.Green);
-        }
-
         public void AddRange(SyntaxNode[] items)
         {
             this.AddRange(items, 0, items.Length);
