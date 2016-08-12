@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return StateMachineType.KickoffMethod; }
         }
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis)
         {
-            return this.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
+            return this.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree, instrumentForDynamicAnalysis);
         }
     }
 

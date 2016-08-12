@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return GetMembersAndInitializers().InstanceInitializers; }
         }
 
-        internal int CalculateSyntaxOffsetInSynthesizedConstructor(int position, SyntaxTree tree, bool isStatic)
+        internal int CalculateSyntaxOffsetInSynthesizedConstructor(int position, SyntaxTree tree, bool isStatic, bool instrumentForDynamicAnalysis)
         {
             if (IsScriptClass && !isStatic)
             {
@@ -909,12 +909,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
-            // With instrumentation, a synthesized constructor has a local variable for the instrumentation payload,
-            // and an ininitializer with a lambda can refer to that local.
-            return 0;
+            if (instrumentForDynamicAnalysis)
+            {
+                // With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                // with the analysis payload local of a synthesized constructor.
+                // If the synthesized constructor includes an initializer with a lambda,
+                // that lambda needs a closure that captures the analysis payload of the constructor.
+                return 0;
+            }
 
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
-            // throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

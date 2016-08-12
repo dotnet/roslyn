@@ -762,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' as if all source these parts were concatenated together and prepended to the constructor body.
         ''' The resulting syntax offset is then negative for locals defined outside of the constructor body.
         ''' </remarks>
-        Friend MustOverride Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+        Friend MustOverride Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, instrumentForDynamicAnalysis As Boolean) As Integer
 
         ''' <summary>
         ''' Specifies whether existing, "unused" locals (corresponding to proxies) are preserved during lambda rewriting.
@@ -999,8 +999,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
-            Return CalculateLocalSyntaxOffset(localPosition, localTree)
+        Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, instrumentForDynamicAnalysis As Boolean) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
+            Return CalculateLocalSyntaxOffset(localPosition, localTree, instrumentForDynamicAnalysis)
         End Function
 #End Region
 

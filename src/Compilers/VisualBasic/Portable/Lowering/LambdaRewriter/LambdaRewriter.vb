@@ -970,10 +970,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 closureId = New DebugId(closureDebugInfo.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, InstrumentForDynamicAnalysis)
             closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId))
             Return closureId
         End Function
+
+        Private ReadOnly Property InstrumentForDynamicAnalysis As Boolean
+            Get
+                Return If(CompilationState.ModuleBuilderOpt IsNot Nothing, CompilationState.ModuleBuilderOpt.EmitOptions.EmitDynamicAnalysisData, False)
+            End Get
+        End Property
 
         Private Function GetLambdaId(syntax As SyntaxNode, closureKind As ClosureKind, closureOrdinal As Integer) As DebugId
             Debug.Assert(syntax IsNot Nothing)
@@ -1011,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaId = New DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, InstrumentForDynamicAnalysis)
             _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal))
             Return lambdaId
         End Function

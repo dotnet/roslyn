@@ -3235,7 +3235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Function CalculateSyntaxOffsetInSynthesizedConstructor(position As Integer, tree As SyntaxTree, isShared As Boolean) As Integer
+        Friend Function CalculateSyntaxOffsetInSynthesizedConstructor(position As Integer, tree As SyntaxTree, isShared As Boolean, instrumentForDynamicAnalysis As Boolean) As Integer
             If IsScriptClass AndAlso Not isShared Then
                 Dim aggregateLength As Integer = 0
 
@@ -3258,13 +3258,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return syntaxOffset
             End If
 
-            ' With instrumentation, a synthesized constructor has a local variable for the instrumentation payload,
-            ' and an ininitializer with a lambda can refer to that local.
-            Return 0
+            If instrumentForDynamicAnalysis Then
+                ' With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                ' with the analysis payload local of a synthesized constructor.
+                ' If the synthesized constructor includes an initializer with a lambda,
+                ' that lambda needs a closure that captures the analysis payload of the constructor.
+                Return 0
+            End If
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
-            ' Throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).

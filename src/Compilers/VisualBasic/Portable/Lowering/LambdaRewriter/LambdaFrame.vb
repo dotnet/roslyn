@@ -105,10 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ObjectMemberInitializer
                     ' TODO: Closure capturing a synthesized "with" variable
                     Return
-                Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock
-                    ' With instrumentation, class declarations can be the syntax associated with a synthesized constructor.
-                    ' This is not truly a closure scope syntax, but must be allowed to pass here.
-                    Return
             End Select
 
             ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind())

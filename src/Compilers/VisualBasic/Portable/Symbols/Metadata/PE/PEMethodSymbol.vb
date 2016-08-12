@@ -1176,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, instrumentForDynamicAnalysis As Boolean) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

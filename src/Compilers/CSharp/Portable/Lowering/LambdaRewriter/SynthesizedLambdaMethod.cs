@@ -130,11 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis)
         {
             // Syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method.
             // The offset is thus relative to the top-level method body start.
-            return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
+            return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree, instrumentForDynamicAnalysis);
         }
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;

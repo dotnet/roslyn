@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree)
+        internal override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree, bool instrumentForDynamicAnalysis)
         {
             Debug.Assert(position >= 0 && tree != null);
 
