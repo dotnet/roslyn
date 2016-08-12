@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class SyntaxListBuilder
-        Inherits AbstractSyntaxListBuilder(Of VisualBasicSyntaxNode)
+        Inherits AbstractSyntaxListBuilder(Of VisualBasicSyntaxNode, SyntaxList(Of VisualBasicSyntaxNode))
 
         Public Shared Function Create() As SyntaxListBuilder
             Return New SyntaxListBuilder(8)
@@ -14,29 +14,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(size)
         End Sub
 
-        Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
-            Debug.Assert(item IsNot Nothing)
-            Me.Nodes(Me.Count).Value = DirectCast(item, VisualBasicSyntaxNode)
-            Me.Count += 1
-            Return Me
-        End Function
+        Public Shadows Sub AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode))
+            Me.AddRange(list, 0, list.Count)
+        End Sub
 
-        Public Shadows Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
-            Return Me.AddRange(Of TNode)(list, 0, list.Count)
-        End Function
+        Public Shadows Sub AddRange(Of TNode As VisualBasicSyntaxNode)(
+            list As SyntaxList(Of TNode),
+            offset As Integer,
+            length As Integer)
 
-        Public Shadows Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            EnsureAdditionalCapacity(length - offset)
-
-            Dim oldCount = Me.Count
-
-            For i = offset To offset + length - 1
-                AddUnsafe(list.ItemUntyped(i))
-            Next i
-
-            Me.Validate(oldCount, Me.Count)
-            Return Me
-        End Function
+            MyBase.AddRange(New SyntaxList(Of VisualBasicSyntaxNode)(list.Node), offset, length)
+        End Sub
 
         Public Shadows Function Any(kind As SyntaxKind) As Boolean
             Return MyBase.Any(kind)

@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend MustInherit Class SyntaxList
         Inherits VisualBasicSyntaxNode
@@ -630,6 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Structure SyntaxList(Of TNode As VisualBasicSyntaxNode)
         Implements IEquatable(Of SyntaxList(Of TNode))
+        Implements ISyntaxList(Of TNode)
 
         Private ReadOnly _node As GreenNode
 
@@ -643,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Public ReadOnly Property Count As Integer
+        Public ReadOnly Property Count As Integer Implements ISyntaxList(Of TNode).Count
             Get
                 Return If((Me._node Is Nothing), 0, If(Me._node.IsList, Me._node.SlotCount, 1))
             End Get
@@ -659,7 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Default Public ReadOnly Property Item(index As Integer) As TNode
+        Default Public ReadOnly Property Item(index As Integer) As TNode Implements ISyntaxList(Of TNode).Item
             Get
                 Dim node = Me._node
                 If node.IsList Then

@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal abstract class AbstractSyntaxListBuilder<TGreenNode> where TGreenNode : GreenNode
+    internal abstract class AbstractSyntaxListBuilder<TGreenNode, TSyntaxList> 
+        where TGreenNode : GreenNode
+        where TSyntaxList : ISyntaxList<TGreenNode>
     {
         protected ArrayElement<TGreenNode>[] Nodes;
         public int Count { get; protected set; }
@@ -106,6 +108,21 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             for (int i = offset; i < length; i++)
             {
                 Add(items[i]);
+            }
+
+            Validate(oldCount, this.Count);
+        }
+
+        public void AddRange(TSyntaxList list, int offset, int length)
+        {
+            // Necessary, but not sufficient (e.g. for nested lists).
+            EnsureAdditionalCapacity(length - offset);
+
+            int oldCount = this.Count;
+
+            for (int i = offset; i < length; i++)
+            {
+                Add(list[i]);
             }
 
             Validate(oldCount, this.Count);

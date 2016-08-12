@@ -6,7 +6,8 @@ using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class SyntaxListBuilder : AbstractSyntaxListBuilder<CSharpSyntaxNode>
+    internal class SyntaxListBuilder : 
+        AbstractSyntaxListBuilder<CSharpSyntaxNode, SyntaxList<CSharpSyntaxNode>>
     {
         public SyntaxListBuilder(int size) : base(size)
         {
@@ -22,21 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddRange(list, 0, list.Count);
         }
 
-        public void AddRange(SyntaxList<CSharpSyntaxNode> list, int offset, int length)
-        {
-            // Necessary, but not sufficient (e.g. for nested lists).
-            EnsureAdditionalCapacity(length - offset);
-
-            int oldCount = this.Count;
-
-            for (int i = offset; i < length; i++)
-            {
-                Add(list[i]);
-            }
-
-            Validate(oldCount, this.Count);
-        }
-
         public void AddRange<TNode>(SyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
             this.AddRange(list, 0, list.Count);
@@ -44,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void AddRange<TNode>(SyntaxList<TNode> list, int offset, int length) where TNode : CSharpSyntaxNode
         {
-            this.AddRange(new SyntaxList<CSharpSyntaxNode>(list.Node), offset, length);
+            base.AddRange(new SyntaxList<CSharpSyntaxNode>(list.Node), offset, length);
         }
 
         public bool Any(SyntaxKind kind) => Any((int)kind);

@@ -9,10 +9,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>> where TNode : CSharpSyntaxNode
+    internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>, ISyntaxList<TNode> 
+        where TNode : CSharpSyntaxNode
     {
         private readonly CSharpSyntaxNode _node;
 
