@@ -1787,14 +1787,10 @@ namespace Microsoft.Cci
 
         public MetadataRootBuilder GetRootBuilder()
         {
-<<<<<<< HEAD
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
-            return new MetadataRootBuilder(metadata, module.Properties.TargetRuntimeVersion, suppressValidation: true);
-=======
-            return new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion);
->>>>>>> Renames
+            return new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion, suppressValidation: true);
         }
 
         public PortablePdbBuilder GetPortablePdbBuilder(MetadataSizes typeSystemMetadataSizes, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)

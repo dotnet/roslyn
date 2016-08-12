@@ -91,7 +91,7 @@ namespace Microsoft.Cci
                 }
 
                 // embedded text not currently supported for native PDB and we should have validated that
-                Debug.Assert(!mdWriter.Module.EmbeddedDocuments.Any());
+                Debug.Assert(!mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments.Any());
             }
 
             Stream peStream = getPeStream();
@@ -136,7 +136,7 @@ namespace Microsoft.Cci
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitStandaloneDebugMetadata)
             {
-                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.EmbeddedDocuments);
+                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
 
                 var portablePdbBlob = new BlobBuilder();
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
