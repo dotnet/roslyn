@@ -96,6 +96,17 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Array.Resize(ref Nodes, newSize);
         }
 
+        public TGreenNode[] ToArray()
+        {
+            var array = new TGreenNode[this.Count];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = Nodes[i];
+            }
+
+            return array;
+        }
+
         [Conditional("DEBUG")]
         protected void Validate(int start, int end)
         {

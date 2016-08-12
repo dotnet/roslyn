@@ -64,17 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool Any(SyntaxKind kind) => Any((int)kind);
 
-        public CSharpSyntaxNode[] ToArray()
-        {
-            var array = new CSharpSyntaxNode[this.Count];
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = Nodes[i];
-            }
-
-            return array;
-        }
-
         internal CSharpSyntaxNode ToListNode()
         {
             switch (this.Count)

@@ -42,23 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MyBase.Any(kind)
         End Function
 
-        Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
-            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me.Count - 1) {}
-
-            'TODO: workaround for range check hoisting bug
-            ' <<< FOR LOOP
-            Dim i As Integer = 0
-            GoTo enter
-            Do
-                dst(i) = Me.Nodes(i)
-                i += 1
-enter:
-            Loop While i < dst.Length
-            ' >>> FOR LOOP
-
-            Return dst
-        End Function
-
         Friend Function ToListNode() As VisualBasicSyntaxNode
             Select Case Me.Count
                 Case 0
