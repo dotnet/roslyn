@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 var analysisResult = new DiagnosticAnalysisResult(
                     project.Id, version,
-                    syntaxLocalMap, semanticLocalMap, nonLocalMap, others,
+                    syntaxLocalMap, semanticLocalMap, nonLocalMap, GetOrDefault(others),
                     documentIds: null, fromBuild: false);
 
                 analysisMap.Add(analyzer, analysisResult);
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 var analyzer = analyzerMap[reader.ReadString()];
                 var exceptions = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
 
-                exceptionMap.Add(analyzer, exceptions);
+                exceptionMap.Add(analyzer, GetOrDefault(exceptions));
             }
 
             return DiagnosticAnalysisResultMap.Create(analysisMap.ToImmutable(), telemetryMap.ToImmutable(), exceptionMap.ToImmutable());
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 var documentId = Serializer.DeserializeDocumentId(reader, cancellationToken);
                 var diagnostics = serializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
 
-                map.Add(documentId, diagnostics);
+                map.Add(documentId, GetOrDefault(diagnostics));
             }
 
             return map.ToImmutable();
@@ -198,6 +199,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 ExecutionTime = executionTime
             };
+        }
+
+        private static ImmutableArray<T> GetOrDefault<T>(StrongBox<ImmutableArray<T>> items)
+        {
+            return items?.Value ?? default(ImmutableArray<T>);
         }
     }
 }
