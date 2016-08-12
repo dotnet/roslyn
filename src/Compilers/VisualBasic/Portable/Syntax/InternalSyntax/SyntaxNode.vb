@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -100,20 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
-
-        ''' <summary>
-        ''' Returns full string representation of this node including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        Public Overrides Function ToFullString() As String
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture)
-
-            WriteTo(writer)
-
-            Return builder.ToStringAndFree()
-        End Function
 
         Public Overrides ReadOnly Property IsStructuredTrivia As Boolean
             Get

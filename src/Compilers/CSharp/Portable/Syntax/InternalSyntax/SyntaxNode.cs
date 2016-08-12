@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -129,14 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override GreenNode GetTrailingTriviaCore()
         {
             return this.GetTrailingTrivia();
-        }
-
-        public override string ToFullString()
-        {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: true, trailing: true);
-            return sb.ToStringAndFree();
         }
 
         public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);

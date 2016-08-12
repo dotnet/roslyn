@@ -616,7 +616,14 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Text
-        public abstract string ToFullString();
+
+        public virtual string ToFullString()
+        {
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: true, trailing: true);
+            return sb.ToStringAndFree();
+        }
 
         public override string ToString()
         {
