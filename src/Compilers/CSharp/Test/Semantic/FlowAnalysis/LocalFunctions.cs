@@ -610,5 +610,119 @@ class C
 }");
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void NotAssignedAtAllReturns()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int x;
+        void L1()
+        {
+            if ("""".Length == 1)
+            {
+                x = 1;
+            }
+            else
+            {
+                return;
+            }
+        }
+        L1();
+        var z = x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (19,17): error CS0165: Use of unassigned local variable 'x'
+                //         var z = x;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(19, 17));
+        }
+
+        [Fact]
+        public void NotAssignedAtThrow()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int x1, x2;
+        void L1()
+        {
+            if ("""".Length == 1)
+                x1 = x2 = 0;
+            else
+                throw new System.Exception();
+        }
+        try
+        {
+            L1();
+            var y = x1;
+        }
+        catch
+        {
+            var z = x1;
+        }
+        var zz = x2;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0165: Use of unassigned local variable 'x1'
+                //             var z = x1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(21, 21),
+                // (23,18): error CS0165: Use of unassigned local variable 'x2'
+                //         var zz = x2;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(23, 18));
+        }
+
+        [Fact]
+        public void DeadCode()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int x;
+        goto live;
+        void L1()
+        {
+            x = 0;
+        }
+        live:
+        L1();
+        var z = x;
+    }
+    void M2()
+    {
+        int x;
+        goto live;
+        void L1()
+        {
+            if ("""".Length == 1)
+                x = 0;
+            else
+                return;
+        }
+        live:
+        L1();
+        var z = x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS0162: Unreachable code detected
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "void").WithLocation(8, 9),
+                // (20,9): warning CS0162: Unreachable code detected
+                //         void L1()
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "void").WithLocation(20, 9),
+                // (29,17): error CS0165: Use of unassigned local variable 'x'
+                //         var z = x;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(29, 17));
+        }
     }
 }

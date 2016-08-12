@@ -44,16 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Don't report diagnostics
         }
 
-        protected override void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
-        {
-            base.AssignImpl(node, value, refKind, written, read);
-        }
-
-        protected override ImmutableArray<PendingBranch> RemoveReturns()
-        {
-            return PendingBranches.ToImmutable();
-        }
-
         public override BoundNode VisitBlock(BoundBlock node)
         {
             do
@@ -98,19 +88,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node) =>
+        // Don't check for 'async-without-await' since we don't visit any
+        // statements outside local functions
+        protected override ImmutableArray<PendingBranch> RemoveReturns() => RemoveReturnsCore();
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            // Visit local functions with a clear state
+            var savedState = this.State;
+            this.State = ReachableState();
+
             // Record assignments outside local functions
             VisitLambdaOrLocalFunction(node, recordAssigns: true);
 
-        protected override void RecordCapturedAssigns(
-            ref LocalState original,
-            ref LocalState @new)
+            this.State = savedState;
+            return null;
+        }
+
+        protected override void RecordCapturedAssigns(ref LocalState state)
         {
-            for (int slot = 1; slot < @new.Assigned.Capacity; slot++)
+            for (int slot = 1; slot < state.Assigned.Capacity; slot++)
             {
-                if (@new.Assigned[slot] &&
-                    (slot >= original.Assigned.Capacity ||
-                     !original.Assigned[slot]))
+                if (state.Assigned[slot])
                 {
                     RecordIfCaptured(slot);
                 }

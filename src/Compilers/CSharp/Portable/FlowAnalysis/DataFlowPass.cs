@@ -241,7 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentMethodOrLambda.IsAsync &&
                 !currentMethodOrLambda.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => pending.Branch != null && pending.Branch.Kind == BoundKind.AwaitExpression);
+                var foundAwait = result.Any(pending => pending.Branch != null &&
+                                                       pending.Branch.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, currentMethodOrLambda.Locations[0]);
@@ -1781,8 +1782,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = node.Symbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
-            LocalState finalState = this.State;
+
+            // State after the lambda/local function exits
+            LocalState stateAfterLambda = this.State;
+            // Only used in local functions, which may assign captured variables
+            LocalState stateAtReturn;
+
+            // If this is a local function we don't care about reachability,
+            // everything should be unassigned
+            Debug.Assert(currentMethodOrLambda.MethodKind != MethodKind.LocalFunction ||
+                         this.State.Reachable);
+
             this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
+
             if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
             var oldPending2 = SavePending();
             VisitAlways(node.Body);
@@ -1791,13 +1803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending);
             LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
 
-            if (recordAssigns)
-            {
-                // Check for assignments to captured variables
-                RecordCapturedAssigns(ref finalState, ref this.State);
-            }
-
-            IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+            IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
+            stateAtReturn = this.State;
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
@@ -1811,18 +1818,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
                 }
 
-                IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+                IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
+                IntersectWith(ref stateAtReturn, ref this.State);
             }
 
-            this.State = finalState;
+            if (recordAssigns)
+            {
+                // Check for assignments to captured variables
+                RecordCapturedAssigns(ref stateAtReturn);
+            }
+
+            this.State = stateAfterLambda;
 
             this.currentMethodOrLambda = oldMethodOrLambda;
             return null;
         }
 
-        protected virtual void RecordCapturedAssigns(
-            ref LocalState original,
-            ref LocalState @new)
+        protected virtual void RecordCapturedAssigns(ref LocalState state)
         { }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
