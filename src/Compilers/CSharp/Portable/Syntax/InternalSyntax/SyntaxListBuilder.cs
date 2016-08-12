@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class SyntaxListBuilder : AbstractSyntaxListBuilder
+    internal class SyntaxListBuilder : AbstractSyntaxListBuilder<CSharpSyntaxNode>
     {
         private ArrayElement<CSharpSyntaxNode>[] Nodes;
         public int Count { get; private set; }

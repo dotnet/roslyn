@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class SyntaxListBuilder
-        Inherits AbstractSyntaxListBuilder
+        Inherits AbstractSyntaxListBuilder(Of VisualBasicSyntaxNode)
 
         Private _count As Integer
         Private Nodes As ArrayElement(Of VisualBasicSyntaxNode)()
