@@ -21,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
+            LoadSolutionFromMSBuild(pszSolutionFilename, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+
+            return VSConstants.S_OK;
+        }
+
+        private async Task LoadSolutionFromMSBuild(string pszSolutionFilename, CancellationToken cancellationToken)
+        {
+            AssertIsForeground();
             var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
             var paneGuid = new Guid("07aaa8e9-d776-47d6-a1be-5ce00332d74d");
             if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref paneGuid, "Roslyn DPL Status", fInitVisible: 1, fClearWithSolution: 1)) &&
@@ -30,14 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 OutputToOutputWindow("OnBeforeOpenSolution - waiting 3 seconds to load solution in background");
             }
 
-            Task.Delay(TimeSpan.FromSeconds(3), _solutionParsingCancellationTokenSource.Token)
-                .ContinueWith(
-                    _ => LoadSolutionInBackground(pszSolutionFilename),
-                    _solutionParsingCancellationTokenSource.Token,
-                    TaskContinuationOptions.OnlyOnRanToCompletion,
-                    TaskScheduler.FromCurrentSynchronizationContext());
-
-            return VSConstants.S_OK;
+            // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
+            await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(true);
+            await LoadSolutionInBackground(pszSolutionFilename, cancellationToken).ConfigureAwait(true);
         }
 
         int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
@@ -91,14 +94,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
-        private async void LoadSolutionInBackground(string solutionFilename)
+        private async Task LoadSolutionInBackground(string solutionFilename, CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
             OutputToOutputWindow("Beginning solution parsing");
             var start = DateTimeOffset.UtcNow;
-            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename), _solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
+
+            // Load the solution on a threadpool thread, but *do* capture the context so that we continue on the UI thread, since we're
+            // going to create projects/etc.
+            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename, cancellationToken), cancellationToken).ConfigureAwait(true);
+            AssertIsForeground();
 
             OutputToOutputWindow($"Done solution parsing - creating {solutionInfo.Projects.Count} projects.  Took {DateTimeOffset.UtcNow - start}");
             start = DateTimeOffset.UtcNow;
@@ -142,8 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectInfo.Name,
                 projectInfo.FilePath,
                 Guid.Empty,
-                null,
-                projectInfo.CommandLineOpt);
+                hierarchy: null,
+                commandLineForOptions: projectInfo.CommandLineOpt);
 
             foreach (var documentInfo in projectInfo.Documents)
             {
@@ -192,10 +201,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return projectContext;
         }
 
-        private Task<SolutionInfo> LoadSolutionInfoAsync(string solutionFilename)
+        private Task<SolutionInfo> LoadSolutionInfoAsync(string solutionFilename, CancellationToken cancellationToken)
         {
+            AssertIsBackground();
             var loader = new MSBuildProjectLoader(_workspace);
-            return loader.LoadSolutionInfoAsync(solutionFilename, _solutionParsingCancellationTokenSource.Token);
+            return loader.LoadSolutionInfoAsync(solutionFilename, cancellationToken);
         }
 
         private void PushCompleteSolutionToWorkspace(Func<AbstractProject, ProjectInfo> getProjectInfo)
