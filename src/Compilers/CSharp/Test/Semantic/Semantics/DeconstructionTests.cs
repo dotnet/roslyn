@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : CompilingTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         const string commonSource =
 @"public class Pair<T1, T2>
 {
@@ -245,7 +247,7 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (10,27): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         c.Deconstruct(out x, out y); // error
@@ -433,7 +435,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (16,17): error CS0102: The type 'C' already contains a definition for 'Deconstruct'
                 //     public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
@@ -504,7 +506,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = new C();
@@ -525,6 +527,7 @@ class C
     {
         int x, y;
         var type = ((x, y) = new C()).GetType();
+        System.Console.Write(type.ToString());
     }
 
     public void Deconstruct(out int a, out int b)
@@ -534,12 +537,9 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(
-                // (7,38): error CS0023: Operator '.' cannot be applied to operand of type 'void'
-                //         var type = ((x, y) = new C()).GetType();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(7, 38)
-                );
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -635,7 +635,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
                 //     static int i;
@@ -754,14 +754,11 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,10): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // (9,22): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(9, 10),
-                // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(9, 22)
                 );
         }
 
@@ -1643,12 +1640,12 @@ class var { }
                 // (6,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
-                // (6,14): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                // (6,25): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("int", "var").WithLocation(6, 14),
-                // (6,18): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 25),
+                // (6,28): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("int", "var").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "var").WithLocation(6, 28)
                 );
         }
 
@@ -1678,12 +1675,12 @@ class D
                 // (7,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
-                // (7,14): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                // (7,25): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x3").WithArguments("int", "D").WithLocation(7, 14),
-                // (7,18): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 25),
+                // (7,28): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x4").WithArguments("int", "D").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "D").WithLocation(7, 28)
                 );
         }
 
@@ -2247,7 +2244,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 

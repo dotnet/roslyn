@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,39 +12,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            Debug.Assert(node.DeconstructSteps != null);
-            Debug.Assert(node.AssignmentSteps != null);
-
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
 
             // evaluate left-hand-side side-effects
-            var lhsTargets = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
+            ImmutableArray<BoundExpression> lhsTargets = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
 
             // get or make right-hand-side values
             BoundExpression loweredRight = VisitExpression(node.Right);
-            AddPlaceholderReplacement(node.DeconstructSteps[0].TargetPlaceholder, loweredRight);
-            placeholders.Add(node.DeconstructSteps[0].TargetPlaceholder);
 
-            foreach (var deconstruction in node.DeconstructSteps)
-            {
-                if (deconstruction.DeconstructInvocationOpt == null)
-                {
-                    // tuple case
-                    AccessTupleFields(node, deconstruction, temps, stores, placeholders);
-                }
-                else
-                {
-                    CallDeconstruct(node, deconstruction, temps, stores, placeholders);
-                }
-            }
-
-            bool isUsed = true;
-            BoundExpression returnValue = ApplyConversionsAndMakeReturnValue(node, temps, stores, placeholders, isUsed, node.IsDeclaration);
+            ApplyDeconstructions(node, temps, stores, placeholders, loweredRight);
+            ApplyConversions(node, temps, stores, placeholders);
             ApplyAssignments(node, stores, lhsTargets);
 
-            var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
+            BoundExpression returnValue = MakeReturnValue(node, stores, placeholders);
+            BoundExpression result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
 
             RemovePlaceholderReplacements(placeholders);
             placeholders.Free();
@@ -55,11 +39,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Applies the conversions.
-        /// If the deconstruction result is used, locals will be created to form a tuple return value.
-        /// Otherwise, the returned expression is a BoundVoid
+        /// Applies the deconstructions.
+        /// Adds any new locals to the temps and any new expressions to be evaluated to the stores.
         /// </summary>
-        private BoundExpression ApplyConversionsAndMakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, bool isUsed, bool isDeclaration)
+        private void ApplyDeconstructions(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, BoundExpression loweredRight)
+        {
+            AddPlaceholderReplacement(node.DeconstructSteps[0].InputPlaceholder, loweredRight);
+            placeholders.Add(node.DeconstructSteps[0].InputPlaceholder);
+
+            foreach (BoundDeconstructionDeconstructStep deconstruction in node.DeconstructSteps)
+            {
+                if (deconstruction.DeconstructInvocationOpt == null)
+                {
+                    // tuple case
+                    AccessTupleFields(node, deconstruction, temps, stores, placeholders);
+                }
+                else
+                {
+                    CallDeconstruct(node, deconstruction, temps, stores, placeholders);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies the conversions.
+        /// Adds any new locals to the temps and any new expressions to be evaluated to the stores.
+        /// </summary>
+        private void ApplyConversions(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             int numConversions = node.ConversionSteps.Length;
             var conversionLocals = ArrayBuilder<BoundExpression>.GetInstance();
@@ -74,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                localSymbol,
                                                null,
                                                conversionInfo.OutputPlaceholder.Type)
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
 
                 temps.Add(localSymbol);
                 conversionLocals.Add(localBound);
@@ -86,27 +92,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 stores.Add(conversion);
             }
-
-            return isDeclaration ?
-                new BoundVoid(node.Syntax, node.Type) :
-                (BoundExpression)Visit(new BoundTupleLiteral(node.Syntax, default(ImmutableArray<string>), conversionLocals.ToImmutableAndFree(), node.Type));
         }
 
+        /// <summary>
+        /// Applies the assignments.
+        /// Adds any new expressions to be evaluated to the stores.
+        /// </summary>
         private void ApplyAssignments(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ImmutableArray<BoundExpression> lhsTargets)
         {
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
-                // lower the assignments
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
+                // All the input placeholders for the assignments should already be set
                 var assignment = VisitExpression(assignmentInfo.Assignment);
 
                 RemovePlaceholderReplacement(assignmentInfo.OutputPlaceholder);
 
                 stores.Add(assignment);
             }
+        }
+
+        /// <summary>
+        /// Makes an expression that constructs the return value for the deconstruction.
+        /// For d-declarations, that is simply void.
+        /// For d-assignments, that is a series of tuple constructions, that are chained with the help of placeholders.
+        /// The placeholders that are set are added to the list for later clearing.
+        /// </summary>
+        private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        {
+            if (node.IsDeclaration)
+            {
+                return new BoundVoid(node.Syntax, node.Type);
+            }
+
+            BoundExpression loweredConstruction = null;
+            foreach (var constructionInfo in node.ConstructionSteps)
+            {
+                // All the input placeholders for the constructions should already be set
+                loweredConstruction = (BoundExpression)Visit(constructionInfo.Construct);
+
+                AddPlaceholderReplacement(constructionInfo.OutputPlaceholder, loweredConstruction);
+                placeholders.Add(constructionInfo.OutputPlaceholder);
+            }
+
+            Debug.Assert(loweredConstruction != null);
+            return loweredConstruction;
         }
 
         /// <summary>
@@ -126,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
-            var target = PlaceholderReplacement(deconstruction.TargetPlaceholder);
+            var target = PlaceholderReplacement(deconstruction.InputPlaceholder);
             var tupleType = target.Type.IsTupleType ? target.Type : TupleTypeSymbol.Create((NamedTypeSymbol)target.Type);
             var tupleElementTypes = tupleType.TupleElementTypes;
 
