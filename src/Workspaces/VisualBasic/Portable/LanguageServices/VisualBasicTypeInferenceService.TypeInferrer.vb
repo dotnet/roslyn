@@ -338,7 +338,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInArrayCreationExpression(arrayCreationExpression As ArrayCreationExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
                 Dim outerTypes = InferTypes(arrayCreationExpression)
-                Return outerTypes.OfType(Of IArrayTypeSymbol).Select(Function(a) New TypeInferenceInfo(a.ElementType))
+                Return outerTypes.Where(Function(c) TypeOf c.InferredType Is IArrayTypeSymbol) _
+                        .Select(Function(c) New TypeInferenceInfo(DirectCast(c.InferredType, IArrayTypeSymbol).ElementType))
             End Function
 
             Private Function InferTypeInArrayRankSpecifier() As IEnumerable(Of TypeInferenceInfo)
@@ -351,7 +352,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim currentTypes = InferTypes(arrayType)
                 Dim i = 0
                 While i < arrayType.RankSpecifiers.Count
-                    currentTypes = currentTypes.OfType(Of IArrayTypeSymbol)().Select(Function(c) New TypeInferenceInfo(c.ElementType))
+                    currentTypes = currentTypes.Where(Function(c) TypeOf c.InferredType Is IArrayTypeSymbol) _
+                        .Select(Function(c) New TypeInferenceInfo(DirectCast(c.InferredType, IArrayTypeSymbol).ElementType))
 
                     i = i + 1
                 End While

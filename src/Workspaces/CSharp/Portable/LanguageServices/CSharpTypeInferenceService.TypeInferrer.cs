@@ -298,9 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
                 {
                     var objectCreation = (ObjectCreationExpressionSyntax)argument.Parent.Parent.Parent.Parent.Parent;
-                    var types = GetTypes(objectCreation);
+                    var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
-                    if (types.Any(t => t.InferredType is INamedTypeSymbol))
+                    if (types.Any(t => t is INamedTypeSymbol))
                     {
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t,
@@ -748,9 +748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentTypes = InferTypes(arrayType);
                 for (var i = 0; i < arrayType.RankSpecifiers.Count; i++)
                 {
-                    currentTypes = currentTypes.OfType<IArrayTypeSymbol>().Select(c => new TypeInferenceInfo(c.ElementType));
+                    currentTypes = currentTypes.Where(c => c.InferredType is IArrayTypeSymbol)
+                        .Select(c => new TypeInferenceInfo(((IArrayTypeSymbol)c.InferredType).ElementType));
                 }
-
                 return currentTypes;
             }
 
@@ -1278,22 +1278,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // = { Foo() }
                     var equalsValueClause = (EqualsValueClauseSyntax)initializerExpression.Parent;
-                    IEnumerable<TypeInferenceInfo> types = InferTypeInEqualsValueClause(equalsValueClause);
+                    IEnumerable<ITypeSymbol> types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
 
-                    if (types.Any(t => t.InferredType is IArrayTypeSymbol))
+                    if (types.Any(t => t is IArrayTypeSymbol))
                     {
-                        return types.Select(t => t.InferredType).OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
+                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Foo() } 
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<TypeInferenceInfo> types = GetTypes(arrayCreation);
+                    IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation).Select(t => t.InferredType);
 
-                    if (types.Any(t => t.InferredType is IArrayTypeSymbol))
+                    if (types.Any(t => t is IArrayTypeSymbol))
                     {
-                        return types.Select(t => t.InferredType).OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
+                        return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
@@ -1302,10 +1302,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
-                    IEnumerable<TypeInferenceInfo> types = GetTypes(objectCreation);
-                    if (types.Any(t => t.InferredType is INamedTypeSymbol))
+                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation).Select(t => t.InferredType);
+                    if (types.Any(t => t is INamedTypeSymbol))
                     {
-                        return types.Select(t => t.InferredType).OfType<INamedTypeSymbol>().SelectMany(t =>
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t, parameterIndex: 0));
                     }
                 }
@@ -1324,16 +1324,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
-                    IEnumerable<TypeInferenceInfo> types = GetTypes(assignExpression.Left);
+                    IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left).Select(t => t.InferredType);
 
-                    if (types.Any(t => t.InferredType is INamedTypeSymbol))
+                    if (types.Any(t => t is INamedTypeSymbol))
                     {
                         // new Foo { a = { Foo() } }
                         var parameterIndex = previousToken.HasValue
                                 ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
                                 : initializerExpression.Expressions.IndexOf(expressionOpt);
 
-                        return types.Select(t => t.InferredType).OfType<INamedTypeSymbol>().SelectMany(t =>
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t, 0));
                     }
                 }
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInMemberAccessExpression(
                 MemberAccessExpressionSyntax memberAccessExpression,
-                ExpressionSyntax expressionOpt = null, 
+                ExpressionSyntax expressionOpt = null,
                 SyntaxToken? previousToken = null)
             {
                 // We need to be on the right of the dot to infer an appropriate type for
@@ -1559,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambdaExpression is ParenthesizedLambdaExpressionSyntax)
                 {
                     return InferTypeForFirstParameterOfParenthesizedLambda(
-                        (ParenthesizedLambdaExpressionSyntax)lambdaExpression); 
+                        (ParenthesizedLambdaExpressionSyntax)lambdaExpression);
                 }
                 else if (lambdaExpression is SimpleLambdaExpressionSyntax)
                 {
