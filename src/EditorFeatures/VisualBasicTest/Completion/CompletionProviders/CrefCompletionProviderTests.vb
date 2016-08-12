@@ -528,6 +528,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException
             End Function
 
+            Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodDeclaration
+                Throw New NotImplementedException
+            End Function
+
             Public Function GetText(kind As Integer) As String Implements ISyntaxFactsService.GetText
                 Throw New NotImplementedException()
             End Function

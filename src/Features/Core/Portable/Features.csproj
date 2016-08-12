@@ -153,6 +153,7 @@
     <Compile Include="CodeLens\LocationComparer.cs" />
     <Compile Include="CodeLens\ReferenceCount.cs" />
     <Compile Include="CodeLens\ReferenceLocationDescriptor.cs" />
+    <Compile Include="CodeLens\ReferenceMethodDescriptor.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
