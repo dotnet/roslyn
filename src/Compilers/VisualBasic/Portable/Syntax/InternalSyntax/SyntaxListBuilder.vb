@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            Me.Nodes(Me._count).Value = DirectCast(item, VisualBasicSyntaxNode)
-            Me._count += 1
+            Me.Nodes(Me.Count).Value = DirectCast(item, VisualBasicSyntaxNode)
+            Me.Count += 1
             Return Me
         End Function
 
@@ -36,19 +36,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Public Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
             EnsureAdditionalCapacity(length - offset)
 
-            Dim oldCount = Me._count
+            Dim oldCount = Me.Count
 
             For i = offset To offset + length - 1
                 AddUnsafe(list.ItemUntyped(i))
             Next i
 
-            Me.Validate(oldCount, Me._count)
+            Me.Validate(oldCount, Me.Count)
             Return Me
         End Function
 
         Public Function Any(kind As SyntaxKind) As Boolean
             Dim i As Integer
-            For i = 0 To Me._count - 1
+            For i = 0 To Me.Count - 1
                 If (Me.Nodes(i).Value.Kind = kind) Then
                     Return True
                 End If
@@ -57,17 +57,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Sub RemoveLast()
-            Me._count -= 1
-            Me.Nodes(Me._count) = Nothing
+            Me.Count -= 1
+            Me.Nodes(Me.Count) = Nothing
         End Sub
 
         Public Sub Clear()
-            Me._count = 0
+            Me.Count = 0
         End Sub
 
         Private Sub EnsureAdditionalCapacity(additionalCount As Integer)
             Dim currentSize As Integer = Me.Nodes.Length
-            Dim requiredSize As Integer = Me._count + additionalCount
+            Dim requiredSize As Integer = Me.Count + additionalCount
 
             If requiredSize <= currentSize Then
                 Return
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
-            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me._count - 1) {}
+            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me.Count - 1) {}
 
             'TODO: workaround for range check hoisting bug
             ' <<< FOR LOOP
@@ -100,7 +100,7 @@ enter:
         End Function
 
         Friend Function ToListNode() As VisualBasicSyntaxNode
-            Select Case Me._count
+            Select Case Me.Count
                 Case 0
                     Return Nothing
                 Case 1
@@ -121,10 +121,14 @@ enter:
             Next i
         End Sub
 
-        Public ReadOnly Property Count As Integer
+        Public Property Count As Integer
             Get
                 Return Me._count
             End Get
+
+            Private Set
+                _count = Value
+            End Set
         End Property
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
