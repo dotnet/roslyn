@@ -165,34 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
             }
         }
 
-        public string ConstructFullName(SemanticModel semanticModel, SyntaxNode methodNode)
-        {
-            var name = semanticModel.GetDeclaredSymbol(methodNode).Name;
-            var parent = methodNode.Parent;
-            while (parent != null)
-            {
-                if (parent.IsKind(SyntaxKind.ClassDeclaration))
-                {
-                    name = semanticModel.GetDeclaredSymbol(parent).Name + (!string.IsNullOrEmpty(name) ? "+" + name : "");
-                }
-                else if (parent.IsKind(SyntaxKind.NamespaceDeclaration))
-                {
-                    // ToDisplayString returns the immmediate namespace's FQN.
-                    name = semanticModel.GetDeclaredSymbol(parent).ToDisplayString() + (!string.IsNullOrEmpty(name) ? "." + name : "");
-                    break;
-                }
-                else
-                {
-                    // bail out loop when we encounterd a node which is not namespace/type.
-                    break;
-                }
-
-                parent = parent.Parent;
-            }
-
-            return name;
-        }
-
         private static string GetEnclosingScopeString(SyntaxNode node, SemanticModel semanticModel, SymbolDisplayFormat symbolDisplayFormat)
         {
             var scopeNode = node;

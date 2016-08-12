@@ -15,10 +15,5 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// Gets the DisplayName for the given node
         /// </summary>
         string GetDisplayName(SemanticModel semanticModel, SyntaxNode node);
-
-        /// <summary>
-        /// Given a semantic model and methodNode, this method returns FQN with '+' as delimiter for the nested type
-        /// </summary>
-        string ConstructFullName(SemanticModel semanticModel, SyntaxNode methodNode);
     }
 }

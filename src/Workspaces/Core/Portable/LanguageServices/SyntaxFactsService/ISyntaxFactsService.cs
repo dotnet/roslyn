@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
-        bool IsMethodDeclaration(SyntaxNode node);
 
         string GetText(int kind);
 

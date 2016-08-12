@@ -158,40 +158,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
 
             Return rootName
         End Function
-
-        Public Function ConstructFullName(semanticModel As SemanticModel, methodNode As SyntaxNode) As String Implements ICodeLensDisplayInfoService.ConstructFullName
-            Dim isTopLevelNodeAClass = True
-            Dim parent = methodNode.Parent
-            Dim name = semanticModel.GetDeclaredSymbol(methodNode).Name
-
-            While parent IsNot Nothing
-                ' construct to be like {namespace, type, childType, method}
-                If parent.IsKind(SyntaxKind.ClassBlock) Then
-                    name = semanticModel.GetDeclaredSymbol(parent).Name + If(Not String.IsNullOrEmpty(name), "+" + name, "")
-                ElseIf parent.IsKind(SyntaxKind.NamespaceBlock) Then
-                    name = semanticModel.GetDeclaredSymbol(parent).Name + If(Not String.IsNullOrEmpty(name), "." + name, "")
-                    isTopLevelNodeAClass = False
-                    Exit While
-                ElseIf parent.IsKind(SyntaxKind.SubBlock) OrElse parent.IsKind(SyntaxKind.FunctionBlock) Then
-                    ' Emperical observation shows that SyntaxKind.SubStatement's parent is SyntaxKind.SubBlock. We need to skip this statement.
-                Else
-                    ' bail out loop when we encounterd a node which is not namespace/type.
-                    Exit While
-                End If
-
-                parent = parent.Parent
-            End While
-
-            If isTopLevelNodeAClass Then
-                ' VB FQN requires the containing root namespace to be included. Tried finding the root namespace here.
-                Dim symbol = semanticModel.GetDeclaredSymbol(methodNode)
-                Dim rootName = GetRootNamespace(symbol)
-                If Not String.IsNullOrEmpty(rootName) Then
-                    name = rootName + If(Not String.IsNullOrEmpty(name), "." + name, "")
-                End If
-            End If
-
-            return name
-        End Function
     End Class
 End Namespace

@@ -1440,17 +1440,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
-
-        Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodDeclaration
-            Select Case node.Kind()
-                Case SyntaxKind.SubBlock,
-                     SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionBlock,
-                     SyntaxKind.FunctionStatement
-                    Return True
-            End Select
-
-            Return False
-        End Function
     End Class
 End Namespace

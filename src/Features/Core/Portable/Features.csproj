@@ -146,7 +146,7 @@
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeLens\CodeLenseReferenceService.cs" />
+    <Compile Include="CodeLens\CodeLensReferenceService.cs" />
     <Compile Include="CodeLens\CodeLensFindReferenceProgress.cs" />
     <Compile Include="CodeLens\ICodeLensReferencesService.cs" />
     <Compile Include="CodeLens\ICodeLensDisplayInfoService.cs" />

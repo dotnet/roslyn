@@ -556,11 +556,6 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool IsMethodDeclaration(SyntaxNode node)
-            {
-                throw new NotImplementedException();
-            }
-
             public string GetText(int kind)
             {
                 throw new NotImplementedException();

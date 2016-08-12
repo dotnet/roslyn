@@ -403,11 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PredefinedOperator.None;
         }
 
-        public bool IsMethodDeclaration(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MethodDeclaration);
-        }
-
         public string GetText(int kind)
         {
             return SyntaxFacts.GetText((SyntaxKind)kind);

@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService)), Shared]
     internal sealed class CodeLensReferenceService : ICodeLensReferencesService
     {
+        private static readonly SymbolDisplayFormat MethodDisplayFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
         private async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
             int searchCap, CancellationToken cancellationToken) where T: class
@@ -195,30 +199,30 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private static SyntaxNode FindEnclosingMethodNode(Document document, int position)
+        private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location)
         {
-            var getSyntaxRootTask = document.GetSyntaxRootAsync();
-            var root = getSyntaxRootTask.Result;
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start);
 
-            if (!root.FullSpan.Contains(position))
+            for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
             {
-                return null;
-            }
-
-            var token = root.FindToken(position);
-            var node = token.Parent;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            while (node != null)
-            {
-                if (syntaxFacts.IsMethodDeclaration(node))
+                if (current.Kind != SymbolKind.Method)
                 {
-                    break;
+                    continue;
                 }
-                node = node.Parent;
+
+                var method = (IMethodSymbol)current;
+                if (method.IsAccessor())
+                {
+                    return method.AssociatedSymbol;
+                }
+
+                if (method.MethodKind != MethodKind.AnonymousFunction)
+                {
+                    return method;
+                }
             }
 
-            return node;
+            return null;
         }
 
         private static async Task<ReferenceMethodDescriptor> TryCreateMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
@@ -236,17 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var methodNode = FindEnclosingMethodNode(document, commonLocation.SourceSpan.Start);
-
-            if (methodNode == null)
-            {
-                return null;
-            }
-
-            var displayInfoService = document.GetLanguageService<ICodeLensDisplayInfoService>();
-            var fullName = displayInfoService.ConstructFullName(semanticModel, methodNode);
-
-            cancellationToken.ThrowIfCancellationRequested();
+            var fullName = GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
 
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
         }
