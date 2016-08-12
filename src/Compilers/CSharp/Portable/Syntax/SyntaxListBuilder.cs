@@ -11,39 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public void AddRange(SyntaxNode[] items)
-        {
-            this.AddRange(items, 0, items.Length);
-        }
-
-        public void AddRange(SyntaxNode[] items, int offset, int length)
-        {
-            if (Nodes == null || Count + length > Nodes.Length)
-            {
-                this.Grow(Count + length);
-            }
-
-            for (int i = offset, j = Count; i < offset + length; ++i, ++j)
-            {
-                Nodes[j].Value = items[i].Green;
-            }
-
-            int start = Count;
-            Count += length;
-            Validate(start, Count);
-        }
-
-        private void Validate(int start, int end)
-        {
-            for (int i = start; i < end; i++)
-            {
-                if (Nodes[i].Value == null)
-                {
-                    throw new ArgumentException("Cannot add a null CSharpSyntaxNode.");
-                }
-            }
-        }
-
         public void AddRange(SyntaxList<SyntaxNode> list)
         {
             this.AddRange(list, 0, list.Count);
@@ -62,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 Nodes[dst].Value = list.ItemInternal(i).Green;
                 dst++;
             }
-
 
             int start = Count;
             Count += count;

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,6 +55,40 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
 
             Nodes[Count++].Value = item;
+        }
+
+        public void AddRange(SyntaxNode[] items)
+        {
+            this.AddRange(items, 0, items.Length);
+        }
+
+        public void AddRange(SyntaxNode[] items, int offset, int length)
+        {
+            if (Nodes == null || Count + length > Nodes.Length)
+            {
+                this.Grow(Count + length);
+            }
+
+            for (int i = offset, j = Count; i < offset + length; ++i, ++j)
+            {
+                Nodes[j].Value = items[i].Green;
+            }
+
+            int start = Count;
+            Count += length;
+            Validate(start, Count);
+        }
+
+        [Conditional("DEBUG")]
+        protected void Validate(int start, int end)
+        {
+            for (int i = start; i < end; i++)
+            {
+                if (Nodes[i].Value == null)
+                {
+                    throw new ArgumentException("Cannot add a null node.");
+                }
+            }
         }
 
         protected void Grow(int size)

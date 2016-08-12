@@ -10,23 +10,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MyBase.New(size)
         End Sub
 
-        Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
+        Friend Shadows Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
             Return Me.AddRange(Of TNode)(list, 0, list.Count)
         End Function
 
-        Friend Function AddRange(items As SyntaxNode()) As SyntaxListBuilder
-            Return Me.AddRange(items, 0, items.Length)
-        End Function
-
-        Friend Function AddRange(list As SyntaxList(Of SyntaxNode)) As SyntaxListBuilder
+        Friend Shadows Function AddRange(list As SyntaxList(Of SyntaxNode)) As SyntaxListBuilder
             Return Me.AddRange(list, 0, list.Count)
         End Function
 
-        Friend Function AddRange(list As SyntaxNodeOrTokenList) As SyntaxListBuilder
+        Friend Shadows Function AddRange(list As SyntaxNodeOrTokenList) As SyntaxListBuilder
             Return Me.AddRange(list, 0, list.Count)
         End Function
 
-        Friend Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
+        Friend Shadows Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
             If (Me.Count + length) > Me.Nodes.Length Then
                 Me.Grow(Me.Count + length)
             End If
@@ -43,28 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me
         End Function
 
-        Friend Function AddRange(items As SyntaxNode(), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me.Count + length) > Me.Nodes.Length Then
-                Me.Grow(Me.Count + length)
-            End If
+        Public Shadows Sub AddRange(items As SyntaxNode(), offset As Integer, length As Integer)
+            MyBase.AddRange(items, offset, length)
+        End Sub
 
-            Dim dst = Count
-            For i = offset To offset + length - 1
-                Me.Nodes(dst).Value = items(i).Green
-                dst += 1
-            Next i
-
-            Dim start As Integer = Me.Count
-            Me.Count = start + length
-            Me.Validate(start, Me.Count)
-            Return Me
-        End Function
-
-        Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
+        Friend Shadows Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
             Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
         End Function
 
-        Friend Function AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
+        Friend Shadows Function AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
             If (Me.Count + length) > Me.Nodes.Length Then
                 Me.Grow(Me.Count + length)
             End If
@@ -81,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me
         End Function
 
-        Friend Function AddRange(list As SyntaxTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
+        Friend Shadows Function AddRange(list As SyntaxTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
             Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
         End Function
 
@@ -116,13 +99,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
             Return InternalSyntax.SyntaxList.List(Me.ToGreenArray)
         End Function
-
-        <Conditional("DEBUG")>
-        Private Sub Validate(start As Integer, [end] As Integer)
-            Dim i As Integer
-            For i = start To [end] - 1
-                Debug.Assert(Me.Nodes(i).Value IsNot Nothing)
-            Next i
-        End Sub
     End Class
 End Namespace
