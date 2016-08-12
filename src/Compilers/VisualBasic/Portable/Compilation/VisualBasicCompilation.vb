@@ -2117,10 +2117,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
-            If embeddedTexts?.Any() Then
-                Throw New ArgumentException(VBResources.EmbeddedTextsNotSupported, NameOf(embeddedTexts))
-            End If
-
             Return CreateModuleBuilder(
                 emitOptions,
                 debugEntryPoint,
@@ -2181,6 +2177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream
+
+            If embeddedTexts IsNot Nothing Then
+                moduleBeingBuilt.EmbeddedTexts = embeddedTexts
+            End If
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)

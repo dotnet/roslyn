@@ -110,6 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
+            Dim embeddedFiles = New List(Of CommandLineSourceFile)()
+            Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
             Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
@@ -1145,6 +1147,16 @@ lVbRuntimePlus:
 
                             additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
+
+                        Case "embed"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                embedAllSourceFiles = True
+                                Continue For
+                            End If
+
+                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            Continue For
                     End Select
                 End If
 
@@ -1228,6 +1240,18 @@ lVbRuntimePlus:
             If sourceLink IsNot Nothing Then
                 If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPortablePdb)
+                End If
+            End If
+
+            If embedAllSourceFiles Then
+                embeddedFiles.AddRange(sourceFiles)
+            End If
+
+            If embeddedFiles.Count > 0 Then
+                ' Restricted to portable PDBs for now, but the IsPortable condition should be removed
+                ' And the error message adjusted accordingly when native PDB support Is added.
+                If Not emitPdb OrElse Not debugInformationFormat.IsPortable() Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
                 End If
             End If
 
@@ -1366,7 +1390,7 @@ lVbRuntimePlus:
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
-                .EmbeddedFiles = ImmutableArray(Of CommandLineSourceFile).Empty
+                .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
         End Function
 

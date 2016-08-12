@@ -5393,7 +5393,7 @@
   <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
   </data>
-  <data name="EmbeddedTextsNotSupported" xml:space="preserve">
-    <value>PDB embedded texts are not supported in VB.</value>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
   </data>
 </root>
