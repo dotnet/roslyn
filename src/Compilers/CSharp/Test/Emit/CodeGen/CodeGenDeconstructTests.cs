@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         const string commonSource =
 @"public class Pair<T1, T2>
 {
@@ -80,7 +82,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -132,7 +134,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -160,12 +162,12 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void VerifyExecutionOrder()
+        public void VerifyExecutionOrder_Deconstruct()
         {
             string source = @"
 using System;
@@ -205,7 +207,52 @@ Conversion2
 setX
 setY
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyExecutionOrder_TupleLiteral()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        (c.getHolderForX().x, c.getHolderForY().y) = (new D1(), new D2());
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+Constructor1
+Constructor2
+Conversion1
+Conversion2
+setX
+setY
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -238,7 +285,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -266,7 +313,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -305,7 +352,7 @@ struct C : IDeconstructable
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -338,7 +385,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -371,7 +418,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -403,7 +450,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -434,7 +481,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -474,9 +521,8 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -517,7 +563,7 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -565,7 +611,7 @@ Deconstruct
 conversion
 conversion";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -621,9 +667,8 @@ Deconstruct
 indexSet (with value 101)
 Final array values[2] 101
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1224,7 +1269,7 @@ static class D
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1256,7 +1301,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1439,13 +1484,13 @@ getDeconstructReceiver
 Deconstruct1
 Deconstruct2
 Conversion1
-setX
 Conversion2
-setY
 Conversion3
+setX
+setY
 setZ
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1480,20 +1525,20 @@ Deconstructing ((4, 5), (6, 7))
 Deconstructing (4, 5)
 Deconstructing (6, 7)
 Converting 1
-setX1 1
 Converting 2
-setX2 2
 Converting 3
-setX3 3
 Converting 4
-setX4 4
 Converting 5
-setX5 5
 Converting 6
-setX6 6
 Converting 7
+setX1 1
+setX2 2
+setX3 3
+setX4 4
+setX5 5
+setX6 6
 setX7 7";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1522,7 +1567,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 

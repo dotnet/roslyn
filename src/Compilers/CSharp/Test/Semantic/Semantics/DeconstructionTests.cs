@@ -1070,6 +1070,32 @@ class C
         }
 
         [Fact]
+        public void NestedAssignmentTypeIsValueTuple()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1; string x2; int x3;
+
+        var y = ((x1, x2), x3) = (new C(), 3);
+
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssignmentReturnsLongValueTuple()
         {
             string source = @"

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool isUsed = true;
-            BoundExpression returnValue = ApplyConversionsAndMakeReturnValue(node, temps, stores, placeholders, isUsed);
+            BoundExpression returnValue = ApplyConversionsAndMakeReturnValue(node, temps, stores, placeholders, isUsed, node.IsDeclaration);
             ApplyAssignments(node, stores, lhsTargets);
 
             var result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the deconstruction result is used, locals will be created to form a tuple return value.
         /// Otherwise, the returned expression is a BoundVoid
         /// </summary>
-        private BoundExpression ApplyConversionsAndMakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, bool isUsed)
+        private BoundExpression ApplyConversionsAndMakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, bool isUsed, bool isDeclaration)
         {
             int numConversions = node.ConversionSteps.Length;
             var conversionLocals = ArrayBuilder<BoundExpression>.GetInstance();
@@ -87,7 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stores.Add(conversion);
             }
 
-            return (BoundExpression)Visit(new BoundTupleLiteral(node.Syntax, default(ImmutableArray<string>), conversionLocals.ToImmutableAndFree(), node.Type));
+            return isDeclaration ?
+                new BoundVoid(node.Syntax, node.Type) :
+                (BoundExpression)Visit(new BoundTupleLiteral(node.Syntax, default(ImmutableArray<string>), conversionLocals.ToImmutableAndFree(), node.Type));
         }
 
         private void ApplyAssignments(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ImmutableArray<BoundExpression> lhsTargets)

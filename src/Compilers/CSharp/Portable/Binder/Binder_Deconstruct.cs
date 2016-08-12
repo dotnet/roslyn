@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(CSharpSyntaxNode node, ExpressionSyntax right, ArrayBuilder<DeconstructionVariable> checkedVariables, DiagnosticBag diagnostics, bool isDeclaration, BoundDeconstructValuePlaceholder rhsPlaceholder = null)
         {
-            TypeSymbol returnType = MakeLhsTupleType(checkedVariables, node, Compilation, diagnostics);
+            TypeSymbol returnType = isDeclaration ?
+                GetSpecialType(SpecialType.System_Void, diagnostics, node) :
+                MakeLhsTupleType(checkedVariables, node, Compilation, diagnostics);
 
             // receiver for first Deconstruct step
             var boundRHS = rhsPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
