@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
+        public void AddRange(TSyntaxList list)
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
         public void AddRange(TSyntaxList list, int offset, int length)
         {
             // Necessary, but not sufficient (e.g. for nested lists).
