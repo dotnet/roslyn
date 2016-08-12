@@ -11,30 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public void AddRange(SyntaxList<SyntaxNode> list)
-        {
-            this.AddRange(list, 0, list.Count);
-        }
-
-        public void AddRange(SyntaxList<SyntaxNode> list, int offset, int count)
-        {
-            if (Nodes == null || this.Count + count > Nodes.Length)
-            {
-                this.Grow(Count + count);
-            }
-
-            var dst = this.Count;
-            for (int i = offset, limit = offset + count; i < limit; i++)
-            {
-                Nodes[dst].Value = list.ItemInternal(i).Green;
-                dst++;
-            }
-
-            int start = Count;
-            Count += count;
-            Validate(start, Count);
-        }
-
         public void AddRange<TNode>(SyntaxList<TNode> list) where TNode : SyntaxNode
         {
             this.AddRange(list, 0, list.Count);

@@ -10,50 +10,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             MyBase.New(size)
         End Sub
 
-        Friend Shadows Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
-            Return Me.AddRange(Of TNode)(list, 0, list.Count)
-        End Function
-
-        Friend Shadows Function AddRange(list As SyntaxList(Of SyntaxNode)) As SyntaxListBuilder
-            Return Me.AddRange(list, 0, list.Count)
-        End Function
+        Friend Shadows Sub AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode))
+            Me.AddRange(Of TNode)(list, 0, list.Count)
+        End Sub
 
         Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList)
             MyBase.AddRange(list)
         End Sub
 
-        Friend Shadows Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me.Count + length) > Me.Nodes.Length Then
-                Me.Grow(Me.Count + length)
-            End If
+        Friend Shadows Sub AddRange(list As SyntaxList(Of SyntaxNode))
+            MyBase.AddRange(list)
+        End Sub
 
-            Dim dst = Count
-            For i = offset To offset + length - 1
-                Me.Nodes(dst).Value = list.ItemInternal(i).Green
-                dst += 1
-            Next i
-
-            Dim start As Integer = Me.Count
-            Me.Count = (Me.Count + length)
-            Me.Validate(start, Me.Count)
-            Return Me
-        End Function
+        Friend Shadows Sub AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer)
+            MyBase.AddRange(list, offset, length)
+        End Sub
 
         Public Shadows Sub AddRange(items As SyntaxNode(), offset As Integer, length As Integer)
             MyBase.AddRange(items, offset, length)
         End Sub
 
-        Friend Shadows Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
-        End Function
+        Friend Shadows Sub AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer)
+            Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
+        End Sub
 
         Friend Shadows Sub AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer)
             MyBase.AddRange(list, offset, length)
         End Sub
 
-        Friend Shadows Function AddRange(list As SyntaxTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
-            Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
-        End Function
+        Friend Shadows Sub AddRange(list As SyntaxTokenList, offset As Integer, length As Integer)
+            Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
+        End Sub
 
         Friend Shadows Function Any(kind As SyntaxKind) As Boolean
             Return MyBase.Any(kind)
