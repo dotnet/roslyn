@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
@@ -144,6 +145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return _isWithinIteratorMethodOrLambdaOrProperty
             End Get
         End Property
+
+        Public Function GetFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetFlags
+            Dim flags = SyntaxNodeCache.GetFlags()
+            Return VisualBasicSyntaxNode.SetFactoryContext(flags, Me)
+        End Function
 
         Friend ReadOnly Property IsWithinIteratorMethodOrLambdaOrProperty As Boolean
             Get

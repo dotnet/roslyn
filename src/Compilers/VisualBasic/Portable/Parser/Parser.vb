@@ -6,6 +6,7 @@
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
@@ -128,6 +129,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return If(Not _isInMethodDeclarationHeader, Context.IsWithinIteratorMethodOrLambdaOrProperty, _isInIteratorMethodDeclarationHeader)
             End Get
         End Property
+
+        Public Function GetFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetFlags
+            Dim flags = SyntaxNodeCache.GetFlags()
+            Return VisualBasicSyntaxNode.SetFactoryContext(flags, Me)
+        End Function
 
         '
         '============ Methods for parsing declaration constructs ============
