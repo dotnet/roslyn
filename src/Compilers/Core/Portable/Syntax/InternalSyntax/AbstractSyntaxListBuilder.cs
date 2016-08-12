@@ -19,6 +19,19 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Nodes = new ArrayElement<TGreenNode>[size];
         }
 
+        public bool Any(int kind)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (Nodes[i].Value.RawKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void Clear()
         {
             this.Count = 0;

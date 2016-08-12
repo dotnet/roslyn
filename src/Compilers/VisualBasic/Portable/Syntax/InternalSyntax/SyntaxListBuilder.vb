@@ -38,14 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Me
         End Function
 
-        Public Function Any(kind As SyntaxKind) As Boolean
-            Dim i As Integer
-            For i = 0 To Me.Count - 1
-                If (Me.Nodes(i).Value.Kind = kind) Then
-                    Return True
-                End If
-            Next i
-            Return False
+        Public Shadows Function Any(kind As SyntaxKind) As Boolean
+            Return MyBase.Any(kind)
         End Function
 
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()

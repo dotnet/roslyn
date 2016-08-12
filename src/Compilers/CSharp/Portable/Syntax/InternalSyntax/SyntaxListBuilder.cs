@@ -62,18 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddRange(new SyntaxList<CSharpSyntaxNode>(list.Node), offset, length);
         }
 
-        public bool Any(SyntaxKind kind)
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                if (Nodes[i].Value.Kind == kind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        public bool Any(SyntaxKind kind) => Any((int)kind);
 
         public CSharpSyntaxNode[] ToArray()
         {
