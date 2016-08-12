@@ -17,10 +17,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal partial class VisualStudioProjectTracker : IVsSolutionLoadEvents
     {
         private CancellationTokenSource _solutionParsingCancellationTokenSource = new CancellationTokenSource();
+        private IVsOutputWindowPane _pane;
 
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            Task.Delay(TimeSpan.FromSeconds(10), _solutionParsingCancellationTokenSource.Token)
+            var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+            var paneGuid = new Guid("07aaa8e9-d776-47d6-a1be-5ce00332d74d");
+            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref paneGuid, "Roslyn DPL Status", fInitVisible: 1, fClearWithSolution: 1)) &&
+                ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out _pane)) && _pane != null)
+            {
+                _pane.Activate();
+                OutputToOutputWindow("OnBeforeOpenSolution - waiting 3 seconds to load solution in background");
+            }
+
+            Task.Delay(TimeSpan.FromSeconds(3), _solutionParsingCancellationTokenSource.Token)
                 .ContinueWith(
                     _ => LoadSolutionInBackground(pszSolutionFilename),
                     _solutionParsingCancellationTokenSource.Token,
@@ -85,15 +95,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
+
+            OutputToOutputWindow("Beginning solution parsing");
+            var start = DateTimeOffset.UtcNow;
             var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename), _solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
 
+            OutputToOutputWindow($"Done solution parsing - creating {solutionInfo.Projects.Count} projects.  Took {DateTimeOffset.UtcNow - start}");
+            start = DateTimeOffset.UtcNow;
             var projectToProjectInfo = new Dictionary<AbstractProject, ProjectInfo>();
             foreach (var projectInfo in solutionInfo.Projects)
             {
                 CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, projectInfo, solutionInfo);
             }
 
+            OutputToOutputWindow($"Done creating projects - pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
+            start = DateTimeOffset.UtcNow;
             PushCompleteSolutionToWorkspace(p => projectToProjectInfo[p]);
+            OutputToOutputWindow($"Done pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
+        }
+
+        private void OutputToOutputWindow(string message)
+        {
+            if (_pane != null)
+            {
+                _pane.OutputString(message + Environment.NewLine);
+            }
         }
 
         private IWorkspaceProjectContext CreateProjectFromProjectInfo(IWorkspaceProjectContextFactory workspaceProjectContextFactory, Dictionary<AbstractProject, ProjectInfo> projectToProjectInfo, ProjectInfo projectInfo, SolutionInfo solutionInfo)
