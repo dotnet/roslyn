@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public bool Any(SyntaxKind kind)
         {
-            return _builder.Any(kind);
+            return _builder.Any((int)kind);
         }
 
         public SyntaxList<TNode> ToList()
