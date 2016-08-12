@@ -961,8 +961,6 @@
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
