@@ -2,12 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
