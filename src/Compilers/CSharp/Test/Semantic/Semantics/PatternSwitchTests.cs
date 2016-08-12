@@ -1163,5 +1163,62 @@ NaN";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(12573, "https://github.com/dotnet/roslyn/issues/12573")]
+        public void EnumAndUnderlyingType()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(0);
+        M(0L);
+        M((byte)0);
+        M(EnumA.ValueA);
+        M(2);
+    }
+
+    public static void M(object value)
+    {
+        switch (value)
+        {
+            case 0:
+                Console.WriteLine(""0"");
+                break;
+            case 0L:
+                Console.WriteLine(""0L"");
+                break;
+            case (byte)0:
+                Console.WriteLine(""(byte)0"");
+                break;
+            case EnumA.ValueA:
+                Console.WriteLine(""EnumA.ValueA"");
+                break;
+            default:
+                Console.WriteLine(""Default"");
+                break;
+        }
+    }
+}
+
+public enum EnumA
+{
+    ValueA,
+    ValueB,
+    ValueC
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"0
+0L
+(byte)0
+EnumA.ValueA
+Default";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

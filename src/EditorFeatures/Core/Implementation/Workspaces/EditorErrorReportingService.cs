@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     internal class EditorErrorReportingService : IErrorReportingService
     {
-        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnable, Action OnEnableAndIgnore, Action OnClose)
+        public void ShowDetailedErrorInfo(Exception exception)
         {
-            ShowErrorInfo($"{codefixName} crashed");
+            Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
         }
 
         public void ShowErrorInfo(string message, params ErrorReportingUI[] items)

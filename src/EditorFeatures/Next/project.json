@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "System.Collections.Immutable": "1.2.0",
-    "Microsoft.VisualStudio.Language.Intellisense": "15.0.25123-Dev15Preview"
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.25604-Preview4"
   },
   "frameworks": {
     "net46": {}

@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Create a simple language specific diagnostic with no location for given info.
+        /// </summary>
+        public abstract Diagnostic CreateDiagnostic(DiagnosticInfo info);
+
+        /// <summary>
         /// Create a simple language specific diagnostic for given error code.
         /// </summary>
         public abstract Diagnostic CreateDiagnostic(int code, Location location, params object[] args);

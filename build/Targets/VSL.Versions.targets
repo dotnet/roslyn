@@ -16,15 +16,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- We cannot sign an unofficial build, so fail if 'OfficialBuild' is not 'true' but 'SignedBuild' is -->
-    <SignedBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</SignedBuild>
-    <Error Condition="'$(OfficialBuild)' != 'true' AND '$(SignedBuild)' == 'true'">Cannot sign an unofficial build.</Error>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <!-- We should not be signing a build anywhere except for in MicroBuild, which will always specify 'BUILD_BUILDNUMBER' -->
     <BuildNumber Condition="'$(BuildNumber)' == ''">$(BUILD_BUILDNUMBER)</BuildNumber>
-    <Error Condition="'$(BuildNumber)' == '' AND '$(SignedBuild)' == 'true'">A build number must be specified for a signed build.</Error>
+    <Error Condition="'$(BuildNumber)' == '' AND '$(OfficialBuild)' == 'true'">A build number must be specified for a signed build.</Error>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -48,7 +42,7 @@
   </PropertyGroup>
   
   <Choose>
-    <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
       <PropertyGroup>
         <AssemblyVersion>$(RoslynAssemblyVersionBase).0</AssemblyVersion>
         <BuildVersion>$(RoslynFileVersionBase).$(BuildNumberFiveDigitDateStamp)</BuildVersion>

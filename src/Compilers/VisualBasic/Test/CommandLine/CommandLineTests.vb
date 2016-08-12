@@ -2524,6 +2524,20 @@ End Class")
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <Fact>
+        Public Sub Embed_NotYetSupportedByVB()
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Empty(parsedArgs.EmbeddedFiles)
+
+            parsedArgs = DefaultParse({"/embed", "/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/embed"))
+            Assert.Empty(parsedArgs.EmbeddedFiles)
+
+            parsedArgs = DefaultParse({"/embed:a.vb", "/debug:portable", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/embed:a.vb"))
+            Assert.Empty(parsedArgs.EmbeddedFiles)
+        End Sub
 
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>

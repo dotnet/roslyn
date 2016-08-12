@@ -745,6 +745,113 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
+        public void NormalizeTaskTypes_Pointers()
+        {
+            string source =
+@"unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static C<MyTask<int>>* F0;
+#pragma warning restore CS0169
+}
+struct MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
+}
+struct MyTaskMethodBuilder<T>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics(
+                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                //     static C<MyTask<int>>* F0;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(4, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("C<MyTask<System.Int32>>*", type.ToTestDisplayString());
+            Assert.Equal("C<System.Threading.Tasks.Task<System.Int32>>*", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_PointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static class MyTask modopt(class MyTask) *[] F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .method public hidebysig static class MyTaskMethodBuilder CreateAsyncMethodBuilder() cil managed { ldnull ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_Errors()
+        {
+            string source =
+@"class C
+{
+#pragma warning disable CS0169
+    static A<int, MyTask> F0;
+    static MyTask<B> F1;
+#pragma warning restore CS0169
+}
+struct MyTask
+{
+    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
+}
+struct MyTask<T>
+{
+    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
+}
+struct MyTaskMethodBuilder
+{
+}
+struct MyTaskMethodBuilder<T>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //     static MyTask<B> F1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(5, 19),
+                // (4,12): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //     static A<int, MyTask> F0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(4, 12));
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            Assert.Equal(TypeKind.Error, type.TypeKind);
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("A<System.Int32, MyTask>", type.ToTestDisplayString());
+            Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
+
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
+            Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments[0].TypeKind);
+            normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("MyTask<B>", type.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.Task<B>", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
         public void NormalizeTaskTypes_Inner()
         {
             string source =

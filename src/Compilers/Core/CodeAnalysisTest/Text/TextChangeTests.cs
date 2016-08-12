@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private SourceText CreateLargeText(params char[][] chunks)
         {
-            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256);
+            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256, default(ImmutableArray<byte>));
         }
 
         private ImmutableArray<char[]> GetChunks(SourceText text)

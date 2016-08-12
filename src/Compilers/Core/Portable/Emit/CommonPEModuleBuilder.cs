@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -78,6 +79,18 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
+
+        private IEnumerable<EmbeddedText> _embedddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
+
+        public IEnumerable<EmbeddedText> EmbeddedTexts
+        {
+            get { return _embedddedTexts; }
+            set
+            {
+                Debug.Assert(value != null);
+                _embedddedTexts = value;
+            }
+        }
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -912,6 +925,8 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         int Cci.IModule.DebugDocumentCount => DebugDocumentsBuilder.DebugDocumentCount;
+
+        IEnumerable<Cci.DebugSourceDocument> Cci.IModule.EmbeddedDocuments => DebugDocumentsBuilder.EmbeddedDocuments;
 
         #endregion
 

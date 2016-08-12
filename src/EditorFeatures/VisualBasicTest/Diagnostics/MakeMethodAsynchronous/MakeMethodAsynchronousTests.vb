@@ -2,17 +2,23 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
+Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
-    Public Class AddAsyncTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMethodAsynchronous
+    Public Class MakeMethodAsynchronousTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
+                Nothing,
+                New VisualBasicMakeMethodAsynchronousCodeFixProvider())
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub Test() \n Await Task.Delay(1) \n End Sub \n End Module")
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module")
                 )
         End Function
 
@@ -20,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Sub Test() \n Await Task.Delay(1) \n End Sub \n End Module")
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module")
                 )
         End Function
 
@@ -28,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Function Test() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Function TestAsync() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
                 )
         End Function
 
@@ -36,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Function Test() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Function TestAsync() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
                 )
         End Function
 
@@ -91,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrt() As Task
+    Async Function rtrtAsync() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -108,11 +114,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Sub rtrt()
+    Async Sub rtrtAsync()
         Await Nothing
     End Sub
 </ModuleDeclaration>
             Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        Public Async Function TestBadAwaitInNonAsyncVoidMethod1() As Task
+            Dim initial =
+<ModuleDeclaration>
+    Sub rtrt()
+        [|Await Nothing|]
+    End Sub
+</ModuleDeclaration>
+            Dim expected =
+<ModuleDeclaration>
+    Async Function rtrtAsync() As Threading.Tasks.Task
+        Await Nothing
+    End Function
+</ModuleDeclaration>
+            Await TestAsync(initial, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
@@ -125,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrt() As Task
+    Async Function rtrtAsync() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -142,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrt() As Task(Of Integer)
+    Async Function rtrtAsync() As Task(Of Integer)
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -159,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-    Async Function rtrt() As Threading.Tasks.Task(Of Integer)
+    Async Function rtrtAsync() As Threading.Tasks.Task(Of Integer)
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -179,7 +202,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrt() As Task
+    Async Function rtrtAsync() As Task
         Await Nothing
     End Function
 End Class
@@ -200,7 +223,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrt() As Task(Of Integer)
+    Async Function rtrtAsync() As Task(Of Integer)
         Await Nothing
     End Function
 End Class
@@ -221,7 +244,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrt() As System.Threading.Tasks.Task(Of Integer)
+    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Integer)
         Await Nothing
     End Function
 End Class
@@ -242,7 +265,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrt() As System.Threading.Tasks.Task(Of Program)
+    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Program)
         Await Nothing
     End Function
 End Class
@@ -263,7 +286,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrt() As System.Threading.Tasks.Task(Of asdf)
+    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of asdf)
         Await Nothing
     End Function
 End Class
@@ -287,12 +310,6 @@ Module Program
 End Module
 </File>
             Await TestMissingAsync(initial)
-        End Function
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New VisualBasicAddAsyncCodeFixProvider())
         End Function
     End Class
 End Namespace

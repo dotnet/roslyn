@@ -359,14 +359,14 @@ public class TestClass
     }
 }";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
+                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(15, 13)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
+                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
                 //             default:            //CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(15, 13)
                 );
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
@@ -1135,9 +1135,9 @@ class C
                 // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
-                // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case 0:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
                 );
         }
 

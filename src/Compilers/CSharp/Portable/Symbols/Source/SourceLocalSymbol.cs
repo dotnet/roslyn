@@ -121,6 +121,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="enclosingBinderOpt">
+        /// Enclosing binder for the location where the local is declared, if different from the <paramref name="scopeBinder"/>.
+        /// It should be used to bind something at that location.
+        /// </param>
+        /// <param name="typeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="context"></param>
         public static SourceLocalSymbol MakeOutVariable(
             Symbol containingSymbol,
             Binder scopeBinder,
@@ -129,7 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             CSharpSyntaxNode context)
         {
-            return new OutLocalSymbol(containingSymbol, scopeBinder, enclosingBinderOpt, typeSyntax, identifierToken, context);
+            if (typeSyntax.IsVar)
+            {
+                return new PossiblyImplicitlyTypedOutVarLocalSymbol(containingSymbol, scopeBinder, enclosingBinderOpt, typeSyntax, identifierToken, context);
+            }
+
+            return new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
         }
 
         internal override bool IsImportedFromMetadata
@@ -581,14 +597,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Symbol for an out variable local.
+        /// Symbol for an out variable local that might require type inference during overload resolution, i.e.
+        /// its type is syntactically 'var'.
         /// </summary>
-        private class OutLocalSymbol : SourceLocalSymbol
+        private class PossiblyImplicitlyTypedOutVarLocalSymbol : SourceLocalSymbol
         {
             private readonly CSharpSyntaxNode _containingInvocation;
             private readonly Binder _enclosingBinderOpt;
 
-            public OutLocalSymbol(
+            public PossiblyImplicitlyTypedOutVarLocalSymbol(
                 Symbol containingSymbol,
                 Binder scopeBinder,
                 Binder enclosingBinderOpt,

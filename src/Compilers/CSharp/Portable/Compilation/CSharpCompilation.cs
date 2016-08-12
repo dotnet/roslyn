@@ -2222,6 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
             Stream sourceLinkStream,
+            IEnumerable<EmbeddedText> embeddedTexts,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -2269,6 +2270,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream;
 
+            if (embeddedTexts != null)
+            {
+                moduleBeingBuilt.EmbeddedTexts = embeddedTexts;
+            }
+
             // testData is only passed when running tests.
             if (testData != null)
             {
@@ -2314,7 +2320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) && !StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, diagnostics))
+                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) &&
+                    !StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;
                 }
@@ -2491,11 +2498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var checksumAndAlgorithm = existingDoc.ChecksumAndAlgorithm;
-                    if (ChecksumMatches(checksumText, checksumAndAlgorithm.Item1))
+                    var sourceInfo = existingDoc.GetSourceInfo();
+                    if (ChecksumMatches(checksumText, sourceInfo.Checksum))
                     {
                         var guid = Guid.Parse(checksumDirective.Guid.ValueText);
-                        if (guid == checksumAndAlgorithm.Item2)
+                        if (guid == sourceInfo.ChecksumAlgorithmId)
                         {
                             // all parts match, nothing to do
                             continue;

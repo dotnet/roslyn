@@ -4152,9 +4152,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_FeatureDeclarationExpression" xml:space="preserve">
-    <value>declaration expression</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4407,6 +4404,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                                generation but may be used by analyzers for producing
                                errors or warnings.
+ /embed                        Embed all source files in the PDB.
+ /embed:&lt;file list&gt;            Embed specfic files the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4933,7 +4932,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
     <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
+    <value>An expression tree may not contain an out argument variable declaration.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsIsMatch" xml:space="preserve">
+    <value>An expression tree may not contain an 'is' pattern-matching operator.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleLiteral" xml:space="preserve">
+    <value>An expression tree may not contain a tuple literal.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
+    <value>An expression tree may not contain a tuple conversion.</value>
+  </data>
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
   </data>
 </root>

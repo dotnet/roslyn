@@ -161,6 +161,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to PDB embedded texts are not supported in VB..
+        '''</summary>
+        Friend ReadOnly Property EmbeddedTextsNotSupported() As String
+            Get
+                Return ResourceManager.GetString("EmbeddedTextsNotSupported", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Cannot find the interop type that matches the embedded type &apos;{0}&apos;. Are you missing an assembly reference?.
         '''</summary>
         Friend ReadOnly Property ERR_AbsentReferenceToPIA1() As String

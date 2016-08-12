@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeCommand.cs" />
+    <Compile Include="ConflictingPackagesException.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ConsumesCommand.cs" />
     <Compile Include="FileName.cs" />
@@ -48,6 +49,8 @@
     <Compile Include="GenerateUtil.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="JsonTypes.cs" />
+    <Compile Include="NuGetConfigUtil.cs" />
+    <Compile Include="NuGetFeed.cs" />
     <Compile Include="NuGetPackage.cs" />
     <Compile Include="NuGetPackageChange.cs" />
     <Compile Include="NuGetPackageSource.cs" />

@@ -3,6 +3,7 @@
 
 set RoslynRoot=%~dp0
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
+set DevDivPackages=%RoslynRoot%src\Setup\DevDivPackages
 
 :ParseArguments
 if /I "%1" == "/?" goto :Usage
@@ -41,6 +42,9 @@ call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev14.project.json"
 echo Restoring packages: Toolsets (Dev15 VS SDK build tools)
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolsets (Dev15 VS SDK 'Willow' build tools)
+call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15Willow.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Roslyn SDK
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\roslynsdk.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
@@ -52,6 +56,11 @@ call "%NugetExe%" restore "%RoslynRoot%src\Setup\Templates\Templates.sln" %NuGet
 
 echo Restoring packages: Roslyn (this may take some time)
 call "%NugetExe%" restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
+echo Restoring packages: DevDiv tools
+call %NugetExe% restore "%RoslynRoot%src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%DevDivPackages%\Roslyn\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call %NugetExe% restore "%DevDivPackages%\Debugger\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 exit /b 0
 
