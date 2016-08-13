@@ -42,6 +42,7 @@
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="FileSystem\PathUtilitiesTests.cs" />
+    <Compile Include="InternalUtilities\SpecializedCollectionsTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
     <Compile Include="InternalUtilities\JsonWriterTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />

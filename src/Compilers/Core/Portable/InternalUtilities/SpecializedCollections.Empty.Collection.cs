@@ -24,6 +24,7 @@ namespace Roslyn.Utilities
 
                 public void Clear()
                 {
+                    throw new NotSupportedException();
                 }
 
                 public bool Contains(T item)
