@@ -3,10 +3,8 @@
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -83,7 +81,5 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return normalizedPath;
         }
-
-
     }
 }
