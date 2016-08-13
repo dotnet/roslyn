@@ -1718,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto foundParent;
                 }
             }
-        foundParent:;
+        foundParent:
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

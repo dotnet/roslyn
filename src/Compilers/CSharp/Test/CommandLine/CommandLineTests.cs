@@ -1717,7 +1717,7 @@ d.cs
                 parsedArgs.EmbeddedFiles.Select(f => f.Path));
 
             parsedArgs = DefaultParse(new[] { "/embed:a.txt", "/embed", "/debug:portable", "a.cs", "b.cs", "c.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(); ;
+            parsedArgs.Errors.Verify();
             AssertEx.Equal(
                 new[] { "a.txt", "a.cs", "b.cs", "c.cs" }.Select(f => Path.Combine(_baseDirectory, f)),
                 parsedArgs.EmbeddedFiles.Select(f => f.Path));
