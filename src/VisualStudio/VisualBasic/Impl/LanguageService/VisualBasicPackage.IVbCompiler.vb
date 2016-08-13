@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
@@ -19,17 +20,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
-            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
             Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
+
+            Dim projectFilename = AbstractLegacyProject.GetProjectFilePath(pProjHier)
+            Dim projectId = Workspace.ProjectTracker.GetOrCreateProjectIdForPath(projectFilename, wszName)
+            Dim existingProject = Workspace.ProjectTracker.GetProject(projectId)
+            existingProject?.Disconnect()
+
             Return New VisualBasicProjectShimWithServices(
-                visualStudioWorkspace.ProjectTracker,
+                Workspace.ProjectTracker,
                 pVbCompilerHost,
                 wszName,
                 pProjHier,
                 Me,
-                visualStudioWorkspace,
+                Workspace,
                 hostDiagnosticUpdateSource,
-                commandLineParserServiceOpt:=visualStudioWorkspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))
+                commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier
