@@ -183,12 +183,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, out int hash)
         {
-            return TryGetNode(kind, child1, GetFlags(), out hash);
+            return TryGetNode(kind, child1, GetDefaultNodeFlags(), out hash);
         }
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, context.GetFlags(), out hash);
+            return TryGetNode(kind, child1, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode.NodeFlags flags, out int hash)
@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, out int hash)
         {
-            return TryGetNode(kind, child1, child2, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, GetDefaultNodeFlags(), out hash);
         }
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, child2, context.GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode.NodeFlags flags, out int hash)
@@ -249,12 +249,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, out int hash)
         {
-            return TryGetNode(kind, child1, child2, child3, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, child3, GetDefaultNodeFlags(), out hash);
         }
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, child2, child3, context.GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, child3, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, GreenNode.NodeFlags flags, out int hash)
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return null;
         }
 
-        public static GreenNode.NodeFlags GetFlags()
+        public static GreenNode.NodeFlags GetDefaultNodeFlags()
         {
             return GreenNode.NodeFlags.IsNotMissing;
         }

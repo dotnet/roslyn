@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Public Function GetFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetFlags
-            Dim flags = SyntaxNodeCache.GetFlags()
+        Public Function GetNodeFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetNodeFlags
+            Dim flags = SyntaxNodeCache.GetDefaultNodeFlags()
             Return VisualBasicSyntaxNode.SetFactoryContext(flags, Me)
         End Function
 

@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return QueryDepth > 0; }
         }
 
-        public GreenNode.NodeFlags GetFlags()
+        public GreenNode.NodeFlags GetNodeFlags()
         {
-            var flags = SyntaxNodeCache.GetFlags();
+            var flags = SyntaxNodeCache.GetDefaultNodeFlags();
 
             if (this.IsInAsync)
             {

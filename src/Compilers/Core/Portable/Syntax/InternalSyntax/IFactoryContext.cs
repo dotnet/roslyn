@@ -4,6 +4,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal interface IFactoryContext
     {
-        GreenNode.NodeFlags GetFlags();
+        GreenNode.NodeFlags GetNodeFlags();
     }
 }
