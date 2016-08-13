@@ -777,6 +777,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-#endregion
+        internal override bool ShouldCreateWeakList()
+        {
+            if (this.Kind() == SyntaxKind.Block)
+            {
+                var gp = this.Parent;
+                if (gp != null && (gp is MemberDeclarationSyntax || gp is AccessorDeclarationSyntax))
+                {
+                    Debug.Assert(!this.Green.GetSlot(0).IsToken);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }
