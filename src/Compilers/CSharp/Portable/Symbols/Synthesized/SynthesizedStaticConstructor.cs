@@ -351,10 +351,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<string>.Empty;
         }
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind)
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
-            return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true, instrumentForDynamicAnalysis: instrumentForDynamicAnalysis);
+            return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true, localKind: localKind);
         }
     }
 }

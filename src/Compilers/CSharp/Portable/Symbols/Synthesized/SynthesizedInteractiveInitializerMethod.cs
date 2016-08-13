@@ -220,9 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind)
         {
-            return _containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false, instrumentForDynamicAnalysis: instrumentForDynamicAnalysis);
+            return _containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false, localKind: localKind);
         }
 
         internal TypeSymbol ResultType

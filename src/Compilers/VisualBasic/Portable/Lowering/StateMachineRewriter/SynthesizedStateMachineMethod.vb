@@ -153,8 +153,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, instrumentForDynamicAnalysis As Boolean) As Integer
-            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree, instrumentForDynamicAnalysis)
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, localKind As SynthesizedLocalKind) As Integer
+            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree, localKind)
         End Function
 
         Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency

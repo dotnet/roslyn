@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics);
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind)
         {
             throw ExceptionUtilities.Unreachable;
         }

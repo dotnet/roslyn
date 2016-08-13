@@ -298,7 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
+                SynthesizedLocalKind localKind = (captured as SynthesizedLocal)?.SynthesizedKind ?? SynthesizedLocalKind.UserDefined;
+                LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo, localKind);
 
                 if (captured.Kind != SymbolKind.Method)
                 {
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         }
 
-        private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+        private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo, SynthesizedLocalKind localKind)
         {
             LambdaFrame frame;
             if (!_frames.TryGetValue(scope, out frame))
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(syntax != null);
 
                 DebugId methodId = GetTopLevelMethodId();
-                DebugId closureId = GetClosureId(syntax, closureDebugInfo);
+                DebugId closureId = GetClosureId(syntax, closureDebugInfo, localKind);
 
                 var canBeStruct = !_analysis.ScopesThatCantBeStructs.Contains(scope);
 
@@ -1106,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return slotAllocatorOpt?.MethodId ?? new DebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
         }
 
-        private DebugId GetClosureId(SyntaxNode syntax, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+        private DebugId GetClosureId(SyntaxNode syntax, ArrayBuilder<ClosureDebugInfo> closureDebugInfo, SynthesizedLocalKind localKind)
         {
             Debug.Assert(syntax != null);
 
@@ -1121,14 +1122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 closureId = new DebugId(closureDebugInfo.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
             }
 
-            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, InstrumentForDynamicAnalysis);
+            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, localKind);
             closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
 
             return closureId;
         }
-
-        private bool InstrumentForDynamicAnalysis => CompilationState.ModuleBuilderOpt != null ? CompilationState.ModuleBuilderOpt.EmitOptions.EmitDynamicAnalysisData : false;
-
+        
         private DebugId GetLambdaId(SyntaxNode syntax, ClosureKind closureKind, int closureOrdinal)
         {
             Debug.Assert(syntax != null);
@@ -1177,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaId = new DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
             }
 
-            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, InstrumentForDynamicAnalysis);
+            int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, SynthesizedLocalKind.UserDefined);
             _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
             return lambdaId;
         }

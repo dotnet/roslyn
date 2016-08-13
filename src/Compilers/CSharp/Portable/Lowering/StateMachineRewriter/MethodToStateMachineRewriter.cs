@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree, instrumentForDynamicAnalysis: InstrumentForDynamicAnalysis);
+                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree, local.SynthesizedKind);
             }
             else
             {
@@ -468,8 +468,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             sideEffects.RemoveLast();
             return F.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
         }
-
-        private bool InstrumentForDynamicAnalysis => CompilationState.ModuleBuilderOpt != null ? CompilationState.ModuleBuilderOpt.EmitOptions.EmitDynamicAnalysisData : false;
 
         private BoundExpression HoistExpression(
             BoundExpression expr,

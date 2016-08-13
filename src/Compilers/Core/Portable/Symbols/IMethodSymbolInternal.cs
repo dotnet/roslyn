@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         bool IsIterator { get; }
 
-        int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree, bool instrumentForDynamicAnalysis);
+        int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree, SynthesizedLocalKind localKind);
     }
 }

@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return GetMembersAndInitializers().InstanceInitializers; }
         }
 
-        internal int CalculateSyntaxOffsetInSynthesizedConstructor(int position, SyntaxTree tree, bool isStatic, bool instrumentForDynamicAnalysis)
+        internal int CalculateSyntaxOffsetInSynthesizedConstructor(int position, SyntaxTree tree, bool isStatic, SynthesizedLocalKind localKind)
         {
             if (IsScriptClass && !isStatic)
             {
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
-            if (instrumentForDynamicAnalysis)
+            if (localKind == SynthesizedLocalKind.InstrumentationPayload)
             {
                 // With dynamic analysis instrumentation, a type declaration can be the syntax associated
                 // with the analysis payload local of a synthesized constructor.

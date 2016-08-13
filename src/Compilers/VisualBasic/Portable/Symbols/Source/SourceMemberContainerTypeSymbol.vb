@@ -3235,7 +3235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Function CalculateSyntaxOffsetInSynthesizedConstructor(position As Integer, tree As SyntaxTree, isShared As Boolean, instrumentForDynamicAnalysis As Boolean) As Integer
+        Friend Function CalculateSyntaxOffsetInSynthesizedConstructor(position As Integer, tree As SyntaxTree, isShared As Boolean, localKind As SynthesizedLocalKind) As Integer
             If IsScriptClass AndAlso Not isShared Then
                 Dim aggregateLength As Integer = 0
 
@@ -3258,7 +3258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return syntaxOffset
             End If
 
-            If instrumentForDynamicAnalysis Then
+            If localKind = SynthesizedLocalKind.InstrumentationPayload Then
                 ' With dynamic analysis instrumentation, a type declaration can be the syntax associated
                 ' with the analysis payload local of a synthesized constructor.
                 ' If the synthesized constructor includes an initializer with a lambda,

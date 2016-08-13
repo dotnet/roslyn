@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Select
         End Function
 
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, instrumentForDynamicAnalysis As Boolean) As Integer
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, localKind As SynthesizedLocalKind) As Integer
             Return localPosition
         End Function
 

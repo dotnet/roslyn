@@ -258,9 +258,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim syntax = scope.Syntax
                 Debug.Assert(syntax IsNot Nothing)
 
+                Dim localKind As SynthesizedLocalKind = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind, SynthesizedLocalKind.UserDefined)
                 ' Frames created for delegate relaxations are just immutable wrappers of the delegate target object.
                 ' They are not reused during EnC update and thus don't have a closure scope.
-                Dim isDelegateRelaxationFrame = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind = SynthesizedLocalKind.DelegateRelaxationReceiver, False)
+                Dim isDelegateRelaxationFrame = localKind = SynthesizedLocalKind.DelegateRelaxationReceiver
 
                 Dim methodId, closureId As DebugId
 
@@ -271,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     delegateRelaxationIdDispenser += 1
                 Else
                     methodId = GetTopLevelMethodId()
-                    closureId = GetClosureId(syntax, closureDebugInfo)
+                    closureId = GetClosureId(syntax, closureDebugInfo, localKind)
                 End If
 
                 frame = New LambdaFrame(_topLevelMethod,
@@ -959,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(SlotAllocatorOpt?.MethodId, New DebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal))
         End Function
 
-        Private Function GetClosureId(syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo)) As DebugId
+        Private Function GetClosureId(syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo), localKind As SynthesizedLocalKind) As DebugId
             Debug.Assert(syntax IsNot Nothing)
 
             Dim closureId As DebugId
@@ -970,16 +971,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 closureId = New DebugId(closureDebugInfo.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, InstrumentForDynamicAnalysis)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, localKind)
             closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId))
             Return closureId
         End Function
-
-        Private ReadOnly Property InstrumentForDynamicAnalysis As Boolean
-            Get
-                Return If(CompilationState.ModuleBuilderOpt IsNot Nothing, CompilationState.ModuleBuilderOpt.EmitOptions.EmitDynamicAnalysisData, False)
-            End Get
-        End Property
 
         Private Function GetLambdaId(syntax As SyntaxNode, closureKind As ClosureKind, closureOrdinal As Integer) As DebugId
             Debug.Assert(syntax IsNot Nothing)
@@ -1017,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaId = New DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, InstrumentForDynamicAnalysis)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, SynthesizedLocalKind.UserDefined)
             _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal))
             Return lambdaId
         End Function

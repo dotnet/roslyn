@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// as if all source these parts were concatenated together and prepended to the constructor body.
         /// The resulting syntax offset is then negative for locals defined outside of the constructor body.
         /// </remarks>
-        internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis);
+        internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind);
 
         #region IMethodSymbol Members
 
@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
 
-        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, bool instrumentForDynamicAnalysis) => CalculateLocalSyntaxOffset(localPosition, localTree, instrumentForDynamicAnalysis);
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind) => CalculateLocalSyntaxOffset(localPosition, localTree, localKind);
 
         #endregion
 
