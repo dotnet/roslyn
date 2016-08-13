@@ -241,16 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns full string representation of this node including its leading and trailing trivia.
-        /// </summary>
-        /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public sealed override string ToFullString()
-        {
-            return this.Green.ToFullString();
-        }
-
-        /// <summary>
         /// Writes the full text of this node to the specified TextWriter.
         /// </summary>
         public override void WriteTo(System.IO.TextWriter writer)

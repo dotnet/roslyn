@@ -139,15 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns full string representation of this node including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        Public NotOverridable Overrides Function ToFullString() As String
-            Return Me.Green.ToFullString()
-        End Function
-
-        ''' <summary>
         ''' Writes the full text of this node to the specified TextWriter
         ''' </summary>
         Public Overrides Sub WriteTo(writer As IO.TextWriter)

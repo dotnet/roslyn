@@ -281,7 +281,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Returns the string representation of this node, not including its leading and trailing trivia.
         /// </summary>
@@ -297,7 +296,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public abstract string ToFullString();
+        public virtual string ToFullString()
+        {
+            return this.Green.ToFullString();
+        }
 
         /// <summary>
         /// Writes the full text of this node to the specified <see cref="TextWriter"/>.

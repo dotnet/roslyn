@@ -3304,7 +3304,6 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgument
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgumentSyntax.IsNamed() -> Boolean
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.IsNamed() -> Boolean
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.GlobalImport.Equals(other As Microsoft.CodeAnalysis.VisualBasic.GlobalImport) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Boolean
