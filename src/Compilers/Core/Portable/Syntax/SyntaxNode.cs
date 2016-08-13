@@ -1449,5 +1449,16 @@ recurse:
         protected abstract bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false);
 
         #endregion
+
+        /// <summary>
+        /// Whether or not this parent node wants its child SyntaxList node to be 
+        /// converted to a Weak-SyntaxList when creating the red-node equivalent.
+        /// For example, in C# the statements of a Block-Node that is parented by a 
+        /// MethodDeclaration will be held weakly.
+        /// </summary>
+        internal virtual bool ShouldCreateWeakList()
+        {
+            return false;
+        }
     }
 }

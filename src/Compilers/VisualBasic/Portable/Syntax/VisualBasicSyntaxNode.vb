@@ -542,5 +542,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetLambda() As SyntaxNode
             Return LambdaUtilities.GetLambda(Me)
         End Function
+
+        Friend Overrides Function ShouldCreateWeakList() As Boolean
+            Return TypeOf Me Is MethodBlockBaseSyntax
+        End Function
     End Class
 End Namespace

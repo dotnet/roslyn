@@ -353,15 +353,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return Me._children(index)
             End Function
 
-
-            'TODO: weakening heuristic may need some tuning.
-            Private Shared Function ShouldMakeWeakList(parent As SyntaxNode) As Boolean
-                Return parent IsNot Nothing AndAlso TypeOf parent Is VisualBasic.Syntax.MethodBlockBaseSyntax
-            End Function
-
             Friend Overrides Function CreateRed(parent As SyntaxNode, startLocation As Integer) As SyntaxNode
                 Dim isSeparated = SlotCount > 1 AndAlso HasNodeTokenPattern()
-                If ShouldMakeWeakList(parent) Then
+                If parent IsNot Nothing AndAlso parent.ShouldCreateWeakList() Then
                     If isSeparated Then
                         Return New VisualBasic.Syntax.SyntaxList.WeakSeparatedWithManyChildren(Me, parent, startLocation)
                     End If

@@ -671,6 +671,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-#endregion
+        internal override bool ShouldCreateWeakList()
+        {
+            if (this.Kind() == SyntaxKind.Block)
+            {
+                var parent = this.Parent;
+                if (parent is MemberDeclarationSyntax || parent is AccessorDeclarationSyntax)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }
