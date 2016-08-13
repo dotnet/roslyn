@@ -724,9 +724,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.LocalDeclarationStatement:
                     case SyntaxKind.LabeledStatement:
                     case SyntaxKind.LocalFunctionStatement:
-                    // It is an error to have a declaration or a label in an embedded statement,
-                    // but we still want to bind it.  We'll pretend that the statement was
-                    // inside a block.
+                        // It is an error to have a declaration or a label in an embedded statement,
+                        // but we still want to bind it.  We'll pretend that the statement was
+                        // inside a block.
 
                     case SyntaxKind.ExpressionStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
