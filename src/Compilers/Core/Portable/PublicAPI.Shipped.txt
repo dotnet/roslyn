@@ -2005,7 +2005,6 @@ override abstract Microsoft.CodeAnalysis.SourceReferenceResolver.Equals(object o
 override abstract Microsoft.CodeAnalysis.SourceReferenceResolver.GetHashCode() -> int
 override abstract Microsoft.CodeAnalysis.StrongNameProvider.Equals(object other) -> bool
 override abstract Microsoft.CodeAnalysis.StrongNameProvider.GetHashCode() -> int
-override abstract Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.Equals(object other) -> bool
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.Equals(object obj) -> bool

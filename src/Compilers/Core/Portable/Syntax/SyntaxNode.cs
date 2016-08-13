@@ -287,7 +287,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        public abstract override string ToString();
+        public override string ToString()
+        {
+            return this.Green.ToString();
+        }
 
         /// <summary>
         /// Returns full string representation of this node including its leading and trailing trivia.

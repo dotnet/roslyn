@@ -139,15 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns the string representation of this node, not including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        Public NotOverridable Overrides Function ToString() As String
-            Return Me.Green.ToString()
-        End Function
-
-        ''' <summary>
         ''' Returns full string representation of this node including its leading and trailing trivia.
         ''' </summary>
         ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
