@@ -280,8 +280,8 @@ namespace A.B {
             Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
 
             Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
@@ -319,8 +319,8 @@ namespace A.B {
 
             // we don't report an error when we can't write to the XML doc stream:
             Assert.True(comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
@@ -1549,7 +1549,7 @@ class A
             // realistic cross-compilation targets.
             var compilation = CSharpCompilation.CreateScriptCompilation(
                 "submission-assembly",
-                references: new [] { MinAsyncCorlibRef },
+                references: new[] { MinAsyncCorlibRef },
                 syntaxTree: Parse("true", options: TestOptions.Script)
             ).VerifyDiagnostics();
 

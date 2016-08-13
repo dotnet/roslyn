@@ -119,7 +119,6 @@ class C
                 // (13,17): warning CS0168: The variable 'BadLocal2' is declared but never used
                 //     public void BadLocal2()
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
-
         }
 
         [Fact]
@@ -4171,7 +4170,6 @@ class Program
 ";
                 VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
             }
-
         }
     }
 }

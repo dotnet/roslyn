@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                     }
                 }
             }
-            
+
             return results;
         }
     }
@@ -80,39 +80,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
     internal class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
     {
-        private CheckBoxAutomationPeer checkBoxItem;
-        private RadioButtonAutomationPeer radioButtonItem;
-        private TextBlockAutomationPeer textBlockItem;
+        private CheckBoxAutomationPeer _checkBoxItem;
+        private RadioButtonAutomationPeer _radioButtonItem;
+        private TextBlockAutomationPeer _textBlockItem;
 
         public AutomationDelegatingListViewItemAutomationPeer(AutomationDelegatingListViewItem listViewItem)
-            : base(listViewItem) 
+            : base(listViewItem)
         {
-            checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
-            if (checkBoxItem != null)
+            _checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
+            if (_checkBoxItem != null)
             {
-                var toggleButton = ((CheckBox)checkBoxItem.Owner);
+                var toggleButton = ((CheckBox)_checkBoxItem.Owner);
                 toggleButton.Checked += Checkbox_CheckChanged;
                 toggleButton.Unchecked += Checkbox_CheckChanged;
                 return;
             }
 
-            radioButtonItem = this.GetChildren().OfType<RadioButtonAutomationPeer>().SingleOrDefault();
-            if (radioButtonItem != null)
+            _radioButtonItem = this.GetChildren().OfType<RadioButtonAutomationPeer>().SingleOrDefault();
+            if (_radioButtonItem != null)
             {
-                var toggleButton = ((RadioButton)radioButtonItem.Owner);
-                toggleButton.Checked +=   RadioButton_CheckChanged;
+                var toggleButton = ((RadioButton)_radioButtonItem.Owner);
+                toggleButton.Checked += RadioButton_CheckChanged;
                 toggleButton.Unchecked += RadioButton_CheckChanged;
                 return;
             }
 
-            textBlockItem = this.GetChildren().OfType<TextBlockAutomationPeer>().FirstOrDefault();
+            _textBlockItem = this.GetChildren().OfType<TextBlockAutomationPeer>().FirstOrDefault();
         }
 
         private void Checkbox_CheckChanged(object sender, RoutedEventArgs e)
         {
             var checkBox = (CheckBox)sender;
             RaisePropertyChangedEvent(
-                TogglePatternIdentifiers.ToggleStateProperty, 
+                TogglePatternIdentifiers.ToggleStateProperty,
                 oldValue: ConvertToToggleState(!checkBox.IsChecked),
                 newValue: ConvertToToggleState(checkBox.IsChecked));
         }
@@ -139,11 +139,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         protected override AutomationControlType GetAutomationControlTypeCore()
         {
-            if (checkBoxItem != null)
+            if (_checkBoxItem != null)
             {
                 return AutomationControlType.CheckBox;
             }
-            else if (radioButtonItem != null)
+            else if (_radioButtonItem != null)
             {
                 return AutomationControlType.RadioButton;
             }
@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private AutomationPeer GetAutomationPeer()
         {
-            return checkBoxItem ?? radioButtonItem ?? (AutomationPeer)textBlockItem;
+            return _checkBoxItem ?? _radioButtonItem ?? (AutomationPeer)_textBlockItem;
         }
     }
 }

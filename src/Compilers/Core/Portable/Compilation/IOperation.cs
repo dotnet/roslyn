@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
         /// <summary>Indicates an <see cref="ILateBoundMemberReferenceExpression"/>.</summary>
-        LateBoundMemberReferenceExpression = 0x301, 
+        LateBoundMemberReferenceExpression = 0x301,
         /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         PlaceholderExpression = 0x302,
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         ParameterInitializerAtDeclaration = 0x404,
         /// <summary>Indicates an <see cref="IArrayInitializer"/>.</summary>
         ArrayInitializer = 0x405,
-        
+
         /// <summary>Indicates an <see cref="IVariableDeclaration"/>.</summary>
         VariableDeclaration = 0x406,
 

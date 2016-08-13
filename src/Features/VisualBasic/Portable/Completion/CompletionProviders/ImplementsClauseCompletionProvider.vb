@@ -263,15 +263,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
         End Function
 
-        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
+        Private Shared ReadOnly s_minimalFormatWithoutGenerics As SymbolDisplayFormat =
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
 
-        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+        Private Const s_insertionTextOnOpenParen As String = NameOf(s_insertionTextOnOpenParen)
 
         Protected Overrides Function GetInitialProperties(symbol As ISymbol, context As SyntaxContext) As ImmutableDictionary(Of String, String)
             If IsGenericType(symbol) Then
-                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
-                Return ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text)
+                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, s_minimalFormatWithoutGenerics)
+                Return ImmutableDictionary(Of String, String).Empty.Add(s_insertionTextOnOpenParen, text)
             End If
 
             Return MyBase.GetInitialProperties(symbol, context)
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             If ch = "("c Then
                 Dim insertionText As String = Nothing
-                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                If item.Properties.TryGetValue(s_insertionTextOnOpenParen, insertionText) Then
                     Return insertionText
                 End If
             End If

@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inferReturnType)
             {
-                this._inferredReturnType = InferReturnType(
+                _inferredReturnType = InferReturnType(
                     this.Body,
                     this.Binder,
                     delegateType,
                     this.Symbol.IsAsync,
-                    ref this._inferredReturnTypeUseSiteDiagnostics,
-                    out this._refKind,
-                    out this._inferredFromSingleType);
+                    ref _inferredReturnTypeUseSiteDiagnostics,
+                    out _refKind,
+                    out _inferredFromSingleType);
 
 #if DEBUG
                 _hasInferredReturnType = true;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly ArrayBuilder<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;
-            private RefKind refKind;
+            private RefKind _refKind;
 
             private BlockReturns()
             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var inferrer = new BlockReturns();
                 inferrer.Visit(block);
-                refKind = inferrer.refKind;
+                refKind = inferrer._refKind;
                 var result = inferrer._types.ToImmutableAndFree();
                 numberOfDistinctReturns = result.Length;
                 if (inferrer._hasReturnWithoutArgument)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.RefKind != RefKind.None)
                 {
-                    refKind = node.RefKind;
+                    _refKind = node.RefKind;
                 }
 
                 var expression = node.ExpressionOpt;

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddDynamicAnalysis(original, base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl));
         }
-        
+
         public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
         {
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
-        
+
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             if (!original.WasCompilerGenerated)
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return syntaxForSpan;
         }
-        
+
         private static bool MethodHasExplicitBlock(MethodSymbol method)
         {
             SourceMethodSymbol asSourceMethod = method.OriginalDefinition as SourceMethodSymbol;
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return syntax.Span;
         }
-        
+
         private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
         {
             Text.TextSpan originalSpan = syntax.Span;

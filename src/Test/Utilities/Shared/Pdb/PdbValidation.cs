@@ -144,15 +144,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
         {
             var methods = (from e in pdb.DescendantsAndSelf()
-                              where e.Name == "method" 
-                              select e).ToArray();
-            foreach(var method in methods)
+                           where e.Name == "method"
+                           select e).ToArray();
+            foreach (var method in methods)
             {
                 bool hasNoSequencePoints = method.DescendantsAndSelf().Where(node => node.Name == "entry").IsEmpty();
                 if (hasNoSequencePoints)
                 {
                     method.Remove();
-                }  
+                }
             }
         }
 

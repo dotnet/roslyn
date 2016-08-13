@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
             _bkTree = bKTree;
         }
 
-        public SpellChecker(VersionStamp version, IEnumerable<string> corpus) 
+        public SpellChecker(VersionStamp version, IEnumerable<string> corpus)
             : this(version, BKTree.Create(corpus))
         {
         }
@@ -138,10 +138,10 @@ namespace Roslyn.Utilities
         public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
         {
             return AreSimilar(
-                originalText, candidateText, 
+                originalText, candidateText,
                 substringsAreSimilar: false, similarityWeight: out similarityWeight);
         }
-        
+
         /// <summary>
         /// Returns true if 'originalText' and 'candidateText' are likely a misspelling of each other.
         /// Returns false otherwise.  If it is a likely misspelling a similarityWeight is provided

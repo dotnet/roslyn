@@ -4734,7 +4734,7 @@ class C
     }
 }
 ");
-            
+
             var compilation0 = CreateCompilationWithMscorlib(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
@@ -5047,7 +5047,7 @@ class C
     }
 }
 ");
-                        
+
             var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 

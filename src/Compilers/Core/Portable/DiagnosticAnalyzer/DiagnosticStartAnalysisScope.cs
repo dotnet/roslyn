@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostSessionStartAnalysisScope _scope;
-        
+
         private readonly bool _isIOperationFeatureEnabled;
 
         public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope, bool isIOperationFeatureEnabled = false)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostCompilationStartAnalysisScope _scope;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
-        
+
         private readonly bool _isIOperationFeatureEnabled;
 
         public AnalyzerCompilationStartAnalysisContext(

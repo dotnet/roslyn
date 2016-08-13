@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                         edit.Insert(buffer.CurrentSnapshot.Length, text);
                         edit.Apply();
                     });
-                }
+            }
 
             // Move the caret to the end
             var editorOperations = _editorOperationsFactoryService.GetEditorOperations(window.TextView);

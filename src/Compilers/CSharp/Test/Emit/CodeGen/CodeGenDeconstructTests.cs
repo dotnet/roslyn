@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
-        const string commonSource =
+        private const string commonSource =
 @"public class Pair<T1, T2>
 {
     T1 item1;

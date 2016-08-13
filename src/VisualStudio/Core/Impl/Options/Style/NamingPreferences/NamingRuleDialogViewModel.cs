@@ -25,19 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             EnforcementLevel enforcementLevel,
             INotificationService notificationService)
         {
-            this._notificationService = notificationService;
+            _notificationService = notificationService;
 
-            this._title = title;
-            
-            this._symbolSpecificationList = new CollectionView(symbolSpecificationList);
-            this._selectedSymbolSpecificationIndex = symbolSpecificationList.IndexOf(symbolSpecification);
+            _title = title;
 
-            this._namingStyleList = new CollectionView(namingStyleList);
-            this._namingStyleIndex = namingStyleList.IndexOf(namingStyle);
+            _symbolSpecificationList = new CollectionView(symbolSpecificationList);
+            _selectedSymbolSpecificationIndex = symbolSpecificationList.IndexOf(symbolSpecification);
+
+            _namingStyleList = new CollectionView(namingStyleList);
+            _namingStyleIndex = namingStyleList.IndexOf(namingStyle);
 
             allowableParentList.Insert(0, new NamingRuleTreeItemViewModel("-- None --"));
-            this._parentRuleList = new CollectionView(allowableParentList);
-            this._parentRuleIndex = parent != null ? allowableParentList.IndexOf(parent) : 0;
+            _parentRuleList = new CollectionView(allowableParentList);
+            _parentRuleIndex = parent != null ? allowableParentList.IndexOf(parent) : 0;
             if (_parentRuleIndex < 0)
             {
                 _parentRuleIndex = 0;
@@ -57,10 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         private string _title;
         public string Title
         {
-            get { return this._title; }
+            get { return _title; }
             set
             {
-                this.SetProperty(ref this._title, value);
+                this.SetProperty(ref _title, value);
             }
         }
 
@@ -127,11 +127,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return this._parentRule;
+                return _parentRule;
             }
             private set
             {
-                this.SetProperty(ref this._parentRule, value);
+                this.SetProperty(ref _parentRule, value);
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 SendFailureNotification(ServicesVSResources.Enter_a_title_for_this_Naming_Rule);
                 return false;
             }
-            
+
             return true;
         }
 

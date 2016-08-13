@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _lazyMethodsByName;
         }
 
-        private static readonly SymbolDisplayFormat _testDataKeyFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_testDataKeyFormat = new SymbolDisplayFormat(
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -84,25 +84,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
-        private static readonly SymbolDisplayFormat _testDataOperatorKeyFormat = new SymbolDisplayFormat(
-             _testDataKeyFormat.CompilerInternalOptions,
-             _testDataKeyFormat.GlobalNamespaceStyle,
-             _testDataKeyFormat.TypeQualificationStyle,
-             _testDataKeyFormat.GenericsOptions,
-             _testDataKeyFormat.MemberOptions | SymbolDisplayMemberOptions.IncludeType,
-             _testDataKeyFormat.ParameterOptions,
-             _testDataKeyFormat.DelegateStyle,
-             _testDataKeyFormat.ExtensionMethodStyle,
-             _testDataKeyFormat.PropertyStyle,
-             _testDataKeyFormat.LocalOptions,
-             _testDataKeyFormat.KindOptions,
-             _testDataKeyFormat.MiscellaneousOptions);
+        private static readonly SymbolDisplayFormat s_testDataOperatorKeyFormat = new SymbolDisplayFormat(
+             s_testDataKeyFormat.CompilerInternalOptions,
+             s_testDataKeyFormat.GlobalNamespaceStyle,
+             s_testDataKeyFormat.TypeQualificationStyle,
+             s_testDataKeyFormat.GenericsOptions,
+             s_testDataKeyFormat.MemberOptions | SymbolDisplayMemberOptions.IncludeType,
+             s_testDataKeyFormat.ParameterOptions,
+             s_testDataKeyFormat.DelegateStyle,
+             s_testDataKeyFormat.ExtensionMethodStyle,
+             s_testDataKeyFormat.PropertyStyle,
+             s_testDataKeyFormat.LocalOptions,
+             s_testDataKeyFormat.KindOptions,
+             s_testDataKeyFormat.MiscellaneousOptions);
 
         private static string GetMethodName(IMethodSymbol methodSymbol)
         {
             var format = (methodSymbol.MethodKind == MethodKind.UserDefinedOperator) ?
-                _testDataOperatorKeyFormat :
-                _testDataKeyFormat;
+                s_testDataOperatorKeyFormat :
+                s_testDataKeyFormat;
             return methodSymbol.ToDisplayString(format);
         }
     }

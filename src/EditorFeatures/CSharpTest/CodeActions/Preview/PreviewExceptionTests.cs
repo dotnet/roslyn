@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, 
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler,
                 new TestWaitIndicator(), refactorings.First(), provider, operationListener: null);
             await suggestedAction.GetPreviewAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, 
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler,
                 new TestWaitIndicator(), refactorings.First(), provider, operationListener: null);
             var text = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));

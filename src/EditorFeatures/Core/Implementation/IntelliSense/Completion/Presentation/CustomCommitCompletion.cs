@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly ImageMoniker _imageMoniker;
 
         public CustomCommitCompletion(
-            CompletionPresenterSession completionPresenterSession, 
+            CompletionPresenterSession completionPresenterSession,
             PresentationItem presentationItem)
             : base()
         {

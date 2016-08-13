@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private readonly SimpleMRUCache _implicitCache;
         private readonly ImplicitCacheMonitor _implicitCacheMonitor;
-        
+
         public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
             _workspace = workspace;

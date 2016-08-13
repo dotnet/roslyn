@@ -415,7 +415,7 @@ namespace NS
             ResolveAndVerifySymbol(typeSym02, typeSym01, comp1, SymbolKeyComparison.IgnoreAssemblyIds);
 
             // new C1 DOES NOT resolve to old C1 if we don't ignore assembly and module ids
-            Assert.Null(ResolveSymbol(typeSym02,  comp1, SymbolKeyComparison.None));
+            Assert.Null(ResolveSymbol(typeSym02, comp1, SymbolKeyComparison.None));
         }
 
         [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private State(TService service, SemanticDocument document)
             {
-                this._service = service;
+                _service = service;
                 this.SemanticDocument = document;
             }
 

@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 private async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
-                    string versionOpt, 
+                    string versionOpt,
                     bool isLocal,
-                    Document document, 
-                    SyntaxNode node, 
-                    bool placeSystemNamespaceFirst, 
+                    Document document,
+                    SyntaxNode node,
+                    bool placeSystemNamespaceFirst,
                     CancellationToken cancellationToken)
                 {
                     _reference.ReplaceNameNode(ref node, ref document, cancellationToken);
@@ -154,11 +154,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private class InstallWithPackageManagerCodeAction : CodeAction
             {
-                private readonly PackageReference reference;
+                private readonly PackageReference _reference;
 
                 public InstallWithPackageManagerCodeAction(PackageReference reference)
                 {
-                    this.reference = reference;
+                    _reference = reference;
                 }
 
                 public override string Title => FeaturesResources.Install_with_package_manager;
@@ -166,23 +166,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 {
                     return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
-                        new InstallWithPackageManagerCodeActionOperation(reference)));
+                        new InstallWithPackageManagerCodeActionOperation(_reference)));
                 }
 
                 private class InstallWithPackageManagerCodeActionOperation : CodeActionOperation
                 {
-                    private readonly PackageReference reference;
+                    private readonly PackageReference _reference;
 
                     public InstallWithPackageManagerCodeActionOperation(PackageReference reference)
                     {
-                        this.reference = reference;
+                        _reference = reference;
                     }
 
                     public override string Title => FeaturesResources.Install_with_package_manager;
 
                     public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                     {
-                        reference._installerService.ShowManagePackagesDialog(reference._packageName);
+                        _reference._installerService.ShowManagePackagesDialog(_reference._packageName);
                     }
                 }
             }

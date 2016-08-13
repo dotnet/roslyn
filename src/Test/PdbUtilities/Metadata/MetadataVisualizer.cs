@@ -569,7 +569,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private static string EnumValue<TIntegral>(Func<object> getValue) where TIntegral : IEquatable<TIntegral>
         {
-            object value; 
+            object value;
 
             try
             {
@@ -864,7 +864,7 @@ namespace Roslyn.Test.MetadataUtilities
                     Literal(() => entry.Signature, BlobKind.FieldSignature),
                     EnumValue<int>(() => entry.Attributes),
                     Literal(() => entry.GetMarshallingDescriptor(), BlobKind.Marshalling),
-                    ToString(() => 
+                    ToString(() =>
                     {
                         int offset = entry.GetOffset();
                         return offset >= 0 ? offset.ToString() : "n/a";

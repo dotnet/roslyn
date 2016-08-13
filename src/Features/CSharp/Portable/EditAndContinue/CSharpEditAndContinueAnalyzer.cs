@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBodyOpt, out node, out partnerOpt);
             }
-            else 
+            else
             {
                 node = declarationBody.FindToken(position).Parent;
                 partnerOpt = null;

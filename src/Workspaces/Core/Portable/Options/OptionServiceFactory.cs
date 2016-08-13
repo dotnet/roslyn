@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 remove
                 {
-                    lock(_gate)
+                    lock (_gate)
                     {
                         _eventHandlers = _eventHandlers.Remove(value);
                     }

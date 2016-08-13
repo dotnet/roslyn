@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         actualTextBuilder.Append(Environment.NewLine);
                         AppendOperationTree(model, executableCodeBlock, actualTextBuilder, initialIndent: 2);
                     }
-                }               
+                }
 
                 actualTextBuilder.Append(Environment.NewLine);
             }
@@ -276,6 +276,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return false;
             }
         }
-
     }
 }

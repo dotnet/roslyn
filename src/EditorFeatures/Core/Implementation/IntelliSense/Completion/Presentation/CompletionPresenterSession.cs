@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private readonly ICompletionBroker _completionBroker;
         internal readonly IGlyphService GlyphService;
-        
+
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             try
             {
                 _completionSet.SetCompletionItems(
-                    completionItems, selectedItem, suggestionModeItem, suggestionMode, 
+                    completionItems, selectedItem, suggestionModeItem, suggestionMode,
                     isSoftSelected, completionItemFilters, filterText);
             }
             finally

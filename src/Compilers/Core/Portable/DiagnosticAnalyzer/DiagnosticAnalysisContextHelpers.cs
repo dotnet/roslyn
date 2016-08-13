@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-        
+
         internal static void VerifyIOperationFeatureFlag(bool isIOperationFeatureEnabled)
         {
             if (!isIOperationFeatureEnabled)

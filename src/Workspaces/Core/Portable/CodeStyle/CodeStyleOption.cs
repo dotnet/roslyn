@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public NotificationOption Notification { get; set; }
 
-        public XElement ToXElement() => 
+        public XElement ToXElement() =>
             new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", typeof(T).Name),

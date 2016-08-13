@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         public PackageWithTypeResult(
             string packageName,
-            string typeName, 
+            string typeName,
             string version,
             IReadOnlyList<string> containingNamespaceNames)
         {

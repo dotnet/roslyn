@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind refKind;
+            private readonly RefKind _refKind;
 
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DiagnosticBag diagnostics)
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this.refKind = refKind;
+                _refKind = refKind;
 
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override RefKind RefKind
             {
-                get { return refKind; }
+                get { return _refKind; }
             }
 
             internal override LexicalSortKey GetLexicalSortKey()
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EndInvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind refKind;
+            private readonly RefKind _refKind;
 
             internal EndInvokeMethod(
                 InvokeMethod invoke,
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DelegateDeclarationSyntax syntax)
                 : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this.refKind = invoke.RefKind;
+                _refKind = invoke.RefKind;
 
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 int ordinal = 0;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override RefKind RefKind
             {
-                get { return refKind; }
+                get { return _refKind; }
             }
         }
 

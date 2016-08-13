@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CommonCompletionItem 
+    internal static class CommonCompletionItem
     {
         public static CompletionItem Create(
             string displayText,
@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionDescription.Create(builder.ToImmutable());
-        } 
+        }
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
         private TextLineCollection _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
         private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
- 
+
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
         /// <exception cref="InvalidDataException">Two consecutive NUL characters were detected in the decoded text and <paramref name="throwIfBinaryDetected"/> was true.</exception>
         public static SourceText From(
-            byte[] buffer, 
-            int length, 
-            Encoding encoding = null, 
+            byte[] buffer,
+            int length,
+            Encoding encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)

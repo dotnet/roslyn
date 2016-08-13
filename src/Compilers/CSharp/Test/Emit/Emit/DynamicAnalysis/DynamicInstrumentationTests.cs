@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicInstrumentationTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"
+        private const string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
@@ -671,7 +671,7 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedReleaseGetValueIL);
-            
+
             verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedDebugGetValueIL);
         }
@@ -1108,7 +1108,7 @@ True
 True
 True
 ";
-           
+
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
         }
 

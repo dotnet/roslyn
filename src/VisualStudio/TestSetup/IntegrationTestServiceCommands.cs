@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.Test.Setup
 
         public static readonly Guid GrpIdIntegrationTestServiceCommands = new Guid("82A24540-AEBC-4883-A717-5317F0C0DAE9");
 
-        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider()
+        private static readonly BinaryServerFormatterSinkProvider s_defaultSinkProvider = new BinaryServerFormatterSinkProvider()
         {
             TypeFilterLevel = TypeFilterLevel.Full
         };
@@ -45,7 +45,8 @@ namespace Roslyn.VisualStudio.Test.Setup
             if (commandService != null)
             {
                 var startServiceMenuCmdId = new CommandID(GrpIdIntegrationTestServiceCommands, CmdIdStartIntegrationTestService);
-                _startServiceMenuCmd = new MenuCommand(StartServiceCallback, startServiceMenuCmdId) {
+                _startServiceMenuCmd = new MenuCommand(StartServiceCallback, startServiceMenuCmdId)
+                {
                     Enabled = true,
                     Supported = true,
                     Visible = true
@@ -53,14 +54,14 @@ namespace Roslyn.VisualStudio.Test.Setup
                 commandService.AddCommand(_startServiceMenuCmd);
 
                 var stopServiceMenuCmdId = new CommandID(GrpIdIntegrationTestServiceCommands, CmdIdStopIntegrationTestService);
-                _stopServiceMenuCmd = new MenuCommand(StopServiceCallback, stopServiceMenuCmdId) {
+                _stopServiceMenuCmd = new MenuCommand(StopServiceCallback, stopServiceMenuCmdId)
+                {
                     Enabled = false,
                     Supported = true,
                     Visible = false
                 };
                 commandService.AddCommand(_stopServiceMenuCmd);
             }
-
         }
 
         public static IntegrationTestServiceCommands Instance { get; private set; }
@@ -90,7 +91,7 @@ namespace Roslyn.VisualStudio.Test.Setup
                 _serviceChannel = new IpcServerChannel(
                     name: null,
                     portName: _service.PortName,
-                    sinkProvider: DefaultSinkProvider);
+                    sinkProvider: s_defaultSinkProvider);
 
                 var serviceType = typeof(IntegrationService);
                 _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);

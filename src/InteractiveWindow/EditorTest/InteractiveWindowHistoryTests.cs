@@ -77,7 +77,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
-        public async Task CheckHistoryPreviousWithAnEmptySubmission() {
+        public async Task CheckHistoryPreviousWithAnEmptySubmission()
+        {
             //submit, submit, submit, up, up, up
             const string inputString1 = "1 ";
             const string inputString2 = " ";

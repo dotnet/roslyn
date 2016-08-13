@@ -1209,7 +1209,7 @@ class Other {
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
 

@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             // If the name already ends with any prefix of the Suffix, only append the suffix of
             // the Suffix not contained in the longest such Suffix prefix. For example, if the 
             // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
-            for (int i = Suffix.Length; i > 0 ; i--)
+            for (int i = Suffix.Length; i > 0; i--)
             {
                 if (name.EndsWith(Suffix.Substring(0, i)))
                 {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal XElement CreateXElement()
         {
-            return new XElement(nameof(NamingStyle), 
+            return new XElement(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix),

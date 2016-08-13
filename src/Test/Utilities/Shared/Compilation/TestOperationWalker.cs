@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var target = operation.Target;
             var branchKind = operation.BranchKind;
 
-            base. VisitBranchStatement(operation);
+            base.VisitBranchStatement(operation);
         }
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             var elementType = operation.ElementType;
-            
+
             base.VisitArrayCreationExpression(operation);
         }
 
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
-        { 
+        {
             base.VisitInvalidExpression(operation);
         }
     }

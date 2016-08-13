@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     ? null
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
-                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
-                            collection.FixAllState, 
+                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes,
+                            collection.FixAllState,
                             collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = fixCollection.Fixes;
                     var fixCount = fixes.Length;
 
-                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
+                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet =
                         codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllState, 
-                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
-                            workspace, _subjectBuffer,  _owner._editHandler, 
+                            codeAction, fixCount, fixCollection.FixAllState,
+                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
+                            workspace, _subjectBuffer, _owner._editHandler,
                             _owner._waitIndicator, _owner._listener);
 
                     foreach (var fix in fixes)

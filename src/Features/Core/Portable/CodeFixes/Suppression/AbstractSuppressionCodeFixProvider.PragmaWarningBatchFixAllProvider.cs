@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutable(), pragmaDiagnosticsBuilder.ToImmutable(), 
+                        pragmaActionsBuilder.ToImmutable(), pragmaDiagnosticsBuilder.ToImmutable(),
                         fixAllState, cancellationToken);
 
                     addFix(pragmaBatchFix);

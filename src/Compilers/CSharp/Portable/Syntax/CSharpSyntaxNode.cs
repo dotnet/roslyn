@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var result =  this._syntaxTree ?? ComputeSyntaxTree(this);
+                var result = this._syntaxTree ?? ComputeSyntaxTree(this);
                 Debug.Assert(result != null);
                 return result;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var n in nodes)
                 {
-                    var existingTree =  n._syntaxTree;
+                    var existingTree = n._syntaxTree;
                     if (existingTree != null)
                     {
                         Debug.Assert(existingTree == tree, "how could this node belong to a different tree?");
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Green.WriteTo(writer, true, true);
         }
 
-#region serialization
+        #region serialization
 
 
         private static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return s_serializationData;
         }
-#endregion
+        #endregion
 
         /// <summary>
         /// Determines whether this node is structurally equivalent to another.
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.GetLambda(this);
         }
 
-#region Directives
+        #region Directives
 
         internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)
         {
@@ -544,9 +544,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion
+        #endregion
 
-#region Node Lookup
+        #region Node Lookup
 
         /// <summary>
         /// Returns child node or token that contains given position.
@@ -564,9 +564,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
             return childNodeOrToken;
         }
-#endregion
+        #endregion
 
-#region Token Lookup
+        #region Token Lookup
 
         /// <summary>
         /// Gets the first token of the tree rooted by this node.
@@ -670,9 +670,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nonTriviaToken;
         }
 
-#endregion
+        #endregion
 
-#region Trivia Lookup
+        #region Trivia Lookup
 
         /// <summary>
         /// Finds a descendant trivia of this node at the specified position, where the position is
@@ -699,9 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.FindTrivia(position, findInsideTrivia);
         }
 
-#endregion
+        #endregion
 
-#region SyntaxNode members
+        #region SyntaxNode members
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
@@ -777,6 +777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-#endregion
+        #endregion
     }
 }

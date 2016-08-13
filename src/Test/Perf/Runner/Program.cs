@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -18,7 +19,6 @@ namespace Runner
     {
         public static void Main(string[] args)
         {
-
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
@@ -54,7 +54,6 @@ namespace Runner
 
         private static async Task AsyncMain(bool isRunningUnderCI)
         {
-
             RuntimeSettings.IsRunnerAttached = true;
 
             var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");

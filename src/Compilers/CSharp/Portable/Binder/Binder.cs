@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is assigned by reference.
             /// </summary>
             RefAssign,
-            
+
             /// <summary>
             /// Expression is returned by reference.
             /// </summary>
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
-        
+
         internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
         {
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(statement.Syntax, locals,
                                   ImmutableArray<LocalFunctionSymbol>.Empty,
                                   ImmutableArray.Create(statement))
-                        { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
     }
 }

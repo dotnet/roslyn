@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,12 +21,10 @@ namespace SignRoslyn
             internal TestSignTool(string appPath, string binariesPath, string sourcePath)
                 : base(appPath, binariesPath, sourcePath)
             {
-
             }
 
             public override void RemovePublicSign(string assemblyPath)
             {
-
             }
 
             public override bool VerifySignedAssembly(Stream assemblyStream)

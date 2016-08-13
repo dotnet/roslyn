@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace SignRoslyn
         /// These are binaries which are included in our VSIX files but are already signed.  This list is used for 
         /// validation purpsoes.  These are all flat names and cannot be relative paths.
         /// </summary>
-        internal ImmutableArray<string> ExternalBinaryNames { get;}
+        internal ImmutableArray<string> ExternalBinaryNames { get; }
 
         /// <summary>
         /// Names of assemblies that need to be signed.  This is a subste of <see cref="BinaryNames"/>

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
         internal DateTime CurrentLocalTime { get; private set; }
 
         internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
-       
+
         /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>

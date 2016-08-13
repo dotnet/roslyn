@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static string GetPipeNameForPath(string compilerExeDirectory)
-        { 
+        {
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
             // Prefix with username and elevation

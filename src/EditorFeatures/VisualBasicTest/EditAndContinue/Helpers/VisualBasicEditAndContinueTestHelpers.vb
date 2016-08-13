@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
         Private Shared ReadOnly s_analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
 
-        Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
+        Public Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
             _fxReferences = fxReferences
         End Sub
 

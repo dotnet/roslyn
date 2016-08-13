@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected CompletionItem CreateCompletionItem(string displayText, string beforeCaretText, string afterCaretText)
         {
             return XmlDocCommentCompletionItem.Create(
-                displayText, beforeCaretText, afterCaretText, 
+                displayText, beforeCaretText, afterCaretText,
                 rules: GetCompletionItemRules(displayText));
         }
 

@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
     Public Class DynamicInstrumentationTests
         Inherits BasicTestBase
 
-        ReadOnly InstrumentationHelperSource As XElement = <file name="c.vb">
-                                                               <![CDATA[
+        Private ReadOnly _instrumentationHelperSource As XElement = <file name="c.vb">
+                                                                       <![CDATA[
 Namespace Microsoft.CodeAnalysis.Runtime
 
     Public Class Instrumentation
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ]]>
-                                                           </file>
+                                                                   </file>
 
         <Fact>
         Public Sub SimpleCoverage()
@@ -83,7 +83,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -163,7 +163,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -241,7 +241,7 @@ End Module
             source.Add(testSource)
             source.Add(testSource1)
             source.Add(testSource2)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -319,7 +319,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[null
 Hello
@@ -452,7 +452,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[OK
 Flushing
@@ -540,7 +540,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[GooGooGlueGooGoo
 Flushing
@@ -670,7 +670,7 @@ End Module
 
             Dim source As XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -785,7 +785,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -866,7 +866,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -937,7 +937,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1018,7 +1018,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1099,7 +1099,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1181,7 +1181,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1276,7 +1276,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1374,7 +1374,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim expectedOutput As XCData = <![CDATA[
 Flushing
@@ -1462,7 +1462,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"))
             For Each Diagnostic As Diagnostic In diagnostics

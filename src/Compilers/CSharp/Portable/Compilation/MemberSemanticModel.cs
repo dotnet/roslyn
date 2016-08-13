@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current is ExpressionSyntax && 
+                else if (current is ExpressionSyntax &&
                             ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
                              (current.Parent as SwitchStatementSyntax)?.Expression == current ||
                              (current.Parent as CommonForEachStatementSyntax)?.Expression == current ||
@@ -1455,14 +1455,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   position, unbound.BindForErrorRecovery().Binder, unbound.Syntax);
                     case BoundKind.Lambda:
                         var lambda = (BoundLambda)n;
-                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax), 
+                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax),
                                                   position, lambda.Binder, lambda.Body.Syntax);
                     default:
                         goto done;
                 }
             }
 
-done:
+        done:
             return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }
@@ -1718,7 +1718,7 @@ done:
                         goto foundParent;
                 }
             }
-            foundParent:;
+        foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 throw new ArgumentException(nameof(hierarchy));
             }
-            
+
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
             return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, commandLineForOptions, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,

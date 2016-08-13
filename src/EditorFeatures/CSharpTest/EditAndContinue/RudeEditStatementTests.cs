@@ -6455,11 +6455,11 @@ class C
 
             CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
                 edits,
-                ActiveStatementsDescription.Empty, 
+                ActiveStatementsDescription.Empty,
                 null,
                 null,
-                null, 
-                new[] 
+                null,
+                new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
                 });

@@ -2,9 +2,9 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.InteractiveWindow 
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
-    public interface IInteractiveWindow2 : IInteractiveWindow 
+    public interface IInteractiveWindow2 : IInteractiveWindow
     {
         /// <summary>
         /// Adds <paramref name="input"/> to the history as if it has been executed.

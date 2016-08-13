@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         private EnvDTE80.Solution2 _solution;
         private string _fileName;
 
-        private static readonly IDictionary<string, string> _projectTemplates = InitializeProjectTemplates();
+        private static readonly IDictionary<string, string> s_projectTemplates = InitializeProjectTemplates();
 
         private SolutionExplorer_InProc() { }
 
@@ -122,7 +122,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
-            return _solution.GetProjectTemplate(_projectTemplates[projectTemplate], languageName);
+            return _solution.GetProjectTemplate(s_projectTemplates[projectTemplate], languageName);
         }
 
         public void CleanUpOpenSolution()

@@ -164,6 +164,5 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             return null;
         }
-
     }
 }

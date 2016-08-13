@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public string Text =>_value.ToString();
+        public string Text => _value.ToString();
 
         public ITypeSymbol Type { get; }
 
@@ -356,11 +356,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
-        public bool IsInvalid => LeftOperand == null 
-                                || LeftOperand.IsInvalid 
+        public bool IsInvalid => LeftOperand == null
+                                || LeftOperand.IsInvalid
                                 || RightOperand == null
-                                || RightOperand.IsInvalid 
-                                || BinaryOperationKind == BinaryOperationKind.Invalid 
+                                || RightOperand.IsInvalid
+                                || BinaryOperationKind == BinaryOperationKind.Invalid
                                 || Type == null;
 
         public Optional<object> ConstantValue => default(Optional<object>);

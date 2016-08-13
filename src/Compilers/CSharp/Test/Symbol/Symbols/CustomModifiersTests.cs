@@ -1791,12 +1791,12 @@ class CL3
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
-            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }", 
+            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }",
                          test2.ToTestDisplayString());
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test3 = cl3.GetMember<PropertySymbol>("Test");
-            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }", 
+            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }",
                          test3.ToTestDisplayString());
 
             CompileAndVerify(compilation, expectedOutput: @"Set Overridden2
@@ -2003,7 +2003,7 @@ class CL3 : CL1
             Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
                          test3.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"Alice and Bob
 Charlie");
         }

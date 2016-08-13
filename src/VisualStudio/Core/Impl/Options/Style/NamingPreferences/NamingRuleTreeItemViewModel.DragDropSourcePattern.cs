@@ -8,7 +8,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    partial class NamingRuleTreeItemViewModel : IDragDropSourcePattern
+    public partial class NamingRuleTreeItemViewModel : IDragDropSourcePattern
     {
         public IDragDropSourceController DragDropSourceController => NamingRuleTreeItemDragDropSourceController.Instance;
 

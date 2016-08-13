@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 currentCreation = currentCreation.Update(
-                    currentCreation.Constructor, 
-                    currentCreation.Arguments, 
-                    currentCreation.ArgumentNamesOpt, 
-                    currentCreation.ArgumentRefKindsOpt, 
-                    currentCreation.Expanded, 
-                    currentCreation.ArgsToParamsOpt, 
-                    currentCreation.ConstantValue, 
-                    currentCreation.InitializerExpressionOpt, 
+                    currentCreation.Constructor,
+                    currentCreation.Arguments,
+                    currentCreation.ArgumentNamesOpt,
+                    currentCreation.ArgumentRefKindsOpt,
+                    currentCreation.Expanded,
+                    currentCreation.ArgsToParamsOpt,
+                    currentCreation.ConstantValue,
+                    currentCreation.InitializerExpressionOpt,
                     type);
 
                 return currentCreation;
@@ -106,6 +106,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingTupleTypeChain.Free();
             }
         }
-
     }
 }

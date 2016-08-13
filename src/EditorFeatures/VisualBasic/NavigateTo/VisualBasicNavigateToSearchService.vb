@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigateTo
         Inherits AbstractNavigateToSearchService
 
         <ImportingConstructor>
-        Sub New(<ImportMany> resultProviders As IEnumerable(Of INavigateToSearchResultProvider))
+        Public Sub New(<ImportMany> resultProviders As IEnumerable(Of INavigateToSearchResultProvider))
             MyBase.New(resultProviders)
         End Sub
     End Class

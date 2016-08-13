@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             lock (_compilationScopeMap)
             {
                 ClearCompilationScopeMap_NoLock(analyzers);
-            }            
+            }
         }
 
         private void ClearSessionScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)

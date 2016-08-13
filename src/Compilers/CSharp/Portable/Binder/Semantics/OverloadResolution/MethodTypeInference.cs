@@ -2394,7 +2394,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var candidates = PooledHashSet<TypeSymbol>.GetInstance();
             try
             {
-
                 // Optimization: if we have one exact bound then we need not add any
                 // inexact bounds; we're just going to remove them anyway.
 
@@ -2495,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary), _conversions.CorLibrary);
                     }
 
-                    OuterBreak:
+                OuterBreak:
                     ;
                 }
 

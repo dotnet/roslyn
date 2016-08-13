@@ -272,7 +272,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                                     type.Sizes,
                                                     type.LowerBounds,
                                                     type.CustomModifiers);
-
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

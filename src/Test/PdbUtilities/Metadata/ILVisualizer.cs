@@ -404,7 +404,7 @@ namespace Roslyn.Test.MetadataUtilities
                                         pseudoToken &= 0x7fffffff;
                                     }
                                 }
-                               
+
                                 sb.Append(VisualizeSymbol(pseudoToken));
                                 break;
                             }

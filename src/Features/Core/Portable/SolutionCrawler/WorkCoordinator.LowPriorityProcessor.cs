@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             WorkItem workItem;
                             CancellationTokenSource projectCancellation;
                             if (_workItemQueue.TryTakeAnyWork(
-                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService, 
+                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
                                 out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);

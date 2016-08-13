@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             MetadataReference[] additionalRefs = null)
         {
             var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
-            
+
             if (additionalRefs != null)
             {
                 refs.AddRange(additionalRefs);
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
-        
+
         public static CSharpCompilation CreateCompilationWithMscorlib(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> references = null,

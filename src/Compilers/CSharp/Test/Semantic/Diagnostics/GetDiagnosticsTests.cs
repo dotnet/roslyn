@@ -293,7 +293,7 @@ namespace N1
         public void TestEventQueueCompletionForEmptyCompilation()
         {
             var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
-            
+
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
 

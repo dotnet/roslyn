@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.Any(items, c => CompareItems(c.DisplayText, expectedItemOrNull)
                         && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
                         && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags(glyph.Value)) : true)
-                        && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
+                        && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true));
                 }
             }
         }
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string actualExpectedCode = null;
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
 
-            if (commitChar.HasValue && 
+            if (commitChar.HasValue &&
                 !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);

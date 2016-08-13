@@ -178,11 +178,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
         public override bool TryGetPreviousHoistedLocalSlotIndex(
-            SyntaxNode currentDeclarator, 
+            SyntaxNode currentDeclarator,
             Cci.ITypeReference currentType,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId currentId,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             out int slotIndex)
         {
             // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):

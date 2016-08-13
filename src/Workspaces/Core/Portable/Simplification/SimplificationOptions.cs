@@ -61,19 +61,19 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyPropertyAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyPropertyAccess", defaultValue: false);
+        public static PerLanguageOption<bool> QualifyPropertyAccess { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyPropertyAccess", defaultValue: false);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyMethodAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMethodAccess", defaultValue: false);
+        public static PerLanguageOption<bool> QualifyMethodAccess { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMethodAccess", defaultValue: false);
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyEventAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyEventAccess", defaultValue: false);
+        public static PerLanguageOption<bool> QualifyEventAccess { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyEventAccess", defaultValue: false);
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations

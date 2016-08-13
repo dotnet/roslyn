@@ -66,18 +66,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 switch (keyName)
                 {
-                case StandardTableKeyNames.DocumentName:
-                    return Document.FilePath;
-                case StandardTableKeyNames.Line:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
-                case StandardTableKeyNames.Column:
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
-                case StandardTableKeyNames.ProjectName:
-                    return Document.Project.Name;
-                case StandardTableKeyNames.ProjectGuid:
-                    return _boxedProjectGuid;
-                case StandardTableKeyNames.Text:
-                    return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
+                    case StandardTableKeyNames.DocumentName:
+                        return Document.FilePath;
+                    case StandardTableKeyNames.Line:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
+                    case StandardTableKeyNames.Column:
+                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
+                    case StandardTableKeyNames.ProjectName:
+                        return Document.Project.Name;
+                    case StandardTableKeyNames.ProjectGuid:
+                        return _boxedProjectGuid;
+                    case StandardTableKeyNames.Text:
+                        return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
                 }
 
                 return null;

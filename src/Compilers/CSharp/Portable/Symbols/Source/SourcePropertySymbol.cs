@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
                         WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
 
-                        if (this._refKind != RefKind.None && !_containingType.IsInterface)
+                        if (_refKind != RefKind.None && !_containingType.IsInterface)
                         {
                             diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, location, this);
                         }

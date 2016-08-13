@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+        private static readonly CompletionHelper s_caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+        private static readonly CompletionHelper s_caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
 
         private readonly object _gate = new object();
         private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _patternMatcherMap =
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _fallbackPatternMatcherMap =
             new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo s_enUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
         private CompletionHelper(bool isCaseSensitive)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
             }
 
-            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
+            return isCaseSensitive ? s_caseSensitiveInstance : s_caseInsensitiveInstance;
         }
 
         public static CompletionHelper GetHelper(Document document)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Start with the culture-specific comparison, and fall back to en-US.
-            if (!culture.Equals(EnUSCultureInfo))
+            if (!culture.Equals(s_enUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(filterText);
                 match = patternMatcher.GetFirstMatch(completionItemText);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private PatternMatcher GetEnUSPatternMatcher(string value)
         {
-            return GetPatternMatcher(value, EnUSCultureInfo, _fallbackPatternMatcherMap);
+            return GetPatternMatcher(value, s_enUSCultureInfo, _fallbackPatternMatcherMap);
         }
 
         /// <summary>

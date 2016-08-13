@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            this._inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
         }
 
         public void Activate() => _inProc.Activate();

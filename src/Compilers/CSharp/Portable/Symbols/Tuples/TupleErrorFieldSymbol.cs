@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DiagnosticInfo _useSiteDiagnosticInfo;
 
         public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleFieldId, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo)
-            : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
+            : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
         {
             Debug.Assert(name != null);
             _type = type;

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Text
         internal static SourceText Decode(
             Stream data,
             Encoding encoding,
-            SourceHashAlgorithm checksumAlgorithm, 
+            SourceHashAlgorithm checksumAlgorithm,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
         {

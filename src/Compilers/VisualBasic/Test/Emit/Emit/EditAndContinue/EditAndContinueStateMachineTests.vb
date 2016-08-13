@@ -4625,7 +4625,7 @@ End Class
             diff1.EmitResult.Diagnostics.Verify()
         End Sub
 
-        Const AsyncHelpers = "
+        Private Const s_asyncHelpers = "
 Imports System
 Imports System.Threading.Tasks
 
@@ -4641,7 +4641,7 @@ End Namespace"
 
         <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
         Public Sub MissingAsyncStateMachineAttribute()
-            Dim source0 = MarkedSource(AsyncHelpers & "
+            Dim source0 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 0
@@ -4650,7 +4650,7 @@ Class C
     End Function
 End Class
 ")
-            Dim source1 = MarkedSource(AsyncHelpers & "
+            Dim source1 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 1
@@ -4681,7 +4681,7 @@ End Class
 
         <Fact, WorkItem(10190, "https://github.com/dotnet/roslyn/issues/10190")>
         Public Sub NonAsyncToAsync()
-            Dim source0 = MarkedSource(AsyncHelpers & "
+            Dim source0 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 0
@@ -4689,7 +4689,7 @@ Class C
     End Function
 End Class
 ")
-            Dim source1 = MarkedSource(AsyncHelpers & "
+            Dim source1 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 1
@@ -4718,7 +4718,7 @@ End Class
 
         <Fact>
         Public Sub NonAsyncToAsync_MissingAttribute()
-            Dim source0 = MarkedSource(AsyncHelpers & "
+            Dim source0 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 0
@@ -4727,7 +4727,7 @@ Class C
     End Function
 End Class
 ")
-            Dim source1 = MarkedSource(AsyncHelpers & "
+            Dim source1 = MarkedSource(s_asyncHelpers & "
 Class C
     Public Async Function F() As Task(Of Integer)
         Dim <N:0>a</N:0> As Integer = 1

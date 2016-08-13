@@ -10,20 +10,20 @@ namespace Microsoft.CodeAnalysis.SymbolCategorization
     internal class ThreadLocalSymbolCategorizer : ISymbolCategorizer
     {
         private const string _threadLocalCategoryName = "[ThreadStatic]";
-        private readonly ImmutableArray<string> matchingCategoryArray = new[] { _threadLocalCategoryName }.ToImmutableArray();
+        private readonly ImmutableArray<string> _matchingCategoryArray = new[] { _threadLocalCategoryName }.ToImmutableArray();
 
         public ImmutableArray<string> SupportedCategories
         {
             get
             {
-                return matchingCategoryArray;
+                return _matchingCategoryArray;
             }
         }
 
         public ImmutableArray<string> Categorize(ISymbol symbol)
         {
             return symbol.GetAttributes().Any(a => a.AttributeClass.MetadataName.Contains("ThreadStatic"))
-                ? matchingCategoryArray
+                ? _matchingCategoryArray
                 : ImmutableArray<string>.Empty;
         }
     }

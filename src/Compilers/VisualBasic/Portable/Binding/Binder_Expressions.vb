@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case TypeKind.Structure
                     Return ERRID.ERR_StructureNotExpression1
 
-                    ' TODO Modules??
+                ' TODO Modules??
 
                 Case Else
                     Return ERRID.ERR_TypeNotExpression1

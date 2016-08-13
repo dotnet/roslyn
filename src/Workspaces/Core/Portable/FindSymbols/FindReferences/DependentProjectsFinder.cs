@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// as the value of this function.  Otherwise 'null' is returned.
         /// </summary>
         private static T? GetAssemblyReferenceType<T>(
-            this Project project, 
+            this Project project,
             Func<IAssemblySymbol, T?> predicate) where T : struct
         {
             // If the project we're looking at doesn't even support compilations, then there's no 

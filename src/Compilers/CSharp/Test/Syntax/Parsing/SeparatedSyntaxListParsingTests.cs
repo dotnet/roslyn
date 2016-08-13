@@ -211,7 +211,7 @@ class M<,> { }
             CheckTypeArguments2();
         }
 
-        void CheckTypeArguments2()
+        private void CheckTypeArguments2()
         {
             N(SyntaxKind.CompilationUnit);
             {

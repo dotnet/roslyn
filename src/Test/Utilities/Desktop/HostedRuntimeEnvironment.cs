@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeUtilities; 
+using static Roslyn.Test.Utilities.RuntimeUtilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

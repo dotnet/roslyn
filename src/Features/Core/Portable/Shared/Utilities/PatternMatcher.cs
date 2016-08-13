@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public PatternMatcher(
                 string pattern,
                 bool verbatimIdentifierPrefixIsWordCharacter = false,
-                bool allowFuzzyMatching = false) : 
+                bool allowFuzzyMatching = false) :
             this(pattern, CultureInfo.CurrentCulture, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching)
         {
         }
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             PatternMatch[] matches;
-            var singleMatch = MatchSegment(candidate, includeMatchSpans, segment, 
+            var singleMatch = MatchSegment(candidate, includeMatchSpans, segment,
                 wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out matches);
             if (singleMatch.HasValue)
             {
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // multi-word segment.
             if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
             {
-                var match = MatchTextChunk(candidate, includeMatchSpans, 
+                var match = MatchTextChunk(candidate, includeMatchSpans,
                     segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
                 if (match != null)
                 {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var subWordTextChunk = subWordTextChunks[i];
 
                 // Try to match the candidate with this word
-                var result = MatchTextChunk(candidate, includeMatchSpans, 
+                var result = MatchTextChunk(candidate, includeMatchSpans,
                     subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                 if (result == null)
                 {
@@ -591,10 +591,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private int? TryCamelCaseMatch(
-            string candidate, 
+            string candidate,
             bool includeMatchedSpans,
-            StringBreaks candidateParts, 
-            TextChunk chunk, 
+            StringBreaks candidateParts,
+            TextChunk chunk,
             CompareOptions compareOption,
             out List<TextSpan> matchedSpans)
         {

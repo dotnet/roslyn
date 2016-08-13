@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             lastPath = firstReal.Value.Path;
             lastPathIsMapped = firstReal.Value.HasMappedPath;
-            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
+            lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? _tree.FilePath : null);
 
             current = this;
             while (current != null)
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
-            
+
             while (current != null)
             {
                 foreach (var offsetAndSpan in current._points)
@@ -216,10 +216,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
                     if (!isHidden)
                     {
-                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        FileLinePositionSpan fileLinePositionSpan = _tree.GetMappedLineSpanAndVisibility(span, out isHidden);
                         if (!isHidden)
                         {
-
                             return fileLinePositionSpan;
                         }
                     }

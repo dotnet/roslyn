@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             _writer.Write("uri", GetUri(span.Path));
 
             // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
-            
+
             _writer.WriteObjectStart("region");
             _writer.Write("startLine", span.StartLinePosition.Line + 1);
             _writer.Write("startColumn", span.StartLinePosition.Character + 1);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(location.GetLineSpan().Path);
         }
 
-        private static readonly Uri _fileRoot = new Uri("file:///");
+        private static readonly Uri s_fileRoot = new Uri("file:///");
 
         private static string GetUri(string path)
         {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
 
             // Note that in general, these "paths" are opaque strings to be 
             // interpreted by resolvers (see SyntaxTree.FilePath documentation).
-            
+
             // Common case: absolute path -> absolute URI
             Uri uri;
             if (Uri.TryCreate(path, UriKind.Absolute, out uri))
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // There is no AbsoluteUri equivalent for relative URI references and ToString() 
                 // won't escape without this relative -> absolute -> relative trick.
-                return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
+                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
             }
 
             // Last resort: UrlEncode the whole opaque string.
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
-                    Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null 
+                    Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null
                         && obj.Id != null && obj.Title != null && obj.CustomTags != null);
 
                     return Hash.Combine(obj.Category.GetHashCode(),

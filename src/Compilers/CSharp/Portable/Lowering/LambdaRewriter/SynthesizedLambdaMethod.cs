@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<ParameterSymbol> BaseMethodParameters => this.BaseMethod.Parameters;
 
         protected override ImmutableArray<TypeSymbol> ExtraSynthesizedRefParameters => _structClosures;
-        internal int ExtraSynthesizedParameterCount => this._structClosures.IsDefault ? 0 : this._structClosures.Length;
+        internal int ExtraSynthesizedParameterCount => _structClosures.IsDefault ? 0 : _structClosures.Length;
 
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;

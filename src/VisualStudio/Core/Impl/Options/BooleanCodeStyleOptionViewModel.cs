@@ -21,15 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
         public BooleanCodeStyleOptionViewModel(
-            IOption option, 
-            string description, 
-            string truePreview, 
-            string falsePreview, 
-            AbstractOptionPreviewViewModel info, 
-            OptionSet options, 
-            string groupName, 
-            List<CodeStylePreference> preferences = null, 
-            List<NotificationOptionViewModel> notificationPreferences = null) 
+            IOption option,
+            string description,
+            string truePreview,
+            string falsePreview,
+            AbstractOptionPreviewViewModel info,
+            OptionSet options,
+            string groupName,
+            List<CodeStylePreference> preferences = null,
+            List<NotificationOptionViewModel> notificationPreferences = null)
             : base(option, description, truePreview, falsePreview, info, options, groupName, preferences, notificationPreferences)
         {
             var booleanOption = (bool)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null));

@@ -6,7 +6,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    partial class NamingRuleTreeItemViewModel : IInvocationPattern
+    public partial class NamingRuleTreeItemViewModel : IInvocationPattern
     {
         public bool CanPreview => false;
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                         selectedRule.NamingStylesViewModel.SymbolSpecificationList,
                         selectedRule.namingStyle,
                         selectedRule.NamingStylesViewModel.NamingStyleList,
-                        selectedRule.parent,
+                        selectedRule._parent,
                         selectedRule.NamingStylesViewModel.CreateAllowableParentList(selectedRule),
                         selectedRule.EnforcementLevel,
                         selectedRule.NamingStylesViewModel.notificationService);

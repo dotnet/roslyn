@@ -12,7 +12,7 @@ Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        Private Const DefinitionKey As String = "Definition"
+        Private Const s_definitionKey As String = "Definition"
 
         Private ReadOnly _outputHelper As ITestOutputHelper
 
@@ -43,10 +43,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
 
                     Dim expectedDefinitions =
-                        workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
+                        workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(s_definitionKey) AndAlso d.AnnotatedSpans(s_definitionKey).Any()).
                                             OrderBy(Function(d) d.Name).
                                             Select(Function(d) New FileNameAndSpans(
-                                                   d.Name, d.AnnotatedSpans(DefinitionKey).ToList())).ToList()
+                                                   d.Name, d.AnnotatedSpans(s_definitionKey).ToList())).ToList()
 
                     Dim actualDefinitions = GetFileNamesAndSpans(
                         context.Definitions.Where(AddressOf context.ShouldShow).
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         Private Class TestContext
             Inherits FindReferencesContext
 
-            Private ReadOnly gate As Object = New Object()
+            Private ReadOnly _gate As Object = New Object()
 
             Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
             Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
@@ -125,13 +125,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
 
             Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
-                SyncLock gate
+                SyncLock _gate
                     Me.Definitions.Add(definition)
                 End SyncLock
             End Sub
 
             Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
-                SyncLock gate
+                SyncLock _gate
                     References.Add(reference)
                 End SyncLock
             End Sub
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim documentsWithAnnotatedSpans = workspace.Documents.Where(Function(d) d.AnnotatedSpans.Any())
                     Assert.Equal(Of String)(documentsWithAnnotatedSpans.Select(Function(d) GetFilePathAndProjectLabel(workspace, d)).Order(), actualDefinitions.Keys.Order())
                     For Each doc In documentsWithAnnotatedSpans
-                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans(DefinitionKey).Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
+                        Assert.Equal(Of Text.TextSpan)(doc.AnnotatedSpans(s_definitionKey).Order(), actualDefinitions(GetFilePathAndProjectLabel(workspace, doc)).Order())
                     Next
 
                     Dim actualReferences =

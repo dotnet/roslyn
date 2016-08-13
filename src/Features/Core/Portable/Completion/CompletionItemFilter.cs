@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public CompletionItemFilter(string displayText, string tag, char accessKey)
             : this(displayText, ImmutableArray.Create(tag), accessKey)
-        { 
+        {
         }
 
         public bool Matches(CompletionItem item)

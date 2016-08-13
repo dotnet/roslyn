@@ -5355,7 +5355,7 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
-            Assert.Equal(new [] {
+            Assert.Equal(new[] {
                                 (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
@@ -5452,7 +5452,7 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
-            Assert.Equal(new [] {
+            Assert.Equal(new[] {
                                 (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,

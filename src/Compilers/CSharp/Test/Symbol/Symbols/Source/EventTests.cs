@@ -485,7 +485,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -798,7 +798,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;

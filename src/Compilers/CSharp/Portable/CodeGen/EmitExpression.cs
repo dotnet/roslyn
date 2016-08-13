@@ -2711,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
         {
             _builder.EmitOpCode(ILOpCode.Stsfld);
-            EmitInstrumentationPayloadRootToken(node);  
+            EmitInstrumentationPayloadRootToken(node);
         }
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)

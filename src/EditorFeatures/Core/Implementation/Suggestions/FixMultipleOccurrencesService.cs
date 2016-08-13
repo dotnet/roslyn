@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllState, triggerDiagnostic, title, waitDialogMessage, showPreviewChangesDialog);
             return new FixMultipleSuggestedAction(
-                _listener, workspace, _editHandler, _waitIndicator, 
+                _listener, workspace, _editHandler, _waitIndicator,
                 fixMultipleCodeAction, fixAllState.FixAllProvider);
         }
     }

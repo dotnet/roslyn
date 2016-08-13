@@ -912,9 +912,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _changesApplied = false;
 
                     _diagnosticProvider.ClearDiagnostics(
-                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId),
                         _vsProject.Workspace.CurrentSolution,
-                        _vsProject.Id, 
+                        _vsProject.Id,
                         _documentsWithEmitError);
 
                     _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
@@ -986,7 +986,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
 
                 var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
-                
+
                 // Clear diagnostics, in case the project was built before and failed due to errors.
                 _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 
@@ -1094,7 +1094,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 if (exception != null)
                 {
                     // likely a bug in the compiler/debugger
-                    FatalError.ReportWithoutCrash(exception); 
+                    FatalError.ReportWithoutCrash(exception);
 
                     throw new InvalidDataException(exception.Message, exception);
                 }

@@ -42,6 +42,5 @@ class Program
 
             // TODO: Validate build works as expected
         }
-
     }
 }

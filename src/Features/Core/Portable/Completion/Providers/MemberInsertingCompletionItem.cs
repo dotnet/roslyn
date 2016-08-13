@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: rules);
         }
 
-        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem  item, Document document, CancellationToken cancellationToken)
+        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }

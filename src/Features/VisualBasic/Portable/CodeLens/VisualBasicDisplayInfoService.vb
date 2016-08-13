@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
     Friend NotInheritable Class VisualBasicDisplayInfoService
         Implements ICodeLensDisplayInfoService
 
-        Private Shared ReadOnly Format As SymbolDisplayFormat = New SymbolDisplayFormat(
+        Private Shared ReadOnly s_format As SymbolDisplayFormat = New SymbolDisplayFormat(
                 SymbolDisplayGlobalNamespaceStyle.Omitted,                                  ' Don't prepend VB namespaces with "Global."
                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,    ' Show fully qualified names
                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         End Function
 
         Private Shared Function SymbolToDisplayString(symbol As ISymbol) As String
-            Return If(symbol Is Nothing, FeaturesResources.paren_Unknown_paren, symbol.ToDisplayString(Format))
+            Return If(symbol Is Nothing, FeaturesResources.paren_Unknown_paren, symbol.ToDisplayString(s_format))
         End Function
 
         Private Shared Function FormatPropertyAccessor(node As SyntaxNode, symbolName As String) As String

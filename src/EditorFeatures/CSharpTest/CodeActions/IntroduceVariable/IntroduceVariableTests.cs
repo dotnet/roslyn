@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithInfo);
 
         internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
         {
@@ -2700,8 +2700,8 @@ class C
     var i = (1, [|""hello""|]).ToString();
 }";
 
-var expected =
-@"class C
+            var expected =
+            @"class C
 {
     private const string {|Rename:V|} = ""hello"";
     var i = (1, V).ToString();

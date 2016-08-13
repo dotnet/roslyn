@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var context = new TaggerContext<IClassificationTag>(document, snapshot, cancellationToken: cancellationToken);
 
                     var task = SemanticClassificationUtilities.ProduceTagsAsync(
-                        context, new DocumentSnapshotSpan(document, spanToTag), 
+                        context, new DocumentSnapshotSpan(document, spanToTag),
                         _classificationService, _owner._typeMap);
                     task.Wait(cancellationToken);
 

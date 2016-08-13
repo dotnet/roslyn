@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private ItemGetter(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
-                Document document, 
-                int position, 
+                Document document,
+                int position,
                 SourceText text,
                 SyntaxTree syntaxTree,
                 int startLineNumber,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
 
-                return  MemberInsertionCompletionItem.Create(
+                return MemberInsertionCompletionItem.Create(
                     displayString,
                     symbol.GetGlyph(),
                     modifiers,

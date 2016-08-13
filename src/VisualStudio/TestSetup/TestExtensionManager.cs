@@ -18,26 +18,26 @@ namespace Roslyn.VisualStudio.Test.Setup
     [Shared, ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Host)]
     internal class TestExtensionManager : IWorkspaceServiceFactory
     {
-        private readonly TestExtensionErrorHandler errorHandler;
+        private readonly TestExtensionErrorHandler _errorHandler;
 
         [ImportingConstructor]
         public TestExtensionManager([Import]TestExtensionErrorHandler errorHandler)
         {
-            this.errorHandler = errorHandler;
+            _errorHandler = errorHandler;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new ExtensionManager(errorHandler);
+            return new ExtensionManager(_errorHandler);
         }
 
         private class ExtensionManager : AbstractExtensionManager
         {
-            private readonly TestExtensionErrorHandler errorHandler;
+            private readonly TestExtensionErrorHandler _errorHandler;
 
             public ExtensionManager(TestExtensionErrorHandler errorHandler)
             {
-                this.errorHandler = errorHandler;
+                _errorHandler = errorHandler;
             }
 
             public override bool CanHandleException(object provider, Exception exception)
@@ -51,7 +51,7 @@ namespace Roslyn.VisualStudio.Test.Setup
 
             public override void HandleException(object provider, Exception exception)
             {
-                errorHandler.HandleError(provider, exception);
+                _errorHandler.HandleError(provider, exception);
             }
         }
     }

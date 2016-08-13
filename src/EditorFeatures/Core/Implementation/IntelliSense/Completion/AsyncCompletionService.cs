@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
             : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService, waitIndicator,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  asyncListeners, 
+                  asyncListeners,
                   autoBraceCompletionChars)
         {
         }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _waitIndicator, _completionPresenter, 
+                _editorOperationsFactoryService, _undoHistoryRegistry, _waitIndicator, _completionPresenter,
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
                 autobraceCompletionCharSet);
 

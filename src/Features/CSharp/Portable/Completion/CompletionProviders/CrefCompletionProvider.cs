@@ -335,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
 
-        private static readonly string InsertionTextProperty = "insertionText";
+        private static readonly string s_insertionTextProperty = "insertionText";
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             string insertionText;
-            if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out insertionText))
+            if (!selectedItem.Properties.TryGetValue(s_insertionTextProperty, out insertionText))
             {
                 insertionText = selectedItem.DisplayText;
             }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
     {
         internal class DeclaredSymbolNavigableItem : INavigableItem
         {
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _lazyDisplayTaggedParts.Value; 
+            public ImmutableArray<TaggedText> DisplayTaggedParts => _lazyDisplayTaggedParts.Value;
 
             public Document Document { get; }
             public Glyph Glyph => Symbol?.GetGlyph() ?? Glyph.Error;

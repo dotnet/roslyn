@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            this._inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
         public void CloseSolution(bool saveFirst = false)

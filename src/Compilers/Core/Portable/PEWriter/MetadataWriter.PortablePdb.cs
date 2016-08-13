@@ -142,10 +142,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) => 
+        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) =>
             MetadataTokens.LocalVariableHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
+        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) =>
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
         private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)
@@ -300,7 +300,7 @@ namespace Microsoft.Cci
 
         #region ImportScope
 
-        private static readonly ImportScopeHandle ModuleImportScopeHandle = MetadataTokens.ImportScopeHandle(1);
+        private static readonly ImportScopeHandle s_moduleImportScopeHandle = MetadataTokens.ImportScopeHandle(1);
 
         private void SerializeImport(BlobBuilder writer, AssemblyReferenceAlias alias)
         {
@@ -411,7 +411,7 @@ namespace Microsoft.Cci
                 parentScope: default(ImportScopeHandle),
                 imports: _debugMetadataOpt.GetOrAddBlob(writer));
 
-            Debug.Assert(rid == ModuleImportScopeHandle);
+            Debug.Assert(rid == s_moduleImportScopeHandle);
         }
 
         private ImportScopeHandle GetImportScopeIndex(IImportScope scope, Dictionary<IImportScope, ImportScopeHandle> scopeIndex)
@@ -424,7 +424,7 @@ namespace Microsoft.Cci
             }
 
             var parent = scope.Parent;
-            var parentScopeHandle = (parent != null) ? GetImportScopeIndex(scope.Parent, scopeIndex) : ModuleImportScopeHandle;
+            var parentScopeHandle = (parent != null) ? GetImportScopeIndex(scope.Parent, scopeIndex) : s_moduleImportScopeHandle;
 
             var result = _debugMetadataOpt.AddImportScope(
                 parentScope: parentScopeHandle,

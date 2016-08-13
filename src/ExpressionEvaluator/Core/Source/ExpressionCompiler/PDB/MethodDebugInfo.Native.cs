@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             importRecordGroups = ImmutableArray<ImmutableArray<ImportRecord>>.Empty;
 
             var importStrings = CustomDebugInfoReader.GetVisualBasicImportStrings(
-                methodToken,  
+                methodToken,
                 KeyValuePair.Create(reader, methodVersion),
                 (token, arg) => GetImportStrings(arg.Key, token, arg.Value));
 

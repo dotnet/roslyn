@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.Unreachable;
         }
-        
+
         internal override SyntaxNode ScopeDesignator
         {
             get
@@ -374,8 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch section
             ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
-            return new BoundSwitchStatement(node, null, boundSwitchExpression, constantTargetOpt, 
-                                            GetDeclaredLocalsForScope(node), 
+            return new BoundSwitchStatement(node, null, boundSwitchExpression, constantTargetOpt,
+                                            GetDeclaredLocalsForScope(node),
                                             GetDeclaredLocalFunctionsForScope(node), boundSwitchSections, this.BreakLabel, null);
         }
 

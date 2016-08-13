@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 definitionsAndReferences.Definitions.SelectMany(d => d.SourceSpans)
                                         .Select(loc => loc.Document);
 
-            var referenceDocuments = 
+            var referenceDocuments =
                 definitionsAndReferences.References
                                         .Select(r => r.SourceSpan.Document);
 

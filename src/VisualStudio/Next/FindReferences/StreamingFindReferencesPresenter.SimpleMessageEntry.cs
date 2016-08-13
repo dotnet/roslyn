@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 switch (keyName)
                 {
-                case StandardTableKeyNames.Text:
-                    return _message; 
+                    case StandardTableKeyNames.Text:
+                        return _message;
                 }
 
                 return null;

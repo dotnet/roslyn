@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
                 null, new GenerateVariableCodeFixProvider());
         }
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithInfo);
 
         internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
         {

@@ -2549,7 +2549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private class AddMissingTokensRewriter : CSharpSyntaxRewriter
         {
             private readonly bool _recurse;
-            private bool firstVisit = true;
+            private bool _firstVisit = true;
 
             public AddMissingTokensRewriter(bool recurse)
             {
@@ -2558,12 +2558,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (!_recurse && !firstVisit)
+                if (!_recurse && !_firstVisit)
                 {
                     return node;
                 }
 
-                firstVisit = false;
+                _firstVisit = false;
                 return base.Visit(node);
             }
 

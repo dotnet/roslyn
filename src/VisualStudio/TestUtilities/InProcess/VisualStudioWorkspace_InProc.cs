@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
     internal class VisualStudioWorkspace_InProc : InProcComponent
     {
-        private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
+        private static readonly Guid s_roslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
         private VisualStudioWorkspace_InProc()
@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
         private static void LoadRoslynPackage()
         {
-            var roslynPackageGuid = RoslynPackageId;
+            var roslynPackageGuid = s_roslynPackageId;
             IVsPackage roslynPackage = null;
 
             var vsShell = GetGlobalService<SVsShell, IVsShell>();

@@ -2859,7 +2859,7 @@ namespace Microsoft.CodeAnalysis
                 // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
                 (byte)MemberFlags.Constructor,                                                                                   // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute // DeclaringTypeId
-                                                        - WellKnownType.ExtSentinel),                             
+                                                        - WellKnownType.ExtSentinel),
                 0,                                                                                                               // Arity
                     1,                                                                                                           // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,

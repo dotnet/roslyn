@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Type.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, 
+                AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
             }
 

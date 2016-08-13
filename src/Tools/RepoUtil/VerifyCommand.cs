@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -48,7 +50,7 @@ namespace RepoUtil
             List<NuGetPackageConflict> conflicts;
             repoData = RepoData.Create(_repoConfig, _sourcesPath, out conflicts);
             if (conflicts?.Count > 0)
-            { 
+            {
                 foreach (var conflict in conflicts)
                 {
                     writer.WriteLine($"Error! Package {conflict.PackageName} has different versions:");

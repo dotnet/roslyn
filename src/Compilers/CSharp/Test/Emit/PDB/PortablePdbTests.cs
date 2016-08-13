@@ -286,7 +286,7 @@ class C
             {
                 var pdbReader = provider.GetMetadataReader();
 
-                var actualBlob = 
+                var actualBlob =
                     (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
                      let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
                      where pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink
@@ -382,7 +382,7 @@ class C
 
             var pdbStream = new MemoryStream();
             c.EmitToArray(
-                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), 
+                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 pdbStream: pdbStream,
                 embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
             pdbStream.Position = 0;

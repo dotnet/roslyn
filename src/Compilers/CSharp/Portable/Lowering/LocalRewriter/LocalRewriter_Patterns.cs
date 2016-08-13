@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
-        BoundExpression LowerPattern(BoundPattern pattern, BoundExpression input)
+        private BoundExpression LowerPattern(BoundPattern pattern, BoundExpression input)
         {
             var syntax = _factory.Syntax = pattern.Syntax;
             switch (pattern.Kind)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Produce a 'logical and' operation that is clearly irrefutable (<see cref="IsIrrefutablePatternTest(BoundExpression)"/>) when it can be.
         /// </summary>
-        BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
+        private BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
         {
             return IsIrrefutablePatternTest(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
+        private BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
         {
             var type = target.Type;
             // a pattern match of the form "expression is Type identifier" is equivalent to

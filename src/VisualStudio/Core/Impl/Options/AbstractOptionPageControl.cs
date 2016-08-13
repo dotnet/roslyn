@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             checkbox.Visibility = Visibility.Visible;
-                        
+
             Binding binding = new Binding()
             {
                 Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName),

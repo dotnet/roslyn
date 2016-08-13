@@ -407,5 +407,5 @@ class Base
             var comp = CompileAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
             comp.Compilation.VerifyDiagnostics();
         }
-   }
+    }
 }

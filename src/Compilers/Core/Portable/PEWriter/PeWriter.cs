@@ -67,7 +67,7 @@ namespace Microsoft.Cci
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
             mdWriter.GetEntryPoints(out entryPointHandle, out debugEntryPointHandle);
-            
+
             if (!debugEntryPointHandle.IsNil)
             {
                 nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));

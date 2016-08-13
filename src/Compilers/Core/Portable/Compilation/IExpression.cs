@@ -825,10 +825,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public static class UnaryAndBinaryOperationExtensions
     {
-        const int SimpleUnaryOperationKindMask = 0xff;
-        const int UnaryOperandKindMask = 0xff00;
-        const int SimpleBinaryOperationKindMask = 0xff;
-        const int BinaryOperandsKindMask = 0xff00;
+        private const int SimpleUnaryOperationKindMask = 0xff;
+        private const int UnaryOperandKindMask = 0xff00;
+        private const int SimpleBinaryOperationKindMask = 0xff;
+        private const int BinaryOperandsKindMask = 0xff00;
 
         /// <summary>
         /// Get unary operation kind independent of data type.

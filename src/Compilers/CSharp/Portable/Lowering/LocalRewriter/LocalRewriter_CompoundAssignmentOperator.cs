@@ -708,6 +708,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.IsReferenceType ||
                 type.IsEnumType();
         }
-
     }
 }

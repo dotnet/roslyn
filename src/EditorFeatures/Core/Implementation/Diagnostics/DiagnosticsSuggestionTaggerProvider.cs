@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(SuggestionTag))]
-    internal partial class DiagnosticsSuggestionTaggerProvider : 
+    internal partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>
     {
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =

@@ -58,25 +58,25 @@ namespace Microsoft.CodeAnalysis.FindReferences
         {
             switch (referencedSymbol.Definition.Kind)
             {
-            case SymbolKind.Event:
-            case SymbolKind.Field:
-            case SymbolKind.Label:
-            case SymbolKind.Local:
-            case SymbolKind.Method:
-            case SymbolKind.Parameter:
-            case SymbolKind.Property:
-            case SymbolKind.RangeVariable:
-                return 0;
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Label:
+                case SymbolKind.Local:
+                case SymbolKind.Method:
+                case SymbolKind.Parameter:
+                case SymbolKind.Property:
+                case SymbolKind.RangeVariable:
+                    return 0;
 
-            case SymbolKind.ArrayType:
-            case SymbolKind.DynamicType:
-            case SymbolKind.ErrorType:
-            case SymbolKind.NamedType:
-            case SymbolKind.PointerType:
-                return 1;
+                case SymbolKind.ArrayType:
+                case SymbolKind.DynamicType:
+                case SymbolKind.ErrorType:
+                case SymbolKind.NamedType:
+                case SymbolKind.PointerType:
+                    return 1;
 
-            default:
-                return 2;
+                default:
+                    return 2;
             }
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 return null;
             }
 
-            return new SourceReferenceItem(definitionItem, 
+            return new SourceReferenceItem(definitionItem,
                 new DocumentSpan(referenceLocation.Document, location.SourceSpan));
         }
 

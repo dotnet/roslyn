@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
             bool parseError = false;
             for (int i = 0; i < lastExplicitValue; i++)
             {
-
                 if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
                 {
                     if (!allowPartialParse)
@@ -92,8 +91,8 @@ namespace Microsoft.CodeAnalysis
                         break;
                     }
 
-                    
-                    if(values[i] > maxValue)
+
+                    if (values[i] > maxValue)
                     {
                         //The only way this can happen is if the value was 65536
                         //The old compiler would continue parsing from here

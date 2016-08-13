@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_ModuleEmitFailure,
                         method.Locations.First(),
-                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
+                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " +
                         $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
 
                     return null;
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingAttribute,
-                method.Locations.First(), 
+                method.Locations.First(),
                 MessageProvider.GetErrorDisplayString(method),
                 stateMachineAttributeFullName));
         }

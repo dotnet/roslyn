@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol get_Value = GetNullableMethod(syntax, rewrittenOperandType, SpecialMember.System_Nullable_T_get_Value);
                     value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value);
                 }
-                
+
                 return MakeConversionNode(syntax, value, conversion.UnderlyingConversions[0], rewrittenType, @checked);
             }
         }

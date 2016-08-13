@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         /// <summary>
         /// Same as <see cref="SyntaxKindSet.AllMemberModifiers"/> with ref specific exclusions
         /// </summary>
-        private static readonly ISet<SyntaxKind> RefMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_refMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.AbstractKeyword,
                 // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         /// <summary>
         /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref specific exclusions
         /// </summary>
-        private static readonly ISet<SyntaxKind> RefGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_refGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
                 SyntaxKind.ExternKeyword,
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 IsValidRefDeclarationOrAssignmentContext(syntaxTree, position, context, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
-                syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsGlobalMemberDeclarationContext(position, s_refGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
-                    validModifiers: RefMemberModifiers,
+                    validModifiers: s_refMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 case SyntaxKind.ReturnKeyword:
                     return true;
 
-                    // {
+                // {
                 //     () => ref ...
                 // 
                 case SyntaxKind.EqualsGreaterThanToken:

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     //         Wrapping
     //       Naming
     //     IntelliSense
-    
+
     [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
     [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
     [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.CodeStylePage), "CSharp", @"Code Style", "General", pageNameResourceId: "#108", keywordListResourceId: 313)]

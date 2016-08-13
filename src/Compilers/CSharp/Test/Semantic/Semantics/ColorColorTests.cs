@@ -1755,15 +1755,15 @@ public class Example
             Assert.True(analyzer.ActionFired);
         }
 
-        class ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer : DiagnosticAnalyzer
+        private class ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer : DiagnosticAnalyzer
         {
             public bool ActionFired { get; private set; }
 
-            private static readonly DiagnosticDescriptor Descriptor =
+            private static readonly DiagnosticDescriptor s_descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(Descriptor);
+            => ImmutableArray.Create(s_descriptor);
 
             public override void Initialize(AnalysisContext context)
             {

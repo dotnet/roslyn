@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public void Invoke(CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
-            
+
             // Create a task to do the actual async invocation of this action.
             // For testing purposes mark that we still have an outstanding async 
             // operation so that we don't try to validate things too soon.
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        protected virtual async Task InvokeAsync( 
+        protected virtual async Task InvokeAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // ConfigureAwait(true) so we come back to the same thread as 
                 // we do all application on the UI thread.
-                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title, 
+                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title,
                     progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }

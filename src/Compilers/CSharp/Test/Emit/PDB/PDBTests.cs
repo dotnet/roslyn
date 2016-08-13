@@ -5270,7 +5270,7 @@ class C
         [Fact, WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
-            var source = 
+            var source =
 @"#line 1 ""C:\Async.cs""
 #pragma checksum ""C:\Async.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""DBEB2A067B2F0E0D678A002C587A2806056C3DCE""
 
@@ -5283,7 +5283,7 @@ public class C
     }
 }
 ";
-            
+
             var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
             var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
 

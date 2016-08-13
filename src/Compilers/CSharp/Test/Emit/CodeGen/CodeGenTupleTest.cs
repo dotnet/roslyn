@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 
-        private static readonly string trivial2uple =
+        private static readonly string s_trivial2uple =
                     @"
 
 namespace System
@@ -48,7 +48,7 @@ namespace System
 
             ";
 
-        private static readonly string trivial3uple =
+        private static readonly string s_trivial3uple =
                 @"
 
     namespace System
@@ -75,7 +75,7 @@ namespace System
     }
         ";
 
-        private static readonly string trivialRemainingTuples = @"
+        private static readonly string s_trivialRemainingTuples = @"
 namespace System
 {
     public struct ValueTuple<T1>
@@ -817,7 +817,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
             comp.VerifyDiagnostics();
@@ -853,7 +853,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, 2}
@@ -896,7 +896,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
 
@@ -978,7 +978,7 @@ class C
 
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 1
@@ -1083,7 +1083,7 @@ class C
 
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -1125,7 +1125,7 @@ class C
         return new T[]{x};
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: "2");
             comp.VerifyDiagnostics();
@@ -1158,7 +1158,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: "{, }");
             comp.VerifyDiagnostics();
@@ -1191,7 +1191,7 @@ class C
         System.Console.WriteLine(x.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: "{1, {2, {3, 4}}}");
             comp.VerifyDiagnostics();
@@ -1235,7 +1235,7 @@ class C
         System.Console.WriteLine(x.Item1 + x.Item2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1281,7 +1281,7 @@ class C
         System.Console.WriteLine(x.Item1 + x.Item2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1327,7 +1327,7 @@ class C
         System.Console.WriteLine(x.a + x.b);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1373,7 +1373,7 @@ class C
         System.Console.WriteLine(x.a + x.b.c + x.b.d);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"2
 42");
@@ -1427,7 +1427,7 @@ class C
     }
 }
 
-" + trivial3uple;
+" + s_trivial3uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"{1, hello, 2}");
         }
@@ -1444,7 +1444,7 @@ class C
         (int, string) x = (1, ""hello"", 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
@@ -1464,7 +1464,7 @@ class C
         (int, string) x = (1, null, 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,27): error CS8135: Tuple with 3 elements cannot be converted to type '(int, string)'.
@@ -1509,7 +1509,7 @@ class C
         (int, string a) x = (1, ""hello"", c: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -1548,7 +1548,7 @@ class C
         System.Console.WriteLine(x.b.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
             var comp = CompileAndVerify(source, expectedOutput: @"1
 hello");
         }
@@ -1565,7 +1565,7 @@ class C
         System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.a + "" "" + x.Item3);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
         }
@@ -1625,7 +1625,7 @@ class C
         System.Console.WriteLine(x.Item1 + "" "" + x.Item2 + "" "" + x.Item3);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
         }
@@ -1657,7 +1657,7 @@ class C
         return d;
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"4");
             comp.VerifyDiagnostics();
@@ -1714,7 +1714,7 @@ class C
         return f();
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
@@ -1752,7 +1752,7 @@ class C
         return f();
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"{42, 42}");
             comp.VerifyDiagnostics();
@@ -2123,7 +2123,7 @@ class C
         return x.f1;
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2239,7 +2239,7 @@ class C
         return x.ToString();
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
             var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2830,7 +2830,7 @@ class C
         return x.f8;
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples;
+" + s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples;
 
             CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe);
         }
@@ -2894,7 +2894,7 @@ class C
         (int a, string a) x = (b: 1, b: ""hello"", b: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -2922,7 +2922,7 @@ class C
         (int Item2, string Item2) y = (Item2: 1, Item2: ""hello"");
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -2982,7 +2982,7 @@ class C
         System.Console.WriteLine(x.b ?? ""null"");
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"0
 null");
@@ -2999,7 +2999,7 @@ class C
         (int a, string a) x = (b: 1, c: ""hello"", b: 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -3114,7 +3114,7 @@ class C
         System.Console.WriteLine($""{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12}"");
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples;
+" + s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples;
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -3311,7 +3311,7 @@ class C
         throw new System.NotSupportedException();
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -3698,7 +3698,7 @@ public class C1
         return (1, 2);
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public class C2
@@ -3709,7 +3709,7 @@ public class C2
         return (3, 4);
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source = @"
 class C3
@@ -3751,7 +3751,6 @@ C2.M
   IL_001e:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -3766,8 +3765,8 @@ class C3
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+            var comp1 = CreateCompilationWithMscorlib(s_trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateCompilationWithMscorlib(s_trivial2uple);
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
@@ -3786,8 +3785,8 @@ class C3
     public void M((int, int) x) { }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+            var comp1 = CreateCompilationWithMscorlib(s_trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateCompilationWithMscorlib(s_trivial2uple);
 
             var comp = CreateCompilationWithMscorlib(source,
                 references: new[] { new CSharpCompilationReference(comp1),
@@ -3811,7 +3810,7 @@ public class C1
         return (1, 2);
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public class C2
@@ -3821,7 +3820,7 @@ public class C2
         return (3, 4);
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source = @"
 class C3
@@ -3845,7 +3844,7 @@ class C3
         System.Console.Write(x.GetType().Assembly == typeof(C3).Assembly);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp1 = CreateCompilationWithMscorlib(source1);
             comp1.VerifyDiagnostics();
@@ -4550,7 +4549,7 @@ class C
         (int, var) x = (1, 2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
@@ -4608,7 +4607,7 @@ public static class C1
         System.Console.WriteLine(""C1.M1"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public static class C2
@@ -4618,7 +4617,7 @@ public static class C2
         System.Console.WriteLine(""C2.M1"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
@@ -4925,7 +4924,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_WithValueTuple()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -5127,7 +5126,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_ElementTypeIsError()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -5242,7 +5241,7 @@ End Class";
         [Fact]
         public void CreateTupleTypeSymbol2_WithValueTuple()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -5387,7 +5386,7 @@ End Class";
         [Fact]
         public void CreateTupleTypeSymbol2_ElementTypeIsError()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -5501,7 +5500,7 @@ class C
         (short a, string b) x3 = ((long c, string d))(1, ""hello"");
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -5526,7 +5525,7 @@ class C
         System.Console.WriteLine(x2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, hello}");
@@ -5575,7 +5574,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5632,7 +5631,7 @@ class C
         x = ((int, int))null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (12,32): error CS1525: Invalid expression term ')'
@@ -5690,7 +5689,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5749,7 +5748,7 @@ class C
         x = null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
@@ -5780,7 +5779,6 @@ class C
                 //         x = null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13)
                 );
-
         }
 
         [Fact]
@@ -5805,7 +5803,7 @@ class C
         x = (null, 1);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,21): error CS1525: Invalid expression term ')'
@@ -5867,7 +5865,7 @@ class C
     }
 }
 
-" + trivial2uple + trivialRemainingTuples; //intentionally not including 3-tuple for usesite errors
+" + s_trivial2uple + s_trivialRemainingTuples; //intentionally not including 3-tuple for usesite errors
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (13,37): error CS1525: Invalid expression term ';'
@@ -5946,7 +5944,7 @@ class C
         (string, Func<(string, string)>) x1 = (null, ()=>(null, 1.1));  // actual error, should be the same as above.
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -5996,7 +5994,7 @@ class C
         (string, Func<(string, string)>) x1 = ((string, Func<(string, string)>))(null, () => (null, 1.1));  // actual error, should be the same as above.
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (8,45): error CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -6381,7 +6379,7 @@ class C
         (int a, int b) x3 = ((long c, long d))(e: 1, f:""qq"");
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
                 // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
@@ -6420,7 +6418,7 @@ class C
         (int a, int b) x4 = ((long c, long d))(1, null, 2);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
             );
@@ -6437,7 +6435,7 @@ class C
         (short a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6468,7 +6466,7 @@ class C
         short? y = (short?)11;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6511,7 +6509,7 @@ class C
         (short a, string b)? x =(1, ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6540,7 +6538,7 @@ class C
         (short a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6569,7 +6567,7 @@ class C
         (short a, string b)? x = ((short c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6606,7 +6604,7 @@ class C
         (object a, string b) x1 = ((long c, string d))(x);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6640,7 +6638,7 @@ class C
         (object a, string b)? x1 = ((long c, string d))(x);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6673,7 +6671,7 @@ class C
         (int a, string b)? x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6702,7 +6700,7 @@ class C
         (int a, string b)? x = ((int c, string d)?)(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6737,7 +6735,7 @@ class C
         (int a, string b)? x = ((int c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6772,7 +6770,7 @@ class C
         (int a, string b) x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6801,7 +6799,7 @@ class C
         (int a, string b) x = ((int c, string d))(e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6830,7 +6828,7 @@ class C
         (short a, string b) x = (e: 1, f: ""hello"");
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6860,7 +6858,7 @@ class C
         short y = (short)11;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6903,7 +6901,7 @@ class C
         (short a, string b) x = (e: 1, f: null);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6933,7 +6931,7 @@ class C
         string y = (string)null;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -6992,7 +6990,7 @@ class C
         }
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7039,7 +7037,7 @@ class C
         }
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7098,7 +7096,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
@@ -7679,7 +7677,7 @@ class Program
         System.Console.WriteLine(2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 2
@@ -7759,7 +7757,7 @@ class C
         System.Console.WriteLine(f(x));
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 test1
@@ -7810,7 +7808,7 @@ class C
         System.Console.WriteLine(f(x));
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 test1
@@ -7843,7 +7841,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 System.ValueType
@@ -7870,7 +7868,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -7916,7 +7914,7 @@ class C
         System.Console.WriteLine(typeof(T));
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8101,7 +8099,7 @@ class C
         (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8131,7 +8129,7 @@ class C
         (int x, System.ArgIterator y) y;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -8339,7 +8337,7 @@ class C
         (int, int) x = (1, 1);
     }
 CS0151ERR_IntegralTypeValueExpected}
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
@@ -9537,7 +9535,7 @@ class C
         return (701, 702, 703, 704, 705, 706, 707, 708, 709);
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
+" + s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -9783,7 +9781,7 @@ class C
         System.Console.WriteLine(v6.ToString());
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"1
 11
@@ -10160,7 +10158,7 @@ partial class C
         M10().E2 += null;
     }
 }
-" + trivialRemainingTuples + tupleattributes_cs;
+" + s_trivialRemainingTuples + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib(source);
 
@@ -11310,7 +11308,7 @@ public class Test<T>
        throw new NotImplementedException();
     }
 }
-" + trivialRemainingTuples;
+" + s_trivialRemainingTuples;
 
             var source2 = @"
 class C
@@ -11324,7 +11322,7 @@ class C
         System.Console.WriteLine(v1.Rest.Item9);
     }
 }
-" + trivial2uple + trivialRemainingTuples;
+" + s_trivial2uple + s_trivialRemainingTuples;
 
             var comp1 = CreateCompilationWithMscorlib(source1,
                                                      options: TestOptions.ReleaseDll);
@@ -12382,7 +12380,7 @@ class C
         if (o is (int, int) t) { }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12421,7 +12419,7 @@ class C
         (x, x);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12442,7 +12440,7 @@ class C
         if (o is (int a, int b)) { }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
 
             var comp = CreateCompilationWithMscorlib(source);
@@ -12470,7 +12468,7 @@ class C
         if (o is (1, 2)) { }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12493,7 +12491,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12528,7 +12526,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12551,7 +12549,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -12578,7 +12576,7 @@ class C
         (1, 1);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -12652,7 +12650,7 @@ class TestAttribute : System.Attribute
 
     public (int, string) Val {get; set;}
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
@@ -12743,7 +12741,7 @@ class C
         Print(x2);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
@@ -12758,7 +12756,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
         {
             var source = @"
 class Class { void Method() { tuple = (1, ""hello""); } }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
@@ -12960,8 +12958,8 @@ class C3
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp2");
+            var comp1 = CreateCompilationWithMscorlib(s_trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateCompilationWithMscorlib(s_trivial2uple, assemblyName: "comp2");
 
             var comp = CreateCompilationWithMscorlib(source,
                 references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
@@ -12998,7 +12996,7 @@ class C3
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LiteralsAndAmbiguousVT_02()
         {
-            var source1 = trivial2uple;
+            var source1 = s_trivial2uple;
 
             var source2 = @"
 public static class C2
@@ -13008,7 +13006,7 @@ public static class C2
         System.Console.WriteLine(""C2.M1"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
@@ -13070,7 +13068,7 @@ class C3
         [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
         public void LongLiteralsAndAmbiguousVT_02()
         {
-            var source1 = trivial2uple + trivial3uple + trivialRemainingTuples;
+            var source1 = s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples;
 
             var source2 = @"
 public static class C2
@@ -13080,7 +13078,7 @@ public static class C2
         System.Console.WriteLine(""C2.M1"");
     }
 }
-" + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
+" + s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
@@ -13267,7 +13265,7 @@ public class C1
         System.Console.WriteLine(""C1.M1"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public class C2
@@ -13277,7 +13275,7 @@ public class C2
         System.Console.WriteLine(""C2.M1"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
@@ -13323,7 +13321,7 @@ public class C1
         return (1, 1);
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var source2 = @"
 public class C2
@@ -13333,7 +13331,7 @@ public class C2
         System.Console.WriteLine(""C2.M3"");
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1");
             comp1.VerifyDiagnostics();
@@ -13379,7 +13377,7 @@ class C
         var x5 = (System.Func<int>)(() => 12);
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -13440,7 +13438,7 @@ class C
         System.Func<int> x5 = () => 12;
     }
 }
-" + trivial2uple + trivial3uple;
+" + s_trivial2uple + s_trivial3uple;
 
             var tree = Parse(source, options: TestOptions.Regular);
             var comp = CreateCompilationWithMscorlib(tree);
@@ -13949,7 +13947,6 @@ class C
         [Fact]
         public void ExplicitConversions04Err()
         {
-
             // explicit conversion case similar to ImplicitConversions04
             // is a compiler error since explicit tuple conversions do not stack up like
             // implicit tuple conversions which are in standard implicit set.
@@ -14177,7 +14174,6 @@ class C
                 //         (int, (object, (byte, (int?, (long, IComparable)?))?))? x1 = y;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("C.C1", "(int, (object, (byte, (int?, (long, System.IComparable)?))?))?").WithLocation(10, 70)
                 );
-
         }
 
         [Fact]
@@ -14229,7 +14225,6 @@ class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, @"((int, C1)?)
                                                                      (C1)y").WithArguments("C.C1", "(int, C.C1)?").WithLocation(14, 70)
                 );
-
         }
 
         [Fact]
@@ -14269,7 +14264,6 @@ namespace System
                 //         (long, long) y = x;   
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "x").WithArguments("Item2", "System.ValueTuple<T1, T2>", "ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26)
             );
-
         }
 
         [Fact]
@@ -14309,7 +14303,6 @@ namespace System
                 //         (byte, byte) y = ((byte, byte))x;   
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "((byte, byte))x").WithArguments("Item2", "System.ValueTuple<T1, T2>", "ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26)
             );
-
         }
 
         [Fact]
@@ -14337,7 +14330,7 @@ using System;
         }
     }
 
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
@@ -14369,7 +14362,7 @@ using System;
         }
     }
 
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
@@ -14393,7 +14386,7 @@ class C
         System.Console.WriteLine(z);
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {1, 2}
@@ -14463,7 +14456,7 @@ class C
         }
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 {2, 3}
@@ -14533,7 +14526,7 @@ class C
         }
     }
 }
-" + trivial2uple + tupleattributes_cs;
+" + s_trivial2uple + tupleattributes_cs;
 
             var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"
 {2, 3}
@@ -14566,7 +14559,6 @@ class C
   IL_0043:  ret
 }
 ");
-
         }
 
         [WorkItem(12064, "https://github.com/dotnet/roslyn/issues/12064")]
@@ -14648,7 +14640,7 @@ class D<T> : C<T>
         return new D<T>(""converted"");
     }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 explicit
@@ -14670,7 +14662,6 @@ implicit
 {{converted, converted}, {converted, converted}}
 {converted, converted}
 ");
-
         }
 
         [Fact]
@@ -14712,7 +14703,7 @@ class C
         bt = ((B, B)?)xt;
 }
 }
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
@@ -14876,7 +14867,7 @@ class Program
     }
 }
 
-" + trivial2uple;
+" + s_trivial2uple;
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
@@ -14895,7 +14886,7 @@ class Program
         [Fact]
         public void ClassifyConversionIdentity01()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -14913,7 +14904,7 @@ class Program
         [Fact]
         public void ClassifyConversionIdentity02()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -14933,7 +14924,7 @@ class Program
         [Fact]
         public void ClassifyConversionNone01()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -14956,7 +14947,7 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit01()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -14973,7 +14964,7 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit02()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -14999,8 +14990,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03()
         {
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -15024,8 +15015,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03u()
         {
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -15049,8 +15040,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03uu()
         {
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -15074,8 +15065,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03uuu()
         {
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -15109,7 +15100,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -15148,7 +15139,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -15187,7 +15178,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -15226,7 +15217,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilationWithMscorlib(s_trivial2uple + s_trivial3uple + s_trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -15673,10 +15664,10 @@ class Derived : Base
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(source1 + trivial2uple + source2);
+            var comp1 = CreateCompilationWithMscorlib(source1 + s_trivial2uple + source2);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilationWithMscorlib45(source1 + trivial2uple);
+            var comp2 = CreateCompilationWithMscorlib45(source1 + s_trivial2uple);
             comp2.VerifyDiagnostics();
 
             // Retargeting (different version of mscorlib)

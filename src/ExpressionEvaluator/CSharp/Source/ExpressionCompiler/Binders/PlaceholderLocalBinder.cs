@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 foreach (var variable in declaration.Declaration.Variables)
                 {
                     var local = SourceLocalSymbol.MakeLocal(
-                        _containingMethod, 
-                        this, 
+                        _containingMethod,
+                        this,
                         true,
-                        declaration.Declaration.Type, 
-                        variable.Identifier, 
-                        kind, 
+                        declaration.Declaration.Type,
+                        variable.Identifier,
+                        kind,
                         variable.Initializer);
                     builder.Add(local);
                 }

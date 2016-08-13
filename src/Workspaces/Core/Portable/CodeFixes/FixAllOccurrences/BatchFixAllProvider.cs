@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public async virtual Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public virtual async Task AddProjectFixesAsync(
-            Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+            Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);

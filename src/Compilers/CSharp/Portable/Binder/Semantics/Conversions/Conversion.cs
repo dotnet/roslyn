@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For the method group, lambda and anonymous method conversions
         internal Conversion(ConversionKind kind, MethodSymbol conversionMethod, bool isExtensionMethod)
         {
-            this._kind = kind;
+            _kind = kind;
             _uncommonData = new UncommonData(
                 isExtensionMethod: isExtensionMethod,
                 isArrayIndex: false,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
         {
-            this._kind = kind;
+            _kind = kind;
             _uncommonData = new UncommonData(
                 isExtensionMethod: false,
                 isArrayIndex: false,
@@ -150,27 +150,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (kind)
             {
-                case ConversionKind.NoConversion: 
-                case ConversionKind.Identity: 
-                case ConversionKind.ImplicitConstant: 
-                case ConversionKind.ImplicitNumeric: 
-                case ConversionKind.ImplicitReference: 
+                case ConversionKind.NoConversion:
+                case ConversionKind.Identity:
+                case ConversionKind.ImplicitConstant:
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitReference:
                 case ConversionKind.ImplicitEnumeration:
-                case ConversionKind.AnonymousFunction: 
-                case ConversionKind.Boxing: 
-                case ConversionKind.NullLiteral: 
-                case ConversionKind.NullToPointer: 
-                case ConversionKind.PointerToVoid: 
-                case ConversionKind.PointerToPointer: 
-                case ConversionKind.PointerToInteger: 
-                case ConversionKind.IntegerToPointer: 
-                case ConversionKind.Unboxing: 
-                case ConversionKind.ExplicitReference: 
-                case ConversionKind.IntPtr: 
-                case ConversionKind.ExplicitEnumeration: 
-                case ConversionKind.ExplicitNumeric: 
-                case ConversionKind.ImplicitDynamic: 
-                case ConversionKind.ExplicitDynamic: 
+                case ConversionKind.AnonymousFunction:
+                case ConversionKind.Boxing:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.NullToPointer:
+                case ConversionKind.PointerToVoid:
+                case ConversionKind.PointerToPointer:
+                case ConversionKind.PointerToInteger:
+                case ConversionKind.IntegerToPointer:
+                case ConversionKind.Unboxing:
+                case ConversionKind.ExplicitReference:
+                case ConversionKind.IntPtr:
+                case ConversionKind.ExplicitEnumeration:
+                case ConversionKind.ExplicitNumeric:
+                case ConversionKind.ImplicitDynamic:
+                case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
                     isTrivial = true;
                     break;

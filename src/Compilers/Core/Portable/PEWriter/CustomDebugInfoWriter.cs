@@ -111,7 +111,7 @@ namespace Microsoft.Cci
 
             byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
 
-            foreach(var builder in customDebugInfo)
+            foreach (var builder in customDebugInfo)
             {
                 builder.Free();
             }
@@ -131,7 +131,7 @@ namespace Microsoft.Cci
             {
                 customDebugInfo.Add(
                     SerializeRecord(
-                        CustomDebugInfoKind.EditAndContinueLocalSlotMap, 
+                        CustomDebugInfoKind.EditAndContinueLocalSlotMap,
                         debugInfo,
                         (info, builder) => info.SerializeLocalSlots(builder)));
             }
@@ -319,7 +319,7 @@ namespace Microsoft.Cci
             }
 
             int records = 0;
-            foreach(var rec in recordWriters)
+            foreach (var rec in recordWriters)
             {
                 records += rec.Count;
             }

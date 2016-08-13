@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
     {
         protected abstract class AbstractTypeInferrer
         {
-
             protected readonly CancellationToken CancellationToken;
             protected readonly SemanticModel SemanticModel;
             protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;

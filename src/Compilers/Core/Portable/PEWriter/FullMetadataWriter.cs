@@ -59,8 +59,8 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitDynamicAnalysisData ? 
-                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
+            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitDynamicAnalysisData ?
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) :
                 null;
 
             return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
@@ -266,7 +266,7 @@ namespace Microsoft.Cci
         }
 
         protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
-        
+
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;

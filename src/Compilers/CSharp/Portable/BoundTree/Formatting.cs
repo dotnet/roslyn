@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append('(');
                 builder.Append(arguments[0].Display);
 
-                for(int i = 1; i < arguments.Length; i++)
+                for (int i = 1; i < arguments.Length; i++)
                 {
                     builder.Append(", ");
                     builder.Append(arguments[i].Display);

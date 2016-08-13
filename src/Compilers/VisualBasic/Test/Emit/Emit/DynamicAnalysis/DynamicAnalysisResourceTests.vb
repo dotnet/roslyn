@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
     Public Class DynamicAnalysisResourceTests
         Inherits BasicTestBase
 
-        ReadOnly InstrumentationHelperSource As XElement = <file name="a.vb">
-                                                               <![CDATA[
+        Private ReadOnly _instrumentationHelperSource As XElement = <file name="a.vb">
+                                                                       <![CDATA[
 Namespace Microsoft.CodeAnalysis.Runtime
     Public Class Instrumentation
         Public Shared Function CreatePayload(mvid As System.Guid, methodToken As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
@@ -29,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ]]>
-                                                           </file>
+                                                                   </file>
 
-        ReadOnly ExampleSource As XElement = <file name="c.vb">
-                                                 <![CDATA[
+        Private ReadOnly _exampleSource As XElement = <file name="c.vb">
+                                                         <![CDATA[
 Imports System
 
 Public Class C
@@ -60,13 +60,13 @@ Public Class C
     Public Shared ReadOnly Property Betty As Integer
 End Class
 ]]>
-                                             </file>
+                                                     </file>
 
         <Fact>
         Public Sub TestSpansPresentInResource()
             Dim source As XElement = <compilation></compilation>
-            source.Add(ExampleSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_exampleSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -78,7 +78,7 @@ End Class
 
             Assert.Equal(11, reader.Methods.Length)
 
-            Dim sourceLines As String() = ExampleSource.ToString().Split(vbLf(0))
+            Dim sourceLines As String() = _exampleSource.ToString().Split(vbLf(0))
 
             VerifySpans(reader, reader.Methods(1), sourceLines,                                 ' Main
                 New SpanResult(3, 4, 6, 11, "Public Shared Sub Main()"),
@@ -181,7 +181,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -279,7 +279,7 @@ End Module
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -307,7 +307,7 @@ End Module
         <Fact>
         Public Sub TestBranches()
             Dim testSource As XElement = <file name="c.vb">
-                <![CDATA[
+                                             <![CDATA[
 Module Program
     Sub Branches()
         Dim y As Integer = 0
@@ -342,10 +342,10 @@ MyLabel:
     End Sub
 End Module
 ]]>
-            </file>
+                                         </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -437,7 +437,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -540,7 +540,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -628,7 +628,7 @@ End Class
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
@@ -667,8 +667,8 @@ End Class
         <Fact>
         Public Sub TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
             Dim source As Xml.Linq.XElement = <compilation></compilation>
-            source.Add(ExampleSource)
-            source.Add(InstrumentationHelperSource)
+            source.Add(_exampleSource)
+            source.Add(_instrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default)
@@ -705,20 +705,20 @@ End Class
         End sub
 
         Private Shared Sub VerifySpans(reader As DynamicAnalysisDataReader, methodData As DynamicAnalysisMethod, ParamArray expected As String())
-                AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(Function(s) $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"))
-            End Sub
+            AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(Function(s) $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"))
+        End Sub
 
-            Private Sub VerifyDocuments(reader As DynamicAnalysisDataReader, documents As ImmutableArray(Of DynamicAnalysisDocument), ParamArray expected As String())
-                Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87F7-6F4963833460")
+        Private Sub VerifyDocuments(reader As DynamicAnalysisDataReader, documents As ImmutableArray(Of DynamicAnalysisDocument), ParamArray expected As String())
+            Dim sha1 = New Guid("ff1816ec-aa5e-4d10-87F7-6F4963833460")
 
-                Dim actual = From d In documents
-                             Let name = reader.GetDocumentName(d.Name)
-                             Let hash = If(d.Hash.IsNil, "", " " + BitConverter.ToString(reader.GetBytes(d.Hash)))
-                             Let hashAlgGuid = reader.GetGuid(d.HashAlgorithm)
-                             Let hashAlg = If(hashAlgGuid = sha1, " (SHA1)", If(hashAlgGuid = New Guid, "", " " + hashAlgGuid.ToString()))
-                             Select $"'{name}'{hash}{hashAlg}"
+            Dim actual = From d In documents
+                         Let name = reader.GetDocumentName(d.Name)
+                         Let hash = If(d.Hash.IsNil, "", " " + BitConverter.ToString(reader.GetBytes(d.Hash)))
+                         Let hashAlgGuid = reader.GetGuid(d.HashAlgorithm)
+                         Let hashAlg = If(hashAlgGuid = sha1, " (SHA1)", If(hashAlgGuid = New Guid, "", " " + hashAlgGuid.ToString()))
+                         Select $"'{name}'{hash}{hashAlg}"
 
-                AssertEx.Equal(expected, actual)
-            End Sub
-        End Class
+            AssertEx.Equal(expected, actual)
+        End Sub
+    End Class
 End Namespace

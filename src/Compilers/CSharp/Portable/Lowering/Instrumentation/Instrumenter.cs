@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.DoStatement);
-            return ifConditionGotoStart; 
+            return ifConditionGotoStart;
         }
 
         public virtual BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)

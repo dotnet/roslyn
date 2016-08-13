@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
-        internal AssemblySymbol CorLibrary {  get { return corLibrary; } }
+        internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via

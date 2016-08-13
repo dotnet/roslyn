@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class PartialTypeCompletionProvider
         Inherits AbstractPartialTypeCompletionProvider
 
-        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+        Private Const s_insertionTextOnOpenParen As String = NameOf(s_insertionTextOnOpenParen)
 
-        Private Shared ReadOnly _insertionTextFormatWithGenerics As SymbolDisplayFormat =
+        Private Shared ReadOnly s_insertionTextFormatWithGenerics As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     SymbolDisplayGenericsOptions.IncludeVariance Or
                     SymbolDisplayGenericsOptions.IncludeTypeConstraints)
 
-        Private Shared ReadOnly _displayTextFormat As SymbolDisplayFormat =
-            _insertionTextFormatWithGenerics.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
+        Private Shared ReadOnly s_displayTextFormat As SymbolDisplayFormat =
+            s_insertionTextFormatWithGenerics.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -45,21 +45,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As ValueTuple(Of String, String)
-            Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_displayTextFormat)
-            Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_insertionTextFormatWithGenerics)
+            Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=s_displayTextFormat)
+            Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=s_insertionTextFormatWithGenerics)
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
         Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,
                                                    context As SyntaxContext) As ImmutableDictionary(Of String, String)
             Return ImmutableDictionary(Of String, String).Empty.Add(
-                InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
+                s_insertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
         End Function
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
                 Dim insertionText As String = Nothing
-                If selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                If selectedItem.Properties.TryGetValue(s_insertionTextOnOpenParen, insertionText) Then
                     Return New TextChange(selectedItem.Span, insertionText)
                 End If
             End If

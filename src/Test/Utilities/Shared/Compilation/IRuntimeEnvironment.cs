@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,12 +15,10 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-
     public class RuntimeEnvironmentFactory
     {
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
-    {
-
+        {
 #if DNX
             return new CoreCLRRuntimeEnvironment(additionalDependencies);
 #else
@@ -42,7 +41,6 @@ namespace Roslyn.Test.Utilities
 
     internal static class RuntimeUtilities
     {
-
         private static int s_dumpCount;
 
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)

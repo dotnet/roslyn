@@ -148,5 +148,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
         }
-     }
+    }
 }

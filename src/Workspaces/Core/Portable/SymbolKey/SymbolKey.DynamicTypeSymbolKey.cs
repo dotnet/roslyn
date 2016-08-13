@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
     {
         private static class DynamicTypeSymbolKey
         {
-            private static readonly object instance = new object();
+            private static readonly object s_instance = new object();
 
             public static void Create(SymbolKeyWriter visitor)
             {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 
             public static int GetHashCode(GetHashCodeReader reader)
             {
-                return instance.GetHashCode();
+                return s_instance.GetHashCode();
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

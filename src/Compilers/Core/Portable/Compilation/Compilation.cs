@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis
         internal void CompleteCompilationEventQueue_NoLock()
         {
             Debug.Assert(EventQueue != null);
-            
+
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
             EventQueue.PromiseNotToEnqueue();
@@ -1584,8 +1584,8 @@ namespace Microsoft.CodeAnalysis
                     if (existingDoc == null)
                     {
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
-                            normalizedPath, 
-                            DebugSourceDocumentLanguageId, 
+                            normalizedPath,
+                            DebugSourceDocumentLanguageId,
                             () => tree.GetDebugSourceInfo()));
                     }
                 }
@@ -1828,7 +1828,7 @@ namespace Microsoft.CodeAnalysis
 
             if (sourceLinkStream != null)
             {
-                if (options == null || 
+                if (options == null ||
                     options.DebugInformationFormat == DebugInformationFormat.Pdb ||
                     options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
                 {
@@ -1842,7 +1842,7 @@ namespace Microsoft.CodeAnalysis
             }
             if (embeddedTexts != null && !embeddedTexts.IsEmpty())
             {
-                if (options == null || 
+                if (options == null ||
                     options.DebugInformationFormat == DebugInformationFormat.Pdb ||
                     options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
                 {
@@ -1925,7 +1925,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2124,7 +2124,7 @@ namespace Microsoft.CodeAnalysis
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(debugFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
 
-            string pdbPath = (pdbStreamProvider != null || debugFormat == DebugInformationFormat.Embedded) ? 
+            string pdbPath = (pdbStreamProvider != null || debugFormat == DebugInformationFormat.Embedded) ?
                 (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
@@ -2547,7 +2547,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
-        
+
         internal abstract bool IsIOperationFeatureEnabled();
     }
 }

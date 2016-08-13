@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
-        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass = 
+        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass =
             t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project> projects, 
+            IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
-            bool transitive, 
+            bool transitive,
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
-           }
+            }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Now search the project and see what source types we can find.
             var foundSourceTypes = await FindSourceTypesInProjectAsync(
-                currentSourceAndMetadataTypes, project, 
+                currentSourceAndMetadataTypes, project,
                 sourceTypeImmediatelyMatches,
                 shouldContinueSearching,
                 transitive, cancellationToken).ConfigureAwait(false);
@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ISet<ProjectId>> GetProjectsThatCouldReferenceTypeAsync(
-            INamedTypeSymbol type, 
-            Solution solution, 
+            INamedTypeSymbol type,
+            Solution solution,
             bool searchInMetadata,
             CancellationToken cancellationToken)
         {
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Search all the documents of this project in parallel.
                 var tasks = project.Documents.Select(d => FindImmediatelyInheritingTypesInDocumentAsync(
                     d, typesToSearchFor, inheritanceQuery,
-                    cachedModels, cachedInfos, 
+                    cachedModels, cachedInfos,
                     sourceTypeImmediatelyMatches, cancellationToken)).ToArray();
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -540,8 +540,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             HashSet<INamedTypeSymbol> typesToSearchFor,
             InheritanceQuery inheritanceQuery,
-            ConcurrentSet<SemanticModel> cachedModels, 
-            ConcurrentSet<IDeclarationInfo> cachedInfos, 
+            ConcurrentSet<SemanticModel> cachedModels,
+            ConcurrentSet<IDeclarationInfo> cachedInfos,
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ISymbol> ResolveAsync(
-            Document document, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> cachedModels, 
+            Document document, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
                     var projectId = kvp.Value;
 
                     var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                    
+
                     RecordSourceOfAssemblySymbol(symbol, projectId);
                 }
 

@@ -22,45 +22,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> _onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> _offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> _onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> _offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> _onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> _offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypeWhereApparentAndForIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypeEnforcements() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithWarning)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithWarning)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithError)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithInfo);
 
         private IDictionary<OptionKey, object> ImplicitTypeNoneEnforcement() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _onWithNone);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -1442,7 +1442,7 @@ class C
                 diagnosticSeverity: DiagnosticSeverity.Error);
         }
 
-        private static string trivial2uple =
+        private static string s_trivial2uple =
                     @"
 namespace System
 {
@@ -1476,8 +1476,8 @@ namespace System
         public async Task ValueTupleCreate()
         {
             await TestAsync(
-@"using System; class C { static void M() { [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1); } }" + trivial2uple,
-@"using System; class C { static void M() { var s = ValueTuple.Create(1, 1); } }" + trivial2uple,
+@"using System; class C { static void M() { [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1); } }" + s_trivial2uple,
+@"using System; class C { static void M() { var s = ValueTuple.Create(1, 1); } }" + s_trivial2uple,
 options: ImplicitTypeWhereApparent(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);

@@ -345,7 +345,7 @@ public class Test
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(2, 1)
             );
         }
-        
+
         [Fact]
         public void RefMethodGroup()
         {
@@ -402,7 +402,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
             );
         }
-        
+
         [Fact]
         public void RefReadonlyField()
         {

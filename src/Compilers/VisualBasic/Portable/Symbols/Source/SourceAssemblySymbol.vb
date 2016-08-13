@@ -1640,8 +1640,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity

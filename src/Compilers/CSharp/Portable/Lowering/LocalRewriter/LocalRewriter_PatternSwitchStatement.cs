@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
             {
                 this.LocalRewriter = localRewriter;
-                this._factory = localRewriter._factory;
+                _factory = localRewriter._factory;
                 foreach (var section in node.SwitchSections)
                 {
                     SwitchSections.Add(section, ArrayBuilder<BoundStatement>.GetInstance());
@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
-                var oldLoweredDecisionTree = this._loweredDecisionTree;
-                this._loweredDecisionTree = loweredDecisionTree;
+                var oldLoweredDecisionTree = _loweredDecisionTree;
+                _loweredDecisionTree = loweredDecisionTree;
                 LowerDecisionTree(expression, decisionTree);
-                this._loweredDecisionTree = oldLoweredDecisionTree;
+                _loweredDecisionTree = oldLoweredDecisionTree;
             }
 
             private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree)
