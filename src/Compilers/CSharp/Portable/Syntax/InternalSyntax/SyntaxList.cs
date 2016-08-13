@@ -93,16 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal static CSharpSyntaxNode List(SyntaxListBuilder builder)
-        {
-            if (builder != null)
-            {
-                return builder.ToListNode();
-            }
-
-            return null;
-        }
-
         internal abstract void CopyTo(ArrayElement<CSharpSyntaxNode>[] array, int offset);
 
         internal static CSharpSyntaxNode Concat(CSharpSyntaxNode left, CSharpSyntaxNode right)
