@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             //}
             //else
             //{
-                PushCompleteSolutionToWorkspace(s_getProjectInfoForProject);
+                FinishLoad(_projectMap.Values, s_getProjectInfoForProject);
             //}
 
             return VSConstants.S_OK;
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"Done creating projects - pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
             start = DateTimeOffset.UtcNow;
-            PushCompleteSolutionToWorkspace(p => projectToProjectInfo[p]);
+            FinishLoad(projectToProjectInfo.Keys, p => projectToProjectInfo[p]);
             OutputToOutputWindow($"Done pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
         }
 
@@ -144,26 +144,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IWorkspaceProjectContext CreateProjectFromProjectInfo(IWorkspaceProjectContextFactory workspaceProjectContextFactory, Dictionary<AbstractProject, ProjectInfo> projectToProjectInfo, ProjectInfo projectInfo, SolutionInfo solutionInfo)
         {
-            // Pre-prime our list of project Ids, so that the ones in solutionInfo will get re-used
-            // by the Project's we create 
-            AddProjectIdForPath(projectInfo.FilePath, projectInfo.Name, projectInfo.Id);
+            // First try to put this project's id into the list for this project.  If we can't
+            // it means that there is already an existing "real" project, so just return.
+            if (!TryAddProjectIdForPath(projectInfo.FilePath, projectInfo.Name, projectInfo.Id))
+            {
+                return null;
+            }
 
-            // If this project already exists, either because it was loaded by VS, or because
-            // we demand loaded it to satisfy a project reference from another project, then
-            // there is nothing to do.
+            // If this project already exists, because we demand loaded it to satisfy a
+            // project reference from another project, then there is nothing to do.
             var existingProject = Projects.SingleOrDefault(p => p.Id == projectInfo.Id);
             if (existingProject != null)
             {
                 return existingProject as IWorkspaceProjectContext;
             }
 
+            // TODO: We need to actually get an output path somehow.
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 projectInfo.Language,
                 projectInfo.Name,
                 projectInfo.FilePath,
                 Guid.Empty,
                 hierarchy: null,
-                commandLineForOptions: projectInfo.CommandLineOpt);
+                binOutputPath: null);
+
+            projectContext.SetOptions(projectInfo.CommandLineOpt);
 
             foreach (var documentInfo in projectInfo.Documents)
             {
@@ -196,11 +201,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     referencedProject = CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, referencedProjectInfo, solutionInfo);
                 }
 
-                // TODO: If VS loaded a full project for this already, we will get null back from CreateProjectFromProjectInfo.
-
-                projectContext.AddProjectReference(
-                    referencedProject,
-                    new MetadataReferenceProperties(aliases: reference.Aliases, embedInteropTypes: reference.EmbedInteropTypes));
+                if (referencedProject != null)
+                {
+                    projectContext.AddProjectReference(
+                        referencedProject,
+                        new MetadataReferenceProperties(aliases: reference.Aliases, embedInteropTypes: reference.EmbedInteropTypes));
+                }
+                else
+                {
+                    // If referencedProject is still null, it means that this project was already created by the regular project system.
+                    // See if we can find the matching project somehow.
+                    var referenceInfo = solutionInfo.Projects.SingleOrDefault(p => p.Id == reference.ProjectId);
+                    if (referenceInfo != null)
+                    {
+                        var existingReference = Projects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, referenceInfo.FilePath));
+                        var existingReferenceOutputPath = existingReference?.BinOutputPath;
+                        if (existingReferenceOutputPath != null)
+                        {
+                            projectContext.AddMetadataReference(
+                                existingReferenceOutputPath,
+                                new MetadataReferenceProperties(aliases: reference.Aliases, embedInteropTypes: reference.EmbedInteropTypes));
+                        }
+                    }
+                }
             }
 
             foreach (var reference in projectInfo.AnalyzerReferences)
@@ -219,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return loader.LoadSolutionInfoAsync(solutionFilename, cancellationToken);
         }
 
-        private void PushCompleteSolutionToWorkspace(Func<AbstractProject, ProjectInfo> getProjectInfo)
+        private void FinishLoad(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
         {
             // We are now completely done, so let's simply ensure all projects are added.
             StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(this.ImmutableProjects);
