@@ -161,14 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (SyntaxKind)this.Green.RawKind;
         }
 
-        protected override string KindText
-        {
-            get
-            {
-                return this.Kind().ToString();
-            }
-        }
-
         /// <summary>
         /// The language name that this node is syntax of.
         /// </summary>

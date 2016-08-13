@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int RawKind => Green.RawKind;
 
-        protected abstract string KindText { get; }
+        protected string KindText => Green.KindText;
 
         /// <summary>
         /// The language name that this node is syntax of.

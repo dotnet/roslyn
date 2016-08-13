@@ -63,13 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return (SyntaxKind)this.RawKind; }
         }
 
-        public override string KindText
-        {
-            get
-            {
-                return this.Kind.ToString();
-            }
-        }
+        public override string KindText => this.Kind.ToString();
 
         public override int RawContextualKind
         {

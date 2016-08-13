@@ -107,12 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(Me.Green.RawKind, SyntaxKind)
         End Function
 
-        Protected Overrides ReadOnly Property KindText As String
-            Get
-                Return Me.Kind.ToString()
-            End Get
-        End Property
-
         ''' <summary>
         ''' The language name this node is syntax of.
         ''' </summary>
