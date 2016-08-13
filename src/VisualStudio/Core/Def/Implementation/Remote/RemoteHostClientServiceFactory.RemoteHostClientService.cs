@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly object _gate;
 
+            private SolutionChecksumUpdator _checksumUpdator;
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
@@ -62,6 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
 
                     var token = _shutdownCancellationTokenSource.Token;
+
+                    // create solution checksum updator
+                    _checksumUpdator = new SolutionChecksumUpdator(_workspace, token);
+
                     _instanceTask = Task.Run(() => EnableAsync(token), token);
                 }
             }
@@ -76,18 +81,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    var instance = _instanceTask;
+                    var instanceTask = _instanceTask;
                     _instanceTask = null;
 
                     RemoveGlobalAssets();
 
                     _shutdownCancellationTokenSource.Cancel();
 
+                    _checksumUpdator.Shutdown();
+                    _checksumUpdator = null;
+
                     try
                     {
-                        instance.Wait(_shutdownCancellationTokenSource.Token);
-
-                        instance.Result.Shutdown();
+                        instanceTask.Wait(_shutdownCancellationTokenSource.Token);
+                        instanceTask.Result.Shutdown();
                     }
                     catch (OperationCanceledException)
                     {
@@ -111,6 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // service is in shutdown mode or not enabled
                     return SpecializedTasks.Default<RemoteHostClient>();
                 }
+
+                // ensure we have solution checksum
+                _checksumUpdator.EnsureSolutionChecksum(cancellationToken);
 
                 return instanceTask;
             }

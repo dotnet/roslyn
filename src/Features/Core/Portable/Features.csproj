@@ -247,6 +247,7 @@
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
+    <Compile Include="SolutionCrawler\GlobalOperationAwareIdleProcessor.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
@@ -612,7 +613,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.HighPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.IncrementalAnalyzerProcessor.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinator.GlobalOperationAwareIdleProcessor.cs" />
+    <Compile Include="SolutionCrawler\WorkCoordinator.AbstractPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.LowPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
