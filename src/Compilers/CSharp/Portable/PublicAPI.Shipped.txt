@@ -2496,7 +2496,6 @@ override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.PreprocessorSymbolName
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Language.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorList(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode

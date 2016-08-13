@@ -1,5 +1,6 @@
 *REMOVED*NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
 *REMOVED*NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
+*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.WriteTo(writer As System.IO.TextWriter) -> Void
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void

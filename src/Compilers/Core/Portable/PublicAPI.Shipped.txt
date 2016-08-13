@@ -1746,7 +1746,6 @@ abstract Microsoft.CodeAnalysis.SourceReferenceResolver.ResolveReference(string 
 abstract Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 abstract Microsoft.CodeAnalysis.SyntaxNode.Language.get -> string
 abstract Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-abstract Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 abstract Microsoft.CodeAnalysis.SyntaxReference.GetSyntax(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.SyntaxReference.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 abstract Microsoft.CodeAnalysis.SyntaxReference.SyntaxTree.get -> Microsoft.CodeAnalysis.SyntaxTree

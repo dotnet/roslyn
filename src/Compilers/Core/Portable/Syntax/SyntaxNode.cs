@@ -304,7 +304,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Writes the full text of this node to the specified <see cref="TextWriter"/>.
         /// </summary>
-        public abstract void WriteTo(TextWriter writer);
+        public virtual void WriteTo(TextWriter writer)
+        {
+            this.Green.WriteTo(writer, leading: true, trailing: true);
+        }
 
         /// <summary>
         /// Gets the full text of this node as an new <see cref="SourceText"/> instance.

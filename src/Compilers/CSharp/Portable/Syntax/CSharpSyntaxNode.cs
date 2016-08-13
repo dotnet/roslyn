@@ -240,14 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Writes the full text of this node to the specified TextWriter.
-        /// </summary>
-        public override void WriteTo(System.IO.TextWriter writer)
-        {
-            this.Green.WriteTo(writer, true, true);
-        }
-
 #region serialization
 
 

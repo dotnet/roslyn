@@ -138,13 +138,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        ''' <summary>
-        ''' Writes the full text of this node to the specified TextWriter
-        ''' </summary>
-        Public Overrides Sub WriteTo(writer As IO.TextWriter)
-            Me.Green.WriteTo(writer)
-        End Sub
-
 #Region "Serialization"
 
         Private Shared ReadOnly s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
