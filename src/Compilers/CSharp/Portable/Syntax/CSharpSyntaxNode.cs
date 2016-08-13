@@ -243,27 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #region serialization
 
         /// <summary>
-        /// Serialize the syntax node into a byte stream.
-        /// </summary>
-        public override void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (!stream.CanWrite)
-            {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
-            }
-
-            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
-            {
-                writer.WriteValue(this.Green);
-            }
-        }
-
-        /// <summary>
         /// Deserialize a syntax node from the byte stream.
         /// </summary>
         public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
@@ -286,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ObjectWriterData s_defaultObjectWriterData;
-        private static ObjectWriterData GetDefaultObjectWriterData()
+        internal override ObjectWriterData GetDefaultObjectWriterData()
         {
             if (s_defaultObjectWriterData == null)
             {

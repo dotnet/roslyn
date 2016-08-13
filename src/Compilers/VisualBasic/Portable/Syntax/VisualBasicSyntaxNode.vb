@@ -141,15 +141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Serialization"
 
         ''' <summary>
-        ''' Serialize this node to a byte stream.
-        ''' </summary>
-        Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
-            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
-                writer.WriteValue(Me.Green)
-            End Using
-        End Sub
-
-        ''' <summary>
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
@@ -167,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared s_defaultObjectWriterData As ObjectWriterData
-        Private Shared Function GetDefaultObjectWriterData() As ObjectWriterData
+        Friend Overrides Function GetDefaultObjectWriterData() As ObjectWriterData
             If s_defaultObjectWriterData Is Nothing Then
                 Interlocked.CompareExchange(s_defaultObjectWriterData, New ObjectWriterData(GetSerializationData()), Nothing)
             End If

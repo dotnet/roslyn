@@ -1231,7 +1231,25 @@ recurse:
 
         internal static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
 
-        public abstract void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (!stream.CanWrite)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
+            }
+
+            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            {
+                writer.WriteValue(this.Green);
+            }
+        }
+
+        internal abstract ObjectWriterData GetDefaultObjectWriterData();
 
         #region Core Methods
 

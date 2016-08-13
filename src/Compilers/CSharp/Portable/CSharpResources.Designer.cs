@@ -10566,15 +10566,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The stream cannot be written to..
-        /// </summary>
-        internal static string TheStreamCannotBeWritten {
-            get {
-                return ResourceManager.GetString("TheStreamCannotBeWritten", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This method can only be used to create tokens - {0} is not a token kind..
         /// </summary>
         internal static string ThisMethodCanOnlyBeUsedToCreateTokens {
