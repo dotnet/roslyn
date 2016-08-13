@@ -37,14 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
-        }
-
         //TODO: move to common
         /// <summary>
         /// Creates a clone of a red node that can be used as a root of given syntaxTree.

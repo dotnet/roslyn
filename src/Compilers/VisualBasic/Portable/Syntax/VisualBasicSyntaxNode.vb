@@ -31,12 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _syntaxTree = syntaxTree
         End Sub
 
-        Friend Overrides ReadOnly Property Navigator As AbstractSyntaxNavigator
-            Get
-                Return SyntaxNavigator.Instance
-            End Get
-        End Property
-
         'TODO: may be eventually not needed
         Friend ReadOnly Property VbGreen As InternalSyntax.VisualBasicSyntaxNode
             Get

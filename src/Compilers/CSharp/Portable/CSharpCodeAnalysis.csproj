@@ -843,7 +843,6 @@
     <Compile Include="Syntax\SyntaxListBuilder.cs" />
     <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
-    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxFacts.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />

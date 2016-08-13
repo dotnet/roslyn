@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis
             this._syntaxTree = syntaxTree;
         }
 
-        internal abstract AbstractSyntaxNavigator Navigator { get; }
-
         private string GetDebuggerDisplay()
         {
             return GetType().Name + " " + KindText + " " + ToString();
@@ -822,7 +820,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The first token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetFirstToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return this.Navigator.GetFirstToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetFirstToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -831,7 +829,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The last token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetLastToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return this.Navigator.GetLastToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetLastToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>

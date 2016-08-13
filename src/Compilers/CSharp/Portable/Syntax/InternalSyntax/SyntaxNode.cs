@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
+        public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
+
         public override int GetSlotOffset(int index)
         {
             // This implementation should not support arbitrary
@@ -296,14 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return flags;
-        }
-
-        public override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
         }
 
         public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)

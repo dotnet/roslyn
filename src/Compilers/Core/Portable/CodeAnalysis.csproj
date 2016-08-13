@@ -644,7 +644,7 @@
     <Compile Include="Symbols\TypeParameterKind.cs" />
     <Compile Include="Symbols\VarianceKind.cs" />
     <Compile Include="Symbols\WellKnownMemberNames.cs" />
-    <Compile Include="Syntax\AbstractSyntaxNavigator.cs" />
+    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\AbstractWarningStateMap.cs" />
     <Compile Include="Syntax\AnnotationExtensions.cs" />
     <Compile Include="Syntax\ChildSyntaxList.cs" />
