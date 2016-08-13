@@ -374,24 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endregion
 
         /// <summary>
-        /// Determines whether this node is structurally equivalent to another.
-        /// </summary>
-        internal bool IsEquivalentTo(CSharpSyntaxNode other)
-        {
-            if (this == other)
-            {
-                return true;
-            }
-
-            if (other == null)
-            {
-                return false;
-            }
-
-            return this.Green.IsEquivalentTo(other.Green);
-        }
-
-        /// <summary>
         /// Gets a <see cref="Location"/> for this node.
         /// </summary>
         public new Location GetLocation()
@@ -662,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         protected override bool EquivalentToCore(SyntaxNode other)
         {
-            return IsEquivalentTo(other as CSharpSyntaxNode);
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override SyntaxTree SyntaxTreeCore

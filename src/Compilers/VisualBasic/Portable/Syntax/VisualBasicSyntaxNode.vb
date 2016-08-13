@@ -371,21 +371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Compares to tree for structural equivalence.
-        ''' </summary>
-        Friend Shadows Function IsEquivalentTo(other As VisualBasicSyntaxNode) As Boolean
-            If other Is Nothing Then
-                Return False
-            End If
-
-            If Me Is other Then
-                Return True
-            End If
-
-            Return Me.Green.IsEquivalentTo(other.Green)
-        End Function
-
-        ''' <summary>
         ''' Add an error to the given node, creating a new node that is the same except it has no parent,
         ''' and has the given error attached to it. The error span is the entire span of this node.
         ''' </summary>
@@ -486,9 +471,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #Region "Core Overloads"
-        Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
-            Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
-        End Function
 
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
             Get

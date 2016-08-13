@@ -334,7 +334,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsEquivalentTo(SyntaxNode other)
         {
-            return EquivalentToCore(other);
+            if (this == other)
+            {
+                return true;
+            }
+
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.Green.IsEquivalentTo(other.Green);
         }
 
         /// <summary>
@@ -1226,7 +1236,10 @@ recurse:
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
         /// </summary>
-        protected abstract bool EquivalentToCore(SyntaxNode other);
+        protected virtual bool EquivalentToCore(SyntaxNode other)
+        {
+            return IsEquivalentTo(other);
+        }
 
         /// <summary>
         /// Returns SyntaxTree that owns the node or null if node does not belong to a
@@ -1416,6 +1429,7 @@ recurse:
         /// nodes and tokens must be equivalent. 
         /// </param>
         protected abstract bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false);
+
         #endregion
     }
 }
