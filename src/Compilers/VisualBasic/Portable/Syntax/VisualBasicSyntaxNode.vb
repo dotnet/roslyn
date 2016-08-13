@@ -140,12 +140,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Serialization"
 
-        Private Shared ReadOnly s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
         ''' <summary>
         ''' Serialize this node to a byte stream.
         ''' </summary>
         Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
-            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
+            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
                 writer.WriteValue(Me.Green)
             End Using
         End Sub
@@ -154,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-            Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=s_binder)
+            Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=s_defaultBinder)
                 Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function

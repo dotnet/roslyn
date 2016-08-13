@@ -1229,6 +1229,8 @@ recurse:
             return IsEquivalentToCore(node, topLevel);
         }
 
+        internal static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
+
         public abstract void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
 
         #region Core Methods
