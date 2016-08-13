@@ -323,7 +323,7 @@ Friend Class GreenNodeFactoryWriter
             'If hash >= 0 Then
             _writer.WriteLine("            If hash >= 0 Then")
             '    SyntaxNodeCache.AddNode(result, hash)
-            _writer.WriteLine("                CommonSyntaxNodeCache.AddNode(result, hash)")
+            _writer.WriteLine("                SyntaxNodeCache.AddNode(result, hash)")
             'End If
             _writer.WriteLine("            End If")
             _writer.WriteLine("")

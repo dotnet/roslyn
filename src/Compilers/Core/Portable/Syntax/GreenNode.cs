@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool IsStructuredTrivia => false;
         public virtual bool IsDirective => false;
         public virtual bool IsToken => false;
+        public virtual bool IsTrivia => false;
         public virtual bool IsSkippedTokensTrivia => false;
         public virtual bool IsDocumentationCommentTrivia => false;
 
