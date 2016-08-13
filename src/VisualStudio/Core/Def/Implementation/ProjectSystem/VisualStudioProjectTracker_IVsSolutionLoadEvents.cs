@@ -16,12 +16,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class VisualStudioProjectTracker : IVsSolutionLoadEvents
     {
-        private CancellationTokenSource _solutionParsingCancellationTokenSource = new CancellationTokenSource();
+        // TODO: Query the actual option and set this properly
+        private bool _deferredProjectLoadIsEnabled = true;
+
+        // Temporary for prototyping purposes
         private IVsOutputWindowPane _pane;
+
+        /// <summary>
+        /// Used to cancel our background solution parse if we get a solution close event from VS.
+        /// </summary>
+        private CancellationTokenSource _solutionParsingCancellationTokenSource = new CancellationTokenSource();
 
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            LoadSolutionFromMSBuild(pszSolutionFilename, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+            if (_deferredProjectLoadIsEnabled)
+            {
+                LoadSolutionFromMSBuild(pszSolutionFilename, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+            }
 
             return VSConstants.S_OK;
         }
@@ -82,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
             // TODO: Not called in DPL scenarios?
-            //if (_inDeferredProjectLoad)
+            //if (_deferredProjectLoadIsEnabled )
             //{
             //    LoadSolutionInBackground();
             //}
