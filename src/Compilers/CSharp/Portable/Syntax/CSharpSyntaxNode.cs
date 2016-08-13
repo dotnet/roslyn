@@ -518,26 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #endregion
 
-#region Node Lookup
-
-        /// <summary>
-        /// Returns child node or token that contains given position.
-        /// </summary>
-        public override SyntaxNodeOrToken ChildThatContainsPosition(int position)
-        {
-            //PERF: it is very important to keep this method fast.
-
-            if (!FullSpan.Contains(position))
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
-            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
-            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
-            return childNodeOrToken;
-        }
-#endregion
-
 #region Token Lookup
 
         /// <summary>

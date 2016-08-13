@@ -485,23 +485,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-#Region "Node Lookup"
-        ''' <summary>
-        ''' Returns child node or token that contains given position.
-        ''' </summary>
-        Public Overrides Function ChildThatContainsPosition(position As Integer) As SyntaxNodeOrToken
-            'PERF: it is very important to keep this method fast.
-
-            If Not FullSpan.Contains(position) Then
-                Throw New ArgumentOutOfRangeException(NameOf(position))
-            End If
-
-            Dim childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(Me, position)
-            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.")
-            Return childNodeOrToken
-        End Function
-#End Region
-
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
             Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))

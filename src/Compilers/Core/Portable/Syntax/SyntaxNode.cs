@@ -608,7 +608,19 @@ namespace Microsoft.CodeAnalysis
             return new ChildSyntaxList(this);
         }
 
-        public abstract SyntaxNodeOrToken ChildThatContainsPosition(int position);
+        public virtual SyntaxNodeOrToken ChildThatContainsPosition(int position)
+        {
+            //PERF: it is very important to keep this method fast.
+
+            if (!FullSpan.Contains(position))
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
+            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
+            return childNodeOrToken;
+        }
 
         /// <summary>
         /// Gets node at given node index. 

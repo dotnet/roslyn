@@ -4381,7 +4381,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(obj 
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Features() -> System.Collections.Generic.IReadOnlyDictionary(Of String, String)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbolNames() -> System.Collections.Generic.IEnumerable(Of String)
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ChildThatContainsPosition(position As Integer) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SerializeTo(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode

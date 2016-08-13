@@ -1743,7 +1743,6 @@ abstract Microsoft.CodeAnalysis.SemanticModel.SyntaxTreeCore.get -> Microsoft.Co
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.NormalizePath(string path, string baseFilePath) -> string
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.OpenRead(string resolvedPath) -> System.IO.Stream
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.ResolveReference(string path, string baseFilePath) -> string
-abstract Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 abstract Microsoft.CodeAnalysis.SyntaxNode.Language.get -> string
 abstract Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 abstract Microsoft.CodeAnalysis.SyntaxReference.GetSyntax(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
