@@ -63,13 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return (SyntaxKind)this.RawKind; }
         }
 
-        public override string KindText
-        {
-            get
-            {
-                return this.Kind.ToString();
-            }
-        }
+        public override string KindText => this.Kind.ToString();
 
         public override int RawContextualKind
         {
@@ -92,6 +86,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 return this is DirectiveTriviaSyntax;
+            }
+        }
+
+        public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
+        public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
+
+        public override int GetSlotOffset(int index)
+        {
+            // This implementation should not support arbitrary
+            // length lists since the implementation is O(n).
+            System.Diagnostics.Debug.Assert(index < 11); // Max. slots 11 (TypeDeclarationSyntax)
+
+            int offset = 0;
+            for (int i = 0; i < index; i++)
+            {
+                var child = this.GetSlot(i);
+                if (child != null)
+                {
+                    offset += child.FullWidth;
+                }
+            }
+
+            return offset;
+        }
+
+        internal ChildSyntaxList ChildNodesAndTokens()
+        {
+            return new ChildSyntaxList(this);
+        }
+
+        /// <summary>
+        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// </summary>
+        internal IEnumerable<GreenNode> EnumerateNodes()
+        {
+            yield return this;
+
+            var stack = new Stack<ChildSyntaxList.Enumerator>(24);
+            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
+
+            while (stack.Count > 0)
+            {
+                var en = stack.Pop();
+                if (!en.MoveNext())
+                {
+                    // no more down this branch
+                    continue;
+                }
+
+                var current = en.Current;
+                stack.Push(en); // put it back on stack (struct enumerator)
+
+                yield return current;
+
+                if (!(current is SyntaxToken))
+                {
+                    // not token, so consider children
+                    stack.Push(((CSharpSyntaxNode)current).ChildNodesAndTokens().GetEnumerator());
+                    continue;
+                }
             }
         }
 
@@ -210,12 +264,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public override AbstractSyntaxNavigator Navigator
+        internal static NodeFlags SetFactoryContext(NodeFlags flags, SyntaxFactoryContext context)
         {
-            get
+            if (context.IsInAsync)
             {
-                return SyntaxNavigator.Instance;
+                flags |= NodeFlags.FactoryContextIsInAsync;
             }
+
+            if (context.IsInQuery)
+            {
+                flags |= NodeFlags.FactoryContextIsInQuery;
+            }
+
+            return flags;
         }
 
         public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)

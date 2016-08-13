@@ -7,11 +7,39 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class AbstractSyntaxNavigator
+    internal class SyntaxNavigator
     {
         private const int None = 0;
 
-        protected abstract Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments);
+        public static readonly SyntaxNavigator Instance = new SyntaxNavigator();
+
+        [Flags]
+        private enum SyntaxKinds
+        {
+            DocComments = 1,
+            Directives = 2,
+            SkippedTokens = 4,
+        }
+
+        private static readonly Func<SyntaxTrivia, bool>[] s_stepIntoFunctions = new Func<SyntaxTrivia, bool>[]
+        {
+            /* 000 */ null,
+            /* 001 */ t =>                                             t.IsDocumentationCommentTrivia,
+            /* 010 */ t =>                            t.IsDirective,
+            /* 011 */ t =>                            t.IsDirective || t.IsDocumentationCommentTrivia,
+            /* 100 */ t => t.IsSkippedTokensTrivia,
+            /* 101 */ t => t.IsSkippedTokensTrivia                  || t.IsDocumentationCommentTrivia,
+            /* 110 */ t => t.IsSkippedTokensTrivia || t.IsDirective,
+            /* 111 */ t => t.IsSkippedTokensTrivia || t.IsDirective || t.IsDocumentationCommentTrivia,
+        };
+
+        private Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments)
+        {
+            var index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
+                        (directives ? SyntaxKinds.Directives : 0) |
+                        (docComments ? SyntaxKinds.DocComments : 0);
+            return s_stepIntoFunctions[(int)index];
+        }
 
         private static Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
         {

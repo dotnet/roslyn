@@ -903,7 +903,6 @@
     <Compile Include="Syntax\SyntaxList.WithThreeChildren.vb" />
     <Compile Include="Syntax\SyntaxList.WithTwoChildren.vb" />
     <Compile Include="Syntax\SyntaxListBuilder`1.vb" />
-    <Compile Include="Syntax\SyntaxNavigator.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.vb" />

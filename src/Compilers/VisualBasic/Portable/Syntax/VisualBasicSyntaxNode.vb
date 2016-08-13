@@ -31,12 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _syntaxTree = syntaxTree
         End Sub
 
-        Friend Overrides ReadOnly Property Navigator As AbstractSyntaxNavigator
-            Get
-                Return SyntaxNavigator.Instance
-            End Get
-        End Property
-
         'TODO: may be eventually not needed
         Friend ReadOnly Property VbGreen As InternalSyntax.VisualBasicSyntaxNode
             Get
@@ -112,12 +106,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Kind() As SyntaxKind
             Return CType(Me.Green.RawKind, SyntaxKind)
         End Function
-
-        Protected Overrides ReadOnly Property KindText As String
-            Get
-                Return Me.Kind.ToString()
-            End Get
-        End Property
 
         ''' <summary>
         ''' The language name this node is syntax of.
