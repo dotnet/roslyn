@@ -210,21 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal static NodeFlags SetFactoryContext(NodeFlags flags, SyntaxFactoryContext context)
-        {
-            if (context.IsInAsync)
-            {
-                flags |= NodeFlags.FactoryContextIsInAsync;
-            }
-
-            if (context.IsInQuery)
-            {
-                flags |= NodeFlags.FactoryContextIsInQuery;
-            }
-
-            return flags;
-        }
-
         public override AbstractSyntaxNavigator Navigator
         {
             get

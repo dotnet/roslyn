@@ -792,7 +792,6 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.MissingTokenWithTrivia.cs" />

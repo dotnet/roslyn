@@ -298,35 +298,15 @@ Friend Class GreenNodeFactoryWriter
             _writer.WriteLine(")")
 
         Else
-
-            'Dim hash As Integer
-            'Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.ReturnStatement, returnKeyword, expression, hash)
-            'If cached IsNot Nothing Then
-            '    Return DirectCast(cached, ReturnStatementSyntax)
-            'End If
-
-            'Dim result = New ReturnStatementSyntax(SyntaxKind.ReturnStatement, returnKeyword, expression)
-            'If hash >= 0 Then
-            '    SyntaxNodeCache.AddNode(result, hash)
-            'End If
-
-            'Return result
-
-
             _writer.WriteLine("")
             'Dim hash As Integer
             _writer.WriteLine("            Dim hash As Integer")
 
             'Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.ReturnStatement, returnKeyword, expression, hash)
-            If contextual Then
-                _writer.Write("            Dim cached = SyntaxNodeCache.TryGetNode(")
-            Else
-                _writer.Write("            Dim cached = CommonSyntaxNodeCache.TryGetNode(")
-            End If
+            _writer.Write("            Dim cached = SyntaxNodeCache.TryGetNode(")
 
             GenerateCtorArgs(nodeStructure, nodeKind, contextual, factoryFunctionName)
             _writer.WriteLine(", hash)")
-
 
             'If cached IsNot Nothing Then
             _writer.WriteLine("            If cached IsNot Nothing Then")
@@ -359,7 +339,10 @@ Friend Class GreenNodeFactoryWriter
         _writer.WriteLine()
     End Sub
 
-    Private Sub GenerateCtorArgs(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind, contextual As Boolean, factoryFunctionName As String)
+    Private Sub GenerateCtorArgs(nodeStructure As ParseNodeStructure,
+                                 nodeKind As ParseNodeKind,
+                                 contextual As Boolean,
+                                 factoryFunctionName As String)
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
         Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
 
@@ -379,10 +362,6 @@ Friend Class GreenNodeFactoryWriter
             _writer.Write(", leadingTrivia, trailingTrivia")
         End If
 
-        If contextual Then
-            _writer.Write(", _factoryContext")
-        End If
-
         ' Generate parameters for each field and child
         For Each field In allFields
             _writer.Write(", {0}", FieldParamName(field, factoryFunctionName))
@@ -399,9 +378,12 @@ Friend Class GreenNodeFactoryWriter
                 Else
                     _writer.Write(", {0}", ChildParamName(child, factoryFunctionName))
                 End If
-
             End If
         Next
+
+        If contextual Then
+            _writer.Write(", _factoryContext")
+        End If
     End Sub
 
     ' Generate a parameter corresponding to a node structure field
