@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
+        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet options);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
 
         /// <summary>
@@ -43,12 +43,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxContext context,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect)
+            bool preselect,
+            OptionSet options)
         {
             var tree = context.SyntaxTree;
 
             var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, context)
+                    let texts = GetDisplayAndInsertionText(symbol, context, options)
                     group symbol by texts into g
                     select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
 
@@ -63,10 +64,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, SyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect)
+            bool preselect,
+            OptionSet options)
         {
             var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
+                    let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol], options)
                     group symbol by texts into g
                     select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
@@ -122,14 +124,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
-                rules: GetCompletionItemRules(symbols, context),
-                properties: GetInitialProperties(symbols[0], context));
-        }
-
-        protected virtual ImmutableDictionary<string, string> GetInitialProperties(
-            ISymbol symbol, SyntaxContext context)
-        {
-            return null;
+                rules: GetCompletionItemRules(symbols, context));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -216,7 +211,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CreateItems(itemsForCurrentDocument, context,
                     invalidProjectMap: null,
                     totalProjects: null,
-                    preselect: preselect);
+                    preselect: preselect,
+                    options: options);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -226,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 
-            return CreateItems(unionedSymbolsList, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
+            return CreateItems(unionedSymbolsList, originatingContextMap, missingSymbolsMap, totalProjects, preselect, options);
         }
 
         protected virtual bool IsExclusive()
@@ -342,9 +338,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 selectedItem.Span, GetInsertionText(selectedItem, ch)));
         }
 
-        /// <summary>
-        /// Override this if you want to provide customized insertion based on the character typed.
-        /// </summary>
         private string GetInsertionText(CompletionItem item, char? ch)
         {
             return ch == null
@@ -352,6 +345,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : GetInsertionText(item, ch.Value);
         }
 
+        /// <summary>
+        /// Override this if you want to provide customized insertion based on the character typed.
+        /// </summary>
         protected virtual string GetInsertionText(CompletionItem item, char ch)
         {
             return SymbolCompletionItem.GetInsertionText(item);

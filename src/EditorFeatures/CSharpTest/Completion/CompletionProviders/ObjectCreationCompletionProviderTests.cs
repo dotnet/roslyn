@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -436,6 +437,148 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitOnAngleBracket_Simple()
+        {
+            var before = @"
+namespace NS
+{
+    public class A { }
+}
+
+public class C
+{
+    private NS.A _a = new $$
+}
+";
+            var after = @"
+namespace NS
+{
+    public class A { }
+}
+
+public class C
+{
+    private NS.A _a = new NS.A<
+}
+";
+            await VerifyProviderCommitAsync(before, "NS.A", after, '<', string.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitOnAngleBracket_Generic()
+        {
+            var before = @"
+namespace NS
+{
+    public class A<T> { }
+}
+
+public class C
+{
+    private NS.A<int> _a = new $$
+}
+";
+            var after = @"
+namespace NS
+{
+    public class A<T> { }
+}
+
+public class C
+{
+    private NS.A<int> _a = new NS.A<
+}
+";
+            await VerifyProviderCommitAsync(before, "NS.A<int>", after, '<', string.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitOnAngleBracket_NestedGeneric()
+        {
+            var before = @"
+namespace NS
+{
+    public class A<T>
+    {
+        public class B<U> { }
+    }
+}
+
+public class C
+{
+    private NS.A<int>.B<long> _b = new $$
+}
+";
+            var after = @"
+namespace NS
+{
+    public class A<T>
+    {
+        public class B<U> { }
+    }
+}
+
+public class C
+{
+    private NS.A<int>.B<long> _b = new NS.A<
+}
+";
+            await VerifyProviderCommitAsync(before, "NS.A<int>.B<long>", after, '<', string.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(4585, "https://github.com/dotnet/roslyn/issues/4585")]
+        public async Task GenericArguments_PredefinedType()
+        {
+            var markup = @"
+using System;
+
+class A<T> { }
+
+class B
+{
+    A<Int32> _a = new $$
+}";
+
+            await VerifyItemExistsAsync(markup, "A<int>",
+                options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp, true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(4585, "https://github.com/dotnet/roslyn/issues/4585")]
+        public async Task GenericArguments_FrameworkType()
+        {
+            var markup = @"
+using System;
+
+class A<T> { }
+
+class B
+{
+    A<int> _a = new $$
+}";
+
+            await VerifyItemExistsAsync(markup, "A<Int32>",
+                options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp, false));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13610"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EscapeAwaitIdentifierInAsyncMethod()
+        {
+            var markup = @"
+class await { }
+
+class C
+{
+    async void Foo()
+    {
+        @async a = new $$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "@await");
         }
     }
 }

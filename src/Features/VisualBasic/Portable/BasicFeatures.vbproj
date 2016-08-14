@@ -143,6 +143,7 @@
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionFormat.vb" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletionProvider.vb" />

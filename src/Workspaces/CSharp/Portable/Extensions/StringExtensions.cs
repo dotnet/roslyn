@@ -1,19 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class StringExtensions
     {
-        public static string EscapeIdentifier(
-            this string identifier,
-            bool isQueryContext = false)
+        public static string EscapeIdentifier(this string identifier, SyntaxContext context = null)
         {
             var nullIndex = identifier.IndexOf('\0');
             if (nullIndex >= 0)
@@ -23,17 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var needsEscaping = SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None;
 
+            var isQueryContext = context?.IsInQuery ?? false;
+            var isAsyncContext = context?.IsWithinAsyncMethod ?? false;
+
             // Check if we need to escape this contextual keyword
-            needsEscaping = needsEscaping || (isQueryContext && SyntaxFacts.IsQueryContextualKeyword(SyntaxFacts.GetContextualKeywordKind(identifier)));
+            needsEscaping = needsEscaping ||
+                (isQueryContext && SyntaxFacts.IsQueryContextualKeyword(SyntaxFacts.GetContextualKeywordKind(identifier))) ||
+                (isAsyncContext && SyntaxFacts.GetContextualKeywordKind(identifier) == SyntaxKind.AwaitKeyword);
 
             return needsEscaping ? "@" + identifier : identifier;
         }
 
-        public static SyntaxToken ToIdentifierToken(
-            this string identifier,
-            bool isQueryContext = false)
+        public static SyntaxToken ToIdentifierToken(this string identifier, SyntaxContext context = null)
         {
-            var escaped = identifier.EscapeIdentifier(isQueryContext);
+            var escaped = identifier.EscapeIdentifier(context);
 
             if (escaped.Length == 0 || escaped[0] != '@')
             {

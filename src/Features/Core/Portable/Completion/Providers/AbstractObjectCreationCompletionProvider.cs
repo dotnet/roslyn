@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,8 +11,8 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -23,6 +24,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
+
+        private readonly AbstractSymbolCompletionFormat _completionFormat;
+
+        protected AbstractObjectCreationCompletionProvider(AbstractSymbolCompletionFormat format)
+        {
+            if (format == null)
+            {
+                throw new ArgumentNullException(nameof(format));
+            }
+
+            _completionFormat = format;
+        }
 
         protected override CompletionItem CreateItem(
             string displayText, string insertionText, List<ISymbol> symbols,
@@ -122,11 +135,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(
-            ISymbol symbol, SyntaxContext context)
+            ISymbol symbol, SyntaxContext context, OptionSet options)
         {
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return ValueTuple.Create(displayString, displayString);
+            return _completionFormat.GetMinimalDisplayAndInsertionText(symbol, context, options);
+        }
+
+        protected override String GetInsertionText(CompletionItem item, Char ch)
+        {
+            return _completionFormat.GetInsertionTextAtInsertionTime(item, ch);
         }
     }
 }

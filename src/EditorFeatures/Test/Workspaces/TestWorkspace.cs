@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -627,6 +626,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var newSolution = this.SetCurrentSolution(solution);
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+        }
+
+        public Document UpdateSingleDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
+        {
+            var hostDocument = Documents.Single();
+            var textBuffer = hostDocument.TextBuffer;
+
+            // clear the document
+            if (cleanBeforeUpdate)
+            {
+                UpdateText(hostDocument.TextBuffer, string.Empty);
+            }
+
+            // and set the content
+            UpdateText(hostDocument.TextBuffer, text);
+
+            OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+
+            return CurrentSolution.GetDocument(hostDocument.Id);
+        }
+
+        private static void UpdateText(ITextBuffer textBuffer, string text)
+        {
+            using (var edit = textBuffer.CreateEdit())
+            {
+                edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
+                edit.Apply();
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -15,14 +16,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractPartialTypeCompletionProvider : CommonCompletionProvider
     {
-        protected AbstractPartialTypeCompletionProvider()
+        private readonly AbstractSymbolCompletionFormat _format;
+
+        protected AbstractPartialTypeCompletionProvider(AbstractSymbolCompletionFormat format)
         {
+            if (format == null)
+            {
+                throw new ArgumentNullException(nameof(format));
+            }
+
+            _format = format;
         }
 
         public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var document = completionContext.Document;
             var position = completionContext.Position;
+            var options = completionContext.Options;
             var cancellationToken = completionContext.CancellationToken;
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -38,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (declaredSymbol != null)
                 {
                     var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
-                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
+                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext, options));
 
                     if (items != null)
                     {
@@ -49,21 +59,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private CompletionItem CreateCompletionItem(
-            INamedTypeSymbol symbol, SyntaxContext context)
+            INamedTypeSymbol symbol, SyntaxContext context, OptionSet options)
         {
-            var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
+            var displayAndInsertionText = _format.GetMinimalDisplayAndInsertionText(symbol, context, options);
 
             return SymbolCompletionItem.Create(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
                 contextPosition: context.Position,
-                properties: GetProperties(symbol, context),
                 rules: CompletionItemRules.Default);
         }
-
-        protected abstract ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context);
 
         protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
             Document document,
@@ -72,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken);
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
-
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
 
         protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            var insertionText = SymbolCompletionItem.GetInsertionText(selectedItem);
+            var insertionText = _format.GetInsertionTextAtInsertionTime(selectedItem, ch);
             return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
         }
     }

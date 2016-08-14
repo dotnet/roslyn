@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
+        public ObjectCreationCompletionProvider() : base(SymbolCompletionFormat.Default)
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
@@ -72,25 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result;
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
-        {
-            if (symbol is IAliasSymbol)
-            {
-                return ValueTuple.Create(symbol.Name, symbol.Name);
-            }
-
-            return base.GetDisplayAndInsertionText(symbol, context);
-        }
-
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '<')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', '<')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 

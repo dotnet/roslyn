@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext, options As OptionSet) As ValueTuple(Of String, String)
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function
 

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -449,6 +450,20 @@ End Class
 
 </text>.Value
             Await VerifyItemExistsAsync(text, "IEquatable(Of Integer)")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4585, "https://github.com/dotnet/roslyn/issues/4585")>
+        Public Async Function TestDisplayTypeArgumentsWithFrameworkTypes() As Task
+            Dim text = <text>Imports System
+Class A
+    Implements IEquatable(Of Integer)
+    Public Function Equals(other As Integer) As Boolean Implements $$
+End Class
+</text>.Value
+
+            Await VerifyItemExistsAsync(text, "IEquatable(Of Int32)",
+                options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic, False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

@@ -238,43 +238,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext, options As OptionSet) As ValueTuple(Of String, String)
             If IsGlobal(symbol) Then
                 Return ValueTuple.Create("Global", "Global")
             End If
 
-            Dim displayText As String = Nothing
-            Dim insertionText As String = Nothing
-
             If IsGenericType(symbol) Then
-                displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
-                insertionText = displayText
+                Return SymbolCompletionFormat.Default.GetMinimalDisplayAndInsertionText(symbol, context, options)
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
-
-                displayText = displayAndInsertionText.Item1
-                insertionText = displayAndInsertionText.Item2
+                Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
             End If
-
-            Return ValueTuple.Create(displayText, insertionText)
         End Function
 
         Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
             Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
         End Function
 
-        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
-            SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
-
         Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
-        Protected Overrides Function GetInitialProperties(symbol As ISymbol, context As SyntaxContext) As ImmutableDictionary(Of String, String)
-            If IsGenericType(symbol) Then
-                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
-                Return ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text)
+        Protected Overrides Function CreateItem(
+            displayText As String, insertionText As String,
+            symbols As List(Of ISymbol),
+            context As SyntaxContext, preselect As Boolean,
+            supportedPlatformData As SupportedPlatformData) As CompletionItem
+
+            Dim item = MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
+
+            If IsGenericType(symbols(0)) Then
+                Dim text = SymbolCompletionFormat.Default.GetInsertionTextAtInsertionTime(item, "("c)
+                item = item.WithProperties(ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text))
             End If
 
-            Return MyBase.GetInitialProperties(symbol, context)
+            Return item
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)

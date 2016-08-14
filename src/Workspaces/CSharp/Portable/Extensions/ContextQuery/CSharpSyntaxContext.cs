@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext, cancellationToken)
+                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(targetToken), isPossibleTupleContext, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -252,11 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
-        private new static bool IsWithinAsyncMethod()
+        private new static bool IsWithinAsyncMethod(SyntaxToken targetToken)
         {
-            // TODO: Implement this if any C# completion code needs to know if it is in an async 
-            // method or not.
-            return false;
+            var methodDeclaration = targetToken.GetAncestor<MethodDeclarationSyntax>();
+            return methodDeclaration != null && methodDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword);
         }
 
         public bool IsTypeAttributeContext(CancellationToken cancellationToken)

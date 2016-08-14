@@ -2,6 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -29,9 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function EscapeIdentifier(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing, Optional withinAsyncMethod As Boolean = False) As String
+        Public Function EscapeIdentifier(text As String, Optional context As SyntaxContext = Nothing, Optional symbol As ISymbol = Nothing) As String
             Dim keywordKind = SyntaxFacts.GetKeywordKind(text)
             Dim needsEscaping = keywordKind <> SyntaxKind.None
+            Dim withinAsyncMethod = If(context?.IsWithinAsyncMethod, False)
+            Dim afterDot = If(context?.IsRightOfNameSeparator, False)
 
             ' REM and New must always be escaped, but there are some conditions where
             ' keywords are not escaped
@@ -49,14 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' GetKeywordKind won't return SyntaxKind.AwaitKeyword (943836)
             If withinAsyncMethod AndAlso text = "Await" Then
-                needsEscaping = True
+                needsEscaping = Not afterDot
             End If
 
             Return If(needsEscaping, "[" & text & "]", text)
         End Function
 
         <Extension()>
-        Public Function ToIdentifierToken(text As String, Optional afterDot As Boolean = False, Optional symbol As ISymbol = Nothing, Optional withinAsyncMethod As Boolean = False) As SyntaxToken
+        Public Function ToIdentifierToken(text As String, Optional context As SyntaxContext = Nothing, Optional symbol As ISymbol = Nothing) As SyntaxToken
             Contract.ThrowIfNull(text)
 
             Dim unescaped = text
@@ -67,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 wasAlreadyEscaped = True
             End If
 
-            Dim escaped = EscapeIdentifier(text, afterDot, symbol, withinAsyncMethod)
+            Dim escaped = EscapeIdentifier(text, context, symbol)
             Dim token = If(escaped.Length > 0 AndAlso escaped(0) = "["c,
                 SyntaxFactory.Identifier(escaped, isBracketed:=True, identifierText:=unescaped, typeCharacter:=TypeCharacter.None),
                 SyntaxFactory.Identifier(text))

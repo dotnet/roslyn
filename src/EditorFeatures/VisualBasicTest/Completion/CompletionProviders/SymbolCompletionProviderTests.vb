@@ -1346,7 +1346,7 @@ Class C
                 text, position, usePreviousCharAsTrigger:=True,
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
-                glyph:=Nothing, matchPriority:=Nothing)
+                glyph:=Nothing, matchPriority:=Nothing, options:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -5620,6 +5620,30 @@ Class C
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericOnTab() As Task
+            Dim text =
+<code>
+Class G(Of T)
+End Class
+
+Class DG
+    Function Bar() as $$
+End Class</code>.Value
+
+            Dim expected =
+<code>
+Class G(Of T)
+End Class
+
+Class DG
+    Function Bar() as G(Of
+End Class</code>.Value
+
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing, "")
+        End Function
+
         <WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
         <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -7581,6 +7605,64 @@ End Namespace
             Await VerifyItemIsAbsentAsync(text, "Item1")
             Await VerifyItemIsAbsentAsync(text, "Item9")
             Await VerifyItemIsAbsentAsync(text, "Rest")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EscapedAwaitIdentifierInAsyncMethod() As Task
+            Dim text =
+<code><![CDATA[
+Class Await
+End Class
+
+Class C
+    Async Sub Foo()
+        Dim a As $$
+    End Sub
+End Class
+]]></code>.Value
+
+            Dim expected =
+<code><![CDATA[
+Class Await
+End Class
+
+Class C
+    Async Sub Foo()
+        Dim a As [Await]
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyProviderCommitAsync(text, "Await", expected, Nothing, "")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function UnescapedAwaitIdentifierInNonAsyncMethod() As Task
+            Dim text =
+<code><![CDATA[
+Class Await
+End Class
+
+Class C
+    Sub Foo()
+        Dim a As $$
+    End Sub
+End Class
+]]></code>.Value
+
+            Dim expected =
+<code><![CDATA[
+Class Await
+End Class
+
+Class C
+    Sub Foo()
+        Dim a As Await
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyProviderCommitAsync(text, "Await", expected, Nothing, "")
         End Function
 
     End Class

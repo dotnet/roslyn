@@ -2494,7 +2494,7 @@ Anonymous Types:
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("(")
-                state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
+                state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(")
             End Using
         End Function
     End Class

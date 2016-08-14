@@ -56,7 +56,7 @@ partial class $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPartialGenericClassCommitOnParen()
+        public async Task TestPartialGenericClassCommitOnLeftAngleBracket()
         {
             var text = @"
 class Bar { }

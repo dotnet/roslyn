@@ -13,15 +13,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider
     {
-        private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
-
-        private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
+        private static readonly SymbolDisplayFormat s_symbolFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -32,8 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
-            _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
+        private static readonly SymbolCompletionFormat s_completionFormat =
+            new SymbolCompletionFormat(s_symbolFormat);
+
+        public PartialTypeCompletionProvider() : base(s_completionFormat)
+        {
+        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -54,13 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
-            INamedTypeSymbol symbol, SyntaxContext context)
-        {
-            var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
-            return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
-        }
-
         protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             var candidates = base.LookupCandidateSymbols(context, declaredSymbol, cancellationToken);
@@ -74,27 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var declarationSyntax = syntax as BaseTypeDeclarationSyntax;
             return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
-        }
-
-        protected override ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context)
-        {
-            return ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
-        }
-
-        public async override Task<TextChange?> GetTextChangeAsync(
-            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            if (ch == '<')
-            {
-                string insertionText;
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out insertionText))
-                {
-                    return new TextChange(selectedItem.Span, insertionText);
-                }
-            }
-
-            return await base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(false);
         }
     }
 }

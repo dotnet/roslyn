@@ -8890,5 +8890,37 @@ class C
             // See https://github.com/dotnet/roslyn/issues/13229
             await VerifyItemExistsAsync(markup, "Item3");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EscapedAwaitIdentifierInAsyncMethod()
+        {
+            var markup = @"
+class await { }
+
+class C
+{
+    async void Foo()
+    {
+        a$$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "@await");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UnescapedAwaitIdentifierInNonAsyncMethod()
+        {
+            var markup = @"
+class await { }
+
+class C
+{
+    void Foo()
+    {
+        a$$
+    }
+}";
+            await VerifyItemIsAbsentAsync(markup, "@await");
+        }
     }
 }

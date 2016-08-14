@@ -233,6 +233,7 @@
     <Compile Include="Completion\Providers\AbstractPartialMethodCompletionProvider.cs" />
     <Compile Include="Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Completion\CompletionService.cs" />
+    <Compile Include="Completion\Providers\AbstractSymbolCompletionFormat.cs" />
     <Compile Include="Completion\Providers\MemberInsertingCompletionItem.cs" />
     <Compile Include="Completion\MatchPriority.cs" />
     <Compile Include="Completion\Providers\AbstractRecommendationServiceBasedCompletionProvider.cs" />

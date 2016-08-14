@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+            return symbol.Name.EscapeIdentifier(context);
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet set)
         {
             var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
