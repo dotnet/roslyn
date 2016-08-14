@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return s_tokensWithNoTrivia[(int)kind].Value;
         }
 
-        internal static SyntaxToken Create(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
+        internal static SyntaxToken Create(SyntaxKind kind, GreenNode leading, GreenNode trailing)
         {
             if (kind > LastTokenWithWellKnownText)
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTokenWithTrivia(kind, leading, trailing);
         }
 
-        internal static SyntaxToken CreateMissing(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
+        internal static SyntaxToken CreateMissing(SyntaxKind kind, GreenNode leading, GreenNode trailing)
         {
             return new MissingTokenWithTrivia(kind, leading, trailing);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxIdentifier(text);
         }
 
-        internal static SyntaxToken Identifier(CSharpSyntaxNode leading, string text, CSharpSyntaxNode trailing)
+        internal static SyntaxToken Identifier(GreenNode leading, string text, GreenNode trailing)
         {
             if (leading == null)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxIdentifierWithTrivia(SyntaxKind.IdentifierToken, text, text, leading, trailing);
         }
 
-        internal static SyntaxToken Identifier(SyntaxKind contextualKind, CSharpSyntaxNode leading, string text, string valueText, CSharpSyntaxNode trailing)
+        internal static SyntaxToken Identifier(SyntaxKind contextualKind, GreenNode leading, string text, string valueText, GreenNode trailing)
         {
             if (contextualKind == SyntaxKind.IdentifierToken && valueText == text)
             {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTokenWithValue<T>(kind, text, value);
         }
 
-        internal static SyntaxToken WithValue<T>(SyntaxKind kind, CSharpSyntaxNode leading, string text, T value, CSharpSyntaxNode trailing)
+        internal static SyntaxToken WithValue<T>(SyntaxKind kind, GreenNode leading, string text, T value, GreenNode trailing)
         {
             return new SyntaxTokenWithValueAndTrivia<T>(kind, text, value, leading, trailing);
         }
@@ -337,22 +337,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return new SyntaxList<CSharpSyntaxNode>((CSharpSyntaxNode)this.GetTrailingTrivia()); }
         }
 
-        public override GreenNode WithLeadingTrivia(GreenNode trivia)
+        public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)
         {
-            return WithLeadingTrivia((CSharpSyntaxNode)trivia);
+            return TokenWithLeadingTrivia(trivia);
         }
 
-        internal virtual SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+        public virtual SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
         {
             return new SyntaxTokenWithTrivia(this.Kind, trivia, null, this.GetDiagnostics(), this.GetAnnotations());
         }
 
-        public override GreenNode WithTrailingTrivia(GreenNode trivia)
+        public sealed override GreenNode WithTrailingTrivia(GreenNode trivia)
         {
-            return WithTrailingTrivia((CSharpSyntaxNode)trivia);
+            return TokenWithTrailingTrivia(trivia);
         }
 
-        internal virtual SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+        public virtual SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
         {
             return new SyntaxTokenWithTrivia(this.Kind, null, trivia, this.GetDiagnostics(), this.GetAnnotations());
         }
@@ -373,16 +373,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.ContainsDirectives)
             {
-                var leading = this.GetLeadingTrivia();
-                if (leading != null && leading.ContainsDirectives)
-                {
-                    stack = leading.ApplyDirectives(stack);
-                }
+                stack = ApplyDirectivesToTrivia(this.GetLeadingTrivia(), stack);
+                stack = ApplyDirectivesToTrivia(this.GetTrailingTrivia(), stack);
+            }
 
-                var trailing = this.GetTrailingTrivia();
-                if (trailing != null && trailing.ContainsDirectives)
+            return stack;
+        }
+
+        private DirectiveStack ApplyDirectivesToTrivia(GreenNode triviaList, DirectiveStack stack)
+        {
+            if (triviaList != null && triviaList.ContainsDirectives)
+            {
+                // If we have a list of trivia, then that node is not actually a CSharpSyntaxNode.
+                // Just defer to our standard ApplyDirectives helper as it will do the appropriate
+                // walking of this list to ApplyDirectives to the children.
+                if (triviaList.RawKind == GreenNode.ListKind)
                 {
-                    stack = trailing.ApplyDirectives(stack);
+                    return ApplyDirectives(triviaList, stack);
+                }
+                else
+                {
+                    // Otherwise, we must have an actual piece of C# trivia.  Just apply the stack
+                    // to that node directly.
+                    return ((CSharpSyntaxNode)triviaList).ApplyDirectives(stack);
                 }
             }
 

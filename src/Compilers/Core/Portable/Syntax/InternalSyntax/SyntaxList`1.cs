@@ -5,14 +5,14 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>, ISyntaxList<TNode> 
-        where TNode : CSharpSyntaxNode
+    internal partial struct CommonSyntaxList<TNode> : IEquatable<CommonSyntaxList<TNode>>, ISyntaxList<TNode>
+        where TNode : GreenNode
     {
         private readonly GreenNode _node;
 
-        internal SyntaxList(GreenNode node)
+        internal CommonSyntaxList(GreenNode node)
         {
             _node = node;
         }
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _node != null;
         }
 
-        public bool Any(SyntaxKind kind)
+        public bool Any(int kind)
         {
             foreach (var element in this)
             {
-                if (element.Kind == kind)
+                if (element.RawKind == kind)
                 {
                     return true;
                 }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new Enumerator(this);
         }
 
-        internal void CopyTo(int offset, ArrayElement<CSharpSyntaxNode>[] array, int arrayOffset, int count)
+        internal void CopyTo(int offset, ArrayElement<GreenNode>[] array, int arrayOffset, int count)
         {
             for (int i = 0; i < count; i++)
             {
@@ -98,24 +98,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
+        public static bool operator ==(CommonSyntaxList<TNode> left, CommonSyntaxList<TNode> right)
         {
             return left._node == right._node;
         }
 
-        public static bool operator !=(SyntaxList<TNode> left, SyntaxList<TNode> right)
+        public static bool operator !=(CommonSyntaxList<TNode> left, CommonSyntaxList<TNode> right)
         {
             return left._node != right._node;
         }
 
-        public bool Equals(SyntaxList<TNode> other)
+        public bool Equals(CommonSyntaxList<TNode> other)
         {
             return _node == other._node;
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is SyntaxList<TNode>) && Equals((SyntaxList<TNode>)obj);
+            return (obj is CommonSyntaxList<TNode>) && Equals((CommonSyntaxList<TNode>)obj);
         }
 
         public override int GetHashCode()
@@ -123,24 +123,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _node != null ? _node.GetHashCode() : 0;
         }
 
-        public SeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : CSharpSyntaxNode
+        //public SeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : GreenNode
+        //{
+        //    return new SeparatedSyntaxList<TOther>(this);
+        //}
+
+        public static implicit operator CommonSyntaxList<TNode>(TNode node)
         {
-            return new SeparatedSyntaxList<TOther>(this);
+            return new CommonSyntaxList<TNode>(node);
         }
 
-        public static implicit operator SyntaxList<TNode>(TNode node)
+        public static implicit operator CommonSyntaxList<TNode>(CommonSyntaxList<GreenNode> nodes)
         {
-            return new SyntaxList<TNode>(node);
+            return new CommonSyntaxList<TNode>(nodes._node);
         }
 
-        public static implicit operator SyntaxList<TNode>(SyntaxList<CSharpSyntaxNode> nodes)
+        public static implicit operator CommonSyntaxList<GreenNode>(CommonSyntaxList<TNode> nodes)
         {
-            return new SyntaxList<TNode>(nodes._node);
-        }
-
-        public static implicit operator SyntaxList<CSharpSyntaxNode>(SyntaxList<TNode> nodes)
-        {
-            return new SyntaxList<CSharpSyntaxNode>(nodes.Node);
+            return new CommonSyntaxList<GreenNode>(nodes.Node);
         }
     }
 }

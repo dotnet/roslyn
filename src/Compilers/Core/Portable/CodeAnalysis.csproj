@@ -122,6 +122,9 @@
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithManyChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithThreeChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\CommonSyntaxList.cs" />
     <Compile Include="Syntax\CommonSyntaxList.SeparatedWithManyChildren.cs" />

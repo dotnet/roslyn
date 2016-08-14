@@ -32,13 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal CSharpSyntaxNode Node
-        {
-            get
-            {
-                return _list.Node;
-            }
-        }
+        internal GreenNode Node => _list.Node;
 
         public int Count
         {

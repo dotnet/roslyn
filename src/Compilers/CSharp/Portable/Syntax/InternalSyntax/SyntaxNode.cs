@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return (SyntaxToken)this.GetLastNonmissingTerminal();
         }
 
-        public virtual CSharpSyntaxNode GetLeadingTrivia()
+        public virtual GreenNode GetLeadingTrivia()
         {
             return null;
         }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.GetLeadingTrivia();
         }
 
-        public virtual CSharpSyntaxNode GetTrailingTrivia()
+        public virtual GreenNode GetTrailingTrivia()
         {
             return null;
         }
@@ -152,11 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal virtual DirectiveStack ApplyDirectives(DirectiveStack stack)
         {
-            if (this.ContainsDirectives)
+            return ApplyDirectives(this, stack);
+        }
+
+        internal static DirectiveStack ApplyDirectives(GreenNode node, DirectiveStack stack)
+        {
+            if (node.ContainsDirectives)
             {
-                for (int i = 0, n = this.SlotCount; i < n; i++)
+                for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
-                    var child = this.GetSlot(i);
+                    var child = node.GetSlot(i);
                     if (child != null)
                     {
                         stack = ((CSharpSyntaxNode)child).ApplyDirectives(stack);
