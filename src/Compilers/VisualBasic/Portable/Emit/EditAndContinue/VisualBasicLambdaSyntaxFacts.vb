@@ -3,19 +3,19 @@
 Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
-    Friend Class VisualBasicLambdaSyntaxHelper
-        Implements ILambdaSyntaxHelper
+    Friend Class VisualBasicLambdaSyntaxFacts
+        Inherits LambdaSyntaxFacts
 
-        Public Shared ReadOnly Instance As ILambdaSyntaxHelper = New VisualBasicLambdaSyntaxHelper()
+        Public Shared ReadOnly Instance As LambdaSyntaxFacts = New VisualBasicLambdaSyntaxFacts()
 
         Private Sub New()
         End Sub
 
-        Public Function GetLambda(lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode Implements ILambdaSyntaxHelper.GetLambda
+        Public Overrides Function GetLambda(lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetLambda(lambdaOrLambdaBodySyntax)
         End Function
 
-        Public Function TryGetCorrespondingLambdaBody(previousLambdaSyntax As SyntaxNode, lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode Implements ILambdaSyntaxHelper.TryGetCorrespondingLambdaBody
+        Public Overrides Function TryGetCorrespondingLambdaBody(previousLambdaSyntax As SyntaxNode, lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax, previousLambdaSyntax)
         End Function
     End Class

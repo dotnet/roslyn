@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
 
-        protected override ILambdaSyntaxHelper GetLambdaSyntaxHelper()
-        {
-            return CSharpLambdaSyntaxHelper.Instance;
-        }
+        protected override LambdaSyntaxFacts GetLambdaSyntaxFacts() => CSharpLambdaSyntaxFacts.Instance;
 
         internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {

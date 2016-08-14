@@ -4,20 +4,20 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal class CSharpLambdaSyntaxHelper : ILambdaSyntaxHelper
+    internal class CSharpLambdaSyntaxFacts : LambdaSyntaxFacts
     {
-        public static readonly ILambdaSyntaxHelper Instance = new CSharpLambdaSyntaxHelper();
+        public static readonly LambdaSyntaxFacts Instance = new CSharpLambdaSyntaxFacts();
 
-        private CSharpLambdaSyntaxHelper()
+        private CSharpLambdaSyntaxFacts()
         {
         }
 
-        public SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax)
+        public override SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax)
         {
             return LambdaUtilities.GetLambda(lambdaOrLambdaBodySyntax);
         }
 
-        public SyntaxNode TryGetCorrespondingLambdaBody(
+        public override SyntaxNode TryGetCorrespondingLambdaBody(
             SyntaxNode previousLambdaSyntax,
             SyntaxNode lambdaOrLambdaBodySyntax)
         {

@@ -2,9 +2,9 @@
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal interface ILambdaSyntaxHelper
+    internal abstract class LambdaSyntaxFacts
     {
-        SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax);
+        public abstract SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax);
 
         /// <summary>
         /// When invoked on a node that represents an anonymous function or a query clause [1]
@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Emit
         /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
-        SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
+        public abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
     }
 }

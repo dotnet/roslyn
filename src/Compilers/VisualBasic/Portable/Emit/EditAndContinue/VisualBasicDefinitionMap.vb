@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides Function GetLambdaSyntaxHelper() As ILambdaSyntaxHelper
-            Return VisualBasicLambdaSyntaxHelper.Instance
+        Protected Overrides Function GetLambdaSyntaxFacts() As LambdaSyntaxFacts
+            Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean

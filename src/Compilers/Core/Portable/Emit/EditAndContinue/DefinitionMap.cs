@@ -315,10 +315,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalMap,
                 awaiterSlotCount,
                 awaiterMap,
-                GetLambdaSyntaxHelper());
+                GetLambdaSyntaxFacts());
         }
 
-        protected abstract ILambdaSyntaxHelper GetLambdaSyntaxHelper();
+        protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {
