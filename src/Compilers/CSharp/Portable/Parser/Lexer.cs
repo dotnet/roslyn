@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _leadingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
-                _leadingTriviaCache?.ToListNode(), position: 0, index: 0);
+                _leadingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
         internal SyntaxTriviaList LexSyntaxTrailingTrivia()
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _trailingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken), 
-                _trailingTriviaCache?.ToListNode(), position: 0, index: 0);
+                _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
         private SyntaxToken Create(ref TokenInfo info, SyntaxListBuilder leading, SyntaxListBuilder trailing, SyntaxDiagnosticInfo[] errors)
