@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal class EncVariableSlotAllocator : VariableSlotAllocator
+    internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
         // symbols:
         private readonly SymbolMatcher _symbolMap;
