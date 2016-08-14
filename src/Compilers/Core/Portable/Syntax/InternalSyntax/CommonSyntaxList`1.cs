@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax

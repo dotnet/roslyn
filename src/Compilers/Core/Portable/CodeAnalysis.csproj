@@ -127,8 +127,8 @@
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSeparatedSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList`.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList`1.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList`1.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\CommonSyntaxList.cs" />
     <Compile Include="Syntax\CommonSyntaxList.SeparatedWithManyChildren.cs" />
