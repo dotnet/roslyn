@@ -535,14 +535,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
-        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
-            Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
-        End Function
-
-        Friend Overrides Function GetLambda() As SyntaxNode
-            Return LambdaUtilities.GetLambda(Me)
-        End Function
-
         Friend Overrides Function ShouldCreateWeakList() As Boolean
             Return TypeOf Me Is MethodBlockBaseSyntax
         End Function

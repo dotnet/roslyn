@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 symbolMap = mapToMetadata;
             }
 
-            return new EncVariableSlotAllocator(
+            return CreateSlotAllocator(
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,
@@ -316,6 +317,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 awaiterSlotCount,
                 awaiterMap);
         }
+
+        protected abstract VariableSlotAllocator CreateSlotAllocator(TSymbolMatcher symbolMap, Func<SyntaxNode, SyntaxNode> syntaxMap, IMethodSymbolInternal previousMethod, DebugId methodId, ImmutableArray<EncLocalInfo> previousLocals, IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap, IReadOnlyDictionary<int, DebugId> closureMap, string stateMachineTypeNameOpt, int hoistedLocalSlotCount, IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap, int awaiterSlotCount, IReadOnlyDictionary<ITypeReference, int> awaiterMap);
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {

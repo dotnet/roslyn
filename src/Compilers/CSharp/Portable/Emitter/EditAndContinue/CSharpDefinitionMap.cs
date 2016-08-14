@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -34,6 +36,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
+
+        protected override VariableSlotAllocator CreateSlotAllocator(
+            CSharpSymbolMatcher symbolMap, 
+            Func<SyntaxNode, SyntaxNode> syntaxMap, 
+            IMethodSymbolInternal previousMethod, 
+            DebugId methodId, 
+            ImmutableArray<EncLocalInfo> previousLocals, 
+            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap,
+            IReadOnlyDictionary<int, DebugId> closureMap, 
+            string stateMachineTypeNameOpt, 
+            int hoistedLocalSlotCount, 
+            IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap,
+            int awaiterSlotCount, 
+            IReadOnlyDictionary<ITypeReference, int> awaiterMap)
+        {
+            return new CSharpEncVariableSlotAllocator(symbolMap, syntaxMap, previousMethod,
+                methodId, previousLocals, lambdaMap, closureMap, stateMachineTypeNameOpt,
+                hoistedLocalSlotCount, hoistedLocalMap, awaiterSlotCount, awaiterMap);
+        }
 
         internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {
