@@ -102,6 +102,7 @@
     <Compile Include="Binder\ConstantFieldsInProgressBinder.cs" />
     <Compile Include="Binder\ContextualAttributeBinder.cs" />
     <Compile Include="Binder\EarlyWellKnownAttributeBinder.cs" />
+    <Compile Include="Binder\EmbeddedStatementBinder.cs" />
     <Compile Include="Binder\ExecutableCodeBinder.cs" />
     <Compile Include="Binder\ExtensionMethodScope.cs" />
     <Compile Include="Binder\FixedStatementBinder.cs" />

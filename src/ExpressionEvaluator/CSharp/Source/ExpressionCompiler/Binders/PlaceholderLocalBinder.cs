@@ -104,23 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             builder.AddRange(_aliases);
-            var declaration = _syntax as LocalDeclarationStatementSyntax;
-            if (declaration != null)
-            {
-                var kind = declaration.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-                foreach (var variable in declaration.Declaration.Variables)
-                {
-                    var local = SourceLocalSymbol.MakeLocal(
-                        _containingMethod, 
-                        this, 
-                        true,
-                        declaration.Declaration.Type, 
-                        variable.Identifier, 
-                        kind, 
-                        variable.Initializer);
-                    builder.Add(local);
-                }
-            }
             return builder.ToImmutableAndFree();
         }
 

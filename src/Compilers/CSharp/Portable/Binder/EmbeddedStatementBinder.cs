@@ -8,29 +8,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class BlockBinder : LocalScopeBinder
+    /// <summary>
+    /// This binder owns the scope for an embedded statement.
+    /// </summary>
+    internal sealed class EmbeddedStatementBinder : LocalScopeBinder
     {
-        private readonly BlockSyntax _block;
+        private readonly SyntaxList<StatementSyntax> _statements;
 
-        public BlockBinder(Binder enclosing, BlockSyntax block)
-            : this(enclosing, block, enclosing.Flags)
+        public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
+            : base(enclosing, enclosing.Flags)
         {
-        }
-
-        public BlockBinder(Binder enclosing, BlockSyntax block, BinderFlags additionalFlags)
-            : base(enclosing, enclosing.Flags | additionalFlags)
-        {
-            _block = block;
+            _statements = new SyntaxList<StatementSyntax>(statement);
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(_block.Statements, this);
+            return BuildLocals(_statements, this);
         }
 
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            return BuildLocalFunctions(_block.Statements);
+            return BuildLocalFunctions(_statements);
         }
 
         internal override bool IsLocalFunctionsScopeBinder
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;
-            base.BuildLabels(_block.Statements, ref labels);
+            base.BuildLabels(_statements, ref labels);
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _block;
+                return _statements.First();
             }
         }
 
