@@ -639,8 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var trivia = _prevTokenTrailingTrivia;
             if (trivia != null)
             {
-                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any(SyntaxKind.EndOfLineTrivia);
+                CommonSyntaxList<CSharpSyntaxNode> triviaList = new CommonSyntaxList<CSharpSyntaxNode>(trivia);
+                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
                 if (prevTokenHasEndOfLineTrivia)
                 {
                     offset = -trivia.FullWidth;
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             width = ct.Width;
         }
 
-        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : CSharpSyntaxNode
+        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
         {
             DiagnosticInfo[] existingDiags = node.GetDiagnostics();
             int existingLength = existingDiags.Length;
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, code, SpecializedCollections.EmptyObjects);
         }
 
-        protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
+        protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
         {
             if (!node.IsMissing)
             {
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(offset, width, code, args);
         }
 
-        protected static SyntaxDiagnosticInfo MakeError(CSharpSyntaxNode node, ErrorCode code, params object[] args)
+        protected static SyntaxDiagnosticInfo MakeError(GreenNode node, ErrorCode code, params object[] args)
         {
             return new SyntaxDiagnosticInfo(node.GetLeadingTriviaWidth(), node.Width, code, args);
         }
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// is insufficient.
         /// </remarks>
         protected TNode CheckFeatureAvailability<TNode>(TNode node, MessageID feature, bool forceWarning = false)
-            where TNode : CSharpSyntaxNode
+            where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
 

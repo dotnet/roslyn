@@ -139,7 +139,18 @@ namespace CSharpSyntaxGenerator
                     {
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+
+                        if (IsSeparatedNodeList(field.Type) || 
+                            IsNodeList(field.Type))
+                        {
+                            WriteLine("    public abstract {0}Common{1} {2} {{ get; }}",
+                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        }
+                        else
+                        {
+                            WriteLine("    public abstract {0}{1} {2} {{ get; }}",
+                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        }
                     }
                 }
 
@@ -148,7 +159,17 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+
+                    //if (IsNodeList(field.Type))
+                    //{
+                    //    WriteLine("   public abstract {0}Common{1} {2} {{ get; }}",
+                    //        (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    //}
+                    //else
+                    //{
+                        WriteLine("   public abstract {0}{1} {2} {{ get; }}",
+                            (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    //}
                 }
 
                 WriteLine("  }");
@@ -223,19 +244,19 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "    ");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine("    public {0}{1} {2} {{ get {{ return new {1}(this.{3}); }} }}",
+                        WriteLine("    public {0}Common{1} {2} {{ get {{ return new Common{1}(this.{3}); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                             );
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine("    public {0}{1} {2} {{ get {{ return new {1}(new SyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
+                        WriteLine("    public {0}Common{1} {2} {{ get {{ return new Common{1}(new CommonSyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name), i
                             );
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine("    public {0}SyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new SyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
+                        WriteLine("    public {0}CommonSyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new CommonSyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
                             OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)
                             );
                     }
@@ -294,6 +315,7 @@ namespace CSharpSyntaxGenerator
             {
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
+                
                 Write(", {0} {1}", type, CamelCase(field.Name));
             }
 
@@ -524,8 +546,10 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
 
                 var type =
-                    field.Type == "SyntaxNodeOrTokenList" ? "SyntaxList<CSharpSyntaxNode>" :
-                    field.Type == "SyntaxTokenList" ? "SyntaxList<SyntaxToken>" :
+                    field.Type == "SyntaxNodeOrTokenList" ? "CommonSyntaxList<CSharpSyntaxNode>" :
+                    field.Type == "SyntaxTokenList" ? "CommonSyntaxList<SyntaxToken>" :
+                    IsNodeList(field.Type) ? "Common" + field.Type :
+                    IsSeparatedNodeList(field.Type) ? "Common" + field.Type :
                     field.Type;
 
                 Write("{0} {1}", type, CamelCase(field.Name));
@@ -845,7 +869,14 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
                 var type = field.Type;
                 if (type == "SyntaxNodeOrTokenList")
-                    type = "SyntaxList<CSharpSyntaxNode>";
+                {
+                    type = "CommonSyntaxList<CSharpSyntaxNode>";
+                }
+                else if (IsSeparatedNodeList(field.Type) ||
+                         IsNodeList(field.Type))
+                {
+                    type = "Common" + type;
+                }
                 Write("{0} {1}", type, CamelCase(field.Name));
             }
         }
@@ -1619,7 +1650,7 @@ namespace CSharpSyntaxGenerator
                 }
                 else if (field.Type == "SyntaxList<SyntaxToken>")
                 {
-                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name));
+                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>()", CamelCase(field.Name));
                 }
                 else if (IsNodeList(field.Type))
                 {

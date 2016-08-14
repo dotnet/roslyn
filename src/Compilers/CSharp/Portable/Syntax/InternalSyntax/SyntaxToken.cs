@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -327,14 +328,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return trailing != null ? trailing.FullWidth : 0;
         }
 
-        internal SyntaxList<CSharpSyntaxNode> LeadingTrivia
+        internal CommonSyntaxList<CSharpSyntaxNode> LeadingTrivia
         {
-            get { return new SyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
+            get { return new CommonSyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
         }
 
-        internal SyntaxList<CSharpSyntaxNode> TrailingTrivia
+        internal CommonSyntaxList<CSharpSyntaxNode> TrailingTrivia
         {
-            get { return new SyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
+            get { return new CommonSyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
         }
 
         public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)

@@ -301,9 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<double>),
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<double>),
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.WithManyChildren),
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.WithThreeChildren),
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.WithTwoChildren)
                     }
                     .Concat(
                         Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)

@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _node != null ? _node.GetHashCode() : 0;
         }
 
-        //public SeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : GreenNode
-        //{
-        //    return new SeparatedSyntaxList<TOther>(this);
-        //}
+        public CommonSeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : GreenNode
+        {
+            return new CommonSeparatedSyntaxList<TOther>(this);
+        }
 
         public static implicit operator CommonSyntaxList<TNode>(TNode node)
         {

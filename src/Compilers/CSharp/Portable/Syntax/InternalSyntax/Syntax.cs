@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -206,17 +207,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxToken.WithValue(SyntaxKind.CharacterLiteralToken, leading, text, value, trailing);
         }
 
-        internal static SyntaxToken BadToken(CSharpSyntaxNode leading, string text, CSharpSyntaxNode trailing)
+        internal static SyntaxToken BadToken(GreenNode leading, string text, GreenNode trailing)
         {
             return SyntaxToken.WithValue(SyntaxKind.BadToken, leading, text, text, trailing);
         }
 
-        internal static SyntaxToken XmlTextLiteral(CSharpSyntaxNode leading, string text, string value, CSharpSyntaxNode trailing)
+        internal static SyntaxToken XmlTextLiteral(GreenNode leading, string text, string value, GreenNode trailing)
         {
             return SyntaxToken.WithValue(SyntaxKind.XmlTextLiteralToken, leading, text, value, trailing);
         }
 
-        internal static SyntaxToken XmlTextNewLine(CSharpSyntaxNode leading, string text, string value, CSharpSyntaxNode trailing)
+        internal static SyntaxToken XmlTextNewLine(GreenNode leading, string text, string value, GreenNode trailing)
         {
             if (leading == null && trailing == null && text == CrLf && value == CrLf)
             {
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxToken.WithValue(SyntaxKind.XmlTextLiteralNewLineToken, null, text, text, null);
         }
 
-        internal static SyntaxToken XmlEntity(CSharpSyntaxNode leading, string text, string value, CSharpSyntaxNode trailing)
+        internal static SyntaxToken XmlEntity(GreenNode leading, string text, string value, GreenNode trailing)
         {
             return SyntaxToken.WithValue(SyntaxKind.XmlEntityLiteralToken, leading, text, value, trailing);
         }
@@ -241,74 +242,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxTrivia.Create(SyntaxKind.DocumentationCommentExteriorTrivia, text);
         }
 
-        public static SyntaxList<TNode> List<TNode>() where TNode : CSharpSyntaxNode
+        public static CommonSyntaxList<TNode> List<TNode>() where TNode : CSharpSyntaxNode
         {
-            return default(SyntaxList<TNode>);
+            return default(CommonSyntaxList<TNode>);
         }
 
-        public static SyntaxList<TNode> List<TNode>(TNode node) where TNode : CSharpSyntaxNode
+        public static CommonSyntaxList<TNode> List<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            return new SyntaxList<TNode>(SyntaxList.List(node));
+            return new CommonSyntaxList<TNode>(CommonSyntaxList.List(node));
         }
 
-        public static SyntaxList<TNode> List<TNode>(TNode node0, TNode node1) where TNode : CSharpSyntaxNode
+        public static CommonSyntaxList<TNode> List<TNode>(TNode node0, TNode node1) where TNode : CSharpSyntaxNode
         {
-            return new SyntaxList<TNode>(SyntaxList.List(node0, node1));
+            return new CommonSyntaxList<TNode>(CommonSyntaxList.List(node0, node1));
         }
 
-        internal static CSharpSyntaxNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1)
+        internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1)
         {
-            return SyntaxList.List(node0, node1);
+            return CommonSyntaxList.List(node0, node1);
         }
 
-        public static SyntaxList<TNode> List<TNode>(TNode node0, TNode node1, TNode node2) where TNode : CSharpSyntaxNode
+        public static CommonSyntaxList<TNode> List<TNode>(TNode node0, TNode node1, TNode node2) where TNode : CSharpSyntaxNode
         {
-            return new SyntaxList<TNode>(SyntaxList.List(node0, node1, node2));
+            return new CommonSyntaxList<TNode>(CommonSyntaxList.List(node0, node1, node2));
         }
 
-        internal static CSharpSyntaxNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1, CSharpSyntaxNode node2)
+        internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1, CSharpSyntaxNode node2)
         {
-            return SyntaxList.List(node0, node1, node2);
+            return CommonSyntaxList.List(node0, node1, node2);
         }
 
-        public static SyntaxList<TNode> List<TNode>(params TNode[] nodes) where TNode : CSharpSyntaxNode
+        public static CommonSyntaxList<TNode> List<TNode>(params TNode[] nodes) where TNode : CSharpSyntaxNode
         {
             if (nodes != null)
             {
-                return new SyntaxList<TNode>(SyntaxList.List(nodes));
+                return new CommonSyntaxList<TNode>(CommonSyntaxList.List(nodes));
             }
 
-            return default(SyntaxList<TNode>);
+            return default(CommonSyntaxList<TNode>);
         }
 
-        internal static CSharpSyntaxNode ListNode(params ArrayElement<CSharpSyntaxNode>[] nodes)
+        internal static GreenNode ListNode(params ArrayElement<GreenNode>[] nodes)
         {
-            return SyntaxList.List(nodes);
+            return CommonSyntaxList.List(nodes);
         }
 
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node) where TNode : CSharpSyntaxNode
+        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            return new SeparatedSyntaxList<TNode>(new SyntaxList<CSharpSyntaxNode>(node));
+            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(node));
         }
 
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(SyntaxToken token) where TNode : CSharpSyntaxNode
+        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(SyntaxToken token) where TNode : CSharpSyntaxNode
         {
-            return new SeparatedSyntaxList<TNode>(new SyntaxList<CSharpSyntaxNode>(token));
+            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(token));
         }
 
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node1, SyntaxToken token, TNode node2) where TNode : CSharpSyntaxNode
+        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node1, SyntaxToken token, TNode node2) where TNode : CSharpSyntaxNode
         {
-            return new SeparatedSyntaxList<TNode>(new SyntaxList<CSharpSyntaxNode>(SyntaxList.List(node1, token, node2)));
+            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(CommonSyntaxList.List(node1, token, node2)));
         }
 
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(params CSharpSyntaxNode[] nodes) where TNode : CSharpSyntaxNode
+        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(params CSharpSyntaxNode[] nodes) where TNode : CSharpSyntaxNode
         {
             if (nodes != null)
             {
-                return new SeparatedSyntaxList<TNode>(SyntaxList.List(nodes));
+                return new CommonSeparatedSyntaxList<TNode>(CommonSyntaxList.List(nodes));
             }
 
-            return default(SeparatedSyntaxList<TNode>);
+            return default(CommonSeparatedSyntaxList<TNode>);
         }
 
         internal static IEnumerable<SyntaxTrivia> GetWellKnownTrivia()

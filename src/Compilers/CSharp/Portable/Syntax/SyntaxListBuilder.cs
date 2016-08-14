@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Syntax;
+using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -22,17 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case 1:
                     return (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value;
                 case 2:
-                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value);
+                    return CoreInternalSyntax.CommonSyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value);
                 case 3:
-                    return Syntax.InternalSyntax.SyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[2].Value);
+                    return CoreInternalSyntax.CommonSyntaxList.List((Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[0].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[1].Value, (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[2].Value);
                 default:
-                    var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[this.Count];
+                    var tmp = new ArrayElement<GreenNode>[this.Count];
                     for (int i = 0; i < this.Count; i++)
                     {
-                        tmp[i].Value = (Syntax.InternalSyntax.CSharpSyntaxNode)Nodes[i].Value;
+                        tmp[i].Value = Nodes[i].Value;
                     }
 
-                    return Syntax.InternalSyntax.SyntaxList.List(tmp);
+                    return CoreInternalSyntax.CommonSyntaxList.List(tmp);
             }
         }
 

@@ -3,28 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
-        private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
+        private ArrayElement<CommonSyntaxListBuilder>[] _freeList = new ArrayElement<CommonSyntaxListBuilder>[10];
         private int _freeIndex;
 
 #if DEBUG
-        private readonly List<SyntaxListBuilder> _allocated = new List<SyntaxListBuilder>();
+        private readonly List<CommonSyntaxListBuilder> _allocated = new List<CommonSyntaxListBuilder>();
 #endif
 
         internal SyntaxListPool()
         {
         }
 
-        internal SyntaxListBuilder Allocate()
+        internal CommonSyntaxListBuilder Allocate()
         {
-            SyntaxListBuilder item;
+            CommonSyntaxListBuilder item;
             if (_freeIndex > 0)
             {
                 _freeIndex--;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                item = new SyntaxListBuilder(10);
+                item = new CommonSyntaxListBuilder(10);
             }
 
 #if DEBUG
@@ -43,22 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return item;
         }
 
-        internal SyntaxListBuilder<TNode> Allocate<TNode>() where TNode : CSharpSyntaxNode
+        internal CommonSyntaxListBuilder<TNode> Allocate<TNode>() where TNode : CSharpSyntaxNode
         {
-            return new SyntaxListBuilder<TNode>(this.Allocate());
+            return new CommonSyntaxListBuilder<TNode>(this.Allocate());
         }
 
-        internal SeparatedSyntaxListBuilder<TNode> AllocateSeparated<TNode>() where TNode : CSharpSyntaxNode
+        internal CommonSeparatedSyntaxListBuilder<TNode> AllocateSeparated<TNode>() where TNode : CSharpSyntaxNode
         {
-            return new SeparatedSyntaxListBuilder<TNode>(this.Allocate());
+            return new CommonSeparatedSyntaxListBuilder<TNode>(this.Allocate());
         }
 
-        internal void Free<TNode>(SeparatedSyntaxListBuilder<TNode> item) where TNode : CSharpSyntaxNode
+        internal void Free<TNode>(CommonSeparatedSyntaxListBuilder<TNode> item) where TNode : CSharpSyntaxNode
         {
             Free(item.UnderlyingBuilder);
         }
 
-        internal void Free(SyntaxListBuilder item)
+        internal void Free(CommonSyntaxListBuilder item)
         {
             item.Clear();
             if (_freeIndex >= _freeList.Length)
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void Grow()
         {
-            var tmp = new ArrayElement<SyntaxListBuilder>[_freeList.Length * 2];
+            var tmp = new ArrayElement<CommonSyntaxListBuilder>[_freeList.Length * 2];
             Array.Copy(_freeList, tmp, _freeList.Length);
             _freeList = tmp;
         }

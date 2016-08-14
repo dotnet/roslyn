@@ -7,7 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
+using CoreInternalSyntax = global::Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
             CSharpSyntaxNode node,
             SyntaxList<MemberDeclarationSyntax> members,
-            Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
+            CoreInternalSyntax.CommonSyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
@@ -388,7 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberNames;
         }
 
-        private static string[] GetNonTypeMemberNames(Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static string[] GetNonTypeMemberNames(
+            CoreInternalSyntax.CommonSyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -526,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.FieldDeclaration:
                     anyNonTypeMembers = true;
-                    Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
+                    CommonSeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
@@ -537,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EventFieldDeclaration:
                     anyNonTypeMembers = true;
-                    Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
+                    CommonSeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)
@@ -581,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConstructorDeclaration:
                     anyNonTypeMembers = true;
-                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any(SyntaxKind.StaticKeyword)
+                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
                     break;

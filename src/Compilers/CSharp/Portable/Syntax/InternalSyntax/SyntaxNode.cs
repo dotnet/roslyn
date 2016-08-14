@@ -269,11 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return list[0];
                     }
                 case 2:
-                    return SyntaxList.List(list[0], list[1]);
+                    return CommonSyntaxList.List(list[0], list[1]);
                 case 3:
-                    return SyntaxList.List(list[0], list[1], list[2]);
+                    return CommonSyntaxList.List(list[0], list[1], list[2]);
                 default:
-                    return SyntaxList.List(list);
+                    return CommonSyntaxList.List(list);
             }
         }
 

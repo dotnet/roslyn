@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var fieldBefore = (Green.FieldDeclarationSyntax)before;
                     var fieldAfter = (Green.FieldDeclarationSyntax)after;
 
-                    var isConstBefore = fieldBefore.Modifiers.Any(SyntaxKind.ConstKeyword);
-                    var isConstAfter = fieldAfter.Modifiers.Any(SyntaxKind.ConstKeyword);
+                    var isConstBefore = fieldBefore.Modifiers.Any((int)SyntaxKind.ConstKeyword);
+                    var isConstAfter = fieldAfter.Modifiers.Any((int)SyntaxKind.ConstKeyword);
 
                     if (!isConstBefore && !isConstAfter)
                     {

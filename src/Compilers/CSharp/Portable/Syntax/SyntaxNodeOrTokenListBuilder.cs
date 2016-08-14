@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (_nodes[0].IsToken)
                         {
                             return new SyntaxNodeOrTokenList(
-                                Syntax.InternalSyntax.SyntaxList.List(new[] { _nodes[0] }).CreateRed(),
+                                CoreInternalSyntax.CommonSyntaxList.List(new[] { _nodes[0] }).CreateRed(),
                                 index: 0);
                         }
                         else
@@ -119,20 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         }
                     case 2:
                         return new SyntaxNodeOrTokenList(
-                            Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1]).CreateRed(),
+                            CoreInternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1]).CreateRed(),
                             index: 0);
                     case 3:
                         return new SyntaxNodeOrTokenList(
-                            Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]).CreateRed(),
+                            CoreInternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]).CreateRed(),
                             index: 0);
                     default:
-                        var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[_count];
+                        var tmp = new ArrayElement<GreenNode>[_count];
                         for (int i = 0; i < _count; i++)
                         {
                             tmp[i].Value = _nodes[i];
                         }
 
-                        return new SyntaxNodeOrTokenList(Syntax.InternalSyntax.SyntaxList.List(tmp).CreateRed(), index: 0);
+                        return new SyntaxNodeOrTokenList(CoreInternalSyntax.CommonSyntaxList.List(tmp).CreateRed(), index: 0);
                 }
             }
             else
