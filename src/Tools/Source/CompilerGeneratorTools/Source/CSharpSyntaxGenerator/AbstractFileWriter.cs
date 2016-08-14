@@ -121,7 +121,7 @@ namespace CSharpSyntaxGenerator
             {
                 return green
                     ? "GreenNode"
-                    : "CSharpSyntaxNode";
+                    : "SyntaxNode";
             }
 
             return field.Type;
