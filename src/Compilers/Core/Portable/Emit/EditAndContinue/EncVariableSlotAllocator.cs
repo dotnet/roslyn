@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
+    internal abstract class EncVariableSlotAllocator : VariableSlotAllocator
     {
         // symbols:
         private readonly SymbolMatcher _symbolMap;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
-        public EncVariableSlotAllocator(
+        protected EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousTopLevelMethod,
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody ? GetLambda(lambdaOrLambdaBodySyntax) : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);
                 if (previousSyntax == null)
                 {
                     previousSyntaxOffset = 0;
@@ -280,6 +280,18 @@ namespace Microsoft.CodeAnalysis.Emit
             previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
             return true;
         }
+
+        protected abstract SyntaxNode GetLambda(SyntaxNode lambdaOrLambdaBodySyntax);
+
+        /// <summary>
+        /// When invoked on a node that represents an anonymous function or a query clause [1]
+        /// with a <paramref name="lambdaOrLambdaBodySyntax"/> of another anonymous function or a query clause of the same kind [2], 
+        /// returns the body of the [1] that positionally corresponds to the specified <paramref name="lambdaOrLambdaBodySyntax"/>.
+        /// 
+        /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
+        /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
+        /// </summary>
+        protected abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
 
         public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out DebugId closureId)
         {
