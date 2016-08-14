@@ -21,14 +21,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        protected override SyntaxTree SyntaxTreeCore
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
+        protected override SyntaxTree SyntaxTreeCore => this.Parent.SyntaxTree;
 
         internal override ObjectWriterData GetDefaultObjectWriterData()
         {
