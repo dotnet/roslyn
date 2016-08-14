@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
     Friend Class VisualBasicMakeMethodSynchronousCodeFixProvider
         Inherits AbstractMakeMethodSynchronousCodeFixProvider
 
-        Private Const s_BC42356 As String = NameOf(s_BC42356) ' This async method lacks 'Await' operators and so will run synchronously.
+        Private Const BC42356 As String = NameOf(BC42356) ' This async method lacks 'Await' operators and so will run synchronously.
 
-        Private Shared ReadOnly s_diagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(s_BC42356)
+        Private Shared ReadOnly s_diagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC42356)
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

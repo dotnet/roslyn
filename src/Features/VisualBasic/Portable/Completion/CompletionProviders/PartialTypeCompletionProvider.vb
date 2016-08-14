@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class PartialTypeCompletionProvider
         Inherits AbstractPartialTypeCompletionProvider
 
-        Private Const s_insertionTextOnOpenParen As String = NameOf(s_insertionTextOnOpenParen)
+        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
         Private Shared ReadOnly s_insertionTextFormatWithGenerics As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -53,13 +53,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,
                                                    context As SyntaxContext) As ImmutableDictionary(Of String, String)
             Return ImmutableDictionary(Of String, String).Empty.Add(
-                s_insertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
+                InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
         End Function
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
                 Dim insertionText As String = Nothing
-                If selectedItem.Properties.TryGetValue(s_insertionTextOnOpenParen, insertionText) Then
+                If selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
                     Return New TextChange(selectedItem.Span, insertionText)
                 End If
             End If
