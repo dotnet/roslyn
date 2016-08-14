@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, SyntaxKind contextualKind, string text, string valueText, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(contextualKind, (InternalSyntax.CSharpSyntaxNode)leading.Node, text, valueText, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(InternalSyntax.SyntaxFactory.Identifier(contextualKind, leading.Node, text, valueText, trailing.Node));
         }
 
         /// <summary>
