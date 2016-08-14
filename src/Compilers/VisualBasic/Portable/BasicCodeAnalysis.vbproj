@@ -350,7 +350,7 @@
     <Compile Include="Emit\EditAndContinue\VisualBasicDefinitionMap.vb" />
     <Compile Include="Emit\EditAndContinue\EmitHelpers.vb" />
     <Compile Include="Emit\EditAndContinue\PEDeltaAssemblyBuilder.vb" />
-    <Compile Include="Emit\EditAndContinue\VisualBasicEncVariableSlotAllocator.vb" />
+    <Compile Include="Emit\EditAndContinue\VisualBasicLambdaSyntaxHelper.vb" />
     <Compile Include="Emit\EditAndContinue\VisualBasicSymbolMatcher.vb" />
     <Compile Include="Emit\EventSymbolAdapter.vb" />
     <Compile Include="Emit\FieldSymbolAdapter.vb" />
