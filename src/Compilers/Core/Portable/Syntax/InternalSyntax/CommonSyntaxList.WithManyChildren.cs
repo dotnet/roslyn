@@ -81,18 +81,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
             {
+                var separated = this.SlotCount > 1 && HasNodeTokenPattern();
                 if (parent != null && parent.ShouldCreateWeakList())
                 {
-                    return new Syntax.CommonSyntaxList.WithManyWeakChildren(this, parent, position);
-                }
-
-                if (this.SlotCount > 1 && HasNodeTokenPattern())
-                {
-                    return new Syntax.CommonSyntaxList.SeparatedWithManyChildren(this, parent, position);
+                    return separated
+                        ? new Syntax.CommonSyntaxList.SeparatedWithManyWeakChildren(this, parent, position)
+                        : (SyntaxNode)new Syntax.CommonSyntaxList.WithManyWeakChildren(this, parent, position);
                 }
                 else
                 {
-                    return new Syntax.CommonSyntaxList.WithManyChildren(this, parent, position);
+                    return separated
+                        ? new Syntax.CommonSyntaxList.SeparatedWithManyChildren(this, parent, position)
+                        : (SyntaxNode)new Syntax.CommonSyntaxList.WithManyChildren(this, parent, position);
                 }
             }
 

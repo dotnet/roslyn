@@ -48,6 +48,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="Syntax\CommonSyntaxList.SeparatedWithManyWeakChildren.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\ItemTokenMap.cs" />
