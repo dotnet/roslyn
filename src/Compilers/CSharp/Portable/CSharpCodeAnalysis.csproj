@@ -817,12 +817,6 @@
     <Compile Include="Syntax\SyntaxKind.cs" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
-    <Compile Include="Syntax\SyntaxList.cs" />
-    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithManyWeakChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithThreeChildren.cs" />
-    <Compile Include="Syntax\SyntaxList.WithTwoChildren.cs" />
     <Compile Include="Syntax\SyntaxListBuilder.cs" />
     <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
