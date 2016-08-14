@@ -3,10 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -39,10 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides Function CreateSlotAllocator(symbolMap As VisualBasicSymbolMatcher, syntaxMap As Func(Of SyntaxNode, SyntaxNode), previousMethod As IMethodSymbolInternal, methodId As DebugId, previousLocals As ImmutableArray(Of EncLocalInfo), lambdaMap As IReadOnlyDictionary(Of Integer, KeyValuePair(Of DebugId, Integer)), closureMap As IReadOnlyDictionary(Of Integer, DebugId), stateMachineTypeNameOpt As String, hoistedLocalSlotCount As Integer, hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer), awaiterSlotCount As Integer, awaiterMap As IReadOnlyDictionary(Of ITypeReference, Integer)) As VariableSlotAllocator
-            Return New VisualBasicEncVariableSlotAllocator(symbolMap, syntaxMap, previousMethod,
-                methodId, previousLocals, lambdaMap, closureMap, stateMachineTypeNameOpt,
-                hoistedLocalSlotCount, hoistedLocalMap, awaiterSlotCount, awaiterMap)
+        Protected Overrides Function GetLambdaSyntaxFacts() As LambdaSyntaxFacts
+            Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean

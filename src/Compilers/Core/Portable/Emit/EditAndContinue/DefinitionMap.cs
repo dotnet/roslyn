@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -303,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 symbolMap = mapToMetadata;
             }
 
-            return CreateSlotAllocator(
+            return new EncVariableSlotAllocator(
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,
@@ -315,10 +314,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
                 awaiterSlotCount,
-                awaiterMap);
+                awaiterMap,
+                GetLambdaSyntaxFacts());
         }
 
-        protected abstract VariableSlotAllocator CreateSlotAllocator(TSymbolMatcher symbolMap, Func<SyntaxNode, SyntaxNode> syntaxMap, IMethodSymbolInternal previousMethod, DebugId methodId, ImmutableArray<EncLocalInfo> previousLocals, IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap, IReadOnlyDictionary<int, DebugId> closureMap, string stateMachineTypeNameOpt, int hoistedLocalSlotCount, IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap, int awaiterSlotCount, IReadOnlyDictionary<ITypeReference, int> awaiterMap);
+        protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {
