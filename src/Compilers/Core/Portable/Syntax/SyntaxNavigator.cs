@@ -7,11 +7,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SyntaxNavigator
+    internal sealed class SyntaxNavigator
     {
         private const int None = 0;
 
         public static readonly SyntaxNavigator Instance = new SyntaxNavigator();
+
+        private SyntaxNavigator()
+        {
+        }
 
         [Flags]
         private enum SyntaxKinds
@@ -33,7 +37,8 @@ namespace Microsoft.CodeAnalysis
             /* 111 */ t => t.IsSkippedTokensTrivia || t.IsDirective || t.IsDocumentationCommentTrivia,
         };
 
-        private Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments)
+        private static Func<SyntaxTrivia, bool> GetStepIntoFunction(
+            bool skipped, bool directives, bool docComments)
         {
             var index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
                         (directives ? SyntaxKinds.Directives : 0) |
