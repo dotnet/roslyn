@@ -329,12 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal SyntaxList<CSharpSyntaxNode> LeadingTrivia
         {
-            get { return new SyntaxList<CSharpSyntaxNode>((CSharpSyntaxNode)this.GetLeadingTrivia()); }
+            get { return new SyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
         }
 
         internal SyntaxList<CSharpSyntaxNode> TrailingTrivia
         {
-            get { return new SyntaxList<CSharpSyntaxNode>((CSharpSyntaxNode)this.GetTrailingTrivia()); }
+            get { return new SyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
         }
 
         public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)
