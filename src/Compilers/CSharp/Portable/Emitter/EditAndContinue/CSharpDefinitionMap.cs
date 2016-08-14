@@ -37,23 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
 
-        protected override VariableSlotAllocator CreateSlotAllocator(
-            CSharpSymbolMatcher symbolMap, 
-            Func<SyntaxNode, SyntaxNode> syntaxMap, 
-            IMethodSymbolInternal previousMethod, 
-            DebugId methodId, 
-            ImmutableArray<EncLocalInfo> previousLocals, 
-            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap,
-            IReadOnlyDictionary<int, DebugId> closureMap, 
-            string stateMachineTypeNameOpt, 
-            int hoistedLocalSlotCount, 
-            IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap,
-            int awaiterSlotCount, 
-            IReadOnlyDictionary<ITypeReference, int> awaiterMap)
+        protected override ILambdaSyntaxHelper GetLambdaSyntaxHelper()
         {
-            return new CSharpEncVariableSlotAllocator(symbolMap, syntaxMap, previousMethod,
-                methodId, previousLocals, lambdaMap, closureMap, stateMachineTypeNameOpt,
-                hoistedLocalSlotCount, hoistedLocalMap, awaiterSlotCount, awaiterMap);
+            return CSharpLambdaSyntaxHelper.Instance;
         }
 
         internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)

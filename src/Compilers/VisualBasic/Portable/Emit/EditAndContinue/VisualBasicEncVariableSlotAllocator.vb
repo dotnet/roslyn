@@ -7,31 +7,19 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
-    Friend Class VisualBasicEncVariableSlotAllocator
-        Inherits EncVariableSlotAllocator
+    Friend Class VisualBasicLambdaSyntaxHelper
+        Implements ILambdaSyntaxHelper
 
-        Public Sub New(symbolMap As SymbolMatcher,
-                       syntaxMapOpt As Func(Of SyntaxNode, SyntaxNode),
-                       previousTopLevelMethod As IMethodSymbolInternal,
-                       methodId As DebugId,
-                       previousLocals As ImmutableArray(Of EncLocalInfo),
-                       lambdaMapOpt As IReadOnlyDictionary(Of Integer, KeyValuePair(Of DebugId, Integer)),
-                       closureMapOpt As IReadOnlyDictionary(Of Integer, DebugId),
-                       stateMachineTypeNameOpt As String,
-                       hoistedLocalSlotCount As Integer,
-                       hoistedLocalSlotsOpt As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
-                       awaiterCount As Integer,
-                       awaiterMapOpt As IReadOnlyDictionary(Of ITypeReference, Integer))
-            MyBase.New(symbolMap, syntaxMapOpt, previousTopLevelMethod, methodId,
-                       previousLocals, lambdaMapOpt, closureMapOpt, stateMachineTypeNameOpt,
-                       hoistedLocalSlotCount, hoistedLocalSlotsOpt, awaiterCount, awaiterMapOpt)
+        Public Shared ReadOnly Instance As ILambdaSyntaxHelper = New VisualBasicLambdaSyntaxHelper()
+
+        Private Sub New()
         End Sub
 
-        Protected Overrides Function GetLambda(lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode
+        Public Function GetLambda(lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode Implements ILambdaSyntaxHelper.GetLambda
             Return LambdaUtilities.GetLambda(lambdaOrLambdaBodySyntax)
         End Function
 
-        Protected Overrides Function TryGetCorrespondingLambdaBody(previousLambdaSyntax As SyntaxNode, lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode
+        Public Function TryGetCorrespondingLambdaBody(previousLambdaSyntax As SyntaxNode, lambdaOrLambdaBodySyntax As SyntaxNode) As SyntaxNode Implements ILambdaSyntaxHelper.TryGetCorrespondingLambdaBody
             Return LambdaUtilities.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax, previousLambdaSyntax)
         End Function
     End Class
