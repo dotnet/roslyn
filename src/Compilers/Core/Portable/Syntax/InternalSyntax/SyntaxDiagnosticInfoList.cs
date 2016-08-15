@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 }
 
                 this.Push(token);
-                var leading = token.GetTrailingTriviaCore();
+                var leading = token.GetLeadingTriviaCore();
                 if (leading != null)
                 {
                     this.Push(leading);
