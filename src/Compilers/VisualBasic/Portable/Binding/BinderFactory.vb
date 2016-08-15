@@ -44,16 +44,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
-            If node.Kind() <> SyntaxKind.List Then
-                If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
-                   node.Kind = SyntaxKind.CompilationUnit Then
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
+               node.Kind = SyntaxKind.CompilationUnit Then
 
-                    Dim visitor = _binderFactoryVisitorPool.Allocate()
-                    visitor.Position = position
-                    Dim result = DirectCast(node, VisualBasicSyntaxNode).Accept(visitor)
-                    _binderFactoryVisitorPool.Free(visitor)
-                    Return result
-                End If
+                Dim visitor = _binderFactoryVisitorPool.Allocate()
+                visitor.Position = position
+                Dim result = visitor.Visit(node)
+                _binderFactoryVisitorPool.Free(visitor)
+                Return result
             End If
 
             Return Nothing
