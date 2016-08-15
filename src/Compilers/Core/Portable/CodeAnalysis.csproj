@@ -106,6 +106,7 @@
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
+    <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
