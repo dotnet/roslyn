@@ -16615,9 +16615,7 @@ class C
 
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular, expectedOutput: @"
-(w, w)
-");
+                parseOptions: TestOptions.Regular, expectedOutput: @"(w, w)");
         }
 
         [Fact]

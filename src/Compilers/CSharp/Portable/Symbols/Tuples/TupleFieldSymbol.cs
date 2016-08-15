@@ -239,5 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        internal override bool IsVirtualTupleField
+        {
+            get
+            {
+                return true;
+            }
+        }
     }
 }

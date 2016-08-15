@@ -664,27 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int VariableSlot(Symbol symbol, int containingSlot = 0)
         {
-            var fieldSymbol = symbol as TupleFieldSymbol;
-            if ((object)fieldSymbol != null)
-            {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
-
-                // for tuple fields the varible indentifier represents the underlying field
-                symbol = fieldSymbol.TupleUnderlyingField;
-
-                // descend through Rest fields
-                // bail if corresponding slots do not exist
-                while (containingType != symbol.ContainingType)
-                {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if((object)restField == null ||
-                        !_variableSlot.TryGetValue(new VariableIdentifier(restField, containingSlot), out containingSlot))
-                    {
-                        return -1;
-                    }
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
-                }
-            }
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: false);
 
             int slot;
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
@@ -697,27 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is RangeVariableSymbol) return -1;
 
-            var fieldSymbol = symbol as TupleFieldSymbol;
-            if ((object)fieldSymbol != null)
-            {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
-
-                // for tuple fields the varible indentifier represents the underlying field
-                symbol = fieldSymbol.TupleUnderlyingField;
-
-                // descend through Rest fields
-                // force corresponding slots if do not exist
-                while (containingType != symbol.ContainingType)
-                {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if (restField == null)
-                    {
-                        return -1;
-                    }
-                    containingSlot = GetOrCreateSlot(restField, containingSlot);
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
-                }
-            }
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -744,6 +704,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             Normalize(ref this.State);
             return slot;
         }
+
+        // Descends through Rest fields of a tuple is "symbol" is an extended field
+        // As a result the "symbol" will be adjusted to be the field of the innermost tuple
+        // and a corresponding containingSlot is returned.
+        // Return value -1 indicates a failure which could happen for the following reasons
+        // a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
+        // b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
+        private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
+        {
+            var fieldSymbol = symbol as TupleFieldSymbol;
+            if ((object)fieldSymbol != null)
+            {
+                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+
+                // for tuple fields the varible indentifier represents the underlying field
+                symbol = fieldSymbol.TupleUnderlyingField;
+
+                // descend through Rest fields
+                // force corresponding slots if do not exist
+                while (containingType != symbol.ContainingType)
+                {
+                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    if ((object)restField == null)
+                    {
+                        return -1;
+                    }
+
+                    if (forceContainingSlotsToExist)
+                    {
+                        containingSlot = GetOrCreateSlot(restField, containingSlot);
+                    }
+                    else
+                    {
+                        if (!_variableSlot.TryGetValue(new VariableIdentifier(restField, containingSlot), out containingSlot))
+                        {
+                            return -1;
+                        }
+                    }
+
+                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                }
+            }
+
+            return containingSlot;
+        }
+
 
         private void Normalize(ref LocalState state)
         {
