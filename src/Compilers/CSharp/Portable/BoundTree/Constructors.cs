@@ -520,14 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundIfStatement
-    {
-        public BoundIfStatement(SyntaxNode syntax, BoundExpression condition, BoundStatement consequence, BoundStatement alternativeOpt, bool hasErrors = false)
-            : this(syntax, ImmutableArray<LocalSymbol>.Empty, condition, consequence, alternativeOpt, hasErrors)
-        {
-        }
-    }
-
     internal partial class BoundDefaultOperator
     {
         public BoundDefaultOperator(SyntaxNode syntax, TypeSymbol type)

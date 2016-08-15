@@ -338,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var whileBinder = new WhileBinder(patternBinder, node);
+            var whileBinder = new WhileBinder(_enclosing, node);
             AddToMap(node, whileBinder);
 
             Visit(node.Condition, whileBinder);
@@ -349,8 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var whileBinder = new WhileBinder(patternBinder, node);
+            var whileBinder = new WhileBinder(_enclosing, node);
             AddToMap(node, whileBinder);
 
             Visit(node.Condition, whileBinder);
@@ -457,8 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLockStatement(LockStatementSyntax node)
         {
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            var lockBinder = new LockBinder(patternBinder, node);
+            var lockBinder = new LockBinder(_enclosing, node);
             AddToMap(node, lockBinder);
 
             Visit(node.Expression, lockBinder);
@@ -516,13 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            var ifBinder = new ExpressionVariableBinder(node.Condition, _enclosing);
-            AddToMap(node.Condition, ifBinder);
-            Visit(node.Condition, ifBinder);
-            VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
-
-            // pattern variables from the condition are not in scope within the else clause
-            if (node.Else != null) AddToMap(node.Else.Statement, _enclosing);
+            Visit(node.Condition, _enclosing);
+            VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
             Visit(node.Else, _enclosing);
         }
 
@@ -730,6 +722,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // inside a block.
 
                     case SyntaxKind.ExpressionStatement:
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
+                    case SyntaxKind.IfStatement:
                         Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                         var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
                         AddToMap(statement, blockBinder);
