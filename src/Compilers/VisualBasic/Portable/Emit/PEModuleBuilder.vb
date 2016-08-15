@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
     Partial Friend MustInherit Class PEModuleBuilder
-        Inherits PEModuleBuilder(Of VisualBasicCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, VisualBasicSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
+        Inherits PEModuleBuilder(Of VisualBasicCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, SyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState)
 
         ' Not many methods should end up here.
         Private ReadOnly _disableJITOptimization As ConcurrentDictionary(Of MethodSymbol, Boolean) = New ConcurrentDictionary(Of MethodSymbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -570,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
 
             Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
@@ -583,14 +583,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
         End Function
 
-        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              needDeclaration:=True,
                              syntaxNodeOpt:=syntaxNodeOpt,
                              diagnostics:=diagnostics)
         End Function
 
-        Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
             Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
@@ -646,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
-        Protected Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As IMethodDefinition
+        Protected Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As IMethodDefinition
             Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
         End Function
     End Class

@@ -34,10 +34,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New AttributeSemanticModel(root, binder, parentSemanticModel, position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
-            Dim boundNode As boundNode
+            Dim boundNode As BoundNode
 
             Select Case node.Kind
                 Case SyntaxKind.Attribute

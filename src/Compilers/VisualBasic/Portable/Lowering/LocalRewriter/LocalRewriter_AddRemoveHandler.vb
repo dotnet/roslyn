@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteWinRtEvent(node As BoundAddRemoveHandlerStatement, unwrappedEventAccess As BoundEventAccess,
                                                isAddition As Boolean) As BoundStatement
 
-            Dim syntax As VisualBasicSyntaxNode = node.Syntax
+            Dim syntax As SyntaxNode = node.Syntax
             Dim eventSymbol As EventSymbol = unwrappedEventAccess.EventSymbol
 
             Dim rewrittenReceiverOpt As BoundExpression = GetEventAccessReceiver(unwrappedEventAccess)
