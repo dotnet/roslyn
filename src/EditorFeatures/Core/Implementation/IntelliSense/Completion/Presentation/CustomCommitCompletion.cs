@@ -87,13 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Text;
         }
 
-        public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return _imageMoniker;
-            }
-        }
+        public override ImageMoniker IconMoniker => _imageMoniker;
 
         public override string IconAutomationText
         {
