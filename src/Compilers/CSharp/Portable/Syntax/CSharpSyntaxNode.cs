@@ -221,25 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lastToken.TrailingTrivia;
         }
 
-        internal Location Location
-        {
-            get
-            {
-                // CSharpSyntaxNode always has a non-null SyntaxTree, however the tree might be rooted at a node which is not a CompilationUnit.
-                // These kind of nodes may be seen during binding in couple of scenarios:
-                //   (a) Compiler synthesized syntax nodes (e.g. missing nodes, qualified names for command line using directives, etc.)
-                //   (b) Speculatively binding syntax nodes through the semantic model.
-                //
-                // For scenario (a), we need to ensure that we return NoLocation for generating location agnostic compiler diagnostics.
-                // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
-                // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
-
-                var tree = (CSharpSyntaxTree)SyntaxTree;
-                Debug.Assert(tree != null);
-                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
-            }
-        }
-
         /// <summary>
         /// Returns the string representation of this node, not including its leading and trailing trivia.
         /// </summary>
