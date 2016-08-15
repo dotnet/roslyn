@@ -53,6 +53,7 @@
     <Compile Include="CodeGen\ItemTokenMap.cs" />
     <Compile Include="Emit\DebugDocumentsBuilder.cs" />
     <Compile Include="EmbeddedText.cs" />
+    <Compile Include="Emit\EditAndContinue\LambdaSyntaxFacts.cs" />
     <Compile Include="InternalUtilities\EncodingExtensions.cs" />
     <Compile Include="InternalUtilities\BlobBuildingStream.cs" />
     <Compile Include="GlobalSuppressions.cs" />
