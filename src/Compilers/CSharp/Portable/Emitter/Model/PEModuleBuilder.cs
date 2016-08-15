@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal Cci.ITypeReference Translate(
             DynamicTypeSymbol symbol,
-            CSharpSyntaxNode syntaxNodeOpt,
+            SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
             // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
