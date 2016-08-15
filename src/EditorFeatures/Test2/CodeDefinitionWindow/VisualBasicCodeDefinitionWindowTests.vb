@@ -17,6 +17,41 @@ End Class"
             Await VerifyContextLocationInSameFile(code, "C")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function ClassFromReference() As Task
+            Const code As String = "
+Class [|C|]
+    Shared Sub M()
+        $$C.M()
+    End Sub
+End Class"
+
+            Await VerifyContextLocationInSameFile(code, "C")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function MethodFromDefinition() As Task
+            Const code As String = "
+Class C
+    Sub $$[|M|]()
+    End Sub
+End Class"
+
+            Await VerifyContextLocationInSameFile(code, "Public Sub M()")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function MethodFromReference() As Task
+            Const code As String = "
+Class C
+    Sub [|M|]()
+        Me.$$M()
+    End Sub
+End Class"
+
+            Await VerifyContextLocationInSameFile(code, "Public Sub M()")
+        End Function
+
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(code)
         End Function

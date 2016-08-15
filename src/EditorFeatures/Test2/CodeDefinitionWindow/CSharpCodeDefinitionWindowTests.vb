@@ -19,12 +19,40 @@ class $$[|C|]
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function ClassFromReference() As Task
+            Const code As String = "
+class [|C|]
+{
+    static void M()
+    {
+        $$C.M();
+    }
+}"
+
+            Await VerifyContextLocationInSameFile(code, "C")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
         Public Async Function MethodFromDefinition() As Task
             Const code As String = "
 class C
 {
     void $$[|M|]()
     {
+    }
+}"
+
+            Await VerifyContextLocationInSameFile(code, "C.M()")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function MethodFromReference() As Task
+            Const code As String = "
+class C
+{
+    void [|M|]()
+    {
+        this.$$M();
     }
 }"
 
