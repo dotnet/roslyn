@@ -971,7 +971,7 @@ Public Class BuildDevDivInsertionFiles
                       <Project DefaultTargets="Localize" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
                           <ItemGroup>
                               <LocalizeFile Include=<%= "$(Sources)\" & devdivPath %>>
-                                  <TranslationFile><%= "$(LocRepo)\{Lang}Roslyn\" & lclFileName %></TranslationFile>
+                                  <TranslationFile><%= "$(LocRepo)\{Lang}\Roslyn\" & lclFileName %></TranslationFile>
                                   <LciCommentFile><%= "$(Sources)\Roslyn\LCI\" & lciFileName %></LciCommentFile>
                                   <%= If(CompilerFiles.Contains(fileName),
                                       <SimShip xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
