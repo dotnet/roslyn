@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
         {
             rewritten = base.InstrumentExpressionStatement(original, rewritten);
-            CSharpSyntaxNode syntax = original.Syntax;
+            SyntaxNode syntax = original.Syntax;
 
             switch (syntax.Parent.Parent.Kind())
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
-                CSharpSyntaxNode parent = original.Syntax.Parent;
+                SyntaxNode parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
                     var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;

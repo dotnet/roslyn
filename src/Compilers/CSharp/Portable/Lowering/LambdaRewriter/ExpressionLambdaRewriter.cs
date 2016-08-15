@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            CSharpSyntaxNode old = _bound.Syntax;
+            SyntaxNode old = _bound.Syntax;
             _bound.Syntax = node.Syntax;
             var result = VisitInternal(node);
             _bound.Syntax = old;

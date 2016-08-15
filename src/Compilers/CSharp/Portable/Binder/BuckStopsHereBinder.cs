@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Binder GetBinder(CSharpSyntaxNode node)
+        internal override Binder GetBinder(SyntaxNode node)
         {
             return null;
         }

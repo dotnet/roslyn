@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsOperator(
             BoundIsOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
             Conversion conversion,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteConstantIsOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression loweredOperand,
             ConstantValue constantValue,
             TypeSymbol type)
