@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -13,18 +14,15 @@ namespace Microsoft.Cci
         private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
         private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
         protected bool typeReferenceNeedsToken;
-        protected IModule module;
 
         internal ReferenceIndexerBase(EmitContext context)
             : base(context)
         {
         }
 
-        public override abstract void Visit(IAssembly assembly);
-
         public override void Visit(IAssemblyReference assemblyReference)
         {
-            if (assemblyReference != this.module.AsAssembly)
+            if (assemblyReference != Context.Module.GetContainingAssembly(Context))
             {
                 RecordAssemblyReference(assemblyReference);
             }
@@ -53,7 +51,7 @@ namespace Microsoft.Cci
             }
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
+            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module))
             {
                 return;
             }
@@ -137,7 +135,7 @@ namespace Microsoft.Cci
             // an ordinary method def token. We consistently choose to emit a method ref regardless.)
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, this.module) && !methodReference.AcceptsExtraArguments)
+            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module) && !methodReference.AcceptsExtraArguments)
             {
                 return;
             }
@@ -168,11 +166,11 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(IModule module);
+        public override abstract void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {
-            if (moduleReference != this.module)
+            if (moduleReference != Context.Module)
             {
                 RecordModuleReference(moduleReference);
             }
@@ -206,7 +204,7 @@ namespace Microsoft.Cci
                     // If this is a module from a referenced multi-module assembly,
                     // the assembly should be used as the resolution scope. 
                     assemblyReference = moduleReference.GetContainingAssembly(Context);
-                    if (assemblyReference != null && assemblyReference != this.module.AsAssembly)
+                    if (assemblyReference != null && assemblyReference != Context.Module.GetContainingAssembly(Context))
                     {
                         this.Visit(assemblyReference);
                     }
