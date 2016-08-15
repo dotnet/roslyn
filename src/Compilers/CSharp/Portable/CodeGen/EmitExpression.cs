@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (!used && ConstructorNotSideEffecting(expression))
+                if (!used && ConstructorNotSideEffecting(expression.Constructor))
                 {
                     // creating nullable has no side-effects, so we will just evaluate the arguments
                     foreach (var arg in expression.Arguments)
@@ -1767,19 +1767,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool ConstructorNotSideEffecting(BoundObjectCreationExpression expression)
+        private bool ConstructorNotSideEffecting(MethodSymbol constructor)
         {
-            var originalDef = expression.Constructor.OriginalDefinition;
+            var originalDef = constructor.OriginalDefinition;
+            var compilation = _module.Compilation;
 
-            return originalDef == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor) ||
-                originalDef == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor);
+            return originalDef == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor) ||
+                originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor);
         }
 
         private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, UseKind useKind)

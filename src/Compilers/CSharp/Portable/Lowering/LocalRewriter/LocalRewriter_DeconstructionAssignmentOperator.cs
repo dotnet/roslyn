@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ApplyConversions(node, temps, stores, placeholders);
             ApplyAssignments(node, stores, lhsTargets);
 
-            BoundExpression returnValue = MakeReturnValue(node, stores, placeholders);
+            BoundExpression returnValue = MakeReturnValue(node, placeholders);
             BoundExpression result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
 
             RemovePlaceholderReplacements(placeholders);
@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ApplyDeconstructions(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, BoundExpression loweredRight)
         {
-            AddPlaceholderReplacement(node.DeconstructSteps[0].InputPlaceholder, loweredRight);
-            placeholders.Add(node.DeconstructSteps[0].InputPlaceholder);
+            var firstDeconstructStep = node.DeconstructSteps[0];
+            AddPlaceholderReplacement(firstDeconstructStep.InputPlaceholder, loweredRight);
+            placeholders.Add(firstDeconstructStep.InputPlaceholder);
 
             foreach (BoundDeconstructionDeconstructStep deconstruction in node.DeconstructSteps)
             {
@@ -70,11 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numConversions = node.ConversionSteps.Length;
             var conversionLocals = ArrayBuilder<BoundExpression>.GetInstance();
 
-            for (int i = 0; i < numConversions; i++)
+            foreach (var conversionInfo in node.ConversionSteps)
             {
                 // lower the conversions and assignments to locals
-                var conversionInfo = node.ConversionSteps[i];
-
                 var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, conversionInfo.OutputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
                 var localBound = new BoundLocal(node.Syntax,
                                                localSymbol,
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For d-assignments, that is a series of tuple constructions, that are chained with the help of placeholders.
         /// The placeholders that are set are added to the list for later clearing.
         /// </summary>
-        private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             if (node.IsDeclaration)
             {

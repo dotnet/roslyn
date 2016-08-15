@@ -90,9 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     assignmentSteps,
                                     constructionStepsOpt);
 
-            TypeSymbol returnType = (isDeclaration || hasErrors) ?
-                                        GetSpecialType(SpecialType.System_Void, diagnostics, node) :
-                                        constructionStepsOpt.Last().OutputPlaceholder.Type;
+            TypeSymbol returnType = hasErrors ?
+                                        CreateErrorType() :
+                                        isDeclaration ?
+                                            GetSpecialType(SpecialType.System_Void, diagnostics, node) :
+                                            constructionStepsOpt.Last().OutputPlaceholder.Type;
 
             var deconstructions = deconstructionSteps.ToImmutableAndFree();
             var conversions = conversionSteps.ToImmutableAndFree();
@@ -335,10 +337,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (constructionStepsOpt != null && !hasErrors)
+            if (constructionStepsOpt != null)
             {
-                var construct = MakeDeconstructionConstructionStep(syntax, diagnostics, constructionInputs.ToImmutableAndFree());
-                constructionStepsOpt.Add(construct);
+                if (hasErrors)
+                {
+                    constructionInputs.Free();
+                }
+                else
+                {
+                    var construct = MakeDeconstructionConstructionStep(syntax, diagnostics, constructionInputs.ToImmutableAndFree());
+                    constructionStepsOpt.Add(construct);
+                }
             }
 
             return !hasErrors;

@@ -1039,6 +1039,25 @@ class C
         }
 
         [Fact]
+        public void ValueTupleReturnIsEmittedIfUsedInLambda()
+        {
+            string source = @"
+class C
+{
+    static void F(System.Action a) { }
+    static void F<T>(System.Func<T> f) { System.Console.Write(f().ToString()); }
+    static void Main()
+    {
+        int x, y;
+        F(() => (x, y) = (1, 2));
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssigningIntoProperties()
         {
             string source = @"
