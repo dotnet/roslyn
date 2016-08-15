@@ -864,6 +864,7 @@
     <Compile Include="Syntax\InternalSyntax\Syntax.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxList.vb" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.vb" />
@@ -889,6 +890,7 @@
     <Compile Include="Syntax\SyntaxExtensions.vb" />
     <Compile Include="Syntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\SyntaxFacts.vb" />
+    <Compile Include="Syntax\SyntaxListBuilder.vb" />
     <Compile Include="Syntax\SyntaxNormalizer.vb" />
     <Compile Include="Syntax\SyntaxKind.vb" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
@@ -901,7 +903,7 @@
     <Compile Include="Syntax\SyntaxList.WithManyChildren.vb" />
     <Compile Include="Syntax\SyntaxList.WithThreeChildren.vb" />
     <Compile Include="Syntax\SyntaxList.WithTwoChildren.vb" />
-    <Compile Include="Syntax\SyntaxListBuilder.vb" />
+    <Compile Include="Syntax\SyntaxListBuilder`1.vb" />
     <Compile Include="Syntax\SyntaxNavigator.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
