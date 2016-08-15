@@ -547,6 +547,25 @@ namespace Microsoft.CodeAnalysis
             return this.SyntaxTree.GetLocation(this.Span);
         }
 
+        internal Location Location
+        {
+            get
+            {
+                // SyntaxNodes always has a non-null SyntaxTree, however the tree might be rooted at a node which is not a CompilationUnit.
+                // These kind of nodes may be seen during binding in couple of scenarios:
+                //   (a) Compiler synthesized syntax nodes (e.g. missing nodes, qualified names for command line using directives, etc.)
+                //   (b) Speculatively binding syntax nodes through the semantic model.
+                //
+                // For scenario (a), we need to ensure that we return NoLocation for generating location agnostic compiler diagnostics.
+                // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
+                // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
+
+                var tree = this.SyntaxTree;
+                Debug.Assert(tree != null);
+                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
+            }
+        }
+
         /// <summary>
         /// Gets a list of all the diagnostics in the sub tree that has this node as its root.
         /// This method does not filter diagnostics based on #pragmas and compiler options
@@ -935,7 +954,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
-recurse:
+            recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -1447,6 +1466,25 @@ recurse:
         internal virtual bool ShouldCreateWeakList()
         {
             return false;
+        }
+
+        internal bool HasErrors
+        {
+            get
+            {
+                if (!this.ContainsDiagnostics)
+                {
+                    return false;
+                }
+
+                return HasErrorsSlow();
+            }
+        }
+
+        private bool HasErrorsSlow()
+        {
+            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any(
+                info => info.Severity == DiagnosticSeverity.Error);
         }
     }
 }

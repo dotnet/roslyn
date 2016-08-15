@@ -778,7 +778,6 @@
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\Syntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLastTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />

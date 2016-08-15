@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1142,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitLoadIndirect(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitLoadIndirect(TypeSymbol type, SyntaxNode syntaxNode)
         {
             if (type.IsEnumType())
             {
@@ -2347,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(thisRef.Type, thisRef.Syntax);
         }
 
-        private void EmitArrayElementStore(ArrayTypeSymbol arrayType, CSharpSyntaxNode syntaxNode)
+        private void EmitArrayElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
             if (arrayType.IsSZArray)
             {
@@ -2362,7 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Emit an element store instruction for a single dimensional array.
         /// </summary>
-        private void EmitVectorElementStore(ArrayTypeSymbol arrayType, CSharpSyntaxNode syntaxNode)
+        private void EmitVectorElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
             var elementType = arrayType.ElementType;
 
@@ -2453,7 +2452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIndirectStore(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitIndirectStore(TypeSymbol type, SyntaxNode syntaxNode)
         {
             if (type.IsEnumType())
             {
@@ -2568,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultValue(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitDefaultValue(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
             {
@@ -2598,7 +2597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitInitObj(expression.Type, used, expression.Syntax);
         }
 
-        private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
             if (used)  // unused constant has no side-effects
             {
@@ -2614,7 +2613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitInitObj(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
             {
@@ -3021,7 +3020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                    (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)to));
         }
 
-        private void EmitStaticCast(TypeSymbol to, CSharpSyntaxNode syntax)
+        private void EmitStaticCast(TypeSymbol to, SyntaxNode syntax)
         {
             Debug.Assert(to.IsVerifierReference());
 
@@ -3041,7 +3040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             FreeTemp(temp);
         }
 
-        private void EmitBox(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitBox(TypeSymbol type, SyntaxNode syntaxNode)
         {
             _builder.EmitOpCode(ILOpCode.Box);
             EmitSymbolToken(type, syntaxNode);

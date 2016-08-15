@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal static bool IsInAnonymousFunctionOrQuery(int position, CSharpSyntaxNode lambdaExpressionOrQueryNode)
+        internal static bool IsInAnonymousFunctionOrQuery(int position, SyntaxNode lambdaExpressionOrQueryNode)
         {
             Debug.Assert(lambdaExpressionOrQueryNode.IsAnonymousFunction() || lambdaExpressionOrQueryNode.IsQuery());
 

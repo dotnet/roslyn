@@ -1924,7 +1924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: we can ignore use site errors in this place because they should have already be reported 
             '       either in real or synthesized constructor
 
-            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
+            Dim syntaxNode As SyntaxNode = constructor.Syntax
 
             Dim thisRef As New BoundMeReference(syntaxNode, constructor.ContainingType)
             thisRef.SetWasCompilerGenerated()
