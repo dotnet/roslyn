@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (!used && ConstructorNotSideEffecting(expression.Constructor))
+                if (!used && ConstructorNotSideEffecting(constructor))
                 {
                     // creating nullable has no side-effects, so we will just evaluate the arguments
                     foreach (var arg in expression.Arguments)

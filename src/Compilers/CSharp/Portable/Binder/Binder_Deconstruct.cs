@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     assignmentSteps,
                                     constructionStepsOpt);
 
-            TypeSymbol returnType = hasErrors ?
-                                        CreateErrorType() :
-                                        isDeclaration ?
+            TypeSymbol returnType = isDeclaration ?
                                             GetSpecialType(SpecialType.System_Void, diagnostics, node) :
-                                            constructionStepsOpt.Last().OutputPlaceholder.Type;
+                                            hasErrors ?
+                                                CreateErrorType() :
+                                                constructionStepsOpt.Last().OutputPlaceholder.Type;
 
             var deconstructions = deconstructionSteps.ToImmutableAndFree();
             var conversions = conversionSteps.ToImmutableAndFree();
