@@ -488,7 +488,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
+
+            // code style: brace options.
+            if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
             {
                 return PersistStyleOption<bool>(Style_UseBracesWherePossible, value);
             }

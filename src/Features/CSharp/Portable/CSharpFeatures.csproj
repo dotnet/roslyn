@@ -59,9 +59,9 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
-    <Compile Include="AddBraces\CSharpRemoveBracesCodeFixProvider.cs" />
-    <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
-    <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="Braces\CSharpRemoveBracesCodeFixProvider.cs" />
+    <Compile Include="Braces\CSharpAddBracesCodeFixProvider.cs" />
+    <Compile Include="Braces\CSharpBracesDiagnosticAnalyzer.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
