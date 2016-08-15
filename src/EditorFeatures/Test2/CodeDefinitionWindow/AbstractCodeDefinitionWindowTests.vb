@@ -15,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
+                Assert.Empty(tree.GetDiagnostics(CancellationToken.None))
+
                 Dim definitionContextTracker As New DefinitionContextTracker(Nothing, Nothing)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
                     document,
