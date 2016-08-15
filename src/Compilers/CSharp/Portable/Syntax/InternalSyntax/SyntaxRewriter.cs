@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public CommonSeparatedSyntaxList<TNode> VisitList<TNode>(CommonSeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
+            // A separated list is filled with C# nodes and C# tokens.  Both of which
+            // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
+            // typesafe.
             var withSeps = (CommonSyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
             var result = this.VisitList(withSeps);
             if (result != withSeps)
