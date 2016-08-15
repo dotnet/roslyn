@@ -59,6 +59,27 @@ class C
             Await VerifyContextLocationInSameFile(code, "C.M()")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function ReducedGenericExtensionMethod() As Task
+            Const code As String = "
+using System.Collections.Generic;
+static class Ex
+{
+    public static void [|M|]<T>(this List<T> list) { }
+}
+
+class C
+{
+    void M()
+    {
+        var list = new List<int>();
+        list.$$M();
+    }
+}"
+
+            Await VerifyContextLocationInSameFile(code, "Ex.M<T>(System.Collections.Generic.List<T>)")
+        End Function
+
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateCSharpAsync(code)
         End Function

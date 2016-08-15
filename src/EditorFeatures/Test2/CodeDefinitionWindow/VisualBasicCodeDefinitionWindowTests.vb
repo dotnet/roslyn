@@ -52,6 +52,28 @@ End Class"
             Await VerifyContextLocationInSameFile(code, "Public Sub M()")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function ReducedGenericExtensionMethod() As Task
+            Const code As String = "
+Imports System.Collections.Generic
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension>
+    Sub [|M|](Of T)(list As List(Of T))
+    End Sub
+End Module
+
+Module Program
+    Sub Main()
+        Dim list As New List(Of Integer)
+        list.$$M()
+    End Sub
+End Module"
+
+            Await VerifyContextLocationInSameFile(code, "Public Sub M(Of T)(list As System.Collections.Generic.List(Of T))")
+        End Function
+
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(code)
         End Function
