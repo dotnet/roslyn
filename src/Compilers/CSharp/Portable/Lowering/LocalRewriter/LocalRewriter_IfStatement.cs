@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundStatement RewriteIfStatement(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,
             BoundStatement rewrittenAlternativeOpt,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundStatement RewriteIfStatement(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             ImmutableArray<LocalSymbol> patternVariables,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,

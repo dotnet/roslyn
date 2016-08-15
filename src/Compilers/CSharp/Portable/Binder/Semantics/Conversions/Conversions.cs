@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hasErrors;
         }
 
-        public Conversion MethodGroupConversion(CSharpSyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public Conversion MethodGroupConversion(SyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        public static void GetDelegateArguments(CSharpSyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
+        public static void GetDelegateArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
         {
             foreach (var p in delegateParameters)
             {

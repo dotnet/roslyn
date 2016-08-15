@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we do not generate one sequence point for each statement in the initializers
             // and the incrementors.
 
-            CSharpSyntaxNode syntax = original.Syntax;
+            SyntaxNode syntax = original.Syntax;
             var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             if (rewrittenInitializer != null)
             {

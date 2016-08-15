@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LocalBinderFactory : CSharpSyntaxWalker
     {
-        private readonly SmallDictionary<CSharpSyntaxNode, Binder> _map;
+        private readonly SmallDictionary<SyntaxNode, Binder> _map;
         private bool _sawYield;
-        private readonly ArrayBuilder<CSharpSyntaxNode> _methodsWithYields;
+        private readonly ArrayBuilder<SyntaxNode> _methodsWithYields;
         private Symbol _containingMemberOrLambda;
         private Binder _enclosing;
-        private readonly CSharpSyntaxNode _root;
+        private readonly SyntaxNode _root;
 
         private void Visit(CSharpSyntaxNode syntax, Binder enclosing)
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
-        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(Symbol containingMemberOrLambda, CSharpSyntaxNode syntax, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
+        public static SmallDictionary<SyntaxNode, Binder> BuildMap(Symbol containingMemberOrLambda, SyntaxNode syntax, Binder enclosing, ArrayBuilder<SyntaxNode> methodsWithYields)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var binder = new ExpressionVariableBinder(syntax, enclosing);
                 builder.AddToMap(syntax, binder);
-                builder.Visit(syntax, binder);
+                builder.Visit((CSharpSyntaxNode)syntax, binder);
             }
             else
             {
@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LocalBinderFactory(Symbol containingMemberOrLambda, CSharpSyntaxNode root, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
+        private LocalBinderFactory(Symbol containingMemberOrLambda, SyntaxNode root, Binder enclosing, ArrayBuilder<SyntaxNode> methodsWithYields)
         {
             Debug.Assert((object)containingMemberOrLambda != null);
             Debug.Assert(containingMemberOrLambda.Kind != SymbolKind.Local && containingMemberOrLambda.Kind != SymbolKind.RangeVariable && containingMemberOrLambda.Kind != SymbolKind.Parameter);
 
-            _map = new SmallDictionary<CSharpSyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
+            _map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
             _containingMemberOrLambda = containingMemberOrLambda;
             _enclosing = enclosing;
             _methodsWithYields = methodsWithYields;
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.DefaultVisit(node);
         }
 
-        private void AddToMap(CSharpSyntaxNode node, Binder binder)
+        private void AddToMap(SyntaxNode node, Binder binder)
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.

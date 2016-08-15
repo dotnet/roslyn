@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
-recurse:
+            recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -1416,5 +1416,24 @@ recurse:
         /// </param>
         protected abstract bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false);
         #endregion
+
+        internal bool HasErrors
+        {
+            get
+            {
+                if (!this.ContainsDiagnostics)
+                {
+                    return false;
+                }
+
+                return HasErrorsSlow();
+            }
+        }
+
+        private bool HasErrorsSlow()
+        {
+            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any(
+                info => info.Severity == DiagnosticSeverity.Error);
+        }
     }
 }

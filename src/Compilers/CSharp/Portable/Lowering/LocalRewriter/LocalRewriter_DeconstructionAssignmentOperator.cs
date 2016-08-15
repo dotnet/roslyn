@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var numElements = tupleElementTypes.Length;
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // save the target as we need to access it multiple times
             BoundAssignmentOperator assignmentToTemp;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)deconstruction.DeconstructInvocationOpt != null);
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // prepare out parameters for Deconstruct
             var deconstructParameters = deconstruction.OutputPlaceholders;

@@ -185,24 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return LanguageNames.CSharp; }
         }
 
-        internal bool HasErrors
-        {
-            get
-            {
-                if (!this.ContainsDiagnostics)
-                {
-                    return false;
-                }
-
-                return HasErrorsSlow();
-            }
-        }
-
-        private bool HasErrorsSlow()
-        {
-            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any((info) => info.Severity == DiagnosticSeverity.Error);
-        }
-
         /// <summary>
         /// The list of trivia that appears before this node in the source code.
         /// </summary>

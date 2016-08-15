@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //

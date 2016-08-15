@@ -404,7 +404,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
 
@@ -540,7 +540,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
                         ParenList(fields, x => x);
