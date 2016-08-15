@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor
                         {
                             var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
-                            builder.Add(new CodeDefinitionWindowLocation(item.DisplayString, item.Document.FilePath, linePositionSpan));
+                            builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan));
                         }
                     }
 
