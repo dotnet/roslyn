@@ -609,13 +609,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function IsEquivalentToCore(node As SyntaxNode, Optional topLevel As Boolean = False) As Boolean
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
-
-        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
-            Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
-        End Function
-
-        Friend Overrides Function GetLambda() As SyntaxNode
-            Return LambdaUtilities.GetLambda(Me)
-        End Function
     End Class
 End Namespace

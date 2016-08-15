@@ -189,6 +189,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer attempted to register an &apos;async&apos; action, which is not supported..
+        /// </summary>
+        internal static string AsyncAnalyzerActionCannotBeRegistered {
+            get {
+                return ResourceManager.GetString("AsyncAnalyzerActionCannotBeRegistered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t alias a module..
         /// </summary>
         internal static string CannotAliasModule {
