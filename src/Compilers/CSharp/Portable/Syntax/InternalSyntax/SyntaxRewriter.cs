@@ -39,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
-        public CommonSyntaxList<TNode> VisitList<TNode>(CommonSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
+        public CommonSyntaxList<TNode> VisitList<TNode>(CommonSyntaxList<TNode> list) 
+            where TNode : CSharpSyntaxNode
         {
             CommonSyntaxListBuilder alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)
             {
                 var item = list[i];
-                var visited = (TNode)this.Visit(item);
+                var visited = this.Visit(item);
                 if (item != visited && alternate == null)
                 {
                     alternate = new CommonSyntaxListBuilder(n);
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public CommonSeparatedSyntaxList<TNode> VisitList<TNode>(CommonSeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
-            var withSeps = (CommonSyntaxList<TNode>)list.GetWithSeparators();
+            var withSeps = (CommonSyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
             var result = this.VisitList(withSeps);
             if (result != withSeps)
             {
