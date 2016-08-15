@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode));
+            var newGreen = Syntax.InternalSyntax.CommonSyntaxList.CreateList(items.Select(n => n.UnderlyingNode));
             if (newGreen.IsToken)
             {
-                newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true);
+                newGreen = Syntax.InternalSyntax.CommonSyntaxList.CreateList(new[] { newGreen }, alwaysCreateListNode: true);
             }
 
             return new SyntaxNodeOrTokenList(newGreen.CreateRed(), 0);

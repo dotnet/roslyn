@@ -363,32 +363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return [structure]
         End Function
 
-        Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
-            If nodes Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
-
-            Dim count = list.Length
-            Select Case count
-                Case 0
-                    Return Nothing
-                Case 1
-                    If alwaysCreateListNode Then
-                        Return SyntaxList.List(list)
-                    Else
-                        Return list(0)
-                    End If
-                Case 2
-                    Return SyntaxList.List(list(0), list(1))
-                Case 3
-                    Return SyntaxList.List(list(0), list(1), list(2))
-                Case Else
-                    Return SyntaxList.List(list)
-            End Select
-        End Function
-
         Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken
             If element.Kind = SyntaxKind.JoinCondition Then

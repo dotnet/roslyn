@@ -889,7 +889,6 @@ namespace Microsoft.CodeAnalysis
 
         #region Factories 
 
-        public abstract GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false);
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 

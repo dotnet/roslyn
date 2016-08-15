@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -262,7 +263,8 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), 
+                CommonSyntaxList.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -278,7 +280,8 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), 
+                CommonSyntaxList.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -324,7 +327,8 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), 
+                    CommonSyntaxList.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
