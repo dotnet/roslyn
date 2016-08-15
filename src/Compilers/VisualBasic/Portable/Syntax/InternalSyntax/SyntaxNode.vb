@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -409,8 +410,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return offset
         End Function
 
-        Friend Function ChildNodesAndTokens() As ChildSyntaxList
-            Return New ChildSyntaxList(Me)
+        Friend Function ChildNodesAndTokens() As CommonChildSyntaxList
+            Return New CommonChildSyntaxList(Me)
         End Function
 
         ' Use conditional weak table so we always return same identity for structured trivia

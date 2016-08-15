@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct ChildSyntaxList
+    internal partial struct CommonChildSyntaxList
     {
         private readonly GreenNode _node;
         private int _count;
 
-        internal ChildSyntaxList(GreenNode node)
+        internal CommonChildSyntaxList(GreenNode node)
         {
             _node = node;
             _count = -1;

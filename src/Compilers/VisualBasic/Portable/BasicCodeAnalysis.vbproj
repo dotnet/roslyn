@@ -864,9 +864,9 @@
     <Compile Include="Syntax\InternalSyntax\Syntax.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxList.vb" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeFactories.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodePartials.vb" />
@@ -961,8 +961,6 @@
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />

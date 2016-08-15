@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 #if STATS
 using System.Threading;
 #endif
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     /// <summary>
     /// Provides caching functionality for green nonterminals with up to 3 children.
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
     }
 
-    internal class SyntaxNodeCache
+    internal static class SyntaxNodeCache
     {
         private const int CacheSizeBits = 16;
         private const int CacheSize = 1 << CacheSizeBits;
@@ -183,12 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, out int hash)
         {
-            return TryGetNode(kind, child1, GetFlags(), out hash);
+            return TryGetNode(kind, child1, GetDefaultNodeFlags(), out hash);
         }
 
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, SyntaxFactoryContext context, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, GetFlags(context), out hash);
+            return TryGetNode(kind, child1, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode.NodeFlags flags, out int hash)
@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, out int hash)
         {
-            return TryGetNode(kind, child1, child2, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, GetDefaultNodeFlags(), out hash);
         }
 
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, SyntaxFactoryContext context, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, child2, GetFlags(context), out hash);
+            return TryGetNode(kind, child1, child2, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode.NodeFlags flags, out int hash)
@@ -249,12 +249,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, out int hash)
         {
-            return TryGetNode(kind, child1, child2, child3, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, child3, GetDefaultNodeFlags(), out hash);
         }
 
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, SyntaxFactoryContext context, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, IFactoryContext context, out int hash)
         {
-            return TryGetNode(kind, child1, child2, child3, GetFlags(context), out hash);
+            return TryGetNode(kind, child1, child2, child3, context.GetNodeFlags(), out hash);
         }
 
         private static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, GreenNode.NodeFlags flags, out int hash)
@@ -280,16 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private static GreenNode.NodeFlags GetFlags()
+        public static GreenNode.NodeFlags GetDefaultNodeFlags()
         {
             return GreenNode.NodeFlags.IsNotMissing;
-        }
-
-        private static GreenNode.NodeFlags GetFlags(SyntaxFactoryContext context)
-        {
-            GreenNode.NodeFlags flags = GetFlags();
-            flags = CSharpSyntaxNode.SetFactoryContext(flags, context);
-            return flags;
         }
 
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode child1)

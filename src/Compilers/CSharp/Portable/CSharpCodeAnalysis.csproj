@@ -774,10 +774,6 @@
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
@@ -797,7 +793,6 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.MissingTokenWithTrivia.cs" />

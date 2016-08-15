@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -114,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return offset;
         }
 
-        internal ChildSyntaxList ChildNodesAndTokens()
+        internal CommonChildSyntaxList ChildNodesAndTokens()
         {
-            return new ChildSyntaxList(this);
+            return new CommonChildSyntaxList(this);
         }
 
         /// <summary>
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             yield return this;
 
-            var stack = new Stack<ChildSyntaxList.Enumerator>(24);
+            var stack = new Stack<CommonChildSyntaxList.Enumerator>(24);
             stack.Push(this.ChildNodesAndTokens().GetEnumerator());
 
             while (stack.Count > 0)
@@ -281,21 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.flags |= NodeFlags.FactoryContextIsInQuery;
             }
-        }
-
-        internal static NodeFlags SetFactoryContext(NodeFlags flags, SyntaxFactoryContext context)
-        {
-            if (context.IsInAsync)
-            {
-                flags |= NodeFlags.FactoryContextIsInAsync;
-            }
-
-            if (context.IsInQuery)
-            {
-                flags |= NodeFlags.FactoryContextIsInQuery;
-            }
-
-            return flags;
         }
 
         public override AbstractSyntaxNavigator Navigator
