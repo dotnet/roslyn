@@ -956,6 +956,11 @@
     <Compile Include="Workspace\Solution\DocumentState_TreeTextSource.cs" />
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
+    <Compile Include="Workspace\Solution\SolutionState.CompilationTranslationAction.cs" />
+    <Compile Include="Workspace\Solution\SolutionState.CompilationTranslationAction.Actions.cs" />
+    <Compile Include="Workspace\Solution\SolutionState.CompilationTracker.State.cs" />
+    <Compile Include="Workspace\Solution\SolutionState.CompilationTracker.cs" />
+    <Compile Include="Workspace\Solution\SolutionState.cs" />
     <Compile Include="Workspace\Solution\TextDocumentState.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
     <Compile Include="Workspace\Solution\Document.cs" />
@@ -981,10 +986,6 @@
     <Compile Include="Workspace\Solution\TextDocument.cs" />
     <Compile Include="Workspace\Solution\RecoverableTextAndVersion.cs" />
     <Compile Include="Workspace\Solution\SemanticDocument.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTracker.State.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.Actions.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.cs" />
     <Compile Include="Workspace\Solution\Solution.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeResult.cs" />

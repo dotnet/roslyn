@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public partial class Solution
+    internal partial class SolutionState
     {
         private partial class CompilationTracker
         {
