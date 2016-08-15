@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static CoreInternalSyntax.CommonSyntaxList<T> ToGreenList<T>(this GreenNode node) where T : Syntax.InternalSyntax.CSharpSyntaxNode
         {
-            return new CoreInternalSyntax.CommonSyntaxList<T>((Syntax.InternalSyntax.CSharpSyntaxNode)node);
+            return new CoreInternalSyntax.CommonSyntaxList<T>(node);
         }
     }
 }
