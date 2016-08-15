@@ -496,10 +496,6 @@ Friend Class GreenNodeWriter
             _writer.Write(", leadingTrivia As {0}, trailingTrivia As {0}", StructureTypeName(_parseTree.RootStructure))
         End If
 
-        If contextual Then
-            _writer.Write(", context As ISyntaxFactoryContext")
-        End If
-
         For Each field In allFields
             _writer.Write(", ")
             GenerateNodeStructureFieldParameter(field)
@@ -509,6 +505,11 @@ Friend Class GreenNodeWriter
             _writer.Write(", ")
             GenerateNodeStructureChildParameter(child, Nothing, True)
         Next
+
+        If contextual Then
+            _writer.Write(", context As ISyntaxFactoryContext")
+        End If
+
         _writer.WriteLine(")")
 
         ' Generate each of the field parameters

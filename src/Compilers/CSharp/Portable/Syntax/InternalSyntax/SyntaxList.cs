@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -94,16 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return new WithLotsOfChildren(children);
             }
-        }
-
-        internal static CSharpSyntaxNode List(SyntaxListBuilder builder)
-        {
-            if (builder != null)
-            {
-                return builder.ToListNode();
-            }
-
-            return null;
         }
 
         internal abstract void CopyTo(ArrayElement<CSharpSyntaxNode>[] array, int offset);
