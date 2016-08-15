@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // line if that's how it's currently written.
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
-                
+
                 var attributes = memberDeclNode.GetAttributes();
                 if (attributes.Count > 0)
                 {

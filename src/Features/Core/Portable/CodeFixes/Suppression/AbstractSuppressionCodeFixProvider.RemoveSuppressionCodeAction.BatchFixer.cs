@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public async override Task AddProjectFixesAsync(
-                    Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+                    Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
                     FixAllState fixAllState, CancellationToken cancellationToken)
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))

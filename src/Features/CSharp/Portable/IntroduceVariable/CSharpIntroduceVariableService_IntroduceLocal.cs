@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            if (!isConstant && 
-                CanUseVar(typeSymbol) && 
+            if (!isConstant &&
+                CanUseVar(typeSymbol) &&
                 TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, document.Document.Options, cancellationToken))
             {
                 return SyntaxFactory.IdentifierName("var");

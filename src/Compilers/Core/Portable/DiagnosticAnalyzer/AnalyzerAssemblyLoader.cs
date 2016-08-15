@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             lock (_guard)
             {
                 Assembly existingAssembly;
-                
+
                 // First, check if this loader already loaded the requested assembly:
                 if (_loadedAssembliesByIdentity.TryGetValue(requestedIdentity, out existingAssembly))
                 {

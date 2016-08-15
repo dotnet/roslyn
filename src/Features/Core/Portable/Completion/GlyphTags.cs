@@ -11,220 +11,219 @@ namespace Microsoft.CodeAnalysis.Completion
             switch (glyph)
             {
                 case Glyph.Assembly:
-                    return Assembly;
+                    return s_assembly;
                 case Glyph.BasicFile:
-                    return VisualBasicFile;
+                    return s_visualBasicFile;
                 case Glyph.BasicProject:
-                    return VisualBasicProject;
+                    return s_visualBasicProject;
                 case Glyph.ClassPublic:
-                    return ClassPublic;
+                    return s_classPublic;
                 case Glyph.ClassProtected:
-                    return ClassProtected;
+                    return s_classProtected;
                 case Glyph.ClassPrivate:
-                    return ClassPrivate;
+                    return s_classPrivate;
                 case Glyph.ClassInternal:
-                    return ClassInternal;
+                    return s_classInternal;
                 case Glyph.CSharpFile:
-                    return CSharpFile;
+                    return s_CSharpFile;
                 case Glyph.CSharpProject:
-                    return CSharpProject;
+                    return s_CSharpProject;
                 case Glyph.ConstantPublic:
-                    return ConstantPublic;
+                    return s_constantPublic;
                 case Glyph.ConstantProtected:
-                    return ConstantProtected;
+                    return s_constantProtected;
                 case Glyph.ConstantPrivate:
-                    return ConstantPrivate;
+                    return s_constantPrivate;
                 case Glyph.ConstantInternal:
-                    return ConstantInternal;
+                    return s_constantInternal;
                 case Glyph.DelegatePublic:
-                    return DelegatePublic;
+                    return s_delegatePublic;
                 case Glyph.DelegateProtected:
-                    return DelegateProtected;
+                    return s_delegateProtected;
                 case Glyph.DelegatePrivate:
-                    return DelegatePrivate;
+                    return s_delegatePrivate;
                 case Glyph.DelegateInternal:
-                    return DelegateInternal;
+                    return s_delegateInternal;
                 case Glyph.EnumPublic:
-                    return EnumPublic;
+                    return s_enumPublic;
                 case Glyph.EnumProtected:
-                    return EnumProtected;
+                    return s_enumProtected;
                 case Glyph.EnumPrivate:
-                    return EnumPrivate;
+                    return s_enumPrivate;
                 case Glyph.EnumInternal:
-                    return EnumInternal;
+                    return s_enumInternal;
                 case Glyph.EnumMember:
-                    return EnumMember;
+                    return s_enumMember;
                 case Glyph.Error:
-                    return Error;
+                    return s_error;
                 case Glyph.EventPublic:
-                    return EventPublic;
+                    return s_eventPublic;
                 case Glyph.EventProtected:
-                    return EventProtected;
+                    return s_eventProtected;
                 case Glyph.EventPrivate:
-                    return EventPrivate;
+                    return s_eventPrivate;
                 case Glyph.EventInternal:
-                    return EventInternal;
+                    return s_eventInternal;
                 case Glyph.ExtensionMethodPublic:
-                    return ExtensionMethodPublic;
+                    return s_extensionMethodPublic;
                 case Glyph.ExtensionMethodProtected:
-                    return ExtensionMethodProtected;
+                    return s_extensionMethodProtected;
                 case Glyph.ExtensionMethodPrivate:
-                    return ExtensionMethodPrivate;
+                    return s_extensionMethodPrivate;
                 case Glyph.ExtensionMethodInternal:
-                    return ExtensionMethodInternal;
+                    return s_extensionMethodInternal;
                 case Glyph.FieldPublic:
-                    return FieldPublic;
+                    return s_fieldPublic;
                 case Glyph.FieldProtected:
-                    return FieldProtected;
+                    return s_fieldProtected;
                 case Glyph.FieldPrivate:
-                    return FieldPrivate;
+                    return s_fieldPrivate;
                 case Glyph.FieldInternal:
-                    return FieldInternal;
+                    return s_fieldInternal;
                 case Glyph.InterfacePublic:
-                    return InterfacePublic;
+                    return s_interfacePublic;
                 case Glyph.InterfaceProtected:
-                    return InterfaceProtected;
+                    return s_interfaceProtected;
                 case Glyph.InterfacePrivate:
-                    return InterfacePrivate;
+                    return s_interfacePrivate;
                 case Glyph.InterfaceInternal:
-                    return InterfaceInternal;
+                    return s_interfaceInternal;
                 case Glyph.Intrinsic:
-                    return Intrinsic;
+                    return s_intrinsic;
                 case Glyph.Keyword:
-                    return Keyword;
+                    return s_keyword;
                 case Glyph.Label:
-                    return Label;
+                    return s_label;
                 case Glyph.Local:
-                    return Local;
+                    return s_local;
                 case Glyph.Namespace:
-                    return Namespace;
+                    return s_namespace;
                 case Glyph.MethodPublic:
-                    return MethodPublic;
+                    return s_methodPublic;
                 case Glyph.MethodProtected:
-                    return MethodProtected;
+                    return s_methodProtected;
                 case Glyph.MethodPrivate:
-                    return MethodPrivate;
+                    return s_methodPrivate;
                 case Glyph.MethodInternal:
-                    return MethodInternal;
+                    return s_methodInternal;
                 case Glyph.ModulePublic:
-                    return ModulePublic;
+                    return s_modulePublic;
                 case Glyph.ModuleProtected:
-                    return ModuleProtected;
+                    return s_moduleProtected;
                 case Glyph.ModulePrivate:
-                    return ModulePrivate;
+                    return s_modulePrivate;
                 case Glyph.ModuleInternal:
-                    return ModuleInternal;
+                    return s_moduleInternal;
                 case Glyph.OpenFolder:
-                    return Folder;
+                    return s_folder;
                 case Glyph.Operator:
-                    return Operator;
+                    return s_operator;
                 case Glyph.Parameter:
-                    return Parameter;
+                    return s_parameter;
                 case Glyph.PropertyPublic:
-                    return PropertyPublic;
+                    return s_propertyPublic;
                 case Glyph.PropertyProtected:
-                    return PropertyProtected;
+                    return s_propertyProtected;
                 case Glyph.PropertyPrivate:
-                    return PropertyPrivate;
+                    return s_propertyPrivate;
                 case Glyph.PropertyInternal:
-                    return PropertyInternal;
+                    return s_propertyInternal;
                 case Glyph.RangeVariable:
-                    return RangeVariable;
+                    return s_rangeVariable;
                 case Glyph.Reference:
-                    return Reference;
+                    return s_reference;
                 case Glyph.StructurePublic:
-                    return StructurePublic;
+                    return s_structurePublic;
                 case Glyph.StructureProtected:
-                    return StructureProtected;
+                    return s_structureProtected;
                 case Glyph.StructurePrivate:
-                    return StructurePrivate;
+                    return s_structurePrivate;
                 case Glyph.StructureInternal:
-                    return StructureInternal;
+                    return s_structureInternal;
                 case Glyph.TypeParameter:
-                    return TypeParameter;
+                    return s_typeParameter;
                 case Glyph.Snippet:
-                    return Snippet;
+                    return s_snippet;
                 case Glyph.CompletionWarning:
-                    return Warning;
+                    return s_warning;
                 case Glyph.StatusInformation:
-                    return StatusInformation;
+                    return s_statusInformation;
                 default:
                     return ImmutableArray<string>.Empty;
             }
         }
 
-        private static readonly ImmutableArray<string> Assembly = ImmutableArray.Create(CompletionTags.Assembly);
-        private static readonly ImmutableArray<string> ClassPublic = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Public);
-        private static readonly ImmutableArray<string> ClassProtected = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> ClassPrivate = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Private);
-        private static readonly ImmutableArray<string> ClassInternal = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> ConstantPublic = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Public);
-        private static readonly ImmutableArray<string> ConstantProtected = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> ConstantPrivate = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Private);
-        private static readonly ImmutableArray<string> ConstantInternal = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> DelegatePublic = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Public);
-        private static readonly ImmutableArray<string> DelegateProtected = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> DelegatePrivate = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Private);
-        private static readonly ImmutableArray<string> DelegateInternal = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> EnumPublic = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Public);
-        private static readonly ImmutableArray<string> EnumProtected = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Public);
-        private static readonly ImmutableArray<string> EnumPrivate = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Private);
-        private static readonly ImmutableArray<string> EnumInternal = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> EnumMember = ImmutableArray.Create(CompletionTags.EnumMember);
-        private static readonly ImmutableArray<string> EventPublic = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Public);
-        private static readonly ImmutableArray<string> EventProtected = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> EventPrivate = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Private);
-        private static readonly ImmutableArray<string> EventInternal = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> ExtensionMethodPublic = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Public);
-        private static readonly ImmutableArray<string> ExtensionMethodProtected = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> ExtensionMethodPrivate = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Private);
-        private static readonly ImmutableArray<string> ExtensionMethodInternal = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> FieldPublic = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Public);
-        private static readonly ImmutableArray<string> FieldProtected = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> FieldPrivate = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Private);
-        private static readonly ImmutableArray<string> FieldInternal = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> InterfacePublic = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Public);
-        private static readonly ImmutableArray<string> InterfaceProtected = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> InterfacePrivate = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Private);
-        private static readonly ImmutableArray<string> InterfaceInternal = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> Intrinsic = ImmutableArray.Create(CompletionTags.Intrinsic);
-        private static readonly ImmutableArray<string> Keyword = ImmutableArray.Create(CompletionTags.Keyword);
-        private static readonly ImmutableArray<string> Label = ImmutableArray.Create(CompletionTags.Label);
-        private static readonly ImmutableArray<string> Local = ImmutableArray.Create(CompletionTags.Local);
-        private static readonly ImmutableArray<string> Namespace = ImmutableArray.Create(CompletionTags.Namespace);
-        private static readonly ImmutableArray<string> MethodPublic = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Public);
-        private static readonly ImmutableArray<string> MethodProtected = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> MethodPrivate = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Private);
-        private static readonly ImmutableArray<string> MethodInternal = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> ModulePublic = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Public);
-        private static readonly ImmutableArray<string> ModuleProtected = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> ModulePrivate = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Private);
-        private static readonly ImmutableArray<string> ModuleInternal = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> Folder = ImmutableArray.Create(CompletionTags.Folder);
-        private static readonly ImmutableArray<string> Operator = ImmutableArray.Create(CompletionTags.Operator);
-        private static readonly ImmutableArray<string> Parameter = ImmutableArray.Create(CompletionTags.Parameter);
-        private static readonly ImmutableArray<string> PropertyPublic = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Public);
-        private static readonly ImmutableArray<string> PropertyProtected = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> PropertyPrivate = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Private);
-        private static readonly ImmutableArray<string> PropertyInternal = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> RangeVariable = ImmutableArray.Create(CompletionTags.RangeVariable);
-        private static readonly ImmutableArray<string> Reference = ImmutableArray.Create(CompletionTags.Reference);
-        private static readonly ImmutableArray<string> StructurePublic = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Public);
-        private static readonly ImmutableArray<string> StructureProtected = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Protected);
-        private static readonly ImmutableArray<string> StructurePrivate = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Private);
-        private static readonly ImmutableArray<string> StructureInternal = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Internal);
-        private static readonly ImmutableArray<string> TypeParameter = ImmutableArray.Create(CompletionTags.TypeParameter);
-        private static readonly ImmutableArray<string> Snippet =ImmutableArray.Create(CompletionTags.Snippet);
+        private static readonly ImmutableArray<string> s_assembly = ImmutableArray.Create(CompletionTags.Assembly);
+        private static readonly ImmutableArray<string> s_classPublic = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_classProtected = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_classPrivate = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_classInternal = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_constantPublic = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_constantProtected = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_constantPrivate = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_constantInternal = ImmutableArray.Create(CompletionTags.Constant, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_delegatePublic = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_delegateProtected = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_delegatePrivate = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_delegateInternal = ImmutableArray.Create(CompletionTags.Delegate, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_enumPublic = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_enumProtected = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_enumPrivate = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_enumInternal = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_enumMember = ImmutableArray.Create(CompletionTags.EnumMember);
+        private static readonly ImmutableArray<string> s_eventPublic = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_eventProtected = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_eventPrivate = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_eventInternal = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_extensionMethodPublic = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_extensionMethodProtected = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_extensionMethodPrivate = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_extensionMethodInternal = ImmutableArray.Create(CompletionTags.ExtensionMethod, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_fieldPublic = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_fieldProtected = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_fieldPrivate = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_fieldInternal = ImmutableArray.Create(CompletionTags.Field, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_interfacePublic = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_interfaceProtected = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_interfacePrivate = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_interfaceInternal = ImmutableArray.Create(CompletionTags.Interface, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_intrinsic = ImmutableArray.Create(CompletionTags.Intrinsic);
+        private static readonly ImmutableArray<string> s_keyword = ImmutableArray.Create(CompletionTags.Keyword);
+        private static readonly ImmutableArray<string> s_label = ImmutableArray.Create(CompletionTags.Label);
+        private static readonly ImmutableArray<string> s_local = ImmutableArray.Create(CompletionTags.Local);
+        private static readonly ImmutableArray<string> s_namespace = ImmutableArray.Create(CompletionTags.Namespace);
+        private static readonly ImmutableArray<string> s_methodPublic = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_methodProtected = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_methodPrivate = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_methodInternal = ImmutableArray.Create(CompletionTags.Method, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_modulePublic = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_moduleProtected = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_modulePrivate = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_moduleInternal = ImmutableArray.Create(CompletionTags.Module, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_folder = ImmutableArray.Create(CompletionTags.Folder);
+        private static readonly ImmutableArray<string> s_operator = ImmutableArray.Create(CompletionTags.Operator);
+        private static readonly ImmutableArray<string> s_parameter = ImmutableArray.Create(CompletionTags.Parameter);
+        private static readonly ImmutableArray<string> s_propertyPublic = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_propertyProtected = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_propertyPrivate = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_propertyInternal = ImmutableArray.Create(CompletionTags.Property, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_rangeVariable = ImmutableArray.Create(CompletionTags.RangeVariable);
+        private static readonly ImmutableArray<string> s_reference = ImmutableArray.Create(CompletionTags.Reference);
+        private static readonly ImmutableArray<string> s_structurePublic = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Public);
+        private static readonly ImmutableArray<string> s_structureProtected = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Protected);
+        private static readonly ImmutableArray<string> s_structurePrivate = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Private);
+        private static readonly ImmutableArray<string> s_structureInternal = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Internal);
+        private static readonly ImmutableArray<string> s_typeParameter = ImmutableArray.Create(CompletionTags.TypeParameter);
+        private static readonly ImmutableArray<string> s_snippet = ImmutableArray.Create(CompletionTags.Snippet);
 
-        private static readonly ImmutableArray<string> Error = ImmutableArray.Create(CompletionTags.Error);
-        private static readonly ImmutableArray<string> Warning = ImmutableArray.Create(CompletionTags.Warning);
-        private static readonly ImmutableArray<string> StatusInformation = ImmutableArray.Create(CompletionTags.StatusInformation);
+        private static readonly ImmutableArray<string> s_error = ImmutableArray.Create(CompletionTags.Error);
+        private static readonly ImmutableArray<string> s_warning = ImmutableArray.Create(CompletionTags.Warning);
+        private static readonly ImmutableArray<string> s_statusInformation = ImmutableArray.Create(CompletionTags.StatusInformation);
 
-        private static readonly ImmutableArray<string> CSharpFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.CSharp);
-        private static readonly ImmutableArray<string> VisualBasicFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.VisualBasic);
+        private static readonly ImmutableArray<string> s_CSharpFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.CSharp);
+        private static readonly ImmutableArray<string> s_visualBasicFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.VisualBasic);
 
-        private static readonly ImmutableArray<string> CSharpProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.CSharp);
-        private static readonly ImmutableArray<string> VisualBasicProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.VisualBasic);
-
+        private static readonly ImmutableArray<string> s_CSharpProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.CSharp);
+        private static readonly ImmutableArray<string> s_visualBasicProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.VisualBasic);
     }
 }

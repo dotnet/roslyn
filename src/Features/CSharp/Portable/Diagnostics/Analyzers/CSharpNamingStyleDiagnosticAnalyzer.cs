@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
     {
         public CSharpNamingStyleDiagnosticAnalyzer()
         {
-
         }
     }
 }

@@ -1311,7 +1311,7 @@ class C : Attribute
         x.ToString();
     }
 }";
-            var expected = 
+            var expected =
 @"public class Class1
 {
     void M()

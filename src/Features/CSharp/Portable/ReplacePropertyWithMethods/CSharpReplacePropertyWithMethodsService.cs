@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -11,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplacePropertyWithMethodsService : 
+    internal class CSharpReplacePropertyWithMethodsService :
         AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, StatementSyntax>
     {
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(
-            SyntaxGenerator generator, 
+            SyntaxGenerator generator,
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (setMethod != null)
             {
                 result.Add(GetSetMethod(
-                    generator, propertyDeclaration, propertyBackingField, 
+                    generator, propertyDeclaration, propertyBackingField,
                     setMethod, desiredSetMethodName, cancellationToken));
             }
 
@@ -95,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static SyntaxNode GetSetMethod(
-            SyntaxGenerator generator, 
-            PropertyDeclarationSyntax propertyDeclaration, 
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                                  .WithTrailingTrivia(propertyDeclaration.ExpressionBody.ArrowToken.TrailingTrivia);
 
                 var returnStatement = SyntaxFactory.ReturnStatement(
-                    returnKeyword, 
+                    returnKeyword,
                     propertyDeclaration.ExpressionBody.Expression,
                     propertyDeclaration.SemicolonToken);
                 statements.Add(returnStatement);
@@ -167,19 +169,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         protected override ExpressionSyntax UnwrapCompoundAssignment(
             SyntaxNode compoundAssignment, ExpressionSyntax readExpression)
         {
-                var parent = (AssignmentExpressionSyntax)compoundAssignment;
+            var parent = (AssignmentExpressionSyntax)compoundAssignment;
 
-                var operatorKind =
-                    parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
-                    parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
-                    parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
-                    parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
-                    parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
-                    parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
-                    parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
-                    parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
-                    parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
-                    parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
+            var operatorKind =
+                parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
+                parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
+                parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
+                parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
+                parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
+                parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
+                parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
+                parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
+                parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
+                parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
             return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
         }

@@ -17,7 +17,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-	internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
+    internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return items;
         }
 
-        private static CompletionItemRules s_defaultRules = 
+        private static CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                filterCharacterRules: FilterRules, 
+                filterCharacterRules: FilterRules,
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
                 enterKeyRule: EnterKeyRule.Never);
 

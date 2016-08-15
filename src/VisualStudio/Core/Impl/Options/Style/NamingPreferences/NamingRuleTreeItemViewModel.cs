@@ -13,31 +13,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         internal NamingRuleTreeItemViewModel(string name)
         {
             // TODO: remove this constructor if possible
-            this._title = name;
-            this.children = new ChildRuleCollection(this);
-            this.children.CollectionChanged += OnChildrenCollectionChanged;
+            _title = name;
+            _children = new ChildRuleCollection(this);
+            _children.CollectionChanged += OnChildrenCollectionChanged;
         }
 
         internal NamingRuleTreeItemViewModel(
             string name,
-            SymbolSpecificationViewModel symbolSpec, 
+            SymbolSpecificationViewModel symbolSpec,
             NamingStyleViewModel namingStyle,
             EnforcementLevel enforcementLevel,
             NamingStylesOptionPageControlViewModel vm)
         {
             this.EnforcementLevel = enforcementLevel;
-            this._title = name;
+            _title = name;
             this.symbolSpec = symbolSpec;
             this.namingStyle = namingStyle;
-            this._namingStylesViewModel = vm;
+            _namingStylesViewModel = vm;
 
-            this.children = new ChildRuleCollection(this);
-            this.children.CollectionChanged += OnChildrenCollectionChanged;
+            _children = new ChildRuleCollection(this);
+            _children.CollectionChanged += OnChildrenCollectionChanged;
         }
 
-        private NamingRuleTreeItemViewModel parent;
-        private readonly ChildRuleCollection children;
-        private bool hasChildren;
+        private NamingRuleTreeItemViewModel _parent;
+        private readonly ChildRuleCollection _children;
+        private bool _hasChildren;
 
         internal SymbolSpecificationViewModel symbolSpec;
         internal NamingStyleViewModel namingStyle;
@@ -47,11 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return this._title;
+                return _title;
             }
             set
             {
-                this.SetProperty(ref this._title, value, () => NotifyPropertyChanged(nameof(ITreeDisplayItem.Text)));
+                this.SetProperty(ref _title, value, () => NotifyPropertyChanged(nameof(ITreeDisplayItem.Text)));
             }
         }
 
@@ -59,28 +59,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return this.parent;
+                return _parent;
             }
             private set
             {
-                this.SetProperty(ref this.parent, value);
+                this.SetProperty(ref _parent, value);
             }
         }
 
         public IList<NamingRuleTreeItemViewModel> Children
         {
-            get { return this.children; }
+            get { return _children; }
         }
 
         public bool HasChildren
         {
             get
             {
-                return this.children.Count > 0;
+                return _children.Count > 0;
             }
             private set
             {
-                this.SetProperty(ref this.hasChildren, value);
+                this.SetProperty(ref _hasChildren, value);
             }
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         private void OnChildrenCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            this.HasChildren = this.children.Count > 0;
+            this.HasChildren = _children.Count > 0;
         }
 
         public bool IsAncestorOfMe(NamingRuleTreeItemViewModel rule)

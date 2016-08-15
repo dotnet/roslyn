@@ -2928,7 +2928,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSummaryElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This class provides extension methods.
 /// </summary>";
@@ -2948,7 +2948,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSeeElementAndXmlSeeAlsoElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.
 /// </summary>";
@@ -2974,7 +2974,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// This is a summary.
 /// </summary>
@@ -3005,7 +3005,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlParamAndParamRefElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// <paramref name=""b""/>
 /// </summary>
@@ -3031,7 +3031,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlReturnsElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3058,7 +3058,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlRemarksElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3087,7 +3087,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlExceptionElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>
@@ -3095,7 +3095,7 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlNewLine(Environment.NewLine), 
+                    SyntaxFactory.XmlNewLine(Environment.NewLine),
                     SyntaxFactory.XmlNewLine(Environment.NewLine)),
                 SyntaxFactory.XmlNewLine(Environment.NewLine),
                 SyntaxFactory.XmlExceptionElement(
@@ -3112,7 +3112,7 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlPermissionElement()
         {
-            var expected = 
+            var expected =
 @"/// <summary>
 /// 
 /// </summary>

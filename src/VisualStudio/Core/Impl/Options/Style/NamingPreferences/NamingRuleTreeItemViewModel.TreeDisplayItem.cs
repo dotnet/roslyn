@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    partial class NamingRuleTreeItemViewModel : ITreeDisplayItemWithImages
+    public partial class NamingRuleTreeItemViewModel : ITreeDisplayItemWithImages
     {
         public ImageMoniker ExpandedIconMoniker => GetMoniker();
 

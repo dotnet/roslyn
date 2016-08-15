@@ -83,7 +83,7 @@ class Class2 { }";
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public async Task MoveTypeWithNoContainerNamespace()
         {
-            var code = 
+            var code =
 @"[||]class Class1 { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
@@ -110,7 +110,7 @@ class Class2 { }";
 class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = 
+            var destinationDocumentText =
 @"class Class1 { }";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);

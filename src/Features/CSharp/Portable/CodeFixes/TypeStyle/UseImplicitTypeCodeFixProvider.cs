@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey:title)
+                base(title, createChangedDocument, equivalenceKey: title)
             {
             }
         }

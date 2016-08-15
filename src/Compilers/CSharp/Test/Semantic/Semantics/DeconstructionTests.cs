@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class DeconstructionTests : CompilingTestBase
     {
-        const string commonSource =
+        private const string commonSource =
 @"public class Pair<T1, T2>
 {
     T1 item1;

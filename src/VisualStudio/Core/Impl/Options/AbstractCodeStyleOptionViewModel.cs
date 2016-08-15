@@ -86,6 +86,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 new CodeStylePreference(ServicesVSResources.No, isChecked: false),
             };
         }
-
     }
 }

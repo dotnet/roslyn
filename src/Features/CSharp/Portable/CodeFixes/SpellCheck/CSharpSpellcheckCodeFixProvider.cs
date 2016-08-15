@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
     {
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
                 ImmutableArray.Create(CS0426));

@@ -37,10 +37,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             MyBase.New(workspace)
         End Sub
 
-        Private Const Style_QualifyFieldAccess As String = NameOf(AutomationObject.Style_QualifyFieldAccess)
-        Private Const Style_QualifyPropertyAccess As String = NameOf(AutomationObject.Style_QualifyPropertyAccess)
-        Private Const Style_QualifyMethodAccess As String = NameOf(AutomationObject.Style_QualifyMethodAccess)
-        Private Const Style_QualifyEventAccess As String = NameOf(AutomationObject.Style_QualifyEventAccess)
+        Private Const s_style_QualifyFieldAccess As String = NameOf(AutomationObject.Style_QualifyFieldAccess)
+        Private Const s_style_QualifyPropertyAccess As String = NameOf(AutomationObject.Style_QualifyPropertyAccess)
+        Private Const s_style_QualifyMethodAccess As String = NameOf(AutomationObject.Style_QualifyMethodAccess)
+        Private Const s_style_QualifyEventAccess As String = NameOf(AutomationObject.Style_QualifyEventAccess)
 
         Protected Overrides Function CreateStorageKeyToOptionMap() As ImmutableDictionary(Of String, IOption)
             Dim Result As ImmutableDictionary(Of String, IOption).Builder = ImmutableDictionary.Create(Of String, IOption)(StringComparer.OrdinalIgnoreCase).ToBuilder()
@@ -154,13 +154,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' code style use Me.
             If optionKey.Option Is CodeStyleOptions.QualifyFieldAccess Then
-                Return FetchStyleBool(Style_QualifyFieldAccess, value)
+                Return FetchStyleBool(s_style_QualifyFieldAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyPropertyAccess Then
-                Return FetchStyleBool(Style_QualifyPropertyAccess, value)
+                Return FetchStyleBool(s_style_QualifyPropertyAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyMethodAccess Then
-                Return FetchStyleBool(Style_QualifyMethodAccess, value)
+                Return FetchStyleBool(s_style_QualifyMethodAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyEventAccess Then
-                Return FetchStyleBool(Style_QualifyEventAccess, value)
+                Return FetchStyleBool(s_style_QualifyEventAccess, value)
             End If
 
             If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
@@ -223,13 +223,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' code style use Me.
             If optionKey.Option Is CodeStyleOptions.QualifyFieldAccess Then
-                Return PersistStyleOption(Of Boolean)(Style_QualifyFieldAccess, value)
+                Return PersistStyleOption(Of Boolean)(s_style_QualifyFieldAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyPropertyAccess Then
-                Return PersistStyleOption(Of Boolean)(Style_QualifyPropertyAccess, value)
+                Return PersistStyleOption(Of Boolean)(s_style_QualifyPropertyAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyMethodAccess Then
-                Return PersistStyleOption(Of Boolean)(Style_QualifyMethodAccess, value)
+                Return PersistStyleOption(Of Boolean)(s_style_QualifyMethodAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyEventAccess Then
-                Return PersistStyleOption(Of Boolean)(Style_QualifyEventAccess, value)
+                Return PersistStyleOption(Of Boolean)(s_style_QualifyEventAccess, value)
             End If
 
             Return MyBase.TryPersist(optionKey, value)

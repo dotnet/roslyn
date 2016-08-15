@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 var namingStyleMutable = _viewModel.NamingStyleList.GetItemAt(_viewModel.NamingStyleIndex) as NamingStyleViewModel;
 
                 var style = namingStyleMutable.GetNamingStyle();
-                var styleClone = style.Clone(); 
+                var styleClone = style.Clone();
 
                 var namingStyleClone = new NamingStyleViewModel(styleClone, _notificationService);
 

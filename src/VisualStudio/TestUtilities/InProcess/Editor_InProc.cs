@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
     internal class Editor_InProc : InProcComponent
     {
-        private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
+        private static readonly Guid s_IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
         private Editor_InProc() { }
 
@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             var activeVsTextView = (IVsUserData)GetActiveVsTextView();
 
             object wpfTextViewHost;
-            var hresult = activeVsTextView.GetData(IWpfTextViewId, out wpfTextViewHost);
+            var hresult = activeVsTextView.GetData(s_IWpfTextViewId, out wpfTextViewHost);
             Marshal.ThrowExceptionForHR(hresult);
 
             return (IWpfTextViewHost)wpfTextViewHost;

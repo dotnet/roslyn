@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private async Task<ScriptState<T>> RunSubmissionsAsync(
             ScriptExecutionState executionState,
-            ImmutableArray<Func<object[], Task>> precedingExecutors, 
-            Func<object[], Task> currentExecutor, 
+            ImmutableArray<Func<object[], Task>> precedingExecutors,
+            Func<object[], Task> currentExecutor,
             Func<Exception, bool> catchExceptionOpt,
             CancellationToken cancellationToken)
         {

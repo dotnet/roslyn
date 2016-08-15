@@ -13,27 +13,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [AttributeUsage(AttributeTargets.Property)]
     internal sealed class BrowseObjectDisplayNameAttribute : DisplayNameAttribute
     {
-        private string m_key;
-        private bool m_initialized;
+        private string _key;
+        private bool _initialized;
 
         public BrowseObjectDisplayNameAttribute(string key)
         {
-            m_key = key;
+            _key = key;
         }
 
         public override string DisplayName
         {
             get
             {
-                if (!m_initialized)
+                if (!_initialized)
                 {
-                    base.DisplayNameValue = SolutionExplorerShim.ResourceManager.GetString(m_key, CultureInfo.CurrentUICulture);
-                    m_initialized = true;
+                    base.DisplayNameValue = SolutionExplorerShim.ResourceManager.GetString(_key, CultureInfo.CurrentUICulture);
+                    _initialized = true;
                 }
 
                 return base.DisplayName;
             }
         }
-
     }
 }

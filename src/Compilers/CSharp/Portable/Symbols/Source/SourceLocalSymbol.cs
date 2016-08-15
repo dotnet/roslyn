@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(binder != null);
 
             this.binder = binder;
-            this._containingSymbol = containingSymbol;
-            this._identifierToken = identifierToken;
-            this._typeSyntax = allowRefKind ? typeSyntax.SkipRef(out this._refKind) : typeSyntax;
-            this._declarationKind = declarationKind;
+            _containingSymbol = containingSymbol;
+            _identifierToken = identifierToken;
+            _typeSyntax = allowRefKind ? typeSyntax.SkipRef(out _refKind) : typeSyntax;
+            _declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
 
-                    currentNode = currentNode.Parent;   
+                    currentNode = currentNode.Parent;
                 }
                 while (currentNode != null);
 
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InvocationExpression:
                     case SyntaxKind.ObjectCreationExpression:
                         (_enclosingBinderOpt ?? this.binder).BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
-                        result = this._type;
+                        result = _type;
                         Debug.Assert((object)result != null);
                         return result;
 
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.BaseConstructorInitializer:
                         Debug.Assert(_enclosingBinderOpt == null);
                         this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
-                        result = this._type;
+                        result = _type;
                         Debug.Assert((object)result != null);
                         return result;
 
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                TypeSymbol result = this._type;
+                TypeSymbol result = _type;
                 Debug.Assert((object)result != null);
                 return result;
             }

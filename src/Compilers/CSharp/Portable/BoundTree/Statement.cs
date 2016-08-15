@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundLocalFunctionStatement
+    internal partial class BoundLocalFunctionStatement
     {
         protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
 
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundPatternSwitchStatement
+    internal partial class BoundPatternSwitchStatement
     {
         // TODO: this may need its own OperationKind.
         protected override OperationKind StatementKind => OperationKind.None;

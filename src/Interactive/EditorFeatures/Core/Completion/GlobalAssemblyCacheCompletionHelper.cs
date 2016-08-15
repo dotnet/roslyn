@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         private readonly CompletionItemRules _itemRules;
 
         public GlobalAssemblyCacheCompletionHelper(
-            CompletionProvider completionProvider, 
-            TextSpan textChangeSpan, 
+            CompletionProvider completionProvider,
+            TextSpan textChangeSpan,
             CompletionItemRules itemRules = null)
         {
             _completionProvider = completionProvider;

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 {
     public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
     {
-        private string RenameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
-        private string RenameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
+        private string _renameFileCodeActionTitle = FeaturesResources.Rename_file_to_0;
+        private string _renameTypeCodeActionTitle = FeaturesResources.Rename_type_to_0;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     TextSpan span;
                     MarkupTestFile.GetSpan(expectedCode, out expectedText, out span);
 
-                    var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
+                    var codeActionTitle = string.Format(_renameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 
                     var oldSolutionAndNewSolution = await TestOperationAsync(
                         workspace, expectedText, codeActionTitle, compareTokens);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions != null)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
+                        var renameFileAction = actions.Any(action => action.Title.StartsWith(_renameTypeCodeActionTitle));
                         Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
                     }
                 }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     IList<TextSpan> spans;
                     MarkupTestFile.GetSpans(originalCode, out expectedText, out spans);
 
-                    var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
+                    var codeActionTitle = string.Format(_renameFileCodeActionTitle, expectedDocumentName);
 
                     // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     if (actions != null)
                     {
-                        var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
+                        var renameFileAction = actions.Any(action => action.Title.StartsWith(_renameFileCodeActionTitle));
                         Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
                     }
                 }

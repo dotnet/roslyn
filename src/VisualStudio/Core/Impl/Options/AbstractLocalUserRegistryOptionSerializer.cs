@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public AbstractLocalUserRegistryOptionSerializer(IServiceProvider serviceProvider)
             : base(assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
         {
-            this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
+            _registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 
         bool IOptionSerializer.TryFetch(OptionKey optionKey, out object value)
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using (var subKey = this._registryKey.OpenSubKey(collectionPath))
+                using (var subKey = _registryKey.OpenSubKey(collectionPath))
                 {
                     if (subKey == null)
                     {
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         bool IOptionSerializer.TryPersist(OptionKey optionKey, object value)
         {
-            if (this._registryKey == null)
+            if (_registryKey == null)
             {
                 throw new InvalidOperationException();
             }
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             lock (_gate)
             {
-                using (var subKey = this._registryKey.CreateSubKey(collectionPath))
+                using (var subKey = _registryKey.CreateSubKey(collectionPath))
                 {
                     // Options that are of type bool have to be serialized as integers
                     if (optionKey.Option.Type == typeof(bool))

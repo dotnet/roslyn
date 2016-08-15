@@ -9,9 +9,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
-        Private Const UnicodeEllipsis = ChrW(&H2026)
-        Private Const OfSuffix = "(Of"
-        Private Const GenericSuffix = OfSuffix + " " & UnicodeEllipsis & ")"
+        Private Const s_unicodeEllipsis = ChrW(&H2026)
+        Private Const s_ofSuffix = "(Of"
+        Private Const s_genericSuffix = s_ofSuffix + " " & s_unicodeEllipsis & ")"
 
         Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
 
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If symbol.IsConstructor() Then
                 Return "New"
             ElseIf symbol.GetArity() > 0 Then
-                Return name & GenericSuffix
+                Return name & s_genericSuffix
             Else
                 Return name
             End If
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If symbol.IsConstructor() Then
                 name = "New"
             ElseIf symbol.GetArity() > 0 Then
-                name += GenericSuffix
+                name += s_genericSuffix
             End If
 
             Return name
@@ -114,12 +114,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' If this item was generic, customize what we insert depending on if the user typed
             ' open paren or not.
-            If insertionText.EndsWith(GenericSuffix) Then
-                Dim insertionTextWithoutSuffix = insertionText.Substring(0, insertionText.Length - GenericSuffix.Length)
+            If insertionText.EndsWith(s_genericSuffix) Then
+                Dim insertionTextWithoutSuffix = insertionText.Substring(0, insertionText.Length - s_genericSuffix.Length)
                 If ch = "("c Then
                     Return insertionTextWithoutSuffix
                 Else
-                    Return insertionTextWithoutSuffix + OfSuffix
+                    Return insertionTextWithoutSuffix + s_ofSuffix
                 End If
             End If
 

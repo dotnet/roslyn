@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await new CodeLensReferenceService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id, 
+                            var result = await new CodeLensReferenceService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id,
                                 declarationSyntaxNode, cap, CancellationToken.None);
                             Assert.True(result.HasValue);
                             Assert.Equal(expected, result.Value.Count);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await new CodeLensReferenceService().FindReferenceLocationsAsync(workspace.CurrentSolution, 
+                            var result = await new CodeLensReferenceService().FindReferenceLocationsAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             var count = result.Count();
                             Assert.Equal(expected, count);

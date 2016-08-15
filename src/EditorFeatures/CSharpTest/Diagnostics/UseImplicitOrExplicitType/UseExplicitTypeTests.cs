@@ -22,40 +22,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> _onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> _offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> _onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> _onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> _offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> _onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> _offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ExplicitTypeEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypeEnforcements() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithWarning)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _offWithError)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithInfo);
 
         private IDictionary<OptionKey, object> ExplicitTypeNoneEnforcement() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone);
+            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, _offWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, _offWithNone)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, _offWithNone);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {

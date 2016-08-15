@@ -38,9 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             var workspace = componentModel.GetService<VisualStudioWorkspace>() as VisualStudioWorkspace;
             var notificationService = workspace.Services.GetService<INotificationService>();
             var categorizers = componentModel.GetExtensions<ISymbolCategorizer>();
-            this._categories = categorizers.SelectMany(c => c.SupportedCategories).ToImmutableArray();
+            _categories = categorizers.SelectMany(c => c.SupportedCategories).ToImmutableArray();
 
-            this._notificationService = notificationService;
+            _notificationService = notificationService;
 
             InitializeComponent();
             this.AddHandler(UIElementDialogPage.DialogKeyPendingEvent, (RoutedEventHandler)OnDialogKeyPending);

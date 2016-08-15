@@ -100,7 +100,7 @@ namespace ProcessWatchdog
                     err => 1);
         }
 
-        private  static int Run(Options options)
+        private static int Run(Options options)
         {
             // Don't display the banner until after the command line parser has
             // validated the arguments, because when the command line arguments are

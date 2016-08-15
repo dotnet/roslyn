@@ -148,10 +148,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion CreateTreeAndVersion(
-            ValueSource<TextAndVersion> newTextSource, 
-            ProjectId cacheKey, string filePath, 
-            ParseOptions options, HostLanguageServices languageServices, 
-            PreservationMode mode, TextAndVersion textAndVersion, 
+            ValueSource<TextAndVersion> newTextSource,
+            ProjectId cacheKey, string filePath,
+            ParseOptions options, HostLanguageServices languageServices,
+            PreservationMode mode, TextAndVersion textAndVersion,
             CancellationToken cancellationToken)
         {
             var text = textAndVersion.Text;
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion IncrementallyParse(
-            TextAndVersion newTextAndVersion, 
+            TextAndVersion newTextAndVersion,
             TreeAndVersion oldTreeAndVersion,
             CancellationToken cancellationToken)
         {

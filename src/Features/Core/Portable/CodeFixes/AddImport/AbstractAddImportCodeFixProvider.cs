@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            List<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            List<Reference> allSymbolReferences, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);

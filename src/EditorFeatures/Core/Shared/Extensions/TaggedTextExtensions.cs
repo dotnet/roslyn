@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static IList<Inline> ToInlines(
-            this IEnumerable<TaggedText> parts, 
+            this IEnumerable<TaggedText> parts,
             ClassificationTypeMap typeMap,
             string classificationFormatMap = null,
             Action<Run, TaggedText, int> runCallback = null)

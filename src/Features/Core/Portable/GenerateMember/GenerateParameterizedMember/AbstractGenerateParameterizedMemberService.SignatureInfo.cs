@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>();
 
-                for(var i = 0; i < typeArguments.Count; i++)
+                for (var i = 0; i < typeArguments.Count; i++)
                 {
                     if (typeArguments[i] != null)
                     {

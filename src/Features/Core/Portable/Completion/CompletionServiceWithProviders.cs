@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-        private object p;
+        private object _p;
 
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {
@@ -200,20 +200,20 @@ namespace Microsoft.CodeAnalysis.Completion
             var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
             switch (trigger.Kind)
             {
-            case CompletionTriggerKind.Insertion:
-            case CompletionTriggerKind.Deletion:
-                if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
-                {
-                    triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                    if (triggeredProviders.Length == 0)
+                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Deletion:
+                    if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
                     {
-                        triggeredProviders = providers;
+                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                        if (triggeredProviders.Length == 0)
+                        {
+                            triggeredProviders = providers;
+                        }
                     }
-                }
-                break;
-            default:
-                triggeredProviders = providers;
-                break;
+                    break;
+                default:
+                    triggeredProviders = providers;
+                    break;
             }
 
             // Now, ask all the triggered providers if they can provide a group.

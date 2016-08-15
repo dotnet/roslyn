@@ -302,20 +302,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (captured.Kind != SymbolKind.Method)
                 {
-                var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
-                proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
+                    var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
+                    proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
 
-                if (hoistedField.Type.IsRestrictedType())
-                {
-                    foreach (CSharpSyntaxNode syntax in kvp.Value)
+                    if (hoistedField.Type.IsRestrictedType())
                     {
-                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        {
+                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                        }
                     }
                 }
             }
-        }
         }
 
         private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
@@ -342,12 +342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 if (frame.Constructor != null)
                 {
-                CompilationState.AddSynthesizedMethod(
-                    frame.Constructor,
-                    FlowAnalysisPass.AppendImplicitReturn(
-                        MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                        frame.Constructor));
-            }
+                    CompilationState.AddSynthesizedMethod(
+                        frame.Constructor,
+                        FlowAnalysisPass.AppendImplicitReturn(
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            frame.Constructor));
+                }
             }
 
             return frame;
@@ -520,8 +520,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-            MethodSymbol constructor = frame.Constructor.AsMember(frameType);
-            Debug.Assert(frameType == constructor.ContainingType);
+                MethodSymbol constructor = frame.Constructor.AsMember(frameType);
+                Debug.Assert(frameType == constructor.ContainingType);
                 newFrame = new BoundObjectCreationExpression(
                 syntax: syntax,
                 constructor: constructor);
@@ -1198,16 +1198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (containerAsFrame != null && containerAsFrame.IsValueType)
                 {
                     structClosureParamBuilder.Add(containerAsFrame);
-                    if (this._analysis.NeedsParentFrame.Contains(lambdaScope))
+                    if (_analysis.NeedsParentFrame.Contains(lambdaScope))
                     {
                         var found = false;
-                        while (this._analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
+                        while (_analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
                         {
                             if (_frames.TryGetValue(lambdaScope, out containerAsFrame))
                             {
                                 found = true;
                                 break;
-            }
+                            }
                         }
                         if (found)
                         {
@@ -1228,17 +1228,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
                 else
-            {
-                closureKind = ClosureKind.General;
+                {
+                    closureKind = ClosureKind.General;
                     translatedLambdaContainer = containerAsFrame;
-                closureOrdinal = containerAsFrame.ClosureOrdinal;
-            }
+                    closureOrdinal = containerAsFrame.ClosureOrdinal;
+                }
             }
             else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
-            {
-                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
+                {
+                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
                     closureKind = ClosureKind.Singleton;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
@@ -1246,9 +1246,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     containerAsFrame = null;
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
-                closureKind = ClosureKind.Static;
-                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-            }
+                    closureKind = ClosureKind.Static;
+                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+                }
                 structClosures = default(ImmutableArray<TypeSymbol>);
             }
             else
@@ -1321,10 +1321,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _addedStatements = oldAddedStatements;
 
             return synthesizedMethod;
-            }
+        }
 
         private BoundNode RewriteLambdaConversion(BoundLambda node)
-            {
+        {
             var wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
 

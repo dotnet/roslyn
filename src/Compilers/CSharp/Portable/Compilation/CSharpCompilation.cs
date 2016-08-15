@@ -2912,7 +2912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
         }
-        
+
         internal override bool IsIOperationFeatureEnabled()
         {
             var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;

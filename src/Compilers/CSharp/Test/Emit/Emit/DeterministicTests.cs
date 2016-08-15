@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
-        const string CompareAllBytesEmitted_Source = @"
+        private const string CompareAllBytesEmitted_Source = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;

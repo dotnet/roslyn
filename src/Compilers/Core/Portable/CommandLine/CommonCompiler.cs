@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             // size, FileStream.Read still allocates the internal buffer.
             return PortableShim.FileStream.Create(
                 filePath,
-                PortableShim.FileMode.Open, 
+                PortableShim.FileMode.Open,
                 PortableShim.FileAccess.Read,
                 PortableShim.FileShare.ReadWrite,
                 bufferSize: 1,
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return Failed;
             }
-            
+
             bool reportAnalyzer = false;
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;

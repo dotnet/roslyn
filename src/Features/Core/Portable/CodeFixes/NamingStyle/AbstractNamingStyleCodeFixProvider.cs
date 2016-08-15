@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                             symbol,
                             fixedName,
                             document.Options,
-                            c).ConfigureAwait(false), 
-                        nameof(AbstractNamingStyleCodeFixProvider)), 
+                            c).ConfigureAwait(false),
+                        nameof(AbstractNamingStyleCodeFixProvider)),
                     diagnostic);
             }
         }

@@ -2518,7 +2518,6 @@ public class X
                         VerifyNotAPatternLocal(model, yRef[1]);
                         break;
                 }
-
             }
         }
 
@@ -3803,7 +3802,7 @@ public enum X
             VerifyModelForDeclarationPattern(model, x7Decl, x7Ref[0]);
             VerifyNotInScope(model, x7Ref[1]);
         }
-        
+
         [Fact]
         public void ScopeOfPatternVariables_FieldInitializers_03()
         {
@@ -4569,7 +4568,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 True
@@ -4849,7 +4848,7 @@ public class X
             Assert.Equal(6, x1Ref.Length);
             for (int i = 0; i < x1Decl.Length; i++)
             {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i*2], x1Ref[i * 2 + 1]);
+                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i * 2], x1Ref[i * 2 + 1]);
             }
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
@@ -6551,7 +6550,7 @@ public class X
             VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
             VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
         }
-        
+
         [Fact]
         public void ScopeOfPatternVariables_LocalDeclarationStmt_02()
         {
@@ -7315,7 +7314,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:@"2");
+            CompileAndVerify(compilation, expectedOutput: @"2");
         }
 
         [Fact]
@@ -10083,7 +10082,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:@"return");
+            CompileAndVerify(compilation, expectedOutput: @"return");
         }
 
         [Fact]

@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
- 
+
             return await GetClassifiedSymbolDisplayPartsAsync(
                 semanticModel, textSpan,
                 document.Project.Solution.Workspace,
                 insertSourceTextInGaps,
                 cancellationToken).ConfigureAwait(false);
         }
- 
+
         internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
             bool insertSourceTextInGaps = false,
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Classification
 
             return ConvertClassifications(sourceText, textSpan.Start, classifiedSpans, insertSourceTextInGaps);
         }
- 
+
         private static List<SymbolDisplayPart> ConvertClassifications(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, bool insertSourceTextInGaps = false)
         {
             var parts = new List<SymbolDisplayPart>();
- 
+
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Classification
                         parts.AddRange(Space());
                     }
                 }
- 
+
                 var kind = GetClassificationKind(span.ClassificationType);
                 if (kind != null)
                 {
@@ -108,15 +108,15 @@ namespace Microsoft.CodeAnalysis.Classification
                     startPosition = span.TextSpan.End;
                 }
             }
- 
+
             return parts;
         }
- 
+
         private static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
             yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
         }
- 
+
         private static SymbolDisplayPartKind? GetClassificationKind(string type)
         {
             switch (type)

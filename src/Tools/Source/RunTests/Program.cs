@@ -43,7 +43,7 @@ namespace RunTests
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
-            { 
+            {
                 return ExitFailure;
             }
 
@@ -171,8 +171,8 @@ namespace RunTests
             // The web caching layer is still being worked on.  For now want to limit it to Roslyn developers
             // and Jenkins runs by default until we work on this a bit more.  Anyone reading this who wants
             // to try it out should feel free to opt into this. 
-            return 
-                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) || 
+            return
+                StringComparer.OrdinalIgnoreCase.Equals("REDMOND", Environment.UserDomainName) ||
                 Constants.IsJenkinsRun;
         }
 

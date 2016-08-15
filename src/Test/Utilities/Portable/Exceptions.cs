@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using static Roslyn.Test.Utilities.ExceptionHelper; 
+using static Roslyn.Test.Utilities.ExceptionHelper;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

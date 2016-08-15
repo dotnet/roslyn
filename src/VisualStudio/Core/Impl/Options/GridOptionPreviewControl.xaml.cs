@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
-        internal GridOptionPreviewControl(IServiceProvider serviceProvider, 
-            Func<OptionSet, IServiceProvider, 
-            AbstractOptionPreviewViewModel> createViewModel) 
+        internal GridOptionPreviewControl(IServiceProvider serviceProvider,
+            Func<OptionSet, IServiceProvider,
+            AbstractOptionPreviewViewModel> createViewModel)
             : base(serviceProvider)
         {
             InitializeComponent();

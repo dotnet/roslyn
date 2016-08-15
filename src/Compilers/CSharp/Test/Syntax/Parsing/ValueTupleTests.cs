@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
-        
+
         [Fact]
         public void SimpleTuple()
         {

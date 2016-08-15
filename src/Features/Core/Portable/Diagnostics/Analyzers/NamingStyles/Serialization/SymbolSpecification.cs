@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal XElement CreateXElement()
         {
-            return new XElement(nameof(SymbolSpecification), 
+            return new XElement(nameof(SymbolSpecification),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 CreateSymbolKindsXElement(),
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
             }
         }
-        
+
         public class AccessibilityKind
         {
             public Accessibility Accessibility { get; set; }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
             }
         }
-        
+
         public enum ModifierKindEnum
         {
             IsAbstract,

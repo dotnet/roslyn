@@ -132,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                                 CancellationToken.None,
                                 TaskCreationOptions.None,
                                 TaskScheduler.Default).CompletesAsyncOperation(token);
-
             }
             else
             {
@@ -140,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
                                 CancellationToken.None,
                                 TaskCreationOptions.None,
-                                ForegroundTaskScheduler).CompletesAsyncOperation(token);                
+                                ForegroundTaskScheduler).CompletesAsyncOperation(token);
             }
         }
 

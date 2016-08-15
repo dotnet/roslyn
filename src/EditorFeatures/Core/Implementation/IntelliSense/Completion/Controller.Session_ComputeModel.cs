@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 private readonly SnapshotPoint _subjectBufferCaretPosition;
                 private readonly SourceText _text;
                 private readonly ImmutableHashSet<string> _roles;
- 
+
                 private Document _documentOpt;
                 private bool _useSuggestionMode;
                 private readonly DisconnectedBufferGraph _disconnectedBufferGraph;

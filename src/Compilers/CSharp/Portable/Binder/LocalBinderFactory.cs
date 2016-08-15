@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var initializer in node.Initializers)
                 {
                     Visit(initializer, binder);
-                } 
+                }
             }
 
             if (node.Condition != null)
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.
-            Debug.Assert(node.CanHaveAssociatedLocalBinder() || 
+            Debug.Assert(node.CanHaveAssociatedLocalBinder() ||
                 (node == _root && node is ExpressionSyntax));
 
             // Cleverness: for some nodes (e.g. lock), we want to specify a binder flag that

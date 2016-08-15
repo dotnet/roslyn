@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static void GenerateMetadataNodes(
-            MetadataReader reader, 
-            NamespaceDefinition globalNamespace, 
+            MetadataReader reader,
+            NamespaceDefinition globalNamespace,
             List<Node> unsortedNodes)
         {
             var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();

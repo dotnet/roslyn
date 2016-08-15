@@ -3732,8 +3732,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
-            UpdatedMemberInfo updatedInfo, 
-            ISymbol oldMember, 
+            UpdatedMemberInfo updatedInfo,
+            ISymbol oldMember,
             List<RudeEditDiagnostic> diagnostics)
         {
             if (!updatedInfo.OldHasStateMachineSuspensionPoint)

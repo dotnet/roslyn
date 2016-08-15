@@ -111,6 +111,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
-
     }
 }

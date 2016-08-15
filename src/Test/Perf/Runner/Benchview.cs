@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Roslyn.Test.Performance.Utilities;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +9,7 @@ using static Roslyn.Test.Performance.Runner.Tools;
 
 namespace Roslyn.Test.Performance.Runner
 {
-    public static class Benchview 
+    public static class Benchview
     {
         private const string s_BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
 

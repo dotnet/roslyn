@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public SignatureHelpItems As IList(Of SignatureHelpItem)
         Public SelectedItem As SignatureHelpItem
         Public SelectedParameter As Integer?
-        Private presented As Boolean = False
+        Private _presented As Boolean = False
 
         Public ReadOnly Property EditorSessionIsActive As Boolean Implements ISignatureHelpPresenterSession.EditorSessionIsActive
             Get
-                Return presented
+                Return _presented
             End Get
         End Property
 
@@ -38,12 +38,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpItems = signatureHelpItems
             Me.SelectedItem = selectedItem
             Me.SelectedParameter = selectedParameter
-            Me.presented = True
+            Me._presented = True
         End Sub
 
         Public Sub Dismiss() Implements ISignatureHelpPresenterSession.Dismiss
             _testState.CurrentSignatureHelpPresenterSession = Nothing
-            Me.presented = False
+            Me._presented = False
         End Sub
 
         Public Sub SetSelectedItem(item As SignatureHelpItem)

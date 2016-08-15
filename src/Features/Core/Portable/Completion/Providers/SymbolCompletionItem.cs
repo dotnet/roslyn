@@ -214,18 +214,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static readonly char[] projectSeperators = new[] { ';' };
+        private static readonly char[] s_projectSeperators = new[] { ';' };
         public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Workspace workspace)
         {
             string invalidProjects;
             string candidateProjects;
 
-            if (item.Properties.TryGetValue("InvalidProjects", out invalidProjects) 
+            if (item.Properties.TryGetValue("InvalidProjects", out invalidProjects)
                 && item.Properties.TryGetValue("CandidateProjects", out candidateProjects))
             {
                 return new SupportedPlatformData(
-                    invalidProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
-                    candidateProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
+                    invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
+                    candidateProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
                     workspace);
             }
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindReferences
                 ImmutableArray<TaggedText> displayParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 bool displayIfNoReferences)
-                : base(tags, displayParts, 
+                : base(tags, displayParts,
                       ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
                       sourceSpans, displayIfNoReferences)
             {

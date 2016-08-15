@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            this._inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
         public bool IsUseSuggestionModeOn()

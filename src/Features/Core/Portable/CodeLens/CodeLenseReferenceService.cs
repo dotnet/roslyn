@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             // get the actual span of text for the line containing reference
             var textLine = text.Lines.GetLineFromPosition(position);
-            
+
             // turn the span from document relative to line relative
             var spanStart = token.Span.Start - textLine.Span.Start;
             var line = textLine.ToString();

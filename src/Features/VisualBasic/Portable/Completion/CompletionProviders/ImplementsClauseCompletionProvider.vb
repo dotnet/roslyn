@@ -263,14 +263,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
         End Function
 
-        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
+        Private Shared ReadOnly s_minimalFormatWithoutGenerics As SymbolDisplayFormat =
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
 
         Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
         Protected Overrides Function GetInitialProperties(symbol As ISymbol, context As SyntaxContext) As ImmutableDictionary(Of String, String)
             If IsGenericType(symbol) Then
-                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, s_minimalFormatWithoutGenerics)
                 Return ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text)
             End If
 

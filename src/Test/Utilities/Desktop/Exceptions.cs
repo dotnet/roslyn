@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using static Roslyn.Test.Utilities.ExceptionHelper; 
+using static Roslyn.Test.Utilities.ExceptionHelper;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public IEnumerable<Diagnostic> Diagnostics { get; }
 
-        protected EmitException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
+        protected EmitException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        { }
 
         public EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
             : base(GetMessageFromResult(diagnostics, directory))
@@ -25,22 +26,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Serializable]
     public class PeVerifyException : Exception
     {
-        protected PeVerifyException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
+        protected PeVerifyException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        { }
 
-        public PeVerifyException(string output, string exePath) 
-            : base(GetMessageFromResult(output, exePath)) { }
-
+        public PeVerifyException(string output, string exePath)
+            : base(GetMessageFromResult(output, exePath))
+        { }
     }
 
     [Serializable]
     public class ExecutionException : Exception
     {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath) 
-            : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
+        public ExecutionException(string expectedOutput, string actualOutput, string exePath)
+            : base(GetMessageFromResult(expectedOutput, actualOutput, exePath))
+        { }
 
-        public ExecutionException(Exception innerException, string exePath) 
-            : base(GetMessageFromException(innerException, exePath), innerException) { }
-
+        public ExecutionException(Exception innerException, string exePath)
+            : base(GetMessageFromException(innerException, exePath), innerException)
+        { }
     }
 }

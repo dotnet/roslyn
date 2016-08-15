@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor
                 return true;
             }
 
-            return diagnostic.Id == CS7036 && 
-                node is ClassDeclarationSyntax && 
+            return diagnostic.Id == CS7036 &&
+                node is ClassDeclarationSyntax &&
                 IsInClassDeclarationHeader((ClassDeclarationSyntax)node, token);
         }
 

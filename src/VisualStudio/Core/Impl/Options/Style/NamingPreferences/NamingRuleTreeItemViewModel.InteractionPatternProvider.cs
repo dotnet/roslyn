@@ -4,7 +4,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    partial class NamingRuleTreeItemViewModel : IInteractionPatternProvider
+    public partial class NamingRuleTreeItemViewModel : IInteractionPatternProvider
     {
         TPattern IInteractionPatternProvider.GetPattern<TPattern>()
         {

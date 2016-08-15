@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             // no-op
         }
-        
+
         public virtual void VisitBlockStatement(IBlockStatement operation)
         {
             DefaultVisit(operation);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
-        
+
         public virtual void VisitBranchStatement(IBranchStatement operation)
         {
             DefaultVisit(operation);
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return DefaultVisit(operation, argument);
         }
-        
+
         public virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);

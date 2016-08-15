@@ -58,7 +58,7 @@ public class Cls
         {
             return GetReferences(tree, name).Single();
         }
-        
+
         private static IdentifierNameSyntax[] GetReferences(SyntaxTree tree, string name, int count)
         {
             var nameRef = GetReferences(tree, name).ToArray();
@@ -373,7 +373,7 @@ public class Cls
 
             MethodDeclarationSyntax methodDeclParent;
 
-            if (containingReturnOrThrow != null && decl.Identifier().ValueText == "x1" && 
+            if (containingReturnOrThrow != null && decl.Identifier().ValueText == "x1" &&
                 ((methodDeclParent = containingReturnOrThrow.Parent.Parent as MethodDeclarationSyntax) == null ||
                   methodDeclParent.Body.Statements.First() != containingReturnOrThrow))
             {
@@ -382,9 +382,9 @@ public class Cls
 
             foreach (var reference in references)
             {
-                if (!dataFlowParent.Span.Contains(reference.Span) && 
+                if (!dataFlowParent.Span.Contains(reference.Span) &&
                     (containingReturnOrThrow == null || containingReturnOrThrow.Span.Contains(reference.SpanStart)) &&
-                    (reference.SpanStart > decl.SpanStart || 
+                    (reference.SpanStart > decl.SpanStart ||
                      (containingReturnOrThrow == null &&
                      reference.Ancestors().OfType<DoStatementSyntax>().Join(
                          decl.Ancestors().OfType<DoStatementSyntax>(), d => d, d => d, (d1, d2) => true).Any())))
@@ -786,8 +786,8 @@ public class Cls
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef }, 
-                                                            options: TestOptions.ReleaseExe, 
+                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
@@ -8194,7 +8194,6 @@ public class X
                         VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                 }
-
             }
         }
 
@@ -9633,7 +9632,7 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x15Decl[1]);
         }
-        
+
         [Fact]
         public void Scope_SwitchLabelGuard_02()
         {
@@ -11435,7 +11434,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
-        
+
         [Fact]
         public void DataFlow_03()
         {
@@ -11964,7 +11963,7 @@ public class Cls
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
-        
+
         [Fact]
         public void SimpleVar_07()
         {
@@ -12328,7 +12327,7 @@ public class Cls
             var varRef = GetReferences(tree, "var").Skip(1).Single();
             VerifyModelForOutVar(model, varDecl, varRef);
         }
-        
+
         [Fact]
         public void SimpleVar_16()
         {
@@ -12592,7 +12591,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
-        
+
         [Fact]
         public void RestrictedTypes_04()
         {
@@ -12646,7 +12645,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
-        
+
         [Fact]
         public void ElementAccess_01()
         {
@@ -12891,7 +12890,7 @@ public class Cls
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
-        
+
         [Fact]
         [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_05()

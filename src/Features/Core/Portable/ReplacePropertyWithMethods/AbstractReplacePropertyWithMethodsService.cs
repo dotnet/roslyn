@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var referenceReplacer = new ReferenceReplacer(
                 this, semanticModel, syntaxFacts, semanticFacts,
-                editor, nameToken, property, propertyBackingField, 
+                editor, nameToken, property, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
                 cancellationToken);
             referenceReplacer.Do();
@@ -123,13 +125,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // In order to avoid allocating each time we hit a reference, we just
             // create these statically and pass them in.
 
-            private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
+            private static readonly GetWriteValue s_getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
                     return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
                 };
 
-            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement = 
+            private static readonly GetWriteValue s_getWriteValueForIncrementOrDecrement =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     return (TExpressionSyntax)writeValue;
                 };
 
-            private static GetWriteValue getWriteValueForCompoundAssignment = 
+            private static GetWriteValue s_getWriteValueForCompoundAssignment =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to from a compound assignment 
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         parent, readExpression);
                 };
 
-            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> s_replaceParentCallback =
                 (parent, generator, args) =>
                 {
                     var replacer = args.Replacer;
@@ -201,21 +203,21 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
                     ReplaceWrite(
-                        getWriteValueForLeftSideOfAssignment,
+                        s_getWriteValueForLeftSideOfAssignment,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsLeftSideOfAnyAssignment(_expression))
                 {
                     ReplaceWrite(
-                        getWriteValueForCompoundAssignment,
+                        s_getWriteValueForCompoundAssignment,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
                     ReplaceWrite(
-                        getWriteValueForIncrementOrDecrement,
+                        s_getWriteValueForIncrementOrDecrement,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -254,8 +256,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 // Call this overload so we can see this node after already replacing any 
                 // references in the writing side of it.
                 _editor.ReplaceNode(
-                    _expression.Parent, 
-                    replaceParentCallback,
+                    _expression.Parent,
+                    s_replaceParentCallback,
                     new ReplaceParentArgs(this, getWriteValue, keepTrivia, conflictMessage));
             }
 
@@ -347,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private SyntaxNode GetSetInvocationExpression(
                 TExpressionSyntax writeValue, bool keepTrivia, string conflictMessage)
             {
-                return GetInvocationExpression(_desiredSetMethodName, 
+                return GetInvocationExpression(_desiredSetMethodName,
                     argument: Generator.Argument(writeValue),
                     keepTrivia: keepTrivia,
                     conflictMessage: conflictMessage);

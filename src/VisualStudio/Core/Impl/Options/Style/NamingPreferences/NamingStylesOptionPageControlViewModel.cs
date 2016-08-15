@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         internal NamingStylesOptionPageControlViewModel(SerializableNamingStylePreferencesInfo info, string languageName, ImmutableArray<string> categories, INotificationService notificationService)
         {
-            this._languageName = languageName;
+            _languageName = languageName;
             this.categories = categories;
             this.notificationService = notificationService;
             this.SymbolSpecificationList = new ObservableCollection<SymbolSpecificationViewModel>(info.SymbolSpecifications.Select(s => new SymbolSpecificationViewModel(languageName, categories, s, notificationService)));
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void CreateRootHelper(NamingRuleTreeItemViewModel rule, List<SerializableNamingRule> children)
-        {            
+        {
             foreach (var child in children)
             {
                 var newRule = new NamingRuleTreeItemViewModel(

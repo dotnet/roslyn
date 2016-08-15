@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             set { _store[nameof(ChecksumAlgorithm)] = value; }
             get { return (string)_store[nameof(ChecksumAlgorithm)]; }
         }
-        
+
         /// <summary>
         /// An instrument flag that specifies instrumentation settings.
         /// </summary>

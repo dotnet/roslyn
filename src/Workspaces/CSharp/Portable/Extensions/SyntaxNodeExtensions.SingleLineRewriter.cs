@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         internal class SingleLineRewriter : CSharpSyntaxRewriter
         {
-            private bool useElasticTrivia;
+            private bool _useElasticTrivia;
             private bool _lastTokenEndedInWhitespace;
 
             public SingleLineRewriter(bool useElasticTrivia)
             {
-                this.useElasticTrivia = useElasticTrivia;
+                _useElasticTrivia = useElasticTrivia;
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (token.LeadingTrivia.Count > 0)
                 {
-                    if (useElasticTrivia)
+                    if (_useElasticTrivia)
                     {
                         token = token.WithLeadingTrivia(SyntaxFactory.ElasticSpace);
                     }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (token.TrailingTrivia.Count > 0)
                 {
-                    if (useElasticTrivia)
+                    if (_useElasticTrivia)
                     {
                         token = token.WithTrailingTrivia(SyntaxFactory.ElasticSpace);
                     }

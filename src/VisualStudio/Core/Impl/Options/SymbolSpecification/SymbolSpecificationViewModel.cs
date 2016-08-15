@@ -153,14 +153,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             public SymbolKindViewModel(SymbolKind symbolKind, string name, SymbolSpecification specification)
             {
-                this._symbolKind = symbolKind;
+                _symbolKind = symbolKind;
                 Name = name;
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.SymbolKind == symbolKind);
             }
 
             public SymbolKindViewModel(TypeKind typeKind, string name, SymbolSpecification specification)
             {
-                this._typeKind = typeKind;
+                _typeKind = typeKind;
                 Name = name;
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public class AccessibilityViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class AccessibilityViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             internal readonly Accessibility _accessibility;
 
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public class ModifierViewModel: AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             public string Name { get; set; }
 

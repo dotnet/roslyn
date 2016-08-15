@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class BoundPatternSwitchStatement
+    internal partial class BoundPatternSwitchStatement
     {
         private ImmutableArray<Diagnostic> _decisionTreeDiagnostics;
         private DecisionTree _decisionTree;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // should all compute semantically equivalent diagnostics.
                 var diagnostics = DiagnosticBag.GetInstance();
                 var decisionTree = ComputeDecisionTree(diagnostics);
-                this._decisionTreeDiagnostics = diagnostics.ToReadOnlyAndFree();
+                _decisionTreeDiagnostics = diagnostics.ToReadOnlyAndFree();
                 Interlocked.CompareExchange(ref _decisionTree, decisionTree, null);
             }
         }
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchStatement switchStatement,
             Conversions conversions)
         {
-            this._enclosingSymbol = enclosingSymbol;
-            this._diagnostics = diagnostics;
-            this._switchStatement = switchStatement;
-            this._conversions = conversions;
+            _enclosingSymbol = enclosingSymbol;
+            _diagnostics = diagnostics;
+            _switchStatement = switchStatement;
+            _conversions = conversions;
         }
 
         internal DecisionTree ComputeDecisionTree()
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchSection defaultSection = null;
             foreach (var section in _switchStatement.SwitchSections)
             {
-                this._section = section;
+                _section = section;
                 foreach (var label in section.SwitchLabels)
                 {
                     if (label.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        this._syntax = label.Syntax;
+                        _syntax = label.Syntax;
                         // For purposes of subsumption, we do not take into consideration the value
                         // of the input expression. Therefore we consider null possible if the type permits.
                         var subsumedErrorCode = CheckSubsumed(label.Pattern, result, inputCouldBeNull: true);
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case DecisionTree.DecisionKind.ByType:
                                 {
                                     var byType = (DecisionTree.ByType)decisionTree;
-                                    if (declarationPattern.IsVar && 
+                                    if (declarationPattern.IsVar &&
                                         inputCouldBeNull &&
                                         (byType.WhenNull == null || CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull) == 0) &&
                                         (byType.Default == null || CheckSubsumed(pattern, byType.Default, inputCouldBeNull) == 0))

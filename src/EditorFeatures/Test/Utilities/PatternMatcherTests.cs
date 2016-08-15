@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Assert.Equal(PatternMatchKind.CamelCase, match.Value.Kind);
             Assert.Equal(false, match.Value.IsCaseSensitive);
-       }
+        }
 
         [Fact]
         public void TryMatchSingleWordPattern_PreferCaseSensitiveRelativeWeights1()

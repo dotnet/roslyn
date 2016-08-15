@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,8 +47,8 @@ namespace RepoUtil
         internal GenerateData? MSBuildGenerateData { get; }
 
         internal RepoConfig(
-            IEnumerable<NuGetPackage> fixedPackages, 
-            IEnumerable<string> toolsetPackages, 
+            IEnumerable<NuGetPackage> fixedPackages,
+            IEnumerable<string> toolsetPackages,
             IEnumerable<Regex> nuspecExcludes,
             IEnumerable<Regex> projectJsonExcludes,
             GenerateData? msbuildGenerateData)

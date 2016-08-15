@@ -633,8 +633,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     case CompletionTags.Warning:
                         return Glyph.CompletionWarning;
 
-                case CompletionTags.StatusInformation:
-                    return Glyph.StatusInformation;
+                    case CompletionTags.StatusInformation:
+                        return Glyph.StatusInformation;
                 }
             }
 

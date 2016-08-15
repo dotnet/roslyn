@@ -10,7 +10,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         private const string ViewCommand = "View.C#Interactive";
         private const string WindowTitle = "C# Interactive";
 
-        private CSharpInteractiveWindow_InProc(): base(ViewCommand, WindowTitle) { }
+        private CSharpInteractiveWindow_InProc() : base(ViewCommand, WindowTitle) { }
 
         public static CSharpInteractiveWindow_InProc Create()
         {

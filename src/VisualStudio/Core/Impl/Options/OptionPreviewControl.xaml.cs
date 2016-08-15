@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             listViewContentControl.Content = listview;
 
-             _serviceProvider = serviceProvider;
+            _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
         }
 

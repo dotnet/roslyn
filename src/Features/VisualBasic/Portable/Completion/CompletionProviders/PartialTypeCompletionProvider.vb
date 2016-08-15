@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
-        Private Shared ReadOnly _insertionTextFormatWithGenerics As SymbolDisplayFormat =
+        Private Shared ReadOnly s_insertionTextFormatWithGenerics As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     SymbolDisplayGenericsOptions.IncludeVariance Or
                     SymbolDisplayGenericsOptions.IncludeTypeConstraints)
 
-        Private Shared ReadOnly _displayTextFormat As SymbolDisplayFormat =
-            _insertionTextFormatWithGenerics.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
+        Private Shared ReadOnly s_displayTextFormat As SymbolDisplayFormat =
+            s_insertionTextFormatWithGenerics.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As ValueTuple(Of String, String)
-            Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_displayTextFormat)
-            Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_insertionTextFormatWithGenerics)
+            Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=s_displayTextFormat)
+            Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=s_insertionTextFormatWithGenerics)
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
@@ -93,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 IServiceProvider serviceProvider,
                 string filePath,
                 int lineNumber,
-                int charOffset) 
+                int charOffset)
                 : base(tags, displayParts)
             {
                 _serviceProvider = serviceProvider;
@@ -157,8 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                     }
 
                     return textManager.NavigateToLineAndColumn(
-                        lines, VSConstants.LOGVIEWID.TextView_guid, 
-                        _lineNumber, _charOffset, 
+                        lines, VSConstants.LOGVIEWID.TextView_guid,
+                        _lineNumber, _charOffset,
                         _lineNumber, _charOffset) == VSConstants.S_OK;
                 }
                 finally

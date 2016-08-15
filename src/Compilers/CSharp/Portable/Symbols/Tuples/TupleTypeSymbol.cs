@@ -214,16 +214,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
         {
-            Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
+            Debug.Assert(newElementNames.IsDefault || _elementTypes.Length == newElementNames.Length);
 
-            if (this._elementNames.IsDefault)
+            if (_elementNames.IsDefault)
             {
                 if (newElementNames.IsDefault)
                 {
                     return this;
                 }
             }
-            else if (!newElementNames.IsDefault && this._elementNames.SequenceEqual(newElementNames))
+            else if (!newElementNames.IsDefault && _elementNames.SequenceEqual(newElementNames))
             {
                 return this;
             }
@@ -409,10 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            return tupleTypes[arity - 1];
+            return s_tupleTypes[arity - 1];
         }
 
-        private static readonly WellKnownType[] tupleTypes = {
+        private static readonly WellKnownType[] s_tupleTypes = {
                                                             WellKnownType.System_ValueTuple_T1,
                                                             WellKnownType.System_ValueTuple_T2,
                                                             WellKnownType.System_ValueTuple_T3,
@@ -437,10 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            return tupleCtors[arity - 1];
+            return s_tupleCtors[arity - 1];
         }
 
-        private static readonly WellKnownMember[] tupleCtors = {
+        private static readonly WellKnownMember[] s_tupleCtors = {
                                                             WellKnownMember.System_ValueTuple_T1__ctor,
                                                             WellKnownMember.System_ValueTuple_T2__ctor,
                                                             WellKnownMember.System_ValueTuple_T3__ctor,
@@ -457,10 +457,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static WellKnownMember GetTupleTypeMember(int arity, int position)
         {
-            return tupleMembers[arity - 1][position - 1];
+            return s_tupleMembers[arity - 1][position - 1];
         }
 
-        private static readonly WellKnownMember[][] tupleMembers = new[]{
+        private static readonly WellKnownMember[][] s_tupleMembers = new[]{
                                                         new[]{
                                                             WellKnownMember.System_ValueTuple_T1__Item1 },
 
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure field names are the same.
             if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
             {
-                if (this._elementNames.IsDefault)
+                if (_elementNames.IsDefault)
                 {
                     if (!other._elementNames.IsDefault)
                     {
@@ -1161,10 +1161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (other._elementNames.IsDefault)
                 {
-                    Debug.Assert(!this._elementNames.IsDefault);
+                    Debug.Assert(!_elementNames.IsDefault);
                     return false;
                 }
-                else if (!this._elementNames.SequenceEqual(other._elementNames))
+                else if (!_elementNames.SequenceEqual(other._elementNames))
                 {
                     return false;
                 }

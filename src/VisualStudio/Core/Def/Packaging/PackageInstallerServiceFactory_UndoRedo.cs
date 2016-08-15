@@ -83,7 +83,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public void OnNextAdd()
             {
-
             }
         }
 

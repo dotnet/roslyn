@@ -202,13 +202,13 @@ namespace Roslyn.Utilities
                 .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
                 .CreateDelegate<Action<string, string, System.Text.Encoding>>();
 
-            private static readonly MethodInfo SetAttributesMethod = Type
+            private static readonly MethodInfo s_setAttributesMethod = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(SetAttributes), paramTypes: new[] { typeof(string), FileAttributes.Type });
 
             public static void SetAttributes(string path, object attributes)
             {
-                SetAttributesMethod.Invoke(null, new[] { path, attributes });
+                s_setAttributesMethod.Invoke(null, new[] { path, attributes });
             }
         }
 
@@ -566,7 +566,7 @@ namespace Roslyn.Utilities
 
             private static MethodInfo s_lazyTransformBlock, s_lazyTransformFinalBlock, s_lazyComputeHashByte, s_lazyComputeHashByteIntInt, s_lazyComputeHashStream;
             private static PropertyInfo s_lazyHash;
-            
+
             internal static int TransformBlock(object hashAlgorithm, byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
             {
                 if (s_lazyTransformBlock == null)
@@ -675,7 +675,7 @@ namespace Roslyn.Utilities
 
             private static Type s_lazyType;
             private static object s_lazySHA1;
-            
+
             internal static Type TypeOpt => ReflectionUtilities.GetTypeFromEither(ref s_lazyType,
                 contractName: TypeName + ", " + CoreNames.System_Security_Cryptography_Primitives,
                 desktopName: TypeName);

@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
                 }
 
-                string name =  null;
+                string name = null;
                 IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
 
                 if (nameSyntax != null)

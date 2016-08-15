@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
         {
-            return ReadSymbolTreeInfo(reader, 
+            return ReadSymbolTreeInfo(reader,
                 (version, nodes) => Task.FromResult(new SpellChecker(version, nodes.Select(n => n.Name))));
         }
 

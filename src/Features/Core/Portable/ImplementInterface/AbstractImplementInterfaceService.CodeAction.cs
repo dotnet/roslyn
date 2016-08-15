@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly
-                    ? Accessibility.Public 
+                    ? Accessibility.Public
                     : Accessibility.Private;
 
                 if (member.Kind == SymbolKind.Method)

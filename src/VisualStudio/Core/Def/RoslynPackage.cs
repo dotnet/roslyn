@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
             LoadAnalyzerNodeComponents();
-            
+
             Task.Run(() => LoadComponentsBackground());
         }
 

@@ -17,15 +17,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private ReadOnly _addGlobal As Boolean
 
-        Private Shared ReadOnly AddGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=True)
-        Private Shared ReadOnly NotAddGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=False)
+        Private Shared ReadOnly s_addGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=True)
+        Private Shared ReadOnly s_notAddGlobalInstance As TypeSyntaxGeneratorVisitor = New TypeSyntaxGeneratorVisitor(addGlobal:=False)
 
         Private Sub New(addGlobal As Boolean)
             Me._addGlobal = addGlobal
         End Sub
 
         Public Shared Function Create(addGlobal As Boolean) As TypeSyntaxGeneratorVisitor
-            Return If(addGlobal, AddGlobalInstance, NotAddGlobalInstance)
+            Return If(addGlobal, s_addGlobalInstance, s_notAddGlobalInstance)
         End Function
 
         Public Overrides Function DefaultVisit(node As ISymbol) As TypeSyntax

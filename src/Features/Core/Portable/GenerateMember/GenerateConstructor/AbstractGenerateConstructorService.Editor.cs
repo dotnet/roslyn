@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 Dictionary<string, ISymbol> parameterToExistingFieldMap;
                 Dictionary<string, string> parameterToNewFieldMap;
                 List<IParameterSymbol> remainingParameters;
-                this.GetParameters(remainingArguments, remainingAttributeArguments, 
+                this.GetParameters(remainingArguments, remainingAttributeArguments,
                     remainingParameterTypes, remainingParameterNames,
                     out parameterToExistingFieldMap, out parameterToNewFieldMap, out remainingParameters);
 
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     {
                         if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSensitive: false))
                         {
-                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = 
+                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] =
                                 parameterNames[i].NameBasedOnArgument;
                         }
                     }

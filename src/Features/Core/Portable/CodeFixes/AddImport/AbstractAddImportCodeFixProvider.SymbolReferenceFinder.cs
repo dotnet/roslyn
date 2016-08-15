@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 if (symbolSearchService != null &&
-                    searchNugetPackages && 
+                    searchNugetPackages &&
                     installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
                     allReferences.Add(new PackageReference(_owner, installerService,
-                        new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), 
+                        new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight),
                         source, result.PackageName, result.Version));
                 }
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
                 // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                 // allow 'Black' to bind.
-                var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 if (!syntaxFacts.IsMemberAccessExpressionName(nameNode))
                 {
                     return null;
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 // Check if the expression before the dot binds to a property or field.
-                var symbol = this._semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
+                var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
                 if (symbol?.Kind != SymbolKind.Property && symbol?.Kind != SymbolKind.Field)
                 {
                     return null;

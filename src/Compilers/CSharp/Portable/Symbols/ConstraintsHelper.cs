@@ -511,11 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     set.Free();
                     return false;
             }
-            
-            // very rare case. 
-            // some implemented interfaces are related
-            // will have to instantiate interfaces and check
-            hasRelatedInterfaces:
+
+        // very rare case. 
+        // some implemented interfaces are related
+        // will have to instantiate interfaces and check
+        hasRelatedInterfaces:
             return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
         }
 

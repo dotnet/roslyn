@@ -526,7 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bag.Free();
                 }
             }
-
         }
 
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, CSharpSyntaxNode syntax, int numParameters, DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)

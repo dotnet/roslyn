@@ -12,7 +12,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         private readonly InteractiveWindow_InProc _inProc;
 
         internal InteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
-            : base (visualStudioInstance)
+            : base(visualStudioInstance)
         {
             _inProc = CreateInProcComponent(visualStudioInstance);
         }

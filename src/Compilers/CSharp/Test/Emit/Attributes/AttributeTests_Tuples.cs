@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
@@ -447,7 +449,7 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
 
@@ -628,7 +630,7 @@ class C
                         Assert.Equal(expectedElementNames.Length, actualElementNames.Length);
                         var stringType = _comp.GetSpecialType(SpecialType.System_String);
 
-                        for (int i =  0; i < actualElementNames.Length; i++)
+                        for (int i = 0; i < actualElementNames.Length; i++)
                         {
                             string expectedName = expectedElementNames[i];
                             TypedConstant actualName = actualElementNames[i];

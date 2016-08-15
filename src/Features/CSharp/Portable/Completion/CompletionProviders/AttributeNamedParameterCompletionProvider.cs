@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
-        { 
+        {
             var displayText = selectedItem.DisplayText;
 
             if (ch != null)

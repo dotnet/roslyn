@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,24 +22,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class DetailedErrorInfoDialog : DialogWindow
     {
-        private readonly string errorInfo;
+        private readonly string _errorInfo;
 
         internal DetailedErrorInfoDialog(string title, string errorInfo)
         {
             InitializeComponent();
-            this.errorInfo = errorInfo;
+            _errorInfo = errorInfo;
             this.Title = title;
             stackTraceText.AppendText(errorInfo);
             this.CopyButton.Content = ServicesVSResources.Copy_to_clipboard;
             this.CloseButton.Content = ServicesVSResources.Close;
-
         }
 
         private void CopyMessageToClipBoard(object sender, RoutedEventArgs e)
         {
             try
             {
-                System.Windows.Clipboard.SetText(errorInfo);
+                System.Windows.Clipboard.SetText(_errorInfo);
             }
             catch (Exception)
             {

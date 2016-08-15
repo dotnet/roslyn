@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicAnalysisResourceTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"
+        private const string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Runtime
 }
 ";
 
-        const string ExampleSource = @"
+        private const string ExampleSource = @"
 using System;
 
 public class C
@@ -61,7 +61,7 @@ public class C
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
-       
+
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
@@ -333,7 +333,7 @@ public class C
                 new SpanResult(10, 8, 10, 15, "Fred()"));
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
-                new SpanResult(14,4,16,5, "static void Fred()"));
+                new SpanResult(14, 4, 16, 5, "static void Fred()"));
 
             VerifySpans(reader, reader.Methods[2], sourceLines,
                 new SpanResult(18, 4, 21, 5, "static C()"),
@@ -583,7 +583,7 @@ public class C
             VerifySpans(reader, reader.Methods[2], sourceLines,
                new SpanResult(15, 4, 15, 28, "static int Init() => 33"),
                new SpanResult(15, 25, 15, 27, "33"));
-            
+
             VerifySpans(reader, reader.Methods[5], sourceLines,                     // Synthesized instance constructor
                 new SpanResult(17, 13, 17, 19, "Init()"),
                 new SpanResult(18, 13, 18, 24, "Init() + 12"),

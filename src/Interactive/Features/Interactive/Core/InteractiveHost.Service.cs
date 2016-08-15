@@ -823,7 +823,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
 
                         return newState;
-
                     }))).ConfigureAwait(false);
             }
 

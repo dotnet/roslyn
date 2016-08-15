@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-tryAgain:
+                tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2411,7 +2411,7 @@ tryAgain:
                     return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), type);
                 }
 
-parse_member_name:;
+            parse_member_name:;
                 // If we've seen the ref keyword, we know we must have an indexer, method, or property.
                 if (!sawRef)
                 {
@@ -3889,7 +3889,7 @@ parse_member_name:;
             {
                 if (this.CurrentToken.Kind != closeKind)
                 {
-tryAgain:
+                tryAgain:
                     int mustBeLastIndex = -1;
                     bool mustBeLastHadParams = false;
                     bool hasParams = false;
@@ -5090,7 +5090,7 @@ tryAgain:
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-tryAgain:
+            tryAgain:
 
                 if (this.IsPossibleEnumMemberDeclaration() || this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
@@ -7783,7 +7783,7 @@ tryAgain:
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -8354,7 +8354,6 @@ tryAgain:
                     {
                         return deconstruction;
                     }
-
                 }
                 finally
                 {
@@ -8387,7 +8386,6 @@ tryAgain:
                     {
                         return deconstruction;
                     }
-
                 }
                 finally
                 {
@@ -8491,7 +8489,8 @@ tryAgain:
                         {
                             // check that the type is "var"
                             if (syntax.Type.Kind != SyntaxKind.IdentifierName ||
-                                !((IdentifierNameSyntax)syntax.Type).Identifier.IsVar()) return false;
+                                !((IdentifierNameSyntax)syntax.Type).Identifier.IsVar())
+                                return false;
                             return DeconstructionDesignationLooksGood(syntax.Designation, topLevel);
                         }
                         else
@@ -8990,7 +8989,7 @@ tryAgain:
             }
         }
 
-        enum Precedence : uint
+        private enum Precedence : uint
         {
             Expression = 0, // Loosest possible precedence, used to accept all expressions
             Assignment,
@@ -9650,7 +9649,7 @@ tryAgain:
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
-tryAgain:
+                tryAgain:
                     if (list.IsNull)
                     {
                         list = _pool.AllocateSeparated<ArgumentSyntax>();
@@ -9808,7 +9807,7 @@ tryAgain:
                 SyntaxToken lastTokenOfType;
                 ScanTypeFlags st = this.ScanType(out lastTokenOfType);
 
-                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier(); 
+                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier();
             }
             finally
             {
@@ -10339,7 +10338,7 @@ tryAgain:
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -10568,7 +10567,7 @@ tryAgain:
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-tryAgain:
+            tryAgain:
                 if (this.IsInitializerMember() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // We have at least one initializer expression.
@@ -10709,7 +10708,7 @@ tryAgain:
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-tryAgain:
+            tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -10799,7 +10798,7 @@ tryAgain:
             {
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-tryAgain:
+                tryAgain:
                     if (this.IsPossibleVariableInitializer(false) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         list.Add(this.ParseVariableInitializer(false));
@@ -10985,7 +10984,7 @@ tryAgain:
 
                 if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                 {
-tryAgain:
+                tryAgain:
                     if (this.IsPossibleLambdaParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter

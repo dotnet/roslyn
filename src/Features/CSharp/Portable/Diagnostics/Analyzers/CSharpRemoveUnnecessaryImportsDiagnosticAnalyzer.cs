@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : 
+    internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
         RemoveUnnecessaryImportsDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_TitleAndMessageFormat =

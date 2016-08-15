@@ -485,10 +485,10 @@ class C
         [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
         public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly()
         {
-            var externalCode = 
+            var externalCode =
 @"namespace N.M { public class A : System.Attribute { } }";
 
-            var code = 
+            var code =
 @"using System;
 using N.M;
 

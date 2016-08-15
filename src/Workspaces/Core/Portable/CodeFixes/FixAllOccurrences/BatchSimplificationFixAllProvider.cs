@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected BatchSimplificationFixAllProvider() { }
 
         public override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var changedDocument = await AddSimplifierAnnotationsAsync(
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected virtual bool NeedsParentFixup { get { return false; } }
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

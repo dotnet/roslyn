@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal static class VBCSCompiler 
+    internal static class VBCSCompiler
     {
         public static int Main(string[] args) => new DesktopBuildServerController().Run(args);
     }

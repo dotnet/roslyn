@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        
+
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
         /// aren't real source files. Sometimes we're asked to add silly things like HTML files or XAML
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal IServiceProvider ServiceProvider { get; }
-        
+
         /// <summary>
         /// Indicates whether this project is a website type.
         /// </summary>
@@ -582,11 +582,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // efforts to listen to file changes can lead to a deadlock situation.
             // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
             // to release the lock.
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            {
                 VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
                 RemoveAnalyzerReference(analyzer.FullPath);
-                AddAnalyzerReference(analyzer.FullPath);                
+                AddAnalyzerReference(analyzer.FullPath);
             }));
         }
 
@@ -1239,13 +1240,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void UpdateProjectDisplayNameAndFilePath(string newDisplayName, string newFilePath)
         {
             bool updateMade = false;
-            
+
             if (newDisplayName != null && this.DisplayName != newDisplayName)
             {
                 this.DisplayName = newDisplayName;
                 updateMade = true;
             }
-            
+
             if (newFilePath != null && File.Exists(newFilePath) && _filePathOpt != newFilePath)
             {
                 Debug.Assert(PathUtilities.IsAbsolute(newFilePath));

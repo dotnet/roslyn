@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public List<SymbolSpecification> SymbolSpecifications;
         public List<NamingStyle> NamingStyles;
         public List<SerializableNamingRule> NamingRules;
-        private readonly static int _serializationVersion = 1;
+        private readonly static int s_serializationVersion = 1;
 
         internal SerializableNamingStylePreferencesInfo()
         {
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal XElement CreateXElement()
         {
-            return new XElement("NamingPreferencesInfo", 
-                new XAttribute("SerializationVersion", _serializationVersion),
+            return new XElement("NamingPreferencesInfo",
+                new XAttribute("SerializationVersion", s_serializationVersion),
                 CreateSymbolSpecificationListXElement(),
                 CreateNamingStyleListXElement(),
                 CreateNamingRuleTreeXElement());

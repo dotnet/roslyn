@@ -2062,7 +2062,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterSyntaxNodeAction(
                  (syntaxContext) =>
                  {
-
                      syntaxContext.ReportDiagnostic(Diagnostic.Create(AssignmentSyntaxDescriptor, syntaxContext.Node.GetLocation()));
                  },
                  CSharp.SyntaxKind.SimpleAssignmentExpression);

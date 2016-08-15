@@ -110,10 +110,10 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly ThreadLocal<int[,]> t_matrixPool = 
+        private static readonly ThreadLocal<int[,]> t_matrixPool =
             new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
-        private static ThreadLocal<Dictionary<char, int>> t_dictionaryPool = 
+        private static ThreadLocal<Dictionary<char, int>> t_dictionaryPool =
             new ThreadLocal<Dictionary<char, int>>(() => new Dictionary<char, int>());
 
         private static int[,] GetMatrix(int width, int height)

@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
         }
 
         private static async Task<Solution> ProcessOperationsAsync(
-            Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, 
+            Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             foreach (var operation in operationsList)

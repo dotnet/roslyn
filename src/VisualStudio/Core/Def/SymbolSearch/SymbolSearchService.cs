@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private readonly Workspace _workspace;
 
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
+        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         [ImportingConstructor]
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             VisualStudioWorkspaceImpl workspace,
             VSShell.SVsServiceProvider serviceProvider)
             : this(workspace,
-                   workspace.Services.GetService<IPackageInstallerService>(), 
+                   workspace.Services.GetService<IPackageInstallerService>(),
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             IDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource) 
+            CancellationTokenSource cancellationTokenSource)
             : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
                               AddImportOptions.SuggestForTypesInReferenceAssemblies,
                               AddImportOptions.SuggestForTypesInNuGetPackages)
@@ -279,8 +279,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var version = database.GetPackageVersion(type.Index).ToString();
 
             return new PackageWithTypeResult(
-                packageName: packageName, 
-                typeName: type.Name.ToString(), 
+                packageName: packageName,
+                typeName: type.Name.ToString(),
                 version: version,
                 containingNamespaceNames: nameParts);
         }

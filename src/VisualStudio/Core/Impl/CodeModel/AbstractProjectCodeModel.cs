@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal abstract class AbstractProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
-                
+
         private CodeModelProjectCache _codeModelCache;
 
         public AbstractProjectCodeModel(AbstractProject project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)

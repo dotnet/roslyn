@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Const TupleTypeName As String = "ValueTuple"
 
-        Private Shared ReadOnly tupleTypes As WellKnownType() = New WellKnownType() {WellKnownType.System_ValueTuple_T1, WellKnownType.System_ValueTuple_T2, WellKnownType.System_ValueTuple_T3, WellKnownType.System_ValueTuple_T4, WellKnownType.System_ValueTuple_T5, WellKnownType.System_ValueTuple_T6, WellKnownType.System_ValueTuple_T7, WellKnownType.System_ValueTuple_TRest}
+        Private Shared ReadOnly s_tupleTypes As WellKnownType() = New WellKnownType() {WellKnownType.System_ValueTuple_T1, WellKnownType.System_ValueTuple_T2, WellKnownType.System_ValueTuple_T3, WellKnownType.System_ValueTuple_T4, WellKnownType.System_ValueTuple_T5, WellKnownType.System_ValueTuple_T6, WellKnownType.System_ValueTuple_T7, WellKnownType.System_ValueTuple_TRest}
 
-        Private Shared ReadOnly tupleCtors As WellKnownMember() = New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__ctor, WellKnownMember.System_ValueTuple_T2__ctor, WellKnownMember.System_ValueTuple_T3__ctor, WellKnownMember.System_ValueTuple_T4__ctor, WellKnownMember.System_ValueTuple_T5__ctor, WellKnownMember.System_ValueTuple_T6__ctor, WellKnownMember.System_ValueTuple_T7__ctor, WellKnownMember.System_ValueTuple_TRest__ctor}
+        Private Shared ReadOnly s_tupleCtors As WellKnownMember() = New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__ctor, WellKnownMember.System_ValueTuple_T2__ctor, WellKnownMember.System_ValueTuple_T3__ctor, WellKnownMember.System_ValueTuple_T4__ctor, WellKnownMember.System_ValueTuple_T5__ctor, WellKnownMember.System_ValueTuple_T6__ctor, WellKnownMember.System_ValueTuple_T7__ctor, WellKnownMember.System_ValueTuple_TRest__ctor}
 
-        Private Shared ReadOnly tupleMembers As WellKnownMember()() = New WellKnownMember()() {
+        Private Shared ReadOnly s_tupleMembers As WellKnownMember()() = New WellKnownMember()() {
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T1__Item1},
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T2__Item1, WellKnownMember.System_ValueTuple_T2__Item2},
             New WellKnownMember() {WellKnownMember.System_ValueTuple_T3__Item1, WellKnownMember.System_ValueTuple_T3__Item2, WellKnownMember.System_ValueTuple_T3__Item3},
@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End If
 
-            Return TupleTypeSymbol.tupleTypes(arity - 1)
+            Return TupleTypeSymbol.s_tupleTypes(arity - 1)
         End Function
 
         Friend Shared Function GetTupleCtor(arity As Integer) As WellKnownMember
@@ -531,11 +531,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End If
 
-            Return TupleTypeSymbol.tupleCtors(arity - 1)
+            Return TupleTypeSymbol.s_tupleCtors(arity - 1)
         End Function
 
         Friend Shared Function GetTupleTypeMember(arity As Integer, position As Integer) As WellKnownMember
-            Return TupleTypeSymbol.tupleMembers(arity - 1)(position - 1)
+            Return TupleTypeSymbol.s_tupleMembers(arity - 1)(position - 1)
         End Function
 
         Friend Shared Function TupleMemberName(position As Integer) As String
@@ -698,7 +698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             End If
 
                         Case SymbolKind.NamedType
-                                        ' We are dropping nested types, if any. Pending real need.
+                            ' We are dropping nested types, if any. Pending real need.
 
                         Case SymbolKind.Property
                             If currentNestingLevel = 0 Then

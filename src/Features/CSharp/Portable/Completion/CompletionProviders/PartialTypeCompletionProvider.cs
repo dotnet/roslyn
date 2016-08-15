@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
 
-        private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
+        private static readonly SymbolDisplayFormat s_symbolFormatWithGenerics =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
-            _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
+        private static readonly SymbolDisplayFormat s_symbolFormatWithoutGenerics =
+            s_symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(
             INamedTypeSymbol symbol, SyntaxContext context)
         {
-            var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
+            var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, s_symbolFormatWithGenerics);
             return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             {
                 var syntaxRoot = syntaxTree.GetRoot(cancellationToken);
 
-                this._syntaxFacts = syntaxFacts;
+                _syntaxFacts = syntaxFacts;
                 this.OptionSet = optionSet;
                 this.Tree = syntaxTree;
                 this.LineToBeIndented = lineToBeIndented;

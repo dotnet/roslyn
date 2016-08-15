@@ -69,7 +69,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
                 Assert.Null(project.RuleSetFile);
-                
+
                 // Verify SetRuleSetFile updates the ruleset.
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
                 project.SetRuleSetFile(ruleSetFile.Path);

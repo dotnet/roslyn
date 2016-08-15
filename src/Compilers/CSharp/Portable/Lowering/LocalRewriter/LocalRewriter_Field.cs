@@ -22,12 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             BoundFieldAccess oldNodeOpt = null)
         {
-
             if (fieldSymbol.IsTupleField)
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
             }
-            
+
             BoundExpression result = oldNodeOpt != null ?
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
                 new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeTupleFieldAccess(
             CSharpSyntaxNode syntax,
-            FieldSymbol tupleField, 
+            FieldSymbol tupleField,
             BoundExpression rewrittenReceiver,
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)

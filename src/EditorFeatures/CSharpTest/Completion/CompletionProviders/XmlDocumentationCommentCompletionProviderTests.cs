@@ -1096,11 +1096,11 @@ public class foo
 }", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "permission", "remarks", "see", "seealso", "summary");
         }
 
-		[WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-		[Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-		public async Task PartialTagCompletionNestedTags()
-		{
-			await VerifyItemsExistAsync(@"
+        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialTagCompletionNestedTags()
+        {
+            await VerifyItemsExistAsync(@"
 public class foo
 {
     /// <summary>
@@ -1108,6 +1108,6 @@ public class foo
 	/// </summary>
     public void bar() { }
 }", "!--", "![CDATA[", "c", "code", "list", "para", "see", "seealso");
-		}
-	}
+        }
+    }
 }

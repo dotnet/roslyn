@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return new FixAllState(
                 this.FixAllProvider,
-                this.Document, this.Project, this.CodeFixProvider, 
+                this.Document, this.Project, this.CodeFixProvider,
                 scope, codeActionEquivalenceKey,
                 this.DiagnosticIds, this.DiagnosticProvider);
         }
@@ -179,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerDocument, codeFixProvider, 
-                FixAllScope.Custom, codeActionEquivalenceKey, 
+                triggerDocument, codeFixProvider,
+                FixAllScope.Custom, codeActionEquivalenceKey,
                 diagnosticIds, diagnosticProvider);
         }
 
@@ -195,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerProject, codeFixProvider, 
-                FixAllScope.Custom, codeActionEquivalenceKey, 
+                triggerProject, codeFixProvider,
+                FixAllScope.Custom, codeActionEquivalenceKey,
                 diagnosticIds, diagnosticProvider);
         }
 

@@ -1,11 +1,13 @@
-﻿using Microsoft.CodeAnalysis.Internal.Log;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.Internal.Log;
 using static Microsoft.CodeAnalysis.LinkedFileDiffMergingSession;
 
 namespace Microsoft.CodeAnalysis
 {
     internal class LinkedFileDiffMergingLogger
     {
-        private static LogAggregator LogAggregator = new LogAggregator();
+        private static LogAggregator s_logAggregator = new LogAggregator();
 
         internal enum MergeInfo
         {
@@ -75,14 +77,14 @@ namespace Microsoft.CodeAnalysis
 
         private static void Log(int mergeInfo, int count)
         {
-            LogAggregator.IncreaseCountBy(mergeInfo, count);
+            s_logAggregator.IncreaseCountBy(mergeInfo, count);
         }
 
         internal static void ReportTelemetry()
         {
             Logger.Log(FunctionId.Workspace_Solution_LinkedFileDiffMergingSession, KeyValueLogMessage.Create(m =>
             {
-                foreach (var kv in LogAggregator)
+                foreach (var kv in s_logAggregator)
                 {
                     var mergeInfo = ((MergeInfo)kv.Key).ToString("f");
                     m[mergeInfo] = kv.Value.GetCount();

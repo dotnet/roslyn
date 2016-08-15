@@ -5,7 +5,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    partial class NamingRuleTreeItemViewModel : IDragDropTargetPattern
+    public partial class NamingRuleTreeItemViewModel : IDragDropTargetPattern
     {
         public DirectionalDropArea SupportedAreas
         {

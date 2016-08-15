@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             {
                 return false;
             }
-            
+
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 

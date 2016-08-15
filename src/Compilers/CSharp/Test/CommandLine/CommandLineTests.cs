@@ -972,72 +972,72 @@ d.cs
         [Fact]
         public void Target_SimpleTestsNoSource()
         {
-            var parsedArgs = DefaultParse(new[] { "/target:exe"}, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "/target:exe" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/t:module"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/t:module" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/target:library"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/target:library" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/TARGET:winexe"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/TARGET:winexe" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/target:appcontainerexe"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/target:appcontainerexe" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/target:winmdobj"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/target:winmdobj" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/target:winexe", "/T:exe", "/target:module"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/target:winexe", "/T:exe", "/target:module" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
             Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind);
 
-            parsedArgs = DefaultParse(new[] { "/t"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/t" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/t'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/t").WithLocation(1, 1),
                 // warning CS2008: No source files specified.
                 Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
                 // error CS1562: Outputs without source must have the /out option specified
-                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1) );
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
-            parsedArgs = DefaultParse(new[] { "/target:"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/target:" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2019: Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'
                 Diagnostic(ErrorCode.FTL_InvalidTarget).WithLocation(1, 1),
@@ -1046,8 +1046,8 @@ d.cs
                 // error CS1562: Outputs without source must have the /out option specified
                 Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
-            parsedArgs = DefaultParse(new[] { "/target:xyz"}, _baseDirectory);
-            parsedArgs.Errors.Verify(    
+            parsedArgs = DefaultParse(new[] { "/target:xyz" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
                 // error CS2019: Invalid target type for /target: must specify 'exe', 'winexe', 'library', or 'module'
                 Diagnostic(ErrorCode.FTL_InvalidTarget).WithLocation(1, 1),
                 // warning CS2008: No source files specified.
@@ -1055,8 +1055,8 @@ d.cs
                 // error CS1562: Outputs without source must have the /out option specified
                 Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
-            parsedArgs = DefaultParse(new[] { "/T+"}, _baseDirectory);
-            parsedArgs.Errors.Verify(    
+            parsedArgs = DefaultParse(new[] { "/T+" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/T+'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/T+").WithLocation(1, 1),
                 // warning CS2008: No source files specified.
@@ -1064,7 +1064,7 @@ d.cs
                 // error CS1562: Outputs without source must have the /out option specified
                 Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1));
 
-            parsedArgs = DefaultParse(new[] { "/TARGET-:"}, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/TARGET-:" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/TARGET-:'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/TARGET-:").WithLocation(1, 1),
@@ -1478,7 +1478,7 @@ d.cs
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
-       
+
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
 
@@ -1693,7 +1693,7 @@ d.cs
         [Fact]
         public void Embed()
         {
-            var parsedArgs = DefaultParse(new[] { "a.cs "}, _baseDirectory);
+            var parsedArgs = DefaultParse(new[] { "a.cs " }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Empty(parsedArgs.EmbeddedFiles);
 
@@ -1717,7 +1717,7 @@ d.cs
                 parsedArgs.EmbeddedFiles.Select(f => f.Path));
 
             parsedArgs = DefaultParse(new[] { "/embed:a.txt", "/embed", "/debug:portable", "a.cs", "b.cs", "c.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();;
+            parsedArgs.Errors.Verify();
             AssertEx.Equal(
                 new[] { "a.txt", "a.cs", "b.cs", "c.cs" }.Select(f => Path.Combine(_baseDirectory, f)),
                 parsedArgs.EmbeddedFiles.Select(f => f.Path));
@@ -1749,14 +1749,14 @@ d.cs
         }
 
         [Theory]
-        [InlineData("/debug:portable", "/embed", new[] {"embed.cs", "embed2.cs", "embed.xyz" })]
-        [InlineData("/debug:portable", "/embed:embed.cs", new[] {"embed.cs", "embed.xyz" })]
-        [InlineData("/debug:portable", "/embed:embed2.cs", new[] {"embed2.cs" })]
-        [InlineData("/debug:portable", "/embed:embed.xyz", new[] {"embed.xyz" })]
+        [InlineData("/debug:portable", "/embed", new[] { "embed.cs", "embed2.cs", "embed.xyz" })]
+        [InlineData("/debug:portable", "/embed:embed.cs", new[] { "embed.cs", "embed.xyz" })]
+        [InlineData("/debug:portable", "/embed:embed2.cs", new[] { "embed2.cs" })]
+        [InlineData("/debug:portable", "/embed:embed.xyz", new[] { "embed.xyz" })]
         [InlineData("/debug:embedded", "/embed", new[] { "embed.cs", "embed2.cs", "embed.xyz" })]
         [InlineData("/debug:embedded", "/embed:embed.cs", new[] { "embed.cs", "embed.xyz" })]
         [InlineData("/debug:embedded", "/embed:embed2.cs", new[] { "embed2.cs" })]
-        [InlineData("/debug:embedded", "/embed:embed.xyz", new[] {"embed.xyz" })]
+        [InlineData("/debug:embedded", "/embed:embed.xyz", new[] { "embed.xyz" })]
         public void Embed_EndToEnd(string debugSwitch, string embedSwitch, string[] expectedEmbedded)
         {
             // embed.cs: large enough to compress, has #line directives
@@ -1817,7 +1817,7 @@ print Goodbye, World";
             int exitCode = csc.Run(output);
             Assert.Equal("", output.ToString().Trim());
             Assert.Equal(0, exitCode);
-            
+
             bool embedded = debugSwitch == "/debug:embedded";
             using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe"))))
             {
@@ -6909,7 +6909,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             // reading original content from the memory map: 
             Assert.Equal(mvid, ReadMvid(new MemoryStream(imageDll.GetContent().ToArray())));
             Assert.Equal(mvid, ReadMvid(new MemoryStream(imagePdb.GetContent().ToArray())));
-            
+
             // reading original content directly from the streams: 
             fsDll.Position = 0;
             fsPdb.Position = 0;

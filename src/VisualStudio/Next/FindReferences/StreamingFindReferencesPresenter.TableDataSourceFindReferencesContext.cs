@@ -141,21 +141,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private void CreateNoResultsFoundEntryIfNecessary()
             {
                 bool noDefinitions;
-                lock(_gate)
+                lock (_gate)
                 {
-                    noDefinitions = this._definitions.Count == 0;
+                    noDefinitions = _definitions.Count == 0;
                 }
 
                 if (noDefinitions)
                 {
                     // Create a fake definition/reference called "search found no results"
-                    this.OnEntryFound(NoResultsDefinitionItem,
+                    this.OnEntryFound(s_noResultsDefinitionItem,
                         (db, c) => SimpleMessageEntry.CreateAsync(
                             db, ServicesVisualStudioNextResources.Search_found_no_results));
                 }
             }
 
-            private static DefinitionItem NoResultsDefinitionItem =
+            private static DefinitionItem s_noResultsDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
                     ImmutableArray.Create(new TaggedText(
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // them if they want to be displayed without any references.  This will 
                     // ensure that we still see things like overrides and whatnot, but we
                     // won't show property-accessors.
-                    var seenDefinitions = this._entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
+                    var seenDefinitions = _entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
                     var q = from definition in _definitions
                             where !seenDefinitions.Contains(definition) &&
                                   definition.DisplayIfNoReferences
@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private async Task OnEntryFoundAsync(
-                DefinitionItem definition, 
+                DefinitionItem definition,
                 Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
             {
                 var cancellationToken = _cancellationTokenSource.Token;
@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
-                RoslynDefinitionBucket definitionBucket, 
+                RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
                 CancellationToken cancellationToken)
@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, workspace, definitionBucket, documentSpan, 
+                    this, workspace, definitionBucket, documentSpan,
                     isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
             }
 
@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var taggedText = classifiedLineParts.ToTaggedText();
 
                 var highlightSpan = new TextSpan(
-                    start: referenceSpan.Start - widenedSpan.Start, 
+                    start: referenceSpan.Start - widenedSpan.Start,
                     length: referenceSpan.Length);
 
                 return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);

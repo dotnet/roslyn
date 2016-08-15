@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
 
     internal partial struct SymbolKey
     {
-        private static class MethodSymbolKey 
+        private static class MethodSymbolKey
         {
             public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (result != null)
                     {
-                        return result; 
+                        return result;
                     }
                 }
 

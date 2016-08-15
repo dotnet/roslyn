@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-
         }
     }
 }

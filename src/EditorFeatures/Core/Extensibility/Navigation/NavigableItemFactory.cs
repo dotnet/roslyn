@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
-            ISymbol symbol, 
+            ISymbol symbol,
             ImmutableArray<TaggedText>? displayTaggedParts)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);

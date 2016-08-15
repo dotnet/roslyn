@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         public RetargetingFieldSymbol(RetargetingModuleSymbol retargetingModule, FieldSymbol underlyingField)
-            : base (underlyingField)
+            : base(underlyingField)
         {
             Debug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingField is RetargetingFieldSymbol));

@@ -353,7 +353,6 @@ namespace Roslyn.Utilities
             public ReadStream(long length, byte[][] chunks) :
                 base(length, new List<byte[]>(chunks))
             {
-
             }
         }
 

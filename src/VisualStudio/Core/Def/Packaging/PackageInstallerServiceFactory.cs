@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             var result = new List<Project>();
 
-            foreach (var kvp in this._projectToInstalledPackageAndVersion)
+            foreach (var kvp in _projectToInstalledPackageAndVersion)
             {
                 var installedPackageAndVersion = kvp.Value;
                 if (installedPackageAndVersion != null)

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
         /// </summary>
-        public ImmutableArray<string> InheritanceNames { get; } 
+        public ImmutableArray<string> InheritanceNames { get; }
 
         public DeclaredSymbolInfo(
             string name,
