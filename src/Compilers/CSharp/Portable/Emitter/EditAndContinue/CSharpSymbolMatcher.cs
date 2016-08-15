@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 else if (sourceType.IsTupleType)
                 {
                     var otherDef = (NamedTypeSymbol)this.Visit(originalDef.TupleUnderlyingType);
-                    if ((object)otherDef == null)
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(originalDef.TupleElementTypes.Length))
                     {
                         return null;
                     }
@@ -728,6 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
+
+                // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
                 Debug.Assert(!type.IsTupleType);
                 Debug.Assert(!other.IsTupleType);
 

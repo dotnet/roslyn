@@ -429,13 +429,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if (type.IsTupleType)
                 {
                     var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
-                    if (newUnderlyingType.IsErrorType())
+                    if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length))
                     {
-                        return newUnderlyingType;
+                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
                     }
                     else
                     {
-                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
+                        return newUnderlyingType;
                     }
                 }
 

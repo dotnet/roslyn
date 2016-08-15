@@ -5018,6 +5018,91 @@ class UsePia5
         }
 
         [Fact]
+        public void ErrorType_Tuple()
+        {
+            string pia1 = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA1.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+}
+";
+
+            var piaCompilation1 = CreateCompilationWithMscorlib(pia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            CompileAndVerify(piaCompilation1);
+
+            string pia2 = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA2.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58290"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+[ComEventInterface(typeof(List<(ITest33, ITest33)>), typeof(int))]
+public interface ITest34
+{
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+";
+
+            var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
+
+            CompileAndVerify(piaCompilation2);
+
+            string consumer = @"
+class UsePia5
+{
+    public static void Main()
+    {
+    }
+
+    public void M1(ITest34 y)
+    {
+    }
+}
+";
+
+            DiagnosticDescription[] expected = {
+                // error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies).WithArguments("System.Collections.Generic.List<ValueTuple<ITest33, ITest33>>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            };
+
+            var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
+            VerifyEmitDiagnostics(compilation1, false, expected);
+
+            var compilation2 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true) });
+            VerifyEmitDiagnostics(compilation2, false, expected);
+
+            var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
+            CompileAndVerify(compilation3);
+
+            var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
+                references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
+            CompileAndVerify(compilation4);
+        }
+
+        [Fact]
         public void ErrorType9()
         {
             string pia1 = @"

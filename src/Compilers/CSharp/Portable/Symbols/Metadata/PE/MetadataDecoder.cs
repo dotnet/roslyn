@@ -229,7 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
-                        Debug.Assert(!namedType.IsTupleType);
+                        if (namedType.IsTupleType)
+                        {
+                            return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
+                        }
 
                         var arguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
                         int count = arguments.Length;

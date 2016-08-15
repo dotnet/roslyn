@@ -17538,5 +17538,41 @@ public struct S
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(); // crashes
         }
+
+        [Fact]
+        public void RetargetTupleErrorType()
+        {
+            var lib_cs = @"
+public class A
+{
+    public static (int, int) M() { return (1, 2); }
+}
+";
+            var source = @"
+public class B
+{
+    void M2() { return A.M(); }
+}
+";
+            var lib = CreateCompilationWithMscorlib(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { lib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var methodM = comp.GetMember<MethodSymbol>("A.M");
+
+            Assert.Equal("(System.Int32, System.Int32)", methodM.ReturnType.ToTestDisplayString());
+            Assert.True(methodM.ReturnType.IsTupleType);
+            Assert.False(methodM.ReturnType.IsErrorType());
+            Assert.True(methodM.ReturnType.TupleUnderlyingType.IsErrorType());
+        }
     }
 }
