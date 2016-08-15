@@ -9,6 +9,6 @@ set NuGetExe=%NuGetExeFolder%\NuGet.exe
 REM Download NuGet.exe if we haven't already
 if not exist "%NuGetExe%" (
     echo Downloading NuGet %NuGetExeVersion%
-    powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" || goto :DownloadNuGetFailed
+    powershell -noprofile -executionPolicy Bypass -file "%~dp0download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" || goto :DownloadNuGetFailed
 )
 

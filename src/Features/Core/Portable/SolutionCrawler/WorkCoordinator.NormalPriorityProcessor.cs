@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class NormalPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class NormalPriorityProcessor : AbstractPriorityProcessor
                 {
                     private const int MaxHighPriorityQueueCache = 29;
 
@@ -221,6 +221,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 

@@ -55,6 +55,10 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
@@ -247,6 +251,7 @@
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
+    <Compile Include="SolutionCrawler\GlobalOperationAwareIdleProcessor.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
@@ -612,7 +617,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.HighPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.IncrementalAnalyzerProcessor.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinator.GlobalOperationAwareIdleProcessor.cs" />
+    <Compile Include="SolutionCrawler\WorkCoordinator.AbstractPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.LowPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />

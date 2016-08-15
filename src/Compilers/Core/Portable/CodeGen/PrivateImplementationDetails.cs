@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
 
-        private readonly Cci.IModule _moduleBuilder;                 //the module builder
+        private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<uint, Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<uint, Cci.ITypeReference>();
 
         internal PrivateImplementationDetails(
-            Cci.IModule moduleBuilder,
+            CommonPEModuleBuilder moduleBuilder,
             string moduleName,
             int submissionSlotIndex,
             Cci.ITypeReference systemObject,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
-            var isNetModule = moduleBuilder.AsAssembly == null;
+            var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
             _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
         }
 

@@ -2321,7 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) &&
-                    !StartSourceChecksumCalculation(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
+                    !CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;
                 }

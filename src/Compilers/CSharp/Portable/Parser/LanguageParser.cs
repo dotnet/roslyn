@@ -1232,7 +1232,6 @@ tryAgain:
             Unsafe = 0x2000,
             Partial = 0x4000,
             Async = 0x8000,
-            Replace = 0x10000
         }
 
         private const SyntaxModifier AccessModifiers = SyntaxModifier.Public | SyntaxModifier.Internal | SyntaxModifier.Protected | SyntaxModifier.Private;
@@ -1351,16 +1350,6 @@ tryAgain:
                             {
                                 modTok = ConvertToKeyword(this.EatToken());
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
-                                break;
-                            }
-                            return;
-                        }
-                    case SyntaxModifier.Replace:
-                        {
-                            if (ShouldCurrentContextualKeywordBeTreatedAsModifier())
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureReplace);
                                 break;
                             }
                             return;
