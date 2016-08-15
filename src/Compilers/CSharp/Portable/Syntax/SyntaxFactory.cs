@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier((InternalSyntax.CSharpSyntaxNode)leading.Node, text, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(leading.Node, text, trailing.Node));
         }
 
         /// <summary>

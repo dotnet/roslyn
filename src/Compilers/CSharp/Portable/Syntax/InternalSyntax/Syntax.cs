@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return Identifier(SyntaxKind.IdentifierToken, null, text, text, null);
         }
 
-        internal static SyntaxToken Identifier(CSharpSyntaxNode leading, string text, CSharpSyntaxNode trailing)
+        internal static SyntaxToken Identifier(GreenNode leading, string text, GreenNode trailing)
         {
             return Identifier(SyntaxKind.IdentifierToken, leading, text, text, trailing);
         }
