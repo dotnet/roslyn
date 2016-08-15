@@ -284,13 +284,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetLastToken(includeZeroWidth:=True).TrailingTrivia
         End Function
 
-        Friend ReadOnly Property HasErrors As Boolean
-            Get
-                ' TODO (tomat): share impl with C#
-                Return Me.ContainsDiagnostics AndAlso Me.GetSyntaxErrors(Me.SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
-            End Get
-        End Property
-
         ' an empty collection of syntax errors.
         Friend Shared EmptyErrorCollection As New ReadOnlyCollection(Of Diagnostic)(New VBDiagnostic() {})
 
