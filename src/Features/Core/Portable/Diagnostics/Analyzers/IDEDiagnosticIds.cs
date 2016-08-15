@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string AddQualificationDiagnosticId = "IDE0009";
         public const string PopulateSwitchDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
+        public const string RemoveBracesDiagnosticId = "IDE0012";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

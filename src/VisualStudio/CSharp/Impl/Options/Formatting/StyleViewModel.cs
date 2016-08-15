@@ -232,6 +232,32 @@ class C{
 //]
     }
 }";
+
+        private static readonly string s_bracesWherePossiblePreviewFalse = @"
+using System;
+class C{
+    void Init()
+    {
+//[
+        if (condition)
+            return;
+//]
+    }
+}";
+
+        private static readonly string s_bracesWherePossiblePreviewTrue = @"
+using System;
+class C{
+    void Init()
+    {
+//[
+        if (condition)
+        {
+            return;
+        }
+//]
+    }
+}";
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -242,6 +268,7 @@ class C{
             var qualifyGroupTitle = CSharpVSResources.this_preferences_colon;
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
+            var braceGroupTitle = CSharpVSResources.brace_preferences_colon;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -261,6 +288,12 @@ class C{
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
             };
 
+            var braceStylePreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Prefer_braces, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.Prefer_braceless, isChecked: false),
+            };
+
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.Qualify_field_access_with_this, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, CSharpVSResources.Qualify_property_access_with_this, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, CSharpVSResources.Qualify_method_access_with_this, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
@@ -272,6 +305,8 @@ class C{
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseBracesWherePossible, CSharpVSResources.Everywhere, s_bracesWherePossiblePreviewTrue, s_bracesWherePossiblePreviewFalse, this, optionSet, braceGroupTitle, braceStylePreferences));
         }
     }
 }

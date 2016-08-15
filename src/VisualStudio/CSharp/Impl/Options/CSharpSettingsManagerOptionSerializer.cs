@@ -62,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string Style_UseImplicitTypeForIntrinsicTypes = nameof(AutomationObject.Style_UseImplicitTypeForIntrinsicTypes);
         private const string Style_UseImplicitTypeWhereApparent = nameof(AutomationObject.Style_UseImplicitTypeWhereApparent);
         private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
+        private const string Style_UseBracesWherePossible = nameof(AutomationObject.Style_UseBracesWherePossible);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -265,6 +266,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
                 return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
+            {
+                return FetchStyleBool(Style_UseBracesWherePossible, out value);
             }
 
             if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
@@ -482,6 +487,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
+            }
+            else if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
+            {
+                return PersistStyleOption<bool>(Style_UseBracesWherePossible, value);
             }
 
             return base.TryPersist(optionKey, value);

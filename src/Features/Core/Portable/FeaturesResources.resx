@@ -1061,4 +1061,7 @@ This version used in: {2}</value>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
   </data>
+  <data name="Remove_braces" xml:space="preserve">
+    <value>Remove braces</value>
+  </data>
 </root>

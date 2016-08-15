@@ -73,6 +73,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
+            public const string CodeActionsRemoveBraces = "CodeActions.RemoveBraces";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";

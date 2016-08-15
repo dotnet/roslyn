@@ -106,6 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to brace preferences:.
+        /// </summary>
+        internal static string brace_preferences_colon {
+            get {
+                return ResourceManager.GetString("brace_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Completion Lists.
         /// </summary>
         internal static string Completion_Lists {
@@ -183,6 +192,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Enter_outlining_mode_when_files_open {
             get {
                 return ResourceManager.GetString("Enter_outlining_mode_when_files_open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Everywhere.
+        /// </summary>
+        internal static string Everywhere {
+            get {
+                return ResourceManager.GetString("Everywhere", resourceCulture);
             }
         }
         
@@ -876,6 +894,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string predefined_type_preferences_colon {
             get {
                 return ResourceManager.GetString("predefined_type_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer braceless.
+        /// </summary>
+        internal static string Prefer_braceless {
+            get {
+                return ResourceManager.GetString("Prefer_braceless", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer braces.
+        /// </summary>
+        internal static string Prefer_braces {
+            get {
+                return ResourceManager.GetString("Prefer_braces", resourceCulture);
             }
         }
         

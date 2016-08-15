@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
                 CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
                 CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
-                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes
+                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes,
+                CSharpCodeStyleOptions.UseBracesWherePossible
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()

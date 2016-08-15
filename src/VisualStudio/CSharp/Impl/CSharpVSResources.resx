@@ -489,4 +489,16 @@
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
   </data>
+  <data name="brace_preferences_colon" xml:space="preserve">
+    <value>brace preferences:</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Everywhere</value>
+  </data>
+  <data name="Prefer_braceless" xml:space="preserve">
+    <value>Prefer braceless</value>
+  </data>
+  <data name="Prefer_braces" xml:space="preserve">
+    <value>Prefer braces</value>
+  </data>
 </root>
