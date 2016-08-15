@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundUnaryOperator
     {
         internal BoundUnaryOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             UnaryOperatorKind operatorKind,
             BoundExpression operand,
             ConstantValue constantValueOpt,
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundIncrementOperator
     {
         public BoundIncrementOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             UnaryOperatorKind operatorKind,
             BoundExpression operand,
             MethodSymbol methodOpt,
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundBinaryOperator
     {
         public BoundBinaryOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression left,
             BoundExpression right,
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator
     {
         public BoundUserDefinedConditionalLogicalOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression left,
             BoundExpression right,
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundCompoundAssignmentOperator
     {
         public BoundCompoundAssignmentOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorSignature @operator,
             BoundExpression left,
             BoundExpression right,
@@ -419,12 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNamespaceExpression
     {
-        public BoundNamespaceExpression(CSharpSyntaxNode syntax, NamespaceSymbol namespaceSymbol, bool hasErrors = false)
+        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol, bool hasErrors = false)
             : this(syntax, namespaceSymbol, null, hasErrors)
         {
         }
 
-        public BoundNamespaceExpression(CSharpSyntaxNode syntax, NamespaceSymbol namespaceSymbol)
+        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol)
             : this(syntax, namespaceSymbol, null)
         {
         }
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression
     {
-        public BoundBadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type)
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childBoundNodes, TypeSymbol type)
             : this(syntax, resultKind, symbols, childBoundNodes, type, true)
         {
             Debug.Assert((object)type != null);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundIfStatement
     {
-        public BoundIfStatement(CSharpSyntaxNode syntax, BoundExpression condition, BoundStatement consequence, BoundStatement alternativeOpt, bool hasErrors = false)
+        public BoundIfStatement(SyntaxNode syntax, BoundExpression condition, BoundStatement consequence, BoundStatement alternativeOpt, bool hasErrors = false)
             : this(syntax, ImmutableArray<LocalSymbol>.Empty, condition, consequence, alternativeOpt, hasErrors)
         {
         }
