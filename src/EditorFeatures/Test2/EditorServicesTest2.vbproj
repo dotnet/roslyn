@@ -138,6 +138,7 @@
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="CodeDefinitionWindow\AbstractCodeDefinitionWindowTests.vb" />
+    <Compile Include="CodeDefinitionWindow\CrossLanguageCodeDefinitionWindowTests.vb" />
     <Compile Include="CodeDefinitionWindow\VisualBasicCodeDefinitionWindowTests.vb" />
     <Compile Include="CodeDefinitionWindow\CSharpCodeDefinitionWindowTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
