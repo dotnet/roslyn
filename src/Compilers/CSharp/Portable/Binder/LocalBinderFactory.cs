@@ -53,11 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
-            if (syntax is ExpressionSyntax)
+            var exprNode = syntax as ExpressionSyntax;
+            if (exprNode != null)
             {
                 var binder = new ExpressionVariableBinder(syntax, enclosing);
                 builder.AddToMap(syntax, binder);
-                builder.Visit((CSharpSyntaxNode)syntax, binder);
+                builder.Visit(exprNode, binder);
             }
             else
             {
