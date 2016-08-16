@@ -12,7 +12,8 @@ Imports Roslyn.Test.Utilities
 Public Class ParseErrorTests
     Inherits BasicTestBase
 
-    Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
+    Private ReadOnly _VBParseOptionsWithoutImplicitDefaultOptionalParameter As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)
+    Private ReadOnly _VBParseOptionsWithImplicitDefaultOptionalParameter As VisualBasicParseOptions = _VBParseOptionsWithoutImplicitDefaultOptionalParameter.WithImplicitDefaultOptionalParameter
 
 #Region "Targeted Error Tests - please arrange tests in the order of error code"
 
@@ -2535,29 +2536,26 @@ End Module
 
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
-        Dim useOpts = VisualBasicParseOptions.Default
-        If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) = False Then
-            Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
-        End If
+        Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
         Dim code = <![CDATA[
                 Class C1
                     Function f1(Optional ByVal c1 )
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, useOpts, expectedErrors:=<errors>
-                                                          <error id="30812"/>
-                                                          <error id="30201"/>
-                                                      </errors>)
+        ParseAndVerify(code, _VBParseOptionsWithoutImplicitDefaultOptionalParameter, expectedErrors:=<errors>
+                                                                                                         <error id="30812"/>
+                                                                                                         <error id="30201"/>
+                                                                                                     </errors>)
     End Sub
 
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
+        Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
-        Dim useOpts = _ImplicitDefaultOptionalParameter_
-        If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-            Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is Not present")
-        End If
         Dim code = <![CDATA[
                 Class C1
                     Function f1(Optional ByVal c1 )
@@ -2565,7 +2563,7 @@ End Module
                 End Class
             ]]>.Value
 
-        Dim diags = Parse(code, useOpts).GetDiagnostics.ToImmutableArrayOrEmpty
+        Dim diags = Parse(code, _VBParseOptionsWithImplicitDefaultOptionalParameter).GetDiagnostics.ToImmutableArrayOrEmpty
 
         AssertNoErrors(diags)
     End Sub

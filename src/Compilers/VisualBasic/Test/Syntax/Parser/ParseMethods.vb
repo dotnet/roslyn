@@ -9,7 +9,8 @@ Imports Roslyn.Test.Utilities
 Public Class ParseMethods
     Inherits BasicTestBase
 
-    Private MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
+    Private ReadOnly _VBParseOptionsWithoutImplicitDefaultOptionalParameter As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)
+    Private ReadOnly _VBParseOptionsWithImplicitDefaultOptionalParameter As VisualBasicParseOptions = _VBParseOptionsWithoutImplicitDefaultOptionalParameter.WithImplicitDefaultOptionalParameter
 
     <WorkItem(917272, "DevDiv/Personal")>
     <Fact>
@@ -33,7 +34,7 @@ Public Class ParseMethods
                 Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
                 end sub
             End Module
-        ]]>).
+        ]]>, _VBParseOptionsWithoutImplicitDefaultOptionalParameter).
         TraverseAllNodes()
     End Sub
 
@@ -61,7 +62,7 @@ Public Class ParseMethods
                 Sub Foo(of T1, T2, T3)(a as T1, b as T2, c as T3)
                 end sub
             End Module
-        ]]>, MyParseOptions).
+        ]]>, _VBParseOptionsWithImplicitDefaultOptionalParameter).
         TraverseAllNodes()
     End Sub
 
@@ -83,7 +84,7 @@ Public Class ParseMethods
                     Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                     end function
                 End Module
-        ]]>).
+        ]]>, _VBParseOptionsWithoutImplicitDefaultOptionalParameter).
         TraverseAllNodes()
     End Sub
     <WorkItem(917272, "DevDiv/Personal")>
@@ -106,7 +107,7 @@ Public Class ParseMethods
                     Function Foo(of T1, T2, T3)(a as T1, b as T2, c as T3) as integer
                     end function
                 End Module
-        ]]>, MyParseOptions).
+        ]]>, _VBParseOptionsWithImplicitDefaultOptionalParameter).
         TraverseAllNodes()
     End Sub
     <Fact>
@@ -128,7 +129,7 @@ Public Class ParseMethods
                 Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
                 End Property
             End Module
-        ]]>)
+        ]]>, _VBParseOptionsWithoutImplicitDefaultOptionalParameter)
 
         'Property Foo (i as integer) as integer
         'End Property
@@ -160,7 +161,7 @@ Public Class ParseMethods
                 Property Foo(ByVal s As String, ByVal ParamArray t As Integer()) As Integer
                 End Property
             End Module
-        ]]>, MyParseOptions)
+        ]]>, _VBParseOptionsWithImplicitDefaultOptionalParameter)
     End Sub
 
     <Fact>
@@ -211,7 +212,7 @@ Public Class ParseMethods
                     End Operator
                 End Class
             End Module
-        ]]>)
+        ]]>, _VBParseOptionsWithoutImplicitDefaultOptionalParameter)
     End Sub
     <Fact>
     Public Sub ParseOperator_B()
@@ -230,7 +231,7 @@ Public Class ParseMethods
                     End Operator
                 End Class
             End Module
-        ]]>, MyParseOptions)
+        ]]>, _VBParseOptionsWithImplicitDefaultOptionalParameter)
     End Sub
 
     <Fact>
