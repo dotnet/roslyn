@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal struct CommonSeparatedSyntaxListBuilder<TNode> where TNode : GreenNode
@@ -79,6 +81,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         public void AddRange(CommonSeparatedSyntaxList<TNode> nodes)
         {
             _builder.AddRange(nodes.GetWithSeparators());
+        }
+
+        public void AddRange(CommonSeparatedSyntaxList<TNode> nodes, int count)
+        {
+            var list = nodes.GetWithSeparators();
+            this._builder.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
         }
 
         public bool Any(int kind)
