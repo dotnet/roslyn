@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim info = TryCast(Me._trailingTriviaOrTriviaInfo, TriviaInfo)
 
-            Dim followingTrivia = If(info IsNot Nothing, info._trailingTrivia, TryCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+            Dim followingTrivia = If(info IsNot Nothing, info._trailingTrivia, TryCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             Dim precedingTrivia = If(info IsNot Nothing, info._leadingTrivia, Nothing)
 
             If followingTrivia IsNot Nothing Then
