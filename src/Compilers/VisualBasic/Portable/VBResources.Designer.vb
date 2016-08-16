@@ -11722,6 +11722,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Implicit Default Value Optional Parameter.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ImplicitDefaultValueOptionalParameter() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ImplicitDefaultValueOptionalParameter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to iterators.
         '''</summary>
         Friend ReadOnly Property FEATURE_Iterators() As String
