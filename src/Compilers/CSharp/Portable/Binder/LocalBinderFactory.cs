@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enclosing = rootBinderAdjusterOpt(enclosing, null);
                 }
 
-                builder.Visit(syntax, enclosing);
+                builder.Visit((CSharpSyntaxNode)syntax, enclosing);
             }
 
             // the other place this is possible is in a local function
