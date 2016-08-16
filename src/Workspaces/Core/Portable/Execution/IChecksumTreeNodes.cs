@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         Serializer Serializer { get; }
 
+        IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key);
+
         // TResult since Task doesn't allow covariant
         Task<TResult> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TResult>(
             TKey key, TValue value, string kind,
-            Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TResult>> valueGetterAsync,
+            Func<TKey, TValue, string, CancellationToken, Task<TResult>> valueGetterAsync,
             CancellationToken cancellationToken)
             where TKey : class
             where TResult : ChecksumObjectWithChildren;

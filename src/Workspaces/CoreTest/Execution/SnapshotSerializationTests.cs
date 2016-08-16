@@ -278,10 +278,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.False(object.ReferenceEquals(projectId1.Documents, projectId2.Documents));
 
                     Assert.False(object.ReferenceEquals(projectId1.Info, projectId2.Info));
-                    Assert.False(object.ReferenceEquals(projectId1.ProjectReferences, projectId2.ProjectReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.MetadataReferences, projectId2.MetadataReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.AnalyzerReferences, projectId2.AnalyzerReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.AdditionalDocuments, projectId2.AdditionalDocuments));
+                    Assert.True(object.ReferenceEquals(projectId1.ProjectReferences, projectId2.ProjectReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.MetadataReferences, projectId2.MetadataReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.AnalyzerReferences, projectId2.AnalyzerReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.AdditionalDocuments, projectId2.AdditionalDocuments));
 
                     // actual elements are same
                     Assert.True(object.ReferenceEquals(projectId1.CompilationOptions, projectId2.CompilationOptions));

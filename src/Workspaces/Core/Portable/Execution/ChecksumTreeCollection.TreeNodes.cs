@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
             public RootTreeNode(ChecksumTreeCollection owner, Solution solution) :
-                base(owner, new Serializer(solution.Workspace.Services))
+                base(owner, GetOrCreateSerializer(solution.Workspace.Services))
             {
                 Solution = solution;
             }
@@ -153,19 +154,19 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
+            public IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
+            {
+                var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
+                return entry.GetOrCreateSubTreeNode(_owner, Serializer);
+            }
+
             public async Task<TChecksumObject> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
-                Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
+                Func<TKey, TValue, string, CancellationToken, Task<TChecksumObject>> valueGetterAsync, CancellationToken cancellationToken)
                 where TKey : class
                 where TChecksumObject : ChecksumObjectWithChildren
             {
-                return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) =>
-                {
-                    var snapshotBuilder = new SnapshotBuilder(GetOrCreateSubTreeNode(key));
-                    var assetBuilder = new AssetBuilder(this);
-
-                    return valueGetterAsync(v, k, snapshotBuilder, assetBuilder, c);
-                }, cancellationToken).ConfigureAwait(false);
+                return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) => valueGetterAsync(key, v, k, c), cancellationToken).ConfigureAwait(false);
             }
 
             public Task<TAsset> GetOrCreateAssetAsync<TKey, TValue, TAsset>(
@@ -219,12 +220,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 // create new entry if it is not already given
                 entry = _cache.GetOrAdd(key, _ => entry ?? new ChecksumObjectCache(checksumObject));
                 return entry.Add(checksumObject);
-            }
-
-            private IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
-            {
-                var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
-                return entry.GetOrCreateSubTreeNode(_owner, Serializer);
             }
 
             private static string CreateLogMessage<T>(T key, string kind)

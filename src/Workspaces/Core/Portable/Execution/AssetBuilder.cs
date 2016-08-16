@@ -184,20 +184,26 @@ namespace Microsoft.CodeAnalysis.Execution
             public Solution Solution { get; }
             public Serializer Serializer { get; }
 
+            public Task<TResult> GetOrCreateAssetAsync<TKey, TValue, TResult>(
+                TKey key, TValue value, string kind, Func<TValue, string, CancellationToken, Task<TResult>> valueGetterAsync, CancellationToken cancellationToken)
+                where TKey : class
+                where TResult : Asset
+            {
+                Contract.ThrowIfNull(key);
+                return valueGetterAsync(value, kind, cancellationToken);
+            }
+
             public Task<TResult> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TResult>(
-                TKey key, TValue value, string kind, Func<TValue, string, SnapshotBuilder, AssetBuilder, CancellationToken, Task<TResult>> valueGetterAsync, CancellationToken cancellationToken)
+                TKey key, TValue value, string kind, Func<TKey, TValue, string, CancellationToken, Task<TResult>> valueGetterAsync, CancellationToken cancellationToken)
                 where TKey : class
                 where TResult : ChecksumObjectWithChildren
             {
                 return Contract.FailWithReturn<Task<TResult>>("shouldn't be called");
             }
 
-            public Task<TResult> GetOrCreateAssetAsync<TKey, TValue, TResult>(TKey key, TValue value, string kind, Func<TValue, string, CancellationToken, Task<TResult>> valueGetterAsync, CancellationToken cancellationToken)
-                where TKey : class
-                where TResult : Asset
+            public IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
             {
-                Contract.ThrowIfNull(key);
-                return valueGetterAsync(value, kind, cancellationToken);
+                return Contract.FailWithReturn<IChecksumTreeNode>("shouldn't be called");
             }
         }
     }
