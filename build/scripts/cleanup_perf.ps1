@@ -24,32 +24,40 @@ echo "moving C:/CPC/DataBackup* to ToArchive"
 mv C:/CPC/DataBackup* ToArchive
 ls ToArchive
 
-# Clean CPC out of the machine
+# Clean CPC and related directories out of the machine
 If (Test-Path C:/CPC) {
     try {
         echo "removing C:/CPC ..."
         Remove-Item -Recurse -Force C:/CPC
         echo "done."
-    } catch {
-
     }
+    catch { }
 }
 
 If (Test-Path C:/CPCTraces) {
-    echo "removing C:/CPCTraces"
-    Remove-Item -Recurse -Force C:/CPCTraces
-    echo "done."
+    try {
+        echo "removing C:/CPCTraces"
+        Remove-Item -Recurse -Force C:/CPCTraces
+        echo "done."
+    }
+    catch { }
 }
 
 If (Test-Path C:/PerfLogs) {
-    echo "removing C:/PerfLogs"
-    Remove-Item -Recurse -Force C:/PerfLogs
-    echo "done."
+    try {  
+        echo "removing C:/PerfLogs"
+        Remove-Item -Recurse -Force C:/PerfLogs
+        echo "done."
+    }
+    catch { }
 }
 
 If (Test-Path C:/PerfTemp) {
-    echo "removing C:/PerfTemp"
-    Remove-Item -Recurse -Force C:/PerfTemp
-    echo "done."
+    try {
+        echo "removing C:/PerfTemp"
+        Remove-Item -Recurse -Force C:/PerfTemp
+        echo "done."
+    }
+    catch { }
 }
 exit 0
