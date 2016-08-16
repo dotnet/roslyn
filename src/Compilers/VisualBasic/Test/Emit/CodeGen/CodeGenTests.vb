@@ -7748,7 +7748,7 @@ End Class
             <![CDATA[
 Imports System
 Public Structure STRUCT
-    Public Sub New(Optional ByVal x As Integer = 0)
+    Public Sub New(Optional ByVal x As Integer)
         Console.WriteLine("Public Sub New(Optional ByVal x As Integer)")
     End Sub
 End Structure

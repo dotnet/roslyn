@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     candidates(i) = Nothing
                                     candidatesCount -= 1
                                     GoTo Next_i
-                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing)
+                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, Nothing) Then
                                     candidates(j) = Nothing
                                     candidatesCount -= 1
                                 End If
@@ -313,7 +313,7 @@ DoneWithErrorReporting:
                             candidateSymbols.AddRange(lookup.Symbols)
                         End If
 
-                    ElseIf candidatesCount = 1
+                    ElseIf candidatesCount = 1 Then
 
                         For i As Integer = 0 To candidates.Count - 1
                             Dim first As TSymbol = candidates(i)
@@ -438,7 +438,7 @@ DoneWithErrorReporting:
                 Dim implementedProperty As PropertySymbol = TryCast(implementedSym, PropertySymbol)
                 Dim implementingProperty As PropertySymbol = TryCast(implementingSym, PropertySymbol)
                 If (implementedProperty.GetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
-                   (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
+                    (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
                     ' "'{0}' cannot be implemented by a {1} property."
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
@@ -617,4 +617,3 @@ DoneWithErrorReporting:
 
     End Module
 End Namespace
-
