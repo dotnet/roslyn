@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return r => new SyntaxTrivia(r);
         }
 
+        public override bool IsTrivia => true;
+
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             visitor.VisitTrivia(this);
         }
 
-        protected internal override void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        protected override void WriteTriviaTo(System.IO.TextWriter writer)
         {
             writer.Write(Text);
         }

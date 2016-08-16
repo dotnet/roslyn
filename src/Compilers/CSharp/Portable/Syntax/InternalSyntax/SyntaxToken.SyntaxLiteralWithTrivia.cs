@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxTokenWithValueAndTrivia<T> : SyntaxTokenWithValue<T>
         {
-            private readonly CSharpSyntaxNode _leading;
-            private readonly CSharpSyntaxNode _trailing;
+            private readonly GreenNode _leading;
+            private readonly GreenNode _trailing;
 
-            internal SyntaxTokenWithValueAndTrivia(SyntaxKind kind, string text, T value, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
+            internal SyntaxTokenWithValueAndTrivia(SyntaxKind kind, string text, T value, GreenNode leading, GreenNode trailing)
                 : base(kind, text, value)
             {
                 if (leading != null)
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind kind,
                 string text,
                 T value,
-                CSharpSyntaxNode leading,
-                CSharpSyntaxNode trailing,
+                GreenNode leading,
+                GreenNode trailing,
                 DiagnosticInfo[] diagnostics,
                 SyntaxAnnotation[] annotations)
                 : base(kind, text, value, diagnostics, annotations)
@@ -78,22 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 writer.WriteValue(_trailing);
             }
 
-            public override CSharpSyntaxNode GetLeadingTrivia()
+            public override GreenNode GetLeadingTrivia()
             {
                 return _leading;
             }
 
-            public override CSharpSyntaxNode GetTrailingTrivia()
+            public override GreenNode GetTrailingTrivia()
             {
                 return _trailing;
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

@@ -6,10 +6,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundConversion
+    Partial Friend Class BoundConversion
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -17,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, ConstantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -30,12 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, ConstantValueOpt:=Nothing, ConstructorOpt:=Nothing,
-                   relaxationLambdaOpt:=relaxationLambdaOpt, RelaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=Nothing, constructorOpt:=Nothing,
+                   relaxationLambdaOpt:=relaxationLambdaOpt, relaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operand As BoundExpression,
             conversionKind As ConversionKind,
             checked As Boolean,
@@ -45,12 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, ConstantValueOpt:=Nothing, ConstructorOpt:=Nothing,
-                   relaxationLambdaOpt:=relaxationLambdaOpt, RelaxationReceiverPlaceholderOpt:=RelaxationReceiverPlaceholderOpt, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=Nothing, constructorOpt:=Nothing,
+                   relaxationLambdaOpt:=relaxationLambdaOpt, relaxationReceiverPlaceholderOpt:=RelaxationReceiverPlaceholderOpt, type:=type, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-                syntax As VisualBasicSyntaxNode,
+                syntax As SyntaxNode,
                 operand As BoundExpression,
                 conversionKind As ConversionKind,
                 checked As Boolean,
@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 type As TypeSymbol,
                 Optional hasErrors As Boolean = False
             )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=constantValueOpt, ConstructorOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=constantValueOpt, constructorOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, constructorOpt As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, constructorOpt As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, constructorOpt,
-                   RelaxationLambdaOpt:=Nothing, RelaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+                   relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
 #If DEBUG Then
@@ -111,7 +111,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return method
             End Get
         End Property
-
     End Class
-
 End Namespace

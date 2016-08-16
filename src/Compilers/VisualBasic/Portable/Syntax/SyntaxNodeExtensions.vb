@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension()>
-        Public Function IsLambdaExpressionSyntax(this As VisualBasicSyntaxNode) As Boolean
+        Public Function IsLambdaExpressionSyntax(this As SyntaxNode) As Boolean
             Select Case this.Kind
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression,
@@ -319,7 +319,7 @@ TryAgain:
         ''' Given a syntax node of query clause returns its leading keyword
         ''' </summary>
         <Extension()>
-        Public Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VisualBasicSyntaxNode) As SyntaxToken
+        Public Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As SyntaxNode) As SyntaxToken
             Select Case syntax.Kind
 
                 Case SyntaxKind.CollectionRangeVariable

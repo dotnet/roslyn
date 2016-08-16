@@ -4,6 +4,7 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -124,25 +125,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     case 1:
                         return new SyntaxTriviaList(default(SyntaxToken), _nodes[0].UnderlyingNode, position: 0, index: 0);
                     case 2:
-                        return new SyntaxTriviaList(default(SyntaxToken), Syntax.InternalSyntax.SyntaxList.List(
+                        return new SyntaxTriviaList(default(SyntaxToken), CoreInternalSyntax.CommonSyntaxList.List(
                             (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].UnderlyingNode,
                             (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].UnderlyingNode), position: 0, index: 0);
                     case 3:
                         return new SyntaxTriviaList(default(SyntaxToken),
-                            Syntax.InternalSyntax.SyntaxList.List(
+                            CoreInternalSyntax.CommonSyntaxList.List(
                                 (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].UnderlyingNode,
                                 (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].UnderlyingNode,
                                 (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[2].UnderlyingNode),
                             position: 0, index: 0);
                     default:
                         {
-                            var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[_count];
+                            var tmp = new ArrayElement<GreenNode>[_count];
                             for (int i = 0; i < _count; i++)
                             {
-                                tmp[i].Value = (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[i].UnderlyingNode;
+                                tmp[i].Value = _nodes[i].UnderlyingNode;
                             }
 
-                            return new SyntaxTriviaList(default(SyntaxToken), Syntax.InternalSyntax.SyntaxList.List(tmp), position: 0, index: 0);
+                            return new SyntaxTriviaList(default(SyntaxToken), CoreInternalSyntax.CommonSyntaxList.List(tmp), position: 0, index: 0);
                         }
                 }
             }

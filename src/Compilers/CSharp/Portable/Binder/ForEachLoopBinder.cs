@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This behavior is not spec'd, but it's what Dev10 does.
             if ((object)collectionExprType != null && collectionExprType.IsNullableType())
             {
-                CSharpSyntaxNode exprSyntax = collectionExpr.Syntax;
+                SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
                 if ((object)nullableValueGetter != null)

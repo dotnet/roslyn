@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -314,10 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private struct NamespaceBodyBuilder
         {
-            public SyntaxListBuilder<ExternAliasDirectiveSyntax> Externs;
-            public SyntaxListBuilder<UsingDirectiveSyntax> Usings;
-            public SyntaxListBuilder<AttributeListSyntax> Attributes;
-            public SyntaxListBuilder<MemberDeclarationSyntax> Members;
+            public CommonSyntaxListBuilder<ExternAliasDirectiveSyntax> Externs;
+            public CommonSyntaxListBuilder<UsingDirectiveSyntax> Usings;
+            public CommonSyntaxListBuilder<AttributeListSyntax> Attributes;
+            public CommonSyntaxListBuilder<MemberDeclarationSyntax> Members;
 
             public NamespaceBodyBuilder(SyntaxListPool pool)
             {
@@ -341,17 +342,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ParseWithStackGuard(
                 ParseCompilationUnitCore,
                 () => SyntaxFactory.CompilationUnit(
-                        new SyntaxList<ExternAliasDirectiveSyntax>(),
-                        new SyntaxList<UsingDirectiveSyntax>(),
-                        new SyntaxList<AttributeListSyntax>(),
-                        new SyntaxList<MemberDeclarationSyntax>(),
+                        new CommonSyntaxList<ExternAliasDirectiveSyntax>(),
+                        new CommonSyntaxList<UsingDirectiveSyntax>(),
+                        new CommonSyntaxList<AttributeListSyntax>(),
+                        new CommonSyntaxList<MemberDeclarationSyntax>(),
                         SyntaxFactory.Token(SyntaxKind.EndOfFileToken)));
         }
 
         internal CompilationUnitSyntax ParseCompilationUnitCore()
         {
             SyntaxToken tmp = null;
-            SyntaxListBuilder initialBadNodes = null;
+            CommonSyntaxListBuilder initialBadNodes = null;
             var body = new NamespaceBodyBuilder(_pool);
             try
             {
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Turn the complete input into a single skipped token. This avoids running the lexer, and therefore
             // the preprocessor directive parser, which may itself run into the same problem that caused the
             // original failure.
-            var builder = new SyntaxListBuilder(1);
+            var builder = new CommonSyntaxListBuilder(1);
             builder.Add(SyntaxFactory.BadToken(null, lexer.TextWindow.Text.ToString(), null));
             var fileAsTrivia = _syntaxFactory.SkippedTokensTrivia(builder.ToList<SyntaxToken>());
             node = AddLeadingSkippedSyntax(node, fileAsTrivia);
@@ -447,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var body = new NamespaceBodyBuilder(_pool);
-            SyntaxListBuilder initialBadNodes = null;
+            CommonSyntaxListBuilder initialBadNodes = null;
             try
             {
                 this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddSkippedNamespaceText(
             ref SyntaxToken openBrace,
             ref NamespaceBodyBuilder body,
-            ref SyntaxListBuilder initialBadNodes,
+            ref CommonSyntaxListBuilder initialBadNodes,
             CSharpSyntaxNode skippedSyntax)
         {
             if (body.Members.Count > 0)
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             MembersAndStatements = 4,
         }
 
-        private void ParseNamespaceBody(ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes, SyntaxKind parentKind)
+        private void ParseNamespaceBody(ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref CommonSyntaxListBuilder initialBadNodes, SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -760,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static void AddIncompleteMembers(ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers, ref NamespaceBodyBuilder body)
+        private static void AddIncompleteMembers(ref CommonSyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers, ref NamespaceBodyBuilder body)
         {
             if (incompleteMembers.Count > 0)
             {
@@ -769,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ReduceIncompleteMembers(ref SyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers,
-            ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref SyntaxListBuilder initialBadNodes)
+        private void ReduceIncompleteMembers(ref CommonSyntaxListBuilder<MemberDeclarationSyntax> incompleteMembers,
+            ref SyntaxToken openBrace, ref NamespaceBodyBuilder body, ref CommonSyntaxListBuilder initialBadNodes)
         {
             for (int i = 0; i < incompleteMembers.Count; i++)
             {
@@ -972,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private void ParseAttributeDeclarations(SyntaxListBuilder list, bool allowAttributes = true)
+        private void ParseAttributeDeclarations(CommonSyntaxListBuilder list, bool allowAttributes = true)
         {
             var saveTerm = _termState;
             _termState |= TerminatorState.IsAttributeDeclarationTerminator;
@@ -1034,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseAttributes(SeparatedSyntaxListBuilder<AttributeSyntax> nodes)
+        private void ParseAttributes(CommonSeparatedSyntaxListBuilder<AttributeSyntax> nodes)
         {
             // always expect at least one attribute
             nodes.Add(this.ParseAttribute());
@@ -1067,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PostSkipAction SkipBadAttributeListTokens(SeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadAttributeListTokens(CommonSeparatedSyntaxListBuilder<AttributeSyntax> list, SyntaxKind expected)
         {
             Debug.Assert(list.Count > 0);
             SyntaxToken tmp = null;
@@ -1154,7 +1155,7 @@ tryAgain:
             return argList;
         }
 
-        private PostSkipAction SkipBadAttributeArgumentTokens(ref SyntaxToken openParen, SeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadAttributeArgumentTokens(ref SyntaxToken openParen, CommonSeparatedSyntaxListBuilder<AttributeArgumentSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
@@ -1292,7 +1293,7 @@ tryAgain:
             return GetModifier(token) != SyntaxModifier.None;
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        private void ParseModifiers(CommonSyntaxListBuilder tokens)
         {
             SyntaxModifier mods = 0;
             bool seenNoDuplicates = true;
@@ -1534,7 +1535,7 @@ tryAgain:
             return false;
         }
 
-        private MemberDeclarationSyntax ParseTypeDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private MemberDeclarationSyntax ParseTypeDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -1547,7 +1548,7 @@ tryAgain:
                     // report use of static class
                     for (int i = 0, n = modifiers.Count; i < n; i++)
                     {
-                        if (modifiers[i].Kind == SyntaxKind.StaticKeyword)
+                        if (modifiers[i].RawKind == (int)SyntaxKind.StaticKeyword)
                         {
                             modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureStaticClasses);
                         }
@@ -1570,7 +1571,7 @@ tryAgain:
             }
         }
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword || this.CurrentToken.Kind == SyntaxKind.StructKeyword || this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword);
 
@@ -1589,8 +1590,8 @@ tryAgain:
 
             // Parse class body
             bool parseMembers = true;
-            SyntaxListBuilder<MemberDeclarationSyntax> members = default(SyntaxListBuilder<MemberDeclarationSyntax>);
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            CommonSyntaxListBuilder<MemberDeclarationSyntax> members = default(CommonSyntaxListBuilder<MemberDeclarationSyntax>);
+            var constraints = default(CommonSyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -1729,23 +1730,23 @@ tryAgain:
             }
         }
 
-        private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members)
+        private void SkipBadMemberListTokens(ref SyntaxToken openBrace, CommonSyntaxListBuilder members)
         {
             if (members.Count > 0)
             {
-                CSharpSyntaxNode tmp = members[members.Count - 1];
+                var tmp = members[members.Count - 1];
                 this.SkipBadMemberListTokens(ref tmp);
                 members[members.Count - 1] = tmp;
             }
             else
             {
-                CSharpSyntaxNode tmp = openBrace;
+                GreenNode tmp = openBrace;
                 this.SkipBadMemberListTokens(ref tmp);
                 openBrace = (SyntaxToken)tmp;
             }
         }
 
-        private void SkipBadMemberListTokens(ref CSharpSyntaxNode previousNode)
+        private void SkipBadMemberListTokens(ref GreenNode previousNode)
         {
             int curlyCount = 0;
             var tokens = _pool.Allocate();
@@ -1802,7 +1803,7 @@ tryAgain:
                     tokens.Add(token);
                 }
 
-                previousNode = AddTrailingSkippedSyntax(previousNode, tokens.ToListNode());
+                previousNode = AddTrailingSkippedSyntax((CSharpSyntaxNode)previousNode, tokens.ToListNode());
             }
             finally
             {
@@ -1881,7 +1882,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, SeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadBaseListTokens(ref SyntaxToken colon, CommonSeparatedSyntaxListBuilder<BaseTypeSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
@@ -1897,7 +1898,7 @@ tryAgain:
                 this.PeekToken(2).Kind == SyntaxKind.ColonToken;
         }
 
-        private void ParseTypeParameterConstraintClauses(bool isAllowed, SyntaxListBuilder list)
+        private void ParseTypeParameterConstraintClauses(bool isAllowed, CommonSyntaxListBuilder list)
         {
             while (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
             {
@@ -2023,7 +2024,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadTypeParameterConstraintTokens(SeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadTypeParameterConstraintTokens(CommonSeparatedSyntaxListBuilder<TypeParameterConstraintSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
@@ -2345,7 +2346,7 @@ tryAgain:
                         // if were no attributes and no modifiers we should have parsed it already in namespace body:
                         Debug.Assert(modifiers.Count > 0);
 
-                        modifiers[0] = this.AddError(modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
+                        modifiers[0] = this.AddError((CSharpSyntaxNode)modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
                     }
 
                     var namespaceDecl = ParseNamespaceDeclaration();
@@ -2523,7 +2524,7 @@ parse_member_name:;
         // add that identifier to the modifiers and assign a new type from the identifierOrThisOpt and the
         // type parameter list
         private bool ReconsiderTypeAsAsyncModifier(
-            ref SyntaxListBuilder modifiers,
+            ref CommonSyntaxListBuilder modifiers,
             ref TypeSyntax type,
             ref ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             SyntaxToken identifierOrThisOpt,
@@ -2535,7 +2536,7 @@ parse_member_name:;
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
             if (contextualKind != SyntaxKind.AsyncKeyword ||
-                modifiers.Any(contextualKind))
+                modifiers.Any((int)contextualKind))
             {
                 return false;
             }
@@ -2558,9 +2559,9 @@ parse_member_name:;
             var types = _pool.AllocateSeparated<TypeSyntax>();
             foreach (var p in typeParameterList.Parameters.GetWithSeparators())
             {
-                switch (p.Kind)
+                switch (p.RawKind)
                 {
-                    case SyntaxKind.TypeParameter:
+                    case (int)SyntaxKind.TypeParameter:
                         var typeParameter = (TypeParameterSyntax)p;
                         var typeArgument = _syntaxFactory.IdentifierName(typeParameter.Identifier);
                         // NOTE: reverse order of variance keyword and attributes list so they come out in the right order.
@@ -2578,11 +2579,11 @@ parse_member_name:;
                         }
                         types.Add(typeArgument);
                         break;
-                    case SyntaxKind.CommaToken:
+                    case (int)SyntaxKind.CommaToken:
                         types.AddSeparator((SyntaxToken)p);
                         break;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(p.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(p.RawKind);
                 }
             }
 
@@ -2591,7 +2592,7 @@ parse_member_name:;
             return result;
         }
 
-        //private bool ReconsiderTypeAsAsyncModifier(ref SyntaxListBuilder modifiers, ref type, ref identifierOrThisOpt, ref typeParameterListOpt))
+        //private bool ReconsiderTypeAsAsyncModifier(ref CommonSyntaxListBuilder modifiers, ref type, ref identifierOrThisOpt, ref typeParameterListOpt))
         //        {
         //            goto parse_member_name;
         //        }
@@ -2664,7 +2665,7 @@ parse_member_name:;
             return true;
         }
 
-        private ConstructorDeclarationSyntax ParseConstructorDeclaration(string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private ConstructorDeclarationSyntax ParseConstructorDeclaration(string typeName, CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             var name = this.ParseIdentifierToken();
             Debug.Assert(name.ValueText == typeName);
@@ -2678,7 +2679,7 @@ parse_member_name:;
                 ConstructorInitializerSyntax initializer = null;
                 if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 {
-                    bool isStatic = modifiers != null && modifiers.Any(SyntaxKind.StaticKeyword);
+                    bool isStatic = modifiers != null && modifiers.Any((int)SyntaxKind.StaticKeyword);
                     initializer = this.ParseConstructorInitializer(name.ValueText, isStatic);
                 }
 
@@ -2725,7 +2726,7 @@ parse_member_name:;
             {
                 var openToken = this.EatToken(SyntaxKind.OpenParenToken, reportError);
                 var closeToken = this.EatToken(SyntaxKind.CloseParenToken, reportError);
-                argumentList = _syntaxFactory.ArgumentList(openToken, default(SeparatedSyntaxList<ArgumentSyntax>), closeToken);
+                argumentList = _syntaxFactory.ArgumentList(openToken, default(CommonSeparatedSyntaxList<ArgumentSyntax>), closeToken);
             }
 
             if (isStatic)
@@ -2737,7 +2738,7 @@ parse_member_name:;
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
         }
 
-        private DestructorDeclarationSyntax ParseDestructorDeclaration(string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private DestructorDeclarationSyntax ParseDestructorDeclaration(string typeName, CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.TildeToken);
             var tilde = this.EatToken(SyntaxKind.TildeToken);
@@ -2755,7 +2756,7 @@ parse_member_name:;
             SyntaxToken semicolon;
             this.ParseBodyOrSemicolon(out body, out semicolon);
 
-            var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
+            var parameterList = _syntaxFactory.ParameterList(openParen, default(CommonSeparatedSyntaxList<ParameterSyntax>), closeParen);
             return _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToTokenList(), tilde, name, parameterList, body, semicolon);
         }
 
@@ -2888,8 +2889,8 @@ parse_member_name:;
         }
 
         private MethodDeclarationSyntax ParseMethodDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             SyntaxToken identifier,
@@ -2901,7 +2902,7 @@ parse_member_name:;
 
             var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
 
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            var constraints = default(CommonSyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -2930,7 +2931,7 @@ parse_member_name:;
                 // constraints-clauses. In these cases, the type parameters of the method
                 // inherit constraints from the method being overridden or implemented
                 if (!constraints.IsNull && constraints.Count > 0 &&
-                    ((explicitInterfaceOpt != null) || (modifiers != null && modifiers.Any(SyntaxKind.OverrideKeyword))))
+                    ((explicitInterfaceOpt != null) || (modifiers != null && modifiers.Any((int)SyntaxKind.OverrideKeyword))))
                 {
                     constraints[0] = this.AddErrorToFirstToken(constraints[0], ErrorCode.ERR_OverrideWithConstraints);
                 }
@@ -2946,7 +2947,7 @@ parse_member_name:;
                 // restored, just assumed to be false and reset accordingly after parsing the method body.
                 Debug.Assert(!IsInAsync);
 
-                IsInAsync = modifiers.Any(SyntaxKind.AsyncKeyword);
+                IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
@@ -2998,7 +2999,7 @@ parse_member_name:;
             }
         }
 
-        private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             SyntaxToken style;
             if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
@@ -3040,8 +3041,8 @@ parse_member_name:;
         }
 
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             TypeSyntax type)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
@@ -3173,8 +3174,8 @@ parse_member_name:;
         }
 
         private MemberDeclarationSyntax ParseIndexerDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             SyntaxToken thisKeyword,
@@ -3242,8 +3243,8 @@ parse_member_name:;
         }
 
         private PropertyDeclarationSyntax ParsePropertyDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             SyntaxToken identifier,
@@ -3312,7 +3313,7 @@ parse_member_name:;
         private AccessorListSyntax ParseAccessorList(bool isEvent)
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var accessors = default(SyntaxList<AccessorDeclarationSyntax>);
+            var accessors = default(CommonSyntaxList<AccessorDeclarationSyntax>);
 
             if (!openBrace.IsMissing || !this.IsTerminator())
             {
@@ -3377,7 +3378,7 @@ parse_member_name:;
             return expression;
         }
 
-        private PostSkipAction SkipBadAccessorListTokens(ref SyntaxToken openBrace, SyntaxListBuilder<AccessorDeclarationSyntax> list, ErrorCode error)
+        private PostSkipAction SkipBadAccessorListTokens(ref SyntaxToken openBrace, CommonSyntaxListBuilder<AccessorDeclarationSyntax> list, ErrorCode error)
         {
             return this.SkipBadListTokensWithErrorCode(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CloseBraceToken && !p.IsPossibleAccessor(),
@@ -3449,7 +3450,7 @@ parse_member_name:;
 
         private PostSkipAction SkipBadSeparatedListTokensWithExpectedKind<T, TNode>(
             ref T startToken,
-            SeparatedSyntaxListBuilder<TNode> list,
+            CommonSeparatedSyntaxListBuilder<TNode> list,
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             SyntaxKind expected)
@@ -3458,7 +3459,7 @@ parse_member_name:;
         {
             // We're going to cheat here and pass the underlying SyntaxListBuilder of "list" to the helper method so that
             // it can append skipped trivia to the last element, regardless of whether that element is a node or a token.
-            CSharpSyntaxNode trailingTrivia;
+            GreenNode trailingTrivia;
             var action = this.SkipBadListTokensWithExpectedKindHelper(list.UnderlyingBuilder, isNotExpectedFunction, abortFunction, expected, out trailingTrivia);
             if (trailingTrivia != null)
             {
@@ -3469,14 +3470,14 @@ parse_member_name:;
 
         private PostSkipAction SkipBadListTokensWithErrorCode<T, TNode>(
             ref T startToken,
-            SyntaxListBuilder<TNode> list,
+            CommonSyntaxListBuilder<TNode> list,
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             ErrorCode error)
             where T : CSharpSyntaxNode
             where TNode : CSharpSyntaxNode
         {
-            CSharpSyntaxNode trailingTrivia;
+            GreenNode trailingTrivia;
             var action = this.SkipBadListTokensWithErrorCodeHelper(list, isNotExpectedFunction, abortFunction, error, out trailingTrivia);
             if (trailingTrivia != null)
             {
@@ -3490,11 +3491,11 @@ parse_member_name:;
         /// so it is important that we not add anything to the list.
         /// </remarks>
         private PostSkipAction SkipBadListTokensWithExpectedKindHelper(
-            SyntaxListBuilder list,
+            CommonSyntaxListBuilder list,
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             SyntaxKind expected,
-            out CSharpSyntaxNode trailingTrivia)
+            out GreenNode trailingTrivia)
         {
             if (list.Count == 0)
             {
@@ -3502,11 +3503,11 @@ parse_member_name:;
             }
             else
             {
-                CSharpSyntaxNode lastItemTrailingTrivia;
+                GreenNode lastItemTrailingTrivia;
                 var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
-                    list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], lastItemTrailingTrivia);
+                    list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], lastItemTrailingTrivia);
                 }
                 trailingTrivia = null;
                 return action;
@@ -3514,11 +3515,11 @@ parse_member_name:;
         }
 
         private PostSkipAction SkipBadListTokensWithErrorCodeHelper<TNode>(
-            SyntaxListBuilder<TNode> list,
+            CommonSyntaxListBuilder<TNode> list,
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             ErrorCode error,
-            out CSharpSyntaxNode trailingTrivia) where TNode : CSharpSyntaxNode
+            out GreenNode trailingTrivia) where TNode : CSharpSyntaxNode
         {
             if (list.Count == 0)
             {
@@ -3526,7 +3527,7 @@ parse_member_name:;
             }
             else
             {
-                CSharpSyntaxNode lastItemTrailingTrivia;
+                GreenNode lastItemTrailingTrivia;
                 var action = SkipBadTokensWithErrorCode(isNotExpectedFunction, abortFunction, error, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
@@ -3541,7 +3542,7 @@ parse_member_name:;
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             SyntaxKind expected,
-            out CSharpSyntaxNode trailingTrivia)
+            out GreenNode trailingTrivia)
         {
             var nodes = _pool.Allocate();
             try
@@ -3574,7 +3575,7 @@ parse_member_name:;
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             ErrorCode errorCode,
-            out CSharpSyntaxNode trailingTrivia)
+            out GreenNode trailingTrivia)
         {
             var nodes = _pool.Allocate();
             try
@@ -3624,7 +3625,7 @@ parse_member_name:;
                 {
                     if (accMods != null && accMods.Count > 0)
                     {
-                        accMods[0] = this.AddError(accMods[0], ErrorCode.ERR_NoModifiersOnAccessor);
+                        accMods[0] = this.AddError((CSharpSyntaxNode)accMods[0], ErrorCode.ERR_NoModifiersOnAccessor);
                     }
                 }
                 else
@@ -3870,7 +3871,7 @@ parse_member_name:;
 
         private void ParseParameterList(
             out SyntaxToken open,
-            SeparatedSyntaxListBuilder<ParameterSyntax> nodes,
+            CommonSeparatedSyntaxListBuilder<ParameterSyntax> nodes,
             out SyntaxToken close,
             SyntaxKind openKind,
             SyntaxKind closeKind,
@@ -3902,7 +3903,7 @@ tryAgain:
                         modifiers.Clear();
                         var parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes);
                         nodes.Add(parameter);
-                        hasParams = modifiers.Any(SyntaxKind.ParamsKeyword);
+                        hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
                         hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
                         bool mustBeLast = hasParams || hasArgList;
                         if (mustBeLast && mustBeLastIndex == -1)
@@ -3925,7 +3926,7 @@ tryAgain:
                                 modifiers.Clear();
                                 parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes);
                                 nodes.Add(parameter);
-                                hasParams = modifiers.Any(SyntaxKind.ParamsKeyword);
+                                hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
                                 hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
                                 mustBeLast = hasParams || hasArgList;
                                 if (mustBeLast && mustBeLastIndex == -1)
@@ -3949,7 +3950,7 @@ tryAgain:
 
                     if (mustBeLastIndex >= 0 && mustBeLastIndex < nodes.Count - 1)
                     {
-                        nodes[mustBeLastIndex] = this.AddError(nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
+                        nodes[mustBeLastIndex] = this.AddError((CSharpSyntaxNode)nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
                     }
                 }
 
@@ -3969,7 +3970,7 @@ tryAgain:
                 || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken;
         }
 
-        private PostSkipAction SkipBadParameterListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind, bool allowThisKeyword)
+        private PostSkipAction SkipBadParameterListTokens(ref SyntaxToken open, CommonSeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind, bool allowThisKeyword)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(allowThisKeyword),
@@ -4000,7 +4001,7 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             if (parameter == null)
             {
@@ -4054,8 +4055,8 @@ tryAgain:
         }
 
         private ParameterSyntax ParseParameter(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             bool allowThisKeyword,
             bool allowDefaults,
             bool allowAttributes)
@@ -4092,7 +4093,7 @@ tryAgain:
                     var open = this.EatToken();
                     var close = this.EatToken();
                     open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
-                    name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
+                    name = AddTrailingSkippedSyntax(name, CommonSyntaxList.List(open, close));
                 }
             }
             else if (this.IsPossibleName())
@@ -4166,7 +4167,7 @@ tryAgain:
             }
         }
 
-        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool allowThisKeyword)
+        private void ParseParameterModifiers(CommonSyntaxListBuilder modifiers, bool allowThisKeyword)
         {
             var flags = ParamFlags.None;
 
@@ -4276,8 +4277,8 @@ tryAgain:
         }
 
         private MemberDeclarationSyntax ParseFixedSizeBufferDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             SyntaxKind parentKind)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.FixedKeyword);
@@ -4310,8 +4311,8 @@ tryAgain:
         }
 
         private MemberDeclarationSyntax ParseEventDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             SyntaxKind parentKind)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EventKeyword);
@@ -4330,8 +4331,8 @@ tryAgain:
         }
 
         private MemberDeclarationSyntax ParseEventDeclarationWithAccessors(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             SyntaxToken eventToken,
             TypeSyntax type)
         {
@@ -4353,7 +4354,7 @@ tryAgain:
                 var missingAccessorList =
                     _syntaxFactory.AccessorList(
                         SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
-                        default(SyntaxList<AccessorDeclarationSyntax>),
+                        default(CommonSyntaxList<AccessorDeclarationSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken));
 
                 return _syntaxFactory.EventDeclaration(
@@ -4426,8 +4427,8 @@ tryAgain:
         }
 
         private FieldDeclarationSyntax ParseNormalFieldDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             TypeSyntax type,
             SyntaxKind parentKind)
         {
@@ -4453,8 +4454,8 @@ tryAgain:
         }
 
         private MemberDeclarationSyntax ParseEventFieldDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
-            SyntaxListBuilder modifiers,
+            CommonSyntaxListBuilder<AttributeListSyntax> attributes,
+            CommonSyntaxListBuilder modifiers,
             SyntaxToken eventToken,
             TypeSyntax type,
             SyntaxKind parentKind)
@@ -4504,7 +4505,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        private void ParseVariableDeclarators(TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
+        private void ParseVariableDeclarators(TypeSyntax type, VariableFlags flags, CommonSeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
         {
             // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace) 
             // the reported errors should take into consideration whether or not one expects them in the current context.
@@ -4519,7 +4520,7 @@ tryAgain:
                 variables: variables,
                 variableDeclarationsExpected: variableDeclarationsExpected,
                 allowLocalFunctions: false,
-                mods: default(SyntaxList<SyntaxToken>),
+                mods: default(CommonSyntaxList<SyntaxToken>),
                 localFunction: out localFunction);
 
             Debug.Assert(localFunction == null);
@@ -4528,10 +4529,10 @@ tryAgain:
         private void ParseVariableDeclarators(
             TypeSyntax type,
             VariableFlags flags,
-            SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
+            CommonSeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool variableDeclarationsExpected,
             bool allowLocalFunctions,
-            SyntaxList<SyntaxToken> mods,
+            CommonSyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction)
         {
             variables.Add(
@@ -4575,7 +4576,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadVariableListTokens(SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadVariableListTokens(CommonSeparatedSyntaxListBuilder<VariableDeclaratorSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
@@ -4683,7 +4684,7 @@ tryAgain:
             VariableFlags flags,
             bool isFirst,
             bool allowLocalFunctions,
-            SyntaxList<SyntaxToken> mods,
+            CommonSyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction,
             bool isExpressionContext = false)
         {
@@ -4734,7 +4735,7 @@ tryAgain:
                     var currentTokenKind = this.CurrentToken.Kind;
                     if (currentTokenKind == SyntaxKind.IdentifierToken && !parentType.IsMissing)
                     {
-                        var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+                        var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                         if (isAfterNewLine)
                         {
                             int offset, width;
@@ -4962,7 +4963,7 @@ tryAgain:
                 || this.IsPossibleExpression();
         }
 
-        private FieldDeclarationSyntax ParseConstantFieldDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxKind parentKind)
+        private FieldDeclarationSyntax ParseConstantFieldDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers, SyntaxKind parentKind)
         {
             var constToken = this.EatToken(SyntaxKind.ConstKeyword);
             modifiers.Add(constToken);
@@ -4986,7 +4987,7 @@ tryAgain:
             }
         }
 
-        private DelegateDeclarationSyntax ParseDelegateDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private DelegateDeclarationSyntax ParseDelegateDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
 
@@ -4997,7 +4998,7 @@ tryAgain:
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList(allowVariance: true);
             var parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            var constraints = default(CommonSyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -5020,7 +5021,7 @@ tryAgain:
             }
         }
 
-        private EnumDeclarationSyntax ParseEnumDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private EnumDeclarationSyntax ParseEnumDeclaration(CommonSyntaxListBuilder<AttributeListSyntax> attributes, CommonSyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EnumKeyword);
 
@@ -5047,7 +5048,7 @@ tryAgain:
                 _pool.Free(tmpList);
             }
 
-            var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
+            var members = default(CommonSeparatedSyntaxList<EnumMemberDeclarationSyntax>);
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             if (!openBrace.IsMissing)
@@ -5086,7 +5087,7 @@ tryAgain:
 
         private void ParseEnumMemberDeclarations(
             ref SyntaxToken openBrace,
-            SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> members)
+            CommonSeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> members)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
@@ -5142,7 +5143,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadEnumMemberListTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadEnumMemberListTokens(ref SyntaxToken openBrace, CommonSeparatedSyntaxListBuilder<EnumMemberDeclarationSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && p.CurrentToken.Kind != SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
@@ -5353,7 +5354,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadTypeParameterListTokens(SeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadTypeParameterListTokens(CommonSeparatedSyntaxListBuilder<TypeParameterSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
@@ -5368,7 +5369,7 @@ tryAgain:
             if (this.IsPossibleTypeParameterConstraintClauseStart())
             {
                 return _syntaxFactory.TypeParameter(
-                    default(SyntaxList<AttributeListSyntax>),
+                    default(CommonSyntaxList<AttributeListSyntax>),
                     default(SyntaxToken),
                     this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
@@ -5554,7 +5555,7 @@ tryAgain:
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
-        private void ParseTypeArgumentList(out SyntaxToken open, SeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
+        private void ParseTypeArgumentList(out SyntaxToken open, CommonSeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LessThanToken);
             open = this.EatToken(SyntaxKind.LessThanToken);
@@ -5600,7 +5601,7 @@ tryAgain:
             close = this.EatToken(SyntaxKind.GreaterThanToken);
         }
 
-        private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadTypeArgumentListTokens(CommonSeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
@@ -6469,7 +6470,7 @@ tryAgain:
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
-                        if (list[i].Kind == SyntaxKind.OmittedArraySizeExpression)
+                        if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
                         {
                             int width = list[i].Width;
                             int offset = list[i].GetLeadingTriviaWidth();
@@ -6541,7 +6542,7 @@ tryAgain:
             return _syntaxFactory.TupleElement(type, name);
         }
 
-        private PostSkipAction SkipBadArrayRankSpecifierTokens(ref SyntaxToken openBracket, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadArrayRankSpecifierTokens(ref SyntaxToken openBracket, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
@@ -7204,11 +7205,11 @@ tryAgain:
                 openBrace = (SyntaxToken)tmp;
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
-                SyntaxList<StatementSyntax> statementList;
+                CommonSyntaxList<StatementSyntax> statementList;
                 if (isMethodBody && IsLargeEnoughNonEmptyStatementList(statements))
                 {
                     // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
-                    statementList = new SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()));
+                    statementList = new CommonSyntaxList<StatementSyntax>(CommonSyntaxList.List(((CommonSyntaxListBuilder)statements).ToArray()));
                 }
                 else
                 {
@@ -7224,7 +7225,7 @@ tryAgain:
         }
 
         // Is this statement list non-empty, and large enough to make using weak children beneficial?
-        private static bool IsLargeEnoughNonEmptyStatementList(SyntaxListBuilder<StatementSyntax> statements)
+        private static bool IsLargeEnoughNonEmptyStatementList(CommonSyntaxListBuilder<StatementSyntax> statements)
         {
             if (statements.Count == 0)
             {
@@ -7245,7 +7246,7 @@ tryAgain:
             }
         }
 
-        private void ParseStatements(ref CSharpSyntaxNode previousNode, SyntaxListBuilder<StatementSyntax> statements, bool stopOnSwitchSections)
+        private void ParseStatements(ref CSharpSyntaxNode previousNode, CommonSyntaxListBuilder<StatementSyntax> statements, bool stopOnSwitchSections)
         {
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -7268,7 +7269,7 @@ tryAgain:
                     }
                 }
 
-                CSharpSyntaxNode trailingTrivia;
+                GreenNode trailingTrivia;
                 var action = this.SkipBadStatementListTokens(statements, SyntaxKind.CloseBraceToken, out trailingTrivia);
                 if (trailingTrivia != null)
                 {
@@ -7290,7 +7291,7 @@ tryAgain:
                 || this.IsPossibleStatement(acceptAccessibilityMods: true);
         }
 
-        private PostSkipAction SkipBadStatementListTokens(SyntaxListBuilder<StatementSyntax> statements, SyntaxKind expected, out CSharpSyntaxNode trailingTrivia)
+        private PostSkipAction SkipBadStatementListTokens(CommonSyntaxListBuilder<StatementSyntax> statements, SyntaxKind expected, out GreenNode trailingTrivia)
         {
             return this.SkipBadListTokensWithExpectedKindHelper(
                 statements,
@@ -7431,7 +7432,7 @@ tryAgain:
             BlockSyntax block;
             if (@try.IsMissing)
             {
-                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default(CommonSyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
             }
             else
             {
@@ -7441,7 +7442,7 @@ tryAgain:
                 _termState = saveTerm;
             }
 
-            var catches = default(SyntaxListBuilder<CatchClauseSyntax>);
+            var catches = default(CommonSyntaxListBuilder<CatchClauseSyntax>);
             FinallyClauseSyntax @finally = null;
             try
             {
@@ -7477,7 +7478,7 @@ tryAgain:
                         SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
                         _syntaxFactory.Block(
                             SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
-                            default(SyntaxList<StatementSyntax>),
+                            default(CommonSyntaxList<StatementSyntax>),
                             SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
                 }
 
@@ -7779,7 +7780,7 @@ tryAgain:
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
-        private void ParseForStatementExpressionList(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list)
+        private void ParseForStatementExpressionList(ref SyntaxToken startToken, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
@@ -7815,7 +7816,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadForStatementExpressionListTokens(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadForStatementExpressionListTokens(ref SyntaxToken startToken, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
@@ -8451,7 +8452,7 @@ tryAgain:
                     }
                 }
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                SeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
+                CommonSeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
                 result = _syntaxFactory.ParenthesizedVariableComponent(openParen, listOfComponents, closeParen);
                 _pool.Free(listOfComponents);
             }
@@ -8605,7 +8606,7 @@ tryAgain:
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             TypeSyntax type;
             LocalFunctionStatementSyntax localFunction;
-            ParseLocalDeclaration(variables, false, default(SyntaxList<SyntaxToken>), out type, out localFunction);
+            ParseLocalDeclaration(variables, false, default(CommonSyntaxList<SyntaxToken>), out type, out localFunction);
             Debug.Assert(localFunction == null);
             var result = _syntaxFactory.VariableDeclaration(type, variables);
             _pool.Free(variables);
@@ -8613,16 +8614,16 @@ tryAgain:
         }
 
         private void ParseLocalDeclaration(
-            SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
+            CommonSeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
-            SyntaxList<SyntaxToken> mods,
+            CommonSyntaxList<SyntaxToken> mods,
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
 
             VariableFlags flags = VariableFlags.Local;
-            if (mods.Any(SyntaxKind.ConstKeyword))
+            if (mods.Any((int)SyntaxKind.ConstKeyword))
             {
                 flags |= VariableFlags.Const;
             }
@@ -8658,7 +8659,7 @@ tryAgain:
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list)
+        private void ParseDeclarationModifiers(CommonSyntaxListBuilder list)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
@@ -8698,7 +8699,7 @@ tryAgain:
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
-                else if (list.Any(mod.Kind))
+                else if (list.Any(mod.RawKind))
                 {
                     // check for duplicates, can only be const
                     mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
@@ -8759,7 +8760,7 @@ tryAgain:
         }
 
         private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(
-            SyntaxList<SyntaxToken> modifiers,
+            CommonSyntaxList<SyntaxToken> modifiers,
             TypeSyntax type,
             SyntaxToken identifier)
         {
@@ -8778,7 +8779,7 @@ tryAgain:
 
             bool parentScopeIsInAsync = IsInAsync;
             IsInAsync = false;
-            SyntaxListBuilder badBuilder = null;
+            CommonSyntaxListBuilder badBuilder = null;
             for (int i = 0; i < modifiers.Count; i++)
             {
                 switch (modifiers[i].ContextualKind)
@@ -8826,7 +8827,7 @@ tryAgain:
                 }
             }
 
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            var constraints = default(CommonSyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
             {
                 constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
@@ -9613,7 +9614,7 @@ tryAgain:
             }
 
             SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<ArgumentSyntax> arguments;
+            CommonSeparatedSyntaxList<ArgumentSyntax> arguments;
             ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.ArgumentList(openToken, arguments, closeToken);
@@ -9627,7 +9628,7 @@ tryAgain:
             }
 
             SyntaxToken openToken, closeToken;
-            SeparatedSyntaxList<ArgumentSyntax> arguments;
+            CommonSeparatedSyntaxList<ArgumentSyntax> arguments;
             ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
 
             return _syntaxFactory.BracketedArgumentList(openToken, arguments, closeToken);
@@ -9635,7 +9636,7 @@ tryAgain:
 
         private void ParseArgumentList(
             out SyntaxToken openToken,
-            out SeparatedSyntaxList<ArgumentSyntax> arguments,
+            out CommonSeparatedSyntaxList<ArgumentSyntax> arguments,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
@@ -9645,7 +9646,7 @@ tryAgain:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfArgumentList;
 
-            SeparatedSyntaxListBuilder<ArgumentSyntax> list = default(SeparatedSyntaxListBuilder<ArgumentSyntax>);
+            CommonSeparatedSyntaxListBuilder<ArgumentSyntax> list = default(CommonSeparatedSyntaxListBuilder<ArgumentSyntax>);
             try
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
@@ -9713,7 +9714,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadArgumentListTokens(ref SyntaxToken open, SeparatedSyntaxListBuilder<ArgumentSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+        private PostSkipAction SkipBadArgumentListTokens(ref SyntaxToken open, CommonSeparatedSyntaxListBuilder<ArgumentSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleArgumentExpression(),
@@ -10335,7 +10336,7 @@ tryAgain:
             return result;
         }
 
-        private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref SeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
+        private void ParseAnonymousTypeMemberInitializers(ref SyntaxToken openBrace, ref CommonSeparatedSyntaxListBuilder<AnonymousObjectMemberDeclaratorSyntax> list)
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
@@ -10494,7 +10495,7 @@ tryAgain:
                 {
                     argumentList = _syntaxFactory.ArgumentList(
                         this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken), ErrorCode.ERR_BadNewExpr),
-                        default(SeparatedSyntaxList<ArgumentSyntax>),
+                        default(CommonSeparatedSyntaxList<ArgumentSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
                 }
 
@@ -10561,7 +10562,7 @@ tryAgain:
             }
         }
 
-        private void ParseObjectOrCollectionInitializerMembers(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, out bool isObjectInitializer)
+        private void ParseObjectOrCollectionInitializerMembers(ref SyntaxToken startToken, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list, out bool isObjectInitializer)
         {
             // Empty initializer list must be parsed as an object initializer.
             isObjectInitializer = true;
@@ -10638,7 +10639,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, SeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
+        private PostSkipAction SkipBadInitializerListTokens<T>(ref SyntaxToken startToken, CommonSeparatedSyntaxListBuilder<T> list, SyntaxKind expected)
             where T : CSharpSyntaxNode
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
@@ -10703,7 +10704,7 @@ tryAgain:
             }
         }
 
-        private void ParseExpressionsForComplexElementInitializer(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, out DiagnosticInfo closeBraceError)
+        private void ParseExpressionsForComplexElementInitializer(ref SyntaxToken openBrace, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list, out DiagnosticInfo closeBraceError)
         {
             closeBraceError = null;
 
@@ -10849,7 +10850,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadArrayInitializerTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadArrayInitializerTokens(ref SyntaxToken openBrace, CommonSeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(false),
@@ -10908,7 +10909,7 @@ tryAgain:
                     parameterList,
                     _syntaxFactory.Block(
                         openBrace,
-                        default(SyntaxList<StatementSyntax>),
+                        default(CommonSyntaxList<StatementSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)));
             }
 
@@ -10963,7 +10964,7 @@ tryAgain:
 
                 result = _syntaxFactory.SimpleLambdaExpression(
                     asyncToken,
-                    _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>), type: null, identifier: name, @default: null),
+                    _syntaxFactory.Parameter(default(CommonSyntaxList<AttributeListSyntax>), default(CommonSyntaxList<SyntaxToken>), type: null, identifier: name, @default: null),
                     arrow,
                     body);
             }
@@ -11049,7 +11050,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadLambdaParameterListTokens(ref SyntaxToken openParen, SeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
+        private PostSkipAction SkipBadLambdaParameterListTokens(ref SyntaxToken openParen, CommonSeparatedSyntaxListBuilder<ParameterSyntax> list, SyntaxKind expected, SyntaxKind closeKind)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
@@ -11094,7 +11095,7 @@ tryAgain:
                 paramName = this.AddError(paramName, ErrorCode.ERR_InconsistentLambdaParameterUsage);
             }
 
-            return _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), refOrOutOrParams, paramType, paramName, null);
+            return _syntaxFactory.Parameter(default(CommonSyntaxList<AttributeListSyntax>), refOrOutOrParams, paramType, paramName, null);
         }
 
         private bool IsCurrentTokenQueryContextualKeyword
@@ -11413,7 +11414,7 @@ tryAgain:
             }
         }
 
-        private PostSkipAction SkipBadOrderingListTokens(SeparatedSyntaxListBuilder<OrderingSyntax> list, SyntaxKind expected)
+        private PostSkipAction SkipBadOrderingListTokens(CommonSeparatedSyntaxListBuilder<OrderingSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
@@ -11578,7 +11579,7 @@ tryAgain:
         internal TNode ConsumeUnexpectedTokens<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
             if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken) return node;
-            SyntaxListBuilder<SyntaxToken> b = _pool.Allocate<SyntaxToken>();
+            CommonSyntaxListBuilder<SyntaxToken> b = _pool.Allocate<SyntaxToken>();
             while (this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {
                 b.Add(this.EatToken());

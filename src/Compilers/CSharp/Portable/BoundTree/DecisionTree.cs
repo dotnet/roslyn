@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BoundPatternSwitchStatement _switchStatement;
         private BoundPatternSwitchSection _section;
         private readonly Conversions _conversions;
-        private CSharpSyntaxNode _syntax;
+        private SyntaxNode _syntax;
 
         public DecisionTreeComputer(
             Symbol enclosingSymbol,

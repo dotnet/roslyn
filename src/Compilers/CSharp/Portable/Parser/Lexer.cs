@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -262,10 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
+        private CommonSyntaxListBuilder _leadingTriviaCache = new CommonSyntaxListBuilder(10);
+        private CommonSyntaxListBuilder _trailingTriviaCache = new CommonSyntaxListBuilder(10);
 
-        private static int GetFullWidth(SyntaxListBuilder builder)
+        private static int GetFullWidth(CommonSyntaxListBuilder builder)
         {
             int width = 0;
 
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
-        private SyntaxToken Create(ref TokenInfo info, SyntaxListBuilder leading, SyntaxListBuilder trailing, SyntaxDiagnosticInfo[] errors)
+        private SyntaxToken Create(ref TokenInfo info, CommonSyntaxListBuilder leading, CommonSyntaxListBuilder trailing, SyntaxDiagnosticInfo[] errors)
         {
             Debug.Assert(info.Kind != SyntaxKind.IdentifierToken || info.StringValue != null);
 
@@ -2183,7 +2184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref SyntaxListBuilder triviaList)
+        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref CommonSyntaxListBuilder triviaList)
         {
             bool onlyWhitespaceOnLine = !isTrailing;
 
@@ -2298,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void AddTrivia(CSharpSyntaxNode trivia, ref SyntaxListBuilder list)
+        private void AddTrivia(CSharpSyntaxNode trivia, ref CommonSyntaxListBuilder list)
         {
             if (this.HasErrors)
             {
@@ -2307,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (list == null)
             {
-                list = new SyntaxListBuilder(TriviaListInitialCapacity);
+                list = new CommonSyntaxListBuilder(TriviaListInitialCapacity);
             }
 
             list.Add(trivia);
@@ -2468,7 +2469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void LexDirectiveAndExcludedTrivia(
             bool afterFirstToken,
             bool afterNonWhitespaceOnLine,
-            ref SyntaxListBuilder triviaList)
+            ref CommonSyntaxListBuilder triviaList)
         {
             var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
 
@@ -2480,7 +2481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void LexExcludedDirectivesAndTrivia(bool endIsActive, ref SyntaxListBuilder triviaList)
+        private void LexExcludedDirectivesAndTrivia(bool endIsActive, ref CommonSyntaxListBuilder triviaList)
         {
             while (true)
             {
@@ -2514,7 +2515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool endIsActive,
             bool afterFirstToken,
             bool afterNonWhitespaceOnLine,
-            ref SyntaxListBuilder triviaList)
+            ref CommonSyntaxListBuilder triviaList)
         {
             if (SyntaxFacts.IsWhitespace(TextWindow.PeekChar()))
             {
@@ -2759,9 +2760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return info.Kind != SyntaxKind.None;
         }
 
-        private SyntaxListBuilder LexDirectiveTrailingTrivia(bool includeEndOfLine)
+        private CommonSyntaxListBuilder LexDirectiveTrailingTrivia(bool includeEndOfLine)
         {
-            SyntaxListBuilder trivia = null;
+            CommonSyntaxListBuilder trivia = null;
 
             CSharpSyntaxNode tr;
             while (true)
@@ -2884,7 +2885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo xmlTokenInfo = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
@@ -3235,7 +3236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo tagInfo = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
@@ -3420,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
@@ -3577,7 +3578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
@@ -3633,7 +3634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
@@ -4035,7 +4036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
@@ -4160,7 +4161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
@@ -4293,7 +4294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            CommonSyntaxListBuilder leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
@@ -4417,7 +4418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Collects XML doc comment exterior trivia, and therefore is a no op unless we are in the Start or Exterior of an XML doc comment.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlDocCommentLeadingTrivia(ref SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTrivia(ref CommonSyntaxListBuilder trivia)
         {
             var start = TextWindow.Position;
             this.Start();
@@ -4547,7 +4548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void LexXmlDocCommentLeadingTriviaWithWhitespace(ref SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTriviaWithWhitespace(ref CommonSyntaxListBuilder trivia)
         {
             while (true)
             {
@@ -4570,7 +4571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Collects whitespace and new line trivia for XML doc comments. Does not see XML doc comment exterior trivia, and is a no op unless we are in the interior.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlWhitespaceAndNewLineTrivia(ref SyntaxListBuilder trivia)
+        private void LexXmlWhitespaceAndNewLineTrivia(ref CommonSyntaxListBuilder trivia)
         {
             this.Start();
             if (this.LocationIs(XmlDocCommentLocation.Interior))

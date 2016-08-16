@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal interface IBoundLambdaOrFunction
     {
         MethodSymbol Symbol { get; }
-        CSharpSyntaxNode Syntax { get; }
+        SyntaxNode Syntax { get; }
         BoundBlock Body { get; }
         bool WasCompilerGenerated { get; }
     }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
-        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+        SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
     }
 
     internal sealed partial class BoundLambda : IBoundLambdaOrFunction
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
-        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+        SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
+        public BoundLambda(SyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
             : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
         {
             if (inferReturnType)

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Note, there is no guarantee that the factory always gives back the same binder instance for the same node.
         /// </remarks>
-        internal Binder GetBinder(CSharpSyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(SyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             int position = node.SpanStart;
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            return GetBinder(node, position, memberDeclarationOpt, memberOpt);
+            return GetBinder((CSharpSyntaxNode)node, position, memberDeclarationOpt, memberOpt);
         }
 
         internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
