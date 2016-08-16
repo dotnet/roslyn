@@ -561,7 +561,7 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
         End Sub
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_B()
-            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
                          "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             ' NOTE: this matches Dev11 implementation, not Dev10

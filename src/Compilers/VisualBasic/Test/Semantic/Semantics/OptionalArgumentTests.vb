@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests
         Inherits BasicTestBase
 
-        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
+        Private ReadOnly _VBParseOptionsWithoutImplicitDefaultOptionalParameter As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)
+        Private ReadOnly _VBParseOptionsWithImplicitDefaultOptionalParameter As VisualBasicParseOptions = _VBParseOptionsWithoutImplicitDefaultOptionalParameter.WithImplicitDefaultOptionalParameter
 
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         <Fact()>
@@ -109,10 +110,8 @@ expectedOutput:=<![CDATA[
         ' Report error if the default value of overridden method is different 
         <Fact()>
         Public Sub TestOverridingOptionalWithDifferentDefaultValue_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
             Dim source =
 <compilation name="TestOverridingOptionalWithDifferentDefaultValue">
     <file name="a.vb">
@@ -140,17 +139,16 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer = 0])"))
         End Sub
 
         ' Report error if the default value of overridden method is different 
         <Fact()>
         Public Sub TestOverridingOptionalWithDifferentDefaultValue_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="TestOverridingOptionalWithDifferentDefaultValue">
     <file name="a.vb">
@@ -178,7 +176,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=useOpts)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer])"))
         End Sub
 
@@ -289,10 +287,9 @@ End Module
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         <Fact()>
         Public Sub TestEventWithOptionalInteger_1()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
     <file name="a.vb">
@@ -312,7 +309,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
         End Sub
@@ -320,10 +317,9 @@ End Module
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         <Fact()>
         Public Sub TestEventWithOptionalInteger_2()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
     <file name="a.vb">
@@ -343,7 +339,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=useOpts)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
         End Sub
@@ -480,10 +476,9 @@ End Structure
 
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableIntegerWithNothingValue_1()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="OptionalNullableInteger">
     <file name="a.vb">
@@ -503,7 +498,7 @@ End Structure
     </file>
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
-            CompileAndVerify(source,
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter,
      expectedOutput:=<![CDATA[
 False
 ]]>).VerifyIL("m.main", <![CDATA[
@@ -522,10 +517,9 @@ False
 
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableIntegerWithNothingValue_2()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="OptionalNullableInteger">
     <file name="a.vb">
@@ -544,8 +538,8 @@ False
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=useOpts)
-            CompileAndVerify(source, parseOptions:=useOpts,
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter,
      expectedOutput:=<![CDATA[
 False
 ]]>).VerifyIL("m.main", <![CDATA[
@@ -745,9 +739,9 @@ x = nothing
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant_1()
-            Dim useOpts = VisualBasicParseOptions.Default
-            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts),
-                         NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " not supported with this test.")
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -826,7 +820,7 @@ End Module
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=useOpts, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 1
 System.Reflection.Missing
 3
@@ -842,10 +836,9 @@ System.Runtime.InteropServices.DispatchWrapper
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant_2()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
 
             Dim libSource =
 <compilation>
@@ -892,7 +885,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=_ImplicitDefaultOptionalParameter_)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             Dim source =
 <compilation>
@@ -916,7 +909,7 @@ End Module
 
             Dim compilationRef As MetadataReference = libComp.ToMetadataReference()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef}, parseOptions:=useOpts)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef}, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
@@ -925,7 +918,7 @@ End Module
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=useOpts, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
 System.Reflection.Missing
 System.Reflection.Missing
 System.Runtime.InteropServices.DispatchWrapper
@@ -940,10 +933,9 @@ System.Runtime.InteropServices.DispatchWrapper
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_1()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -989,7 +981,7 @@ End Module
 
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 1
 2
 ]]>).VerifyDiagnostics()
@@ -998,10 +990,9 @@ End Module
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact()>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString_2()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -1027,7 +1018,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=useOpts)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             Dim source =
 <compilation>
@@ -1047,7 +1038,7 @@ End Module
 
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=useOpts, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
 1
 2
 ]]>).VerifyDiagnostics()
@@ -1056,10 +1047,9 @@ End Module
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact>
         Public Sub OptionalWithMarshallAs_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim libSource =
             <compilation>
                 <file name="c.vb"><![CDATA[
@@ -1105,7 +1095,7 @@ End Class
     ]]></file>
             </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=useOpts)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
 
             Dim source =
 <compilation>
@@ -1139,16 +1129,15 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=useOpts).VerifyDiagnostics()
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter).VerifyDiagnostics()
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Fact>
         Public Sub OptionalWithMarshallAs_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim libSource =
             <compilation>
                 <file name="c.vb"><![CDATA[
@@ -1194,7 +1183,7 @@ End Class
     ]]></file>
             </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=useOpts)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             Dim source =
 <compilation>
@@ -1228,15 +1217,14 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=useOpts).VerifyDiagnostics()
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter).VerifyDiagnostics()
         End Sub
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
         <Fact()>
         Public Sub OptionalWithNoDefaultValue_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} Is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -1298,16 +1286,15 @@ End Module
 System.Reflection.Missing
 nothing
 0
-]]>).VerifyDiagnostics()
+]]>, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter).VerifyDiagnostics()
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
         <Fact()>
         Public Sub OptionalWithNoDefaultValue_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim libSource =
 <compilation>
     <file name="c.vb"><![CDATA[
@@ -1357,7 +1344,7 @@ End Module
 </compilation>
             Dim libRef As MetadataReference = libComp.ToMetadataReference()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=New MetadataReference() {libRef}, parseOptions:=useOpts)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=New MetadataReference() {libRef}, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
@@ -1369,7 +1356,7 @@ End Module
 System.Reflection.Missing
 nothing
 0
-]]>, parseOptions:=useOpts).VerifyDiagnostics()
+]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter).VerifyDiagnostics()
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
@@ -1496,10 +1483,9 @@ End Interface
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
         Public Sub Bug578129_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1560,10 +1546,9 @@ BC30002: Type 'CallerMemberName' is not defined.
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
         Public Sub Bug578129_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1596,7 +1581,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll.WithParseOptions(useOpts))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll.WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
 
             AssertTheseDiagnostics(comp,
 "BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
@@ -2330,10 +2315,9 @@ Void Main() - 10, Main, a.vb
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
         Public Sub CallerInfo5_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2394,10 +2378,9 @@ End Class
         <Fact()>
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         Public Sub CallerInfo5_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2442,7 +2425,7 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=useOpts)
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
             CompileAndVerify(compilation:=compilation.WithImplicitDefaultOptionalParameter, expectedOutput:=
             <![CDATA[
 1: 21
@@ -2458,10 +2441,9 @@ End Class
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
         Public Sub CallerInfo6_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2486,7 +2468,7 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(_VBParseOptionsWithoutImplicitDefaultOptionalParameter))
             CompileAndVerify(compilation,
             <![CDATA[
 x: 14
@@ -2497,10 +2479,9 @@ y: 15
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         <Fact()>
         Public Sub CallerInfo6_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2525,7 +2506,7 @@ End Class
 	]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(useOpts))
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
             CompileAndVerify(compilation,
             <![CDATA[
 x: 14
@@ -2535,10 +2516,9 @@ y: 15
 
         <Fact()>
         Public Sub CallerInfo7_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.CompilerServices;
 public delegate void D(object o = null, [CallerLineNumber]int line = 0);
@@ -2579,10 +2559,9 @@ End Class
 
         <Fact()>
         Public Sub CallerInfo7_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.CompilerServices;
 public delegate void D(object o = null, [CallerLineNumber]int line = 0);
@@ -2613,8 +2592,8 @@ End Class
 	]]>
                     </file>
                 </compilation>,
-                options:=TestOptions.ReleaseExe.WithParseOptions(useOpts),
-                parseOptions:=useOpts,
+                options:=TestOptions.ReleaseExe.WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter,
                 additionalRefs:={reference1})
             CompileAndVerify(compilation2, expectedOutput:=
             <![CDATA[
@@ -2625,10 +2604,9 @@ End Class
 
         <Fact>
         Public Sub TestCallerFilePath1_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2672,13 +2650,13 @@ End Module
 "
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default))
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(_VBParseOptionsWithoutImplicitDefaultOptionalParameter))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: 'C:\filename'
@@ -2690,10 +2668,9 @@ End Module
 
         <Fact>
         Public Sub TestCallerFilePath1_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2737,13 +2714,13 @@ End Module
 "
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8, options:=useOpts)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(useOpts))
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: 'C:\filename'
@@ -2755,10 +2732,9 @@ End Module
 
         <Fact>
         Public Sub TestCallerFilePath2_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2831,7 +2807,7 @@ End Module
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",
-                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(_ImplicitDefaultOptionalParameter_))
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: '/X/filename'
@@ -2844,10 +2820,9 @@ End Module
 
         <Fact>
         Public Sub TestCallerFilePath2_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2910,17 +2885,17 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=useOpts),
-                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=useOpts)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
                 }.AsEnumerable,
                 {MscorlibRef_v4_0_30316_17626, MsvbRef}.AsEnumerable,
                  options:=TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",
-                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(useOpts))
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
 
             CompileAndVerify(compilation:=compilation, expectedOutput:="
 1: '/X/filename'
@@ -2976,10 +2951,9 @@ a
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3087,16 +3061,15 @@ End Class
                     End If
                 End Sub
 
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3211,16 +3184,15 @@ End Class
                     Assert.Equal(0, parameters(8).GetAttributes().Length)
                 End Sub
 
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=useOpts)
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3302,16 +3274,15 @@ End Structure
                     End If
                 End Sub
 
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3400,7 +3371,7 @@ End Structure
                     Assert.Equal(0, parameters(1).GetAttributes().Length)
                 End Sub
 
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=useOpts)
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
@@ -3519,10 +3490,9 @@ End Class
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_Decimal_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3687,6 +3657,8 @@ End Class
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_Decimal__B()
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -3853,16 +3825,15 @@ End Class
                     'Assert.Equal(ConstantValue.Create(decimalZero), parameters(12).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(12).GetAttributes().Length)
                 End Sub
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_ImplicitDefaultOptionalParameter_)
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -4005,10 +3976,9 @@ End Class
         <Fact>
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
     <file name="a.vb">
@@ -4152,7 +4122,7 @@ End Class
                     Assert.Equal(0, parameters(10).GetAttributes().Length)
 
                 End Sub
-            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=useOpts)
+            CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
         End Sub
 
