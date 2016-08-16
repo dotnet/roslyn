@@ -46,6 +46,7 @@ namespace RunTests
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
+            var failures = 0;
 
             do
             {
@@ -62,6 +63,7 @@ namespace RunTests
                             var testResult = await task.ConfigureAwait(false);
                             if (!testResult.Succeeded)
                             {
+                                failures++;
                                 allPassed = false;
                             }
 
@@ -76,6 +78,7 @@ namespace RunTests
                         {
                             Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
+                            failures++;
                         }
 
                         running.RemoveAt(i);
@@ -92,7 +95,7 @@ namespace RunTests
                     running.Add(task);
                 }
 
-                Console.WriteLine($"  { running.Count} running, { waiting.Count} queued, { completed.Count} completed");
+                Console.WriteLine($"  { running.Count, 2} running, { waiting.Count,2} queued, { completed.Count,2} completed{((failures <=0)?"":$", {failures,2} failures")}");
                 Task.WaitAny(running.ToArray());
             } while (running.Count > 0);
 
