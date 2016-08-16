@@ -60,18 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     root As TTree,
                     newItem As Func(Of SyntaxToken, SyntaxToken)) As TTree
 
-            Return DirectCast(New LastTokenReplacer(newItem).VisitNodeOrList(root), TTree)
-        End Function
-
-        Private Function VisitNodeOrList(nodeOrList As GreenNode) As GreenNode
-            If nodeOrList.IsList Then
-                Return VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(nodeOrList)).Node
-            Else
-                Return DirectCast(nodeOrList, VisualBasicSyntaxNode).Accept(Me)
-            End If
+            Return DirectCast(New LastTokenReplacer(newItem).VisitGreen(root), TTree)
         End Function
 
         Public Overrides Function Visit(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+            Return DirectCast(VisitGreen(node), VisualBasicSyntaxNode)
+        End Function
+
+        Private Function VisitGreen(node As GreenNode) As GreenNode
             If node Is Nothing Then
                 Return Nothing
             End If
@@ -108,15 +104,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _skipCnt = allChildrenCnt - 1
                 Dim result As GreenNode
                 If node.IsList Then
-                    result = VisitList(Of VisualBasicSyntaxNode)(node).Node
+                    result = VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(node)).Node
                 Else
-                    result = MyBase.Visit(node)
+                    result = MyBase.Visit(DirectCast(node, VisualBasicSyntaxNode))
                 End If
 
                 _skipCnt = prevIdx
                 Return DirectCast(result, VisualBasicSyntaxNode)
             Else
-                Return MyBase.Visit(node)
+                Return MyBase.Visit(DirectCast(node, SyntaxToken))
             End If
 
         End Function
