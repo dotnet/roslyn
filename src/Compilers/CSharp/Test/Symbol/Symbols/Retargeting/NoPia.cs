@@ -1475,7 +1475,8 @@ namespace System
     {
         public ValueTuple(T1 item1, T2 item2) { }
     }
-}";
+}
+";
 
             var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyDiagnostics();
@@ -1525,8 +1526,58 @@ public class C
             comp2.VerifyDiagnostics(expectedDiagnostics);
         }
 
-        [ClrOnlyFact]
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/13200")]
         public void CannotEmbedValueTupleImplicitlyReferred()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    (int, int) M();
+    S<int> M2();
+}";
+
+            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2 : ITest1 { }
+";
+
+            // We should expect errors as generic types cannot be embedded
+            // Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+            };
+
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferredFromMetadata()
         {
             string piaSource = @"
 using System;
@@ -1556,7 +1607,7 @@ public class D
             pia.VerifyDiagnostics();
 
             var lib = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, references: new[] { pia.ToMetadataReference() });
-            lib.VerifyDiagnostics();
+            lib.VerifyEmitDiagnostics();
 
             string source = @"
 public class C
@@ -1575,17 +1626,19 @@ public class C
     }
 }";
 
+            // We should expect errors, as generic types cannot be embedded
+            // Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
             var expectedDiagnostics = new DiagnosticDescription[]
             {
             };
 
             var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true), lib.ToMetadataReference() });
-            comp1.VerifyDiagnostics(expectedDiagnostics);
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
             var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true), lib.EmitToImageReference() });
-            comp2.VerifyDiagnostics(expectedDiagnostics);
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [ClrOnlyFact]
