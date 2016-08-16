@@ -2732,9 +2732,8 @@ End Module
 
         <Fact>
         Public Sub TestCallerFilePath2_A()
-            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
-                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
-
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
             Dim source1 = "
 Imports System.Runtime.CompilerServices
 Imports System
@@ -2797,17 +2796,17 @@ End Module
 
             Dim compilation = CreateCompilationWithReferences(
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
+                    SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                    SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8, options:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",
-                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(_VBParseOptionsWithImplicitDefaultOptionalParameter))
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(_VBParseOptionsWithoutImplicitDefaultOptionalParameter))
 
             CompileAndVerify(compilation, expectedOutput:="
 1: '/X/filename'

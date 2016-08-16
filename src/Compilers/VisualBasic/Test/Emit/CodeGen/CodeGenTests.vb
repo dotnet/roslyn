@@ -7740,7 +7740,7 @@ End Class
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB_B()
-            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
 
@@ -7866,7 +7866,7 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
 
         <Fact()>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_B()
-            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             CompileAndVerify(
