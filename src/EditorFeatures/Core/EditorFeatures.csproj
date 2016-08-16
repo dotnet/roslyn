@@ -114,6 +114,7 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeDefinitionWindowLocation.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="CommandState.cs" />
     <Compile Include="ContentTypeLanguageMetadata.cs" />
     <Compile Include="ContentTypeNames.cs" />
+    <Compile Include="DefinitionContextTracker.cs" />
     <Compile Include="DocumentSnapshotSpan.cs" />
     <Compile Include="EditorFeaturesResources.Designer.cs">
       <DependentUpon>EditorFeaturesResources.resx</DependentUpon>
@@ -254,6 +256,7 @@
     <Compile Include="Extensibility\VersionSelector.cs" />
     <Compile Include="Host\IStreamingFindReferencesPresenter.cs" />
     <Compile Include="Implementation\Adornments\AbstractAdornmentManagerProvider.cs" />
+    <Compile Include="ICodeDefinitionWinowService.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />

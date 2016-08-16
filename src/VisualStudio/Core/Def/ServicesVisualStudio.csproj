@@ -153,6 +153,7 @@
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
+    <Compile Include="Implementation\VisualStudioCodeDefinitionWindowService.cs" />
     <Compile Include="Implementation\Watson\ErrorReportSettings.cs" />
     <Compile Include="Implementation\Watson\ExceptionInfo.cs" />
     <Compile Include="Implementation\Watson\NativeWin32Stubs.cs" />
