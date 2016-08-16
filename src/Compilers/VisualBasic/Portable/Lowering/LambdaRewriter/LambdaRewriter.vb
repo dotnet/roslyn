@@ -258,10 +258,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim syntax = scope.Syntax
                 Debug.Assert(syntax IsNot Nothing)
 
-                Dim localKind As SynthesizedLocalKind = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind, SynthesizedLocalKind.UserDefined)
                 ' Frames created for delegate relaxations are just immutable wrappers of the delegate target object.
                 ' They are not reused during EnC update and thus don't have a closure scope.
-                Dim isDelegateRelaxationFrame = localKind = SynthesizedLocalKind.DelegateRelaxationReceiver
+                Dim isDelegateRelaxationFrame = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind = SynthesizedLocalKind.DelegateRelaxationReceiver, False)
 
                 Dim methodId, closureId As DebugId
 

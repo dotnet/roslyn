@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return closureId;
         }
-        
+
         private DebugId GetLambdaId(SyntaxNode syntax, ClosureKind closureKind, int closureOrdinal)
         {
             Debug.Assert(syntax != null);
