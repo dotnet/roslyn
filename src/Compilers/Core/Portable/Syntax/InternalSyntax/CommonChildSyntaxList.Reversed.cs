@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct ChildSyntaxList
+    internal partial struct CommonChildSyntaxList
     {
         internal partial struct Reversed
         {

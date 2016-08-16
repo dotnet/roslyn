@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -123,6 +126,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool IsStructuredTrivia { get { return false; } }
         public virtual bool IsDirective { get { return false; } }
         public virtual bool IsToken { get { return false; } }
+        public virtual bool IsTrivia => false;
 
         #endregion
 
@@ -154,7 +158,58 @@ namespace Microsoft.CodeAnalysis
             return _slotCount;
         }
 
-        public abstract int GetSlotOffset(int index);
+        public virtual int GetSlotOffset(int index)
+        {
+            int offset = 0;
+            for (int i = 0; i < index; i++)
+            {
+                var child = this.GetSlot(i);
+                if (child != null)
+                {
+                    offset += child.FullWidth;
+                }
+            }
+
+            return offset;
+        }
+
+        internal CommonChildSyntaxList ChildNodesAndTokens()
+        {
+            return new CommonChildSyntaxList(this);
+        }
+
+        /// <summary>
+        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// </summary>
+        internal IEnumerable<GreenNode> EnumerateNodes()
+        {
+            yield return this;
+
+            var stack = new Stack<CommonChildSyntaxList.Enumerator>(24);
+            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
+
+            while (stack.Count > 0)
+            {
+                var en = stack.Pop();
+                if (!en.MoveNext())
+                {
+                    // no more down this branch
+                    continue;
+                }
+
+                var current = en.Current;
+                stack.Push(en); // put it back on stack (struct enumerator)
+
+                yield return current;
+
+                if (!current.IsToken)
+                {
+                    // not token, so consider children
+                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
+                    continue;
+                }
+            }
+        }
 
         /// <summary>
         /// Find the slot that contains the given offset.
@@ -563,36 +618,116 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Text
-        public abstract string ToFullString();
 
-        public virtual void WriteTo(System.IO.TextWriter writer)
+        public virtual string ToFullString()
         {
-            this.WriteTo(writer, true, true);
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: true, trailing: true);
+            return sb.ToStringAndFree();
         }
 
-        protected internal virtual void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        public override string ToString()
         {
-            bool first = true;
-            int n = this.SlotCount;
-            int lastIndex = n - 1;
-            for (; lastIndex >= 0; lastIndex--)
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: false, trailing: false);
+            return sb.ToStringAndFree();
+        }
+
+        public void WriteTo(System.IO.TextWriter writer)
+        {
+            this.WriteTo(writer, leading: true, trailing: true);
+        }
+
+        protected internal void WriteTo(TextWriter writer, bool leading, bool trailing)
+        {
+            // Use an actual Stack so we can write out deeply recursive structures without overflowing.
+            var stack = new Stack<ValueTuple<GreenNode, bool, bool>>();
+            stack.Push(ValueTuple.Create(this, leading, trailing));
+
+            // Separated out stack processing logic so that it does not unintentially refer to 
+            // "this", "leading" or "trailing.
+            ProcessStack(writer, stack);
+        }
+
+        private static void ProcessStack(TextWriter writer, Stack<ValueTuple<GreenNode, bool, bool>> stack)
+        {
+            while (stack.Count > 0)
             {
-                var child = this.GetSlot(lastIndex);
+                var current = stack.Pop();
+                var currentNode = current.Item1;
+                var currentLeading = current.Item2;
+                var currentTrailing = current.Item3;
+
+                if (currentNode.IsToken)
+                {
+                    currentNode.WriteTokenTo(writer, currentLeading, currentTrailing);
+                    continue;
+                }
+
+                if (currentNode.IsTrivia)
+                {
+                    currentNode.WriteTriviaTo(writer);
+                    continue;
+                }
+
+                var firstIndex = GetFirstNonNullChildIndex(currentNode);
+                var lastIndex = GetLastNonNullChildIndex(currentNode);
+
+                for (var i = lastIndex; i >= firstIndex; i--)
+                {
+                    var child = currentNode.GetSlot(i);
+                    if (child != null)
+                    {
+                        var first = i == firstIndex;
+                        var last = i == lastIndex;
+                        stack.Push(ValueTuple.Create(child, currentLeading | !first, currentTrailing | !last));
+                    }
+                }
+            }
+        }
+
+        private static int GetFirstNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int firstIndex = 0;
+            for (; firstIndex < n; firstIndex++)
+            {
+                var child = node.GetSlot(firstIndex);
                 if (child != null)
                 {
                     break;
                 }
             }
 
-            for (var i = 0; i <= lastIndex; i++)
+            return firstIndex;
+        }
+
+        private static int GetLastNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int lastIndex = n - 1;
+            for (; lastIndex >= 0; lastIndex--)
             {
-                var child = this.GetSlot(i);
+                var child = node.GetSlot(lastIndex);
                 if (child != null)
                 {
-                    child.WriteTo(writer, leading | !first, trailing | (i < lastIndex));
-                    first = false;
+                    break;
                 }
             }
+
+            return lastIndex;
+        }
+
+        protected virtual void WriteTriviaTo(TextWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual void WriteTokenTo(TextWriter writer, bool leading, bool trailing)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
