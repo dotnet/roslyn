@@ -705,7 +705,10 @@ Class D
                                 End Function)
 End Class
 
-Structure E
+Partial Structure E
+End Structure
+
+Partial Structure E
     Public Shared s_c As C = New C(Function() 1444)
     Public Shared s_c1 As New C(Function()
                                     Return 1567
@@ -766,14 +769,14 @@ End Module
                         New SpanResult(28, 18, 30, 37, "New C(Function()"))
 
             VerifySpans(reader, reader.Methods(6), sourceLines,                                         ' Synthesized shared constructor for E
-                        New SpanResult(37, 46, 37, 50, "1444"),
-                        New SpanResult(37, 29, 37, 51, "New C(Function() 1444)"),
-                        New SpanResult(39, 36, 39, 47, "Return 1567"),
-                        New SpanResult(38, 26, 40, 45, "New C(Function()"))
+                        New SpanResult(40, 46, 40, 50, "1444"),
+                        New SpanResult(40, 29, 40, 51, "New C(Function() 1444)"),
+                        New SpanResult(42, 36, 42, 47, "Return 1567"),
+                        New SpanResult(41, 26, 43, 45, "New C(Function()"))
 
             VerifySpans(reader, reader.Methods(7), sourceLines,                                         ' Synthesized shared constructor for F
-                        New SpanResult(45, 28, 45, 38, "Return 333"),
-                        New SpanResult(44, 18, 46, 37, "New C(Function()"))
+                        New SpanResult(48, 28, 48, 38, "Return 333"),
+                        New SpanResult(47, 18, 49, 37, "New C(Function()"))
         End Sub
 
         <Fact>

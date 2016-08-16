@@ -634,7 +634,11 @@ class D
     public static C s_c1 = new C(() => 156);
 }
 
-struct E
+partial struct E
+{
+}
+
+partial struct E
 {
     public static C s_c = new C(() => 1444);
     public static C s_c1 = new C(() => { return 1567; });
@@ -681,10 +685,10 @@ struct E
                 new SpanResult(32, 27, 32, 43, "new C(() => 156"));
 
             VerifySpans(reader, reader.Methods[6], sourceLines,                     // Synthesized static constructor for E
-                new SpanResult(37, 38, 37, 42, "1444"),
-                new SpanResult(38, 41, 38, 53, "return 1567"),
-                new SpanResult(37, 26, 37, 43, "new C(() => 1444)"),
-                new SpanResult(38, 27, 38, 56, "new C(() => { return 1567; })"));
+                new SpanResult(41, 38, 41, 42, "1444"),
+                new SpanResult(42, 41, 42, 53, "return 1567"),
+                new SpanResult(41, 26, 41, 43, "new C(() => 1444)"),
+                new SpanResult(42, 27, 42, 56, "new C(() => { return 1567; })"));
         }
 
         [Fact]

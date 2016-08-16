@@ -1456,7 +1456,10 @@ Class C
     Public _function as System.Func(Of Integer)
 End Class
 
-Class D
+Partial Class D
+End Class
+
+Partial Class D
     Public _c As C = New C(Function() 120)
     Public Shared s_c As C = New C(Function() 144)
     Public _c1 As New C(Function()
@@ -1465,6 +1468,9 @@ Class D
     Public Shared s_c1 As New C(Function()
                                     Return 156
                                 End Function)
+End Class
+
+Partial Class D
 End Class
 
 Structure E

@@ -1789,7 +1789,15 @@ public class C
     Func<int> _function;
 }
 
-class D
+partial class D
+{
+}
+
+partial class D
+{
+}
+
+partial class D
 {
     public C _c = new C(() => 120);
     public static C s_c = new C(() => 144);
@@ -1797,7 +1805,15 @@ class D
     public static C s_c1 = new C(() => 156);
 }
 
-struct E
+partial class D
+{
+}
+
+partial struct E
+{
+}
+
+partial struct E
 {
     public static C s_c = new C(() => 1444);
     public static C s_c1 = new C(() => { return 1567; });

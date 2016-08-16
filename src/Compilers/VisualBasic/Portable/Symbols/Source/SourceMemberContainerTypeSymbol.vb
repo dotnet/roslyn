@@ -3258,11 +3258,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return syntaxOffset
             End If
 
-            If _declaration.Declarations.Length = 1 AndAlso position = _declaration.Declarations(0).Location.SourceSpan.Start Then
-                ' With dynamic analysis instrumentation, a type declaration can be the syntax associated
-                ' with the analysis payload local of a synthesized constructor.
-                ' If the synthesized constructor includes an initializer with a lambda,
-                ' that lambda needs a closure that captures the analysis payload of the constructor.
+            If Me._declaration.Declarations.Length >= 1 AndAlso position = Me._declaration.Declarations(0).Location.SourceSpan.Start Then
+                ' With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                ' the syntax associated with both the analysis payload local of a synthesized constructor
+                ' and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                ' that lambda needs a closure that captures the analysis payload of the constructor,
+                ' and the offset of the syntax for the local within the constructor is by definition zero.
                 Return 0
             End If
 
