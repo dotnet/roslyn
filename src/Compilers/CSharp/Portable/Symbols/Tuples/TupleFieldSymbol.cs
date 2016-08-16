@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly TupleTypeSymbol _containingTuple;
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
+        /// If this field represents a tuple element, 
         /// id is an index of the element (zero-based).
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
+        /// If this field represents a tuple element, 
         /// id is an index of the element (zero-based).
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>i
@@ -103,22 +103,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override sealed int GetHashCode()
         {
-            return Hash.Combine(_containingTuple.GetHashCode(), _tupleFieldId.GetHashCode());
+            return Hash.Combine(
+                Hash.Combine(_containingTuple.GetHashCode(), _tupleFieldId.GetHashCode()),
+                this.Name.GetHashCode());
         }
 
         public override sealed bool Equals(object obj)
         {
-            return Equals(obj as TupleFieldSymbol);
-        }
+            var other = obj as TupleFieldSymbol;
 
-        public bool Equals(TupleFieldSymbol other)
-        {
             if ((object)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && _tupleFieldId == other._tupleFieldId && _containingTuple == other._containingTuple;
+            // note we have to compare both index and name because 
+            // in nameless tuple there could be fields that differ only by index
+            // and in named tupoles there could be fields that differ only by name
+            return (object)other != null && 
+                _tupleFieldId == other.TupleElementIndex && 
+                _containingTuple == other._containingTuple &&
+                this.Name == other.Name;
         }
     }
 

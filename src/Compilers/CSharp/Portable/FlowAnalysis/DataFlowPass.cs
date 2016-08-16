@@ -705,12 +705,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return slot;
         }
 
-        // Descends through Rest fields of a tuple is "symbol" is an extended field
-        // As a result the "symbol" will be adjusted to be the field of the innermost tuple
-        // and a corresponding containingSlot is returned.
-        // Return value -1 indicates a failure which could happen for the following reasons
-        // a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
-        // b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
+        /// <summary>
+        /// Descends through Rest fields of a tuple if "symbol" is an extended field
+        /// As a result the "symbol" will be adjusted to be the field of the innermost tuple
+        /// and a corresponding containingSlot is returned.
+        /// Return value -1 indicates a failure which could happen for the following reasons
+        /// a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
+        /// b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
+        /// </summary>
         private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
         {
             var fieldSymbol = symbol as TupleFieldSymbol;
@@ -718,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
 
-                // for tuple fields the varible indentifier represents the underlying field
+                // for tuple fields the variable identifier represents the underlying field
                 symbol = fieldSymbol.TupleUnderlyingField;
 
                 // descend through Rest fields

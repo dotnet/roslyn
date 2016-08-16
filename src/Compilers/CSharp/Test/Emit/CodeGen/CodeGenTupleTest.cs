@@ -8630,9 +8630,9 @@ class C
             var m2Item1 = (FieldSymbol)m2Tuple.GetMembers()[0];
             var m2a2 = (FieldSymbol)m2Tuple.GetMembers()[1];
 
-            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
-            Assert.IsType<TupleFieldSymbol>(m2Item1);
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m2a2);
+            AssertNonvirtualTupleElementField(m1Item1);
+            AssertNonvirtualTupleElementField(m2Item1);
+            AssertVirtualTupleElementField(m2a2);
 
             Assert.True(m1Item1.IsTupleField);
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
@@ -8879,7 +8879,7 @@ class C
 
             var m3Item8 = (FieldSymbol)m3Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m3Item8);
+            AssertVirtualTupleElementField(m3Item8);
 
             Assert.True(m3Item8.IsTupleField);
             Assert.Same(m3Item8, m3Item8.OriginalDefinition);
@@ -9073,7 +9073,7 @@ class C
 
             var m4Item8 = (FieldSymbol)m4Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m4Item8);
+            AssertVirtualTupleElementField(m4Item8);
 
             Assert.True(m4Item8.IsTupleField);
             Assert.Same(m4Item8, m4Item8.OriginalDefinition);
@@ -9092,7 +9092,7 @@ class C
 
             var m4h4 = (FieldSymbol)m4Tuple.GetMembers("h4").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m4h4);
+            AssertVirtualTupleElementField(m4h4);
 
             Assert.True(m4h4.IsTupleField);
             Assert.Same(m4h4, m4h4.OriginalDefinition);
@@ -9321,7 +9321,7 @@ class C
 
             var m5Item8 = (FieldSymbol)m5Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m5Item8);
+            AssertVirtualTupleElementField(m5Item8);
 
             Assert.True(m5Item8.IsTupleField);
             Assert.Same(m5Item8, m5Item8.OriginalDefinition);
@@ -9691,7 +9691,7 @@ class C
 
             var m8Item8 = (FieldSymbol)m8Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m8Item8);
+            AssertVirtualTupleElementField(m8Item8);
 
             Assert.True(m8Item8.IsTupleField);
             Assert.Same(m8Item8, m8Item8.OriginalDefinition);
@@ -9711,7 +9711,7 @@ class C
 
             var m8Item1 = (FieldSymbol)m8Tuple.GetMembers("Item1").Last();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m8Item1);
+            AssertVirtualTupleElementField(m8Item1);
 
             Assert.True(m8Item1.IsTupleField);
             Assert.Same(m8Item1, m8Item1.OriginalDefinition);
@@ -9890,9 +9890,9 @@ class C
             var m2Item1 = (FieldSymbol)m2Tuple.GetMembers()[0];
             var m2a2 = (FieldSymbol)m2Tuple.GetMembers()[1];
 
-            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
-            Assert.IsType<TupleFieldSymbol>(m2Item1);
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m2a2);
+            AssertNonvirtualTupleElementField(m1Item1);
+            AssertNonvirtualTupleElementField(m2Item1);
+            AssertVirtualTupleElementField(m2a2);
 
             Assert.True(m1Item1.IsTupleField);
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
@@ -10226,9 +10226,9 @@ partial class C
             var m102Item20 = (FieldSymbol)m102Tuple.GetMembers("Item20").Single();
             var m102a = (FieldSymbol)m102Tuple.GetMembers("a").Single();
 
-            Assert.IsType<TupleElementFieldSymbol>(m10Item1);
-            Assert.IsType<TupleFieldSymbol>(m102Item20);
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m102a);
+            AssertNonvirtualTupleElementField(m10Item1);
+            AssertTupleNonElementField(m102Item20);
+            AssertVirtualTupleElementField(m102a);
 
             Assert.Equal("System.ObsoleteAttribute", m10Item1.GetAttributes().Single().ToString());
             Assert.Equal("System.ObsoleteAttribute", m102Item20.GetAttributes().Single().ToString());
@@ -10239,10 +10239,10 @@ partial class C
             var m102Item2 = (FieldSymbol)m102Tuple.GetMembers("Item2").Single();
             var m102b = (FieldSymbol)m102Tuple.GetMembers("b").Single();
 
-            Assert.IsType<TupleElementFieldSymbol>(m10Item2);
-            Assert.IsType<TupleFieldSymbol>(m102Item2);
-            Assert.IsType<TupleFieldSymbol>(m102Item21);
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m102b);
+            AssertNonvirtualTupleElementField(m10Item2);
+            AssertNonvirtualTupleElementField(m102Item2);
+            AssertTupleNonElementField(m102Item21);
+            AssertVirtualTupleElementField(m102b);
 
             Assert.Equal(20, m10Item2.TypeLayoutOffset);
             Assert.Equal(20, m102Item2.TypeLayoutOffset);
@@ -10256,8 +10256,8 @@ partial class C
             var m103Item2 = (FieldSymbol)m103Tuple.GetMembers("Item2").Last();
             var m103Item9 = (FieldSymbol)m103Tuple.GetMembers("Item9").Single();
 
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m103Item2);
-            Assert.IsType<TupleVirtualElementFieldSymbol>(m103Item9);
+            AssertVirtualTupleElementField(m103Item2);
+            AssertVirtualTupleElementField(m103Item9);
             Assert.Null(m103Item2.TypeLayoutOffset);
             Assert.Equal(20, m103Item2.TupleUnderlyingField.TypeLayoutOffset);
             Assert.Null(m103Item9.TypeLayoutOffset);
@@ -10294,6 +10294,36 @@ partial class C
 
             var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
+        }
+
+        private void AssertTupleNonElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.False(sym.IsVirtualTupleField);
+
+            //it is not an element so index must be negative
+            Assert.True(sym.TupleElementIndex < 0);
+        }
+
+        private void AssertVirtualTupleElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.True(sym.IsVirtualTupleField);
+
+            //it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0);
+        }
+
+        private void AssertNonvirtualTupleElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.False(sym.IsVirtualTupleField);
+
+            //it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0);
+
+            //if it was 8th or after, it would be virtual
+            Assert.True(sym.TupleElementIndex < TupleTypeSymbol.RestPosition - 1);
         }
 
         [Fact]

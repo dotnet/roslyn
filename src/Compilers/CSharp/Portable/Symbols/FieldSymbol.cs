@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns Ture when field symbol is not mapped directly to a field in the underlying tuple struct.
+        /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
         /// </summary>
         internal virtual bool IsVirtualTupleField
         {

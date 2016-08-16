@@ -556,6 +556,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return 0;
             }
 
+            return MatchesCanonicalElementName(name);
+        }
+
+        /// <summary>
+        /// Returns 3 for "Item3".
+        /// Returns -1 otherwise.
+        /// </summary>
+        private static int MatchesCanonicalElementName(string name)
+        {
             if (name.StartsWith("Item", StringComparison.Ordinal))
             {
                 string tail = name.Substring(4);
@@ -724,13 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                int index = (member as TupleFieldSymbol)?.TupleElementIndex ??
-                            ((TupleErrorFieldSymbol)member).TupleElementIndex;
+                var field = (FieldSymbol)member;
+                var index = field.TupleElementIndex;
 
-                if (index >= 0)
+                if (index >= 0 && index == MatchesCanonicalElementName(field.Name) - 1)
                 {
                     Debug.Assert((object)builder[index] == null);
-                    builder[index] = (FieldSymbol)member;
+                    builder[index] = field;
                 }
             }
 
@@ -815,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // The name given doesn't match default name Item8, etc.
                                         // Add a field with default name and make it virtual since we are not at the top level
-                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, -members.Count - 1, null));
+                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, tupleFieldIndex, null));
                                     }
 
                                     // Add a field with the given name
@@ -832,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     // Add a field with default name
-                                    members.Add(new TupleFieldSymbol(this, fieldSymbol, -members.Count - 1));
+                                    members.Add(new TupleFieldSymbol(this, fieldSymbol, tupleFieldIndex));
 
                                     // Add a field with the given name
                                     if (namesOfVirtualFields[tupleFieldIndex] != null)
