@@ -7,14 +7,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     <Extension()>
     Friend Module SyntaxListBuilderExtensions
         <Extension()>
-        Friend Function ToList(builder As SyntaxListBuilder) As SyntaxList(Of SyntaxNode)
-            If builder Is Nothing OrElse builder.Count = 0 Then
-                Return New SyntaxList(Of SyntaxNode)
-            End If
-            Return New SyntaxList(Of SyntaxNode)(builder.ToListNode.CreateRed)
-        End Function
-
-        <Extension()>
         Friend Function ToSeparatedList(Of TNode As SyntaxNode)(builder As SyntaxListBuilder) As SeparatedSyntaxList(Of TNode)
             If builder Is Nothing OrElse builder.Count = 0 Then
                 Return New SeparatedSyntaxList(Of TNode)
