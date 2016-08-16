@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 For i As Integer = 0 To sCount - 1
                     Dim child = node.GetSlot(i)
                     If child IsNot Nothing AndAlso child.ContainsDirectives Then
-                        preprocessorState = ApplyDirectivesRecursive(preprocessorState, DirectCast(child, VisualBasicSyntaxNode))
+                        preprocessorState = ApplyDirectivesRecursive(preprocessorState, child))
                     End If
                 Next
 
