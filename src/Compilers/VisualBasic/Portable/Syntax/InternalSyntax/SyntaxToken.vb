@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Public _trailingTrivia As GreenNode
 
             Public Sub New(reader As ObjectReader)
-                Me._leadingTrivia = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                Me._trailingTrivia = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
+                Me._leadingTrivia = DirectCast(reader.ReadValue(), GreenNode)
+                Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
 
             Public Function GetReader() As Func(Of ObjectReader, Object) Implements IObjectReadable.GetReader
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
