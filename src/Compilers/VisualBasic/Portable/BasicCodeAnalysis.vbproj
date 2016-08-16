@@ -859,13 +859,10 @@
     <Compile Include="Syntax\InternalSyntax\ComplexIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\DocumentationCommentTriviaSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\IdentifierTokenSyntax.vb" />
-    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.vb" />
     <Compile Include="Syntax\InternalSyntax\SimpleIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\Syntax.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxList.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeExtensions.vb" />
@@ -896,13 +893,6 @@
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />
     <Compile Include="Syntax\SyntaxKindFacts.vb" />
-    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.vb" />
-    <Compile Include="Syntax\SyntaxList.WeakSeparatedWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WeakWithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithManyChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithThreeChildren.vb" />
-    <Compile Include="Syntax\SyntaxList.WithTwoChildren.vb" />
     <Compile Include="Syntax\SyntaxListBuilder`1.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
