@@ -2,17 +2,18 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class SyntaxListBuilder
+    internal class SyntaxListBuilder : AbstractSyntaxListBuilder
     {
-        private ArrayElement<CSharpSyntaxNode>[] _nodes;
+        private ArrayElement<CSharpSyntaxNode>[] Nodes;
         public int Count { get; private set; }
 
         public SyntaxListBuilder(int size)
         {
-            _nodes = new ArrayElement<CSharpSyntaxNode>[size];
+            Nodes = new ArrayElement<CSharpSyntaxNode>[size];
         }
 
         public void Clear()
@@ -24,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return _nodes[index];
+                return Nodes[index];
             }
 
             set
             {
-                _nodes[index].Value = value;
+                Nodes[index].Value = value;
             }
         }
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 EnsureAdditionalCapacity(1);
 
-                _nodes[Count++].Value = item;
+                Nodes[Count++].Value = item;
             }
         }
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             for (int i = start; i < end; i++)
             {
-                Debug.Assert(_nodes[i].Value != null);
+                Debug.Assert(Nodes[i].Value != null);
             }
         }
 
@@ -119,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal void RemoveLast()
         {
             Count--;
-            _nodes[Count].Value = null;
+            Nodes[Count].Value = null;
         }
 
         private void EnsureAdditionalCapacity(int additionalCount)
         {
-            int currentSize = _nodes.Length;
+            int currentSize = Nodes.Length;
             int requiredSize = this.Count + additionalCount;
 
             if (requiredSize <= currentSize) return;
@@ -135,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Math.Max(requiredSize, currentSize * 2); // NB: Size will *at least* double.
             Debug.Assert(newSize >= requiredSize);
 
-            Array.Resize(ref _nodes, newSize);
+            Array.Resize(ref Nodes, newSize);
         }
 
         public bool Any(SyntaxKind kind)
         {
             for (int i = 0; i < Count; i++)
             {
-                if (_nodes[i].Value.Kind == kind)
+                if (Nodes[i].Value.Kind == kind)
                 {
                     return true;
                 }
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var array = new CSharpSyntaxNode[this.Count];
             for (int i = 0; i < array.Length; i++)
             {
-                array[i] = _nodes[i];
+                array[i] = Nodes[i];
             }
 
             return array;
@@ -169,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 0:
                     return null;
                 case 1:
-                    return _nodes[0];
+                    return Nodes[0];
                 case 2:
-                    return SyntaxList.List(_nodes[0], _nodes[1]);
+                    return SyntaxList.List(Nodes[0], Nodes[1]);
                 case 3:
-                    return SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]);
+                    return SyntaxList.List(Nodes[0], Nodes[1], Nodes[2]);
                 default:
                     var tmp = new ArrayElement<CSharpSyntaxNode>[this.Count];
-                    Array.Copy(_nodes, tmp, this.Count);
+                    Array.Copy(Nodes, tmp, this.Count);
                     return SyntaxList.List(tmp);
             }
         }
