@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -19,12 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly SyntaxNode _root;
+        private readonly Func<Binder, SyntaxNode, Binder> _rootBinderAdjusterOpt;
         private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
-        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
             : this(root, memberSymbol, next, next.Flags)
         {
+            _rootBinderAdjusterOpt = rootBinderAdjusterOpt;
         }
 
         internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _rootBinderAdjusterOpt);
                 foreach (var methodWithYield in methodsWithYield)
                 {
                     Binder binder;

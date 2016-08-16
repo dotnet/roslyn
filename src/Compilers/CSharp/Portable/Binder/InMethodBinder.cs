@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class InMethodBinder : LocalScopeBinder
     {
-        private readonly MultiDictionary<string, ParameterSymbol> _parameterMap;
+        private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
-        private SmallDictionary<string, Symbol> _definitionMap;
+        private SmallDictionary<string, Symbol> _lazyDefinitionMap;
         private IteratorInfo _iteratorInfo;
 
         private class IteratorInfo
@@ -54,31 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(enclosing, GetFlags(owner, enclosing))
         {
             Debug.Assert((object)owner != null);
-
             _methodSymbol = owner;
-
-            var parameters = owner.Parameters;
-            if (!parameters.IsEmpty)
-            {
-                RecordDefinition(parameters);
-                _parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
-                foreach (var parameter in parameters)
-                {
-                    _parameterMap.Add(parameter.Name, parameter);
-                }
-            }
-
-            var typeParameters = owner.TypeParameters;
-
-            if (!typeParameters.IsDefaultOrEmpty)
-            {
-                RecordDefinition(typeParameters);
-            }
         }
 
-        private void RecordDefinition<T>(ImmutableArray<T> definitions) where T : Symbol
+        private static void RecordDefinition<T>(SmallDictionary<string, Symbol> declarationMap, ImmutableArray<T> definitions) where T : Symbol
         {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, Symbol>());
             foreach (Symbol s in definitions)
             {
                 if (!declarationMap.ContainsKey(s.Name))
@@ -229,12 +209,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            if (_parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0)
+            if (_methodSymbol.ParameterCount == 0 || (options & LookupOptions.NamespaceAliasesOnly) != 0)
             {
                 return;
             }
 
-            foreach (var parameterSymbol in _parameterMap[name])
+            var parameterMap = _lazyParameterMap;
+            if (parameterMap == null)
+            {
+                var parameters = _methodSymbol.Parameters;
+                parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
+                foreach (var parameter in parameters)
+                {
+                    parameterMap.Add(parameter.Name, parameter);
+                }
+
+                _lazyParameterMap = parameterMap;
+            }
+
+            foreach (var parameterSymbol in parameterMap[name])
             {
                 result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
@@ -321,8 +314,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
             Symbol existingDeclaration;
-            var map = _definitionMap;
-            if (map != null && map.TryGetValue(name, out existingDeclaration))
+
+
+            var parameters = _methodSymbol.Parameters;
+            var typeParameters = _methodSymbol.TypeParameters;
+
+            if (parameters.IsEmpty && typeParameters.IsEmpty)
+            {
+                return false;
+            }
+
+            var map = _lazyDefinitionMap;
+
+            if (map == null)
+            {
+                map = new SmallDictionary<string, Symbol>();
+                RecordDefinition(map, parameters);
+                RecordDefinition(map, typeParameters);
+
+                _lazyDefinitionMap = map;
+            }
+
+            if (map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);
             }
