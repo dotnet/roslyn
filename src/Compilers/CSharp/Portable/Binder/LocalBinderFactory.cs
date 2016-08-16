@@ -74,17 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (syntax.Kind() != SyntaxKind.Block && (statement = syntax as StatementSyntax) != null)
             {
-                CSharpSyntaxNode embeddedScopeDisagnator;
-                enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDisagnator);
+                CSharpSyntaxNode embeddedScopeDesignator;
+                enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
                 if ((object)rootBinderAdjusterOpt != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDisagnator);
+                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDesignator);
                 }
 
-                if (embeddedScopeDisagnator != null)
+                if (embeddedScopeDesignator != null)
                 {
-                    builder.AddToMap(embeddedScopeDisagnator, enclosing);
+                    builder.AddToMap(embeddedScopeDesignator, enclosing);
                 }
 
                 builder.Visit(statement, enclosing);
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _map[node] = binder;
         }
 
-        private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing, out CSharpSyntaxNode embeddedScopeDisagnator)
+        private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing, out CSharpSyntaxNode embeddedScopeDesignator)
         {
             switch (statement.Kind())
             {
@@ -756,17 +756,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                     Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
-                    embeddedScopeDisagnator = statement;
+                    embeddedScopeDesignator = statement;
                     return new EmbeddedStatementBinder(enclosing, statement);
 
                 case SyntaxKind.SwitchStatement:
                     Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                     var switchStatement = (SwitchStatementSyntax)statement;
-                    embeddedScopeDisagnator = switchStatement.Expression;
+                    embeddedScopeDesignator = switchStatement.Expression;
                     return new ExpressionVariableBinder(switchStatement.Expression, enclosing);
 
                 default:
-                    embeddedScopeDisagnator = null;
+                    embeddedScopeDesignator = null;
                     return enclosing;
             }
         }
@@ -775,12 +775,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != null)
             {
-                CSharpSyntaxNode embeddedScopeDisagnator;
-                enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDisagnator);
+                CSharpSyntaxNode embeddedScopeDesignator;
+                enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
-                if (embeddedScopeDisagnator != null)
+                if (embeddedScopeDesignator != null)
                 {
-                    AddToMap(embeddedScopeDisagnator, enclosing);
+                    AddToMap(embeddedScopeDesignator, enclosing);
                 }
 
                 Visit(statement, enclosing);

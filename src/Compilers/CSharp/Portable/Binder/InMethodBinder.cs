@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodSymbol = owner;
         }
 
-        private void RecordDefinition<T>(SmallDictionary<string, Symbol> declarationMap, ImmutableArray<T> definitions) where T : Symbol
+        private static void RecordDefinition<T>(SmallDictionary<string, Symbol> declarationMap, ImmutableArray<T> definitions) where T : Symbol
         {
             foreach (Symbol s in definitions)
             {
