@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // All these nodes are valid scope designators due to the pattern matching feature.
                     ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
                      (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as CommonForEachStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as IfStatementSyntax)?.Condition == syntax));
+                     (syntax.Parent as CommonForEachStatementSyntax)?.Expression == syntax));
         }
 
         /// <summary>
