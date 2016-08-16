@@ -25,7 +25,7 @@ Module C
 
     Sub Main()
         Dim t as (Integer, Integer)
-        console.writeline(t)            
+        console.writeline(t)
     End Sub
 End Module
 
@@ -66,13 +66,13 @@ Module C
 
     Sub Main()
         Dim t as (Integer, Integer)
-        console.writeline(t)            
-        console.writeline(t.Item1)            
+        console.writeline(t)
+        console.writeline(t.Item1)
 
         Dim t1 as (A As Integer, B As Integer)
-        console.writeline(t1)            
-        console.writeline(t1.Item1)            
-        console.writeline(t1.A)            
+        console.writeline(t1)
+        console.writeline(t1.Item1)
+        console.writeline(t1.A)
     End Sub
 End Module
 
@@ -88,7 +88,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
 BC30389: '(Integer, Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t.Item1)            
+        console.writeline(t.Item1)
                           ~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         Dim t1 as (A As Integer, B As Integer)
@@ -97,10 +97,10 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30389: '(A As Integer, B As Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.Item1)            
+        console.writeline(t1.Item1)
                           ~~~~~~~~
 BC30389: '(A As Integer, B As Integer).A' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.A)            
+        console.writeline(t1.A)
                           ~~~~
 </errors>)
 
@@ -124,10 +124,10 @@ Module C
         dim literal = (uninitialized, uninitialized)
 
         dim uninitialized1 as Exception
-        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)                
-        
+        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)
+
         dim uninitialized2 as Exception
-        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)                
+        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)
     End Sub
 End Module
 
@@ -140,10 +140,10 @@ BC42104: Variable 'uninitialized' is used before it has been assigned a value. A
         dim literal = (uninitialized, uninitialized)
                        ~~~~~~~~~~~~~
 BC42104: Variable 'uninitialized1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)                
+        dim identity_literal as (Alice As Exception, Bob As Exception)  = (uninitialized1, uninitialized1)
                                                                            ~~~~~~~~~~~~~~
 BC42104: Variable 'uninitialized2' is used before it has been assigned a value. A null reference exception could result at runtime.
-        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)                
+        dim converted_literal as (Object, Object)  = (uninitialized2, uninitialized2)
                                                       ~~~~~~~~~~~~~~
 
 </errors>)
@@ -164,7 +164,7 @@ Module C
 
         t.Item1 = 42
         t.Item2 = t.Item1
-        console.writeline(t.Item2)            
+        console.writeline(t.Item2)
     End Sub
 End Module
 
@@ -211,11 +211,11 @@ Module C
 
     Sub Main()
         Dim vt as ValueTuple(Of Integer, Integer) = M1(2,3)
-        console.writeline(vt.Item2)            
+        console.writeline(vt.Item2)
     End Sub
-    
+
     Function M1(x As Integer, y As Integer) As ValueTuple(Of Integer, Integer)
-        Return New ValueTuple(Of Integer, Integer)(x, y) 
+        Return New ValueTuple(Of Integer, Integer)(x, y)
     End Function
 End Module
 
@@ -264,7 +264,7 @@ Module C
 
         t.Item17 = "hello"
         t.Item12 = t.Item17
-        console.writeline(t.Item12)            
+        console.writeline(t.Item12)
     End Sub
 End Module
 
@@ -415,15 +415,15 @@ Imports System
 Module C
 
     Sub Main()
-        Dim t as (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer, 
-                    a5 as integer, a6 as integer, a7 as integer, a8 as integer, 
-                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer, 
-                    a13 as integer, a14 as integer, a15 as integer, a16 as integer, 
+        Dim t as (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
                     a17 as integer, a18 as integer)
 
         t.a17 = 42
         t.a12 = t.a17
-        console.writeline(t.a12)            
+        console.writeline(t.a12)
     End Sub
 End Module
 
@@ -469,7 +469,7 @@ Module C
 
     Sub Main()
         Dim t as (Integer, Integer) = (1, 2)
-        console.writeline(t)            
+        console.writeline(t)
     End Sub
 End Module
 
@@ -503,7 +503,7 @@ Module C
 
     Sub Main()
         Dim t = (A := 1, B := "hello")
-        console.writeline(t.B)            
+        console.writeline(t.B)
     End Sub
 End Module
 
@@ -1765,14 +1765,14 @@ Imports System
 Module C
     Sub Main()
         Dim x = (1, (1, (1, (1, (1, (1, 1))))))
-        Dim y as C1 = x   
+        Dim y as C1 = x
 
         Dim x2 as (integer, integer) = y
         System.Console.WriteLine(x2)
 
         Dim x3 as (integer, (integer, integer)) = y
         System.Console.WriteLine(x3)
- 
+
         Dim x12 as (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, Integer))))))))))) = y
         System.Console.WriteLine(x12)
 
@@ -1828,14 +1828,14 @@ Imports System
 Module C
     Sub Main()
         Dim x = (1, (1, (1, (1, (1, (1, 1))))))
-        Dim y as C1 = x   
+        Dim y as C1 = x
 
         Dim x2 as (integer, integer) = y
         System.Console.WriteLine(x2)
 
         Dim x3 as (integer, (integer, integer)) = y
         System.Console.WriteLine(x3)
- 
+
         Dim x12 as (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, (Integer, Integer))))))))))) = y
         System.Console.WriteLine(x12)
 
@@ -1895,7 +1895,7 @@ Module C
     Function Test(of T1, T2)(x as (T1, T2)) as (T1, T2)
         Console.WriteLine(Gettype(T1))
         Console.WriteLine(Gettype(T2))
-        
+
         return x
     End Function
 
@@ -1920,14 +1920,14 @@ Imports System
 Module C
     Sub Main()
         Dim v = (new Object(),"q")
-        
+
         Test(v)
         System.Console.WriteLine(v)
     End Sub
 
     Function Test(of T)(x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 End Module
@@ -1974,7 +1974,7 @@ Imports System
 Module C
     Sub Main()
         Dim v = (new Object(),"q")
-        
+
         Test(v)
         System.Console.WriteLine(v)
 
@@ -1984,14 +1984,14 @@ Module C
 
     Function Test(of T)(x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 
     Function TestRef(of T)(ByRef x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-    
-        x.Item1 = x.Item2    
+
+        x.Item1 = x.Item2
 
         return x
     End Function
@@ -2024,7 +2024,7 @@ Module C
 
     Function Test(of T)(x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 End Module
@@ -2052,13 +2052,13 @@ Module C
 
     Function Test(of T)(x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 
     Function Test1(of T)(x as T) as T
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 End Module
@@ -2086,14 +2086,14 @@ Module C
         Dim a as object = "a"
 
         System.Console.WriteLine(Test((q, a)))
-      
+
         System.Console.WriteLine(q)
         System.Console.WriteLine(a)
     End Sub
 
     Function Test(of T)(byref x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-    
+
         x.Item1 = x.Item2
 
         return x
@@ -2331,7 +2331,7 @@ Module Module1
 
     Sub Test1(of U)(f1 As Func(of integer, (U, U)), f2 as Func(Of (U, U), integer))
         System.Console.WriteLine(f2(f1(1)))
-    End Sub 
+    End Sub
 
     Sub Test2(of U, T)(f1 as U , f2 As Func(Of U, (x as T, y As T)))
         System.Console.WriteLine(f2(f1).y)
@@ -2400,7 +2400,6 @@ Module Module1
         System.Console.WriteLine(GetType(V))
     End Sub
 
-
 End Module
 
     </file>
@@ -2412,6 +2411,1324 @@ System.ValueTuple`2[System.ValueTuple`2[System.Int32,System.Object],System.Value
 
             ]]>)
         End Sub
+
+        <Fact()>
+        Public Sub SimpleTupleNested()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x = (1, (2, (3, 4)).ToString())
+        System.Console.Write(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(1, (2, (3, 4)))]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  5
+  .locals init (System.ValueTuple(Of Integer, String) V_0, //x
+                System.ValueTuple(Of Integer, (Integer, Integer)) V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  ldc.i4.4
+  IL_0006:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_000b:  newobj     "Sub System.ValueTuple(Of Integer, (Integer, Integer))..ctor(Integer, (Integer, Integer))"
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  constrained. "System.ValueTuple(Of Integer, (Integer, Integer))"
+  IL_0019:  callvirt   "Function Object.ToString() As String"
+  IL_001e:  call       "Sub System.ValueTuple(Of Integer, String)..ctor(Integer, String)"
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  constrained. "System.ValueTuple(Of Integer, String)"
+  IL_002b:  callvirt   "Function Object.ToString() As String"
+  IL_0030:  call       "Sub System.Console.Write(String)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleUnderlyingItemAccess()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x = (1, 2)
+        System.Console.WriteLine(x.Item2.ToString())
+        x.Item1 = 40
+        System.Console.WriteLine(x.Item1 + x.Item2)
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0010:  call       "Function Integer.ToString() As String"
+  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_002f:  add.ovf
+  IL_0030:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleUnderlyingItemAccess01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x = (A:=1, B:=2)
+        System.Console.WriteLine(x.Item2.ToString())
+        x.Item1 = 40
+        System.Console.WriteLine(x.Item1 + x.Item2)
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0010:  call       "Function Integer.ToString() As String"
+  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_002f:  add.ovf
+  IL_0030:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleItemAccess()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x = (A:=1, B:=2)
+        System.Console.WriteLine(x.Item2.ToString())
+        x.A = 40
+        System.Console.WriteLine(x.A + x.B)
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0010:  call       "Function Integer.ToString() As String"
+  IL_0015:  call       "Sub System.Console.WriteLine(String)"
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_002f:  add.ovf
+  IL_0030:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0035:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleItemAccess01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x = (A:=1, B:=(C:=2, D:= 3))
+        System.Console.WriteLine(x.B.C.ToString())
+        x.B.D = 39
+        System.Console.WriteLine(x.A + x.B.C + x.B.D)
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       87 (0x57)
+  .maxstack  4
+  .locals init (System.ValueTuple(Of Integer, (C As Integer, D As Integer)) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_000a:  call       "Sub System.ValueTuple(Of Integer, (C As Integer, D As Integer))..ctor(Integer, (C As Integer, D As Integer))"
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldflda     "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_0016:  ldflda     "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_001b:  call       "Function Integer.ToString() As String"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldflda     "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_002c:  ldc.i4.s   39
+  IL_002e:  stfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0033:  ldloc.0
+  IL_0034:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item1 As Integer"
+  IL_0039:  ldloc.0
+  IL_003a:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_003f:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+  IL_0044:  add.ovf
+  IL_0045:  ldloc.0
+  IL_0046:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As Integer)).Item2 As (C As Integer, D As Integer)"
+  IL_004b:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_0050:  add.ovf
+  IL_0051:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0056:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeDeclaration()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x As (Integer, String, Integer) = (1, "hello", 2)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(1, hello, 2)]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size       33 (0x21)
+  .maxstack  4
+  .locals init (System.ValueTuple(Of Integer, String, Integer) V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldstr      "hello"
+  IL_0008:  ldc.i4.2
+  IL_0009:  call       "Sub System.ValueTuple(Of Integer, String, Integer)..ctor(Integer, String, Integer)"
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  constrained. "System.ValueTuple(Of Integer, String, Integer)"
+  IL_0016:  callvirt   "Function Object.ToString() As String"
+  IL_001b:  call       "Sub System.Console.WriteLine(String)"
+  IL_0020:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeMismatch_01()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+    Sub Main()
+             Dim x As (Integer, String) = (1, "hello", 2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30311: Value of type '(Integer, String, Integer)' cannot be converted to '(Integer, String)'.
+             Dim x As (Integer, String) = (1, "hello", 2)
+                                          ~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeMismatch_02()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+    Sub Main()
+        Dim x As (Integer, String) = (1, Nothing, 2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        Dim x As (Integer, String) = (1, Nothing, 2)
+                                     ~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub LongTupleTypeMismatch()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+    Sub Main()
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+    End Sub
+End Module
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+                                                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
+                                                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+                                                                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
+                                                                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeWithLateDiscoveredName()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+    Sub Main()
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+    End Sub
+End Module
+
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC37258: Tuple member names must all be provided, if any one is provided.
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+                 ~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+                                          ~~~~~~~~~~~~~~~~~~
+BC37258: Tuple member names must all be provided, if any one is provided.
+        Dim x As (Integer, A As String) = (1, "hello", C:=2)
+                                          ~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            ' TODO Update this test to match C# once https://github.com/dotnet/roslyn/issues/12965 is fixed (support for partially named tuples)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeDeclarationWithNames()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x As (A As Integer, B As String) = (1, "hello")
+        System.Console.WriteLine(x.A.ToString())
+        System.Console.WriteLine(x.B.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[1
+hello]]>)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDictionary01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Shared Sub Main()
+        Dim k = (1, 2)
+        Dim v = (A:=1, B:=(C:=2, D:=(E:=3, F:=4)))
+
+        Dim d = Test(k, v)
+        System.Console.Write(d((1, 2)).B.D.Item2)
+    End Sub
+
+    Shared Function Test(Of K, V)(key As K, value As V) As Dictionary(Of K, V)
+        Dim d = new Dictionary(Of K, V)()
+        d(key) = value
+        return d
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[4]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       67 (0x43)
+  .maxstack  6
+  .locals init (System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer))) V_0) //v
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.2
+  IL_000b:  ldc.i4.3
+  IL_000c:  ldc.i4.4
+  IL_000d:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0012:  newobj     "Sub System.ValueTuple(Of Integer, (E As Integer, F As Integer))..ctor(Integer, (E As Integer, F As Integer))"
+  IL_0017:  call       "Sub System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer)))..ctor(Integer, (C As Integer, D As (E As Integer, F As Integer)))"
+  IL_001c:  ldloc.0
+  IL_001d:  call       "Function C.Test(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer))))((Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))) As System.Collections.Generic.Dictionary(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer))))"
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.2
+  IL_0024:  newobj     "Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)"
+  IL_0029:  callvirt   "Function System.Collections.Generic.Dictionary(Of (Integer, Integer), (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))).get_Item((Integer, Integer)) As (A As Integer, B As (C As Integer, D As (E As Integer, F As Integer)))"
+  IL_002e:  ldfld      "System.ValueTuple(Of Integer, (C As Integer, D As (E As Integer, F As Integer))).Item2 As (C As Integer, D As (E As Integer, F As Integer))"
+  IL_0033:  ldfld      "System.ValueTuple(Of Integer, (E As Integer, F As Integer)).Item2 As (E As Integer, F As Integer)"
+  IL_0038:  ldfld      "System.ValueTuple(Of Integer, Integer).Item2 As Integer"
+  IL_003d:  call       "Sub System.Console.Write(Integer)"
+  IL_0042:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleLambdaCapture01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        System.Console.Write(Test(42))
+    End Sub
+
+    Public Shared Function Test(Of T)(a As T) As T
+        Dim x = (f1:=a, f2:=a)
+        Dim f As System.Func(Of T) = Function() x.f2
+        return f()
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C._Closure$__2-0(Of $CLS0)._Lambda$__0()", <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As (f1 As $CLS0, f2 As $CLS0)"
+  IL_0006:  ldfld      "System.ValueTuple(Of $CLS0, $CLS0).Item2 As $CLS0"
+  IL_000b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleLambdaCapture02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        System.Console.Write(Test(42))
+    End Sub
+    Shared Function Test(Of T)(a As T) As String
+        Dim x = (f1:=a, f2:=a)
+        Dim f As System.Func(Of String) = Function() x.ToString()
+        Return f()
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(42, 42)]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C._Closure$__2-0(Of $CLS0)._Lambda$__0()", <![CDATA[
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "C._Closure$__2-0(Of $CLS0).$VB$Local_x As (f1 As $CLS0, f2 As $CLS0)"
+  IL_0006:  constrained. "System.ValueTuple(Of $CLS0, $CLS0)"
+  IL_000c:  callvirt   "Function Object.ToString() As String"
+  IL_0011:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub TupleLambdaCapture03()
+            ' REMOVE AFTER REVIEW: this test crashes
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        System.Console.Write(Test(42))
+    End Sub
+    Shared Function Test(Of T)(a As T) As T
+        Dim x = (f1:=a, f2:=b)
+        Dim f As System.Func(Of T) = Function() x.Test(a)
+        Return f()
+    End Function
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+        Public Function Test(Of U)(val As U) As U
+            Return val
+        End Function
+    End Structure
+End Namespace
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+
+]]>)
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub TupleLambdaCapture04()
+            ' REMOVE AFTER REVIEW: this test crashes
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        System.Console.Write(Test(42))
+    End Sub
+    Shared Function Test(Of T)(a As T) As T
+        Dim x = (f1:=1, f2:=2)
+        Dim f As System.Func(Of T) = Function() x.Test(a)
+        Return f()
+    End Function
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+        Public Function Test(Of U)(val As U) As U
+            Return val
+        End Function
+    End Structure
+End Namespace
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+
+]]>)
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub TupleLambdaCapture05()
+            ' REMOVE AFTER REVIEW: this test crashes
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        System.Console.Write(Test(42))
+    End Sub
+    Shared Function Test(Of T)(a As T) As T
+        Dim x = (f1:=a, f2:=a)
+        Dim f As System.Func(Of T) = Function() x.P1
+        Return f()
+    End Function
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+        Public ReadOnly Property P1 As T1
+            Get
+                Return Item1
+            End Get
+        End Property
+    End Structure
+End Namespace
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("Module1.Main", <![CDATA[
+
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleAsyncCapture01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub Main()
+        Console.Write(Test(42).Result)
+    End Sub
+    Shared Async Function Test(Of T)(a As T) As Task(Of T)
+        Dim x = (f1:=a, f2:=a)
+        Await Task.Yield()
+        Return x.f1
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
+{
+  // Code size      204 (0xcc)
+  .maxstack  3
+  .locals init (SM$T V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                System.Runtime.CompilerServices.YieldAwaitable V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0058
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
+    IL_0017:  newobj     "Sub System.ValueTuple(Of SM$T, SM$T)..ctor(SM$T, SM$T)"
+    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0021:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+    IL_0026:  stloc.3
+    IL_0027:  ldloca.s   V_3
+    IL_0029:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_002e:  stloc.2
+    IL_002f:  ldloca.s   V_2
+    IL_0031:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+    IL_0036:  brtrue.s   IL_0074
+    IL_0038:  ldarg.0
+    IL_0039:  ldc.i4.0
+    IL_003a:  dup
+    IL_003b:  stloc.1
+    IL_003c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_0041:  ldarg.0
+    IL_0042:  ldloc.2
+    IL_0043:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T)"
+    IL_004e:  ldloca.s   V_2
+    IL_0050:  ldarg.0
+    IL_0051:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.VB$StateMachine_2_Test(Of SM$T))(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef C.VB$StateMachine_2_Test(Of SM$T))"
+    IL_0056:  leave.s    IL_00cb
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.m1
+    IL_005a:  dup
+    IL_005b:  stloc.1
+    IL_005c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0067:  stloc.2
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_006e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0074:  ldloca.s   V_2
+    IL_0076:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_007b:  ldloca.s   V_2
+    IL_007d:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0089:  ldfld      "System.ValueTuple(Of SM$T, SM$T).Item1 As SM$T"
+    IL_008e:  stloc.0
+    IL_008f:  leave.s    IL_00b5
+  }
+  catch System.Exception
+  {
+    IL_0091:  dup
+    IL_0092:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0097:  stloc.s    V_4
+    IL_0099:  ldarg.0
+    IL_009a:  ldc.i4.s   -2
+    IL_009c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T)"
+    IL_00a7:  ldloc.s    V_4
+    IL_00a9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T).SetException(System.Exception)"
+    IL_00ae:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00b3:  leave.s    IL_00cb
+  }
+  IL_00b5:  ldarg.0
+  IL_00b6:  ldc.i4.s   -2
+  IL_00b8:  dup
+  IL_00b9:  stloc.1
+  IL_00ba:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T)"
+  IL_00c5:  ldloc.0
+  IL_00c6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of SM$T).SetResult(SM$T)"
+  IL_00cb:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleAsyncCapture02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub Main()
+        Console.Write(Test(42).Result)
+    End Sub
+    Shared Async Function Test(Of T)(a As T) As Task(Of String)
+        Dim x = (f1:=a, f2:=a)
+        Await Task.Yield()
+        Return x.ToString()
+    End Function
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[(42, 42)]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
+{
+  // Code size      210 (0xd2)
+  .maxstack  3
+  .locals init (String V_0,
+                Integer V_1,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                System.Runtime.CompilerServices.YieldAwaitable V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0058
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$Local_a As SM$T"
+    IL_0017:  newobj     "Sub System.ValueTuple(Of SM$T, SM$T)..ctor(SM$T, SM$T)"
+    IL_001c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0021:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+    IL_0026:  stloc.3
+    IL_0027:  ldloca.s   V_3
+    IL_0029:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_002e:  stloc.2
+    IL_002f:  ldloca.s   V_2
+    IL_0031:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+    IL_0036:  brtrue.s   IL_0074
+    IL_0038:  ldarg.0
+    IL_0039:  ldc.i4.0
+    IL_003a:  dup
+    IL_003b:  stloc.1
+    IL_003c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_0041:  ldarg.0
+    IL_0042:  ldloc.2
+    IL_0043:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0048:  ldarg.0
+    IL_0049:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_004e:  ldloca.s   V_2
+    IL_0050:  ldarg.0
+    IL_0051:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.VB$StateMachine_2_Test(Of SM$T))(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef C.VB$StateMachine_2_Test(Of SM$T))"
+    IL_0056:  leave.s    IL_00d1
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.m1
+    IL_005a:  dup
+    IL_005b:  stloc.1
+    IL_005c:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldfld      "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0067:  stloc.2
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_006e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0074:  ldloca.s   V_2
+    IL_0076:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_007b:  ldloca.s   V_2
+    IL_007d:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$VB$ResumableLocal_x$0 As (f1 As SM$T, f2 As SM$T)"
+    IL_0089:  constrained. "System.ValueTuple(Of SM$T, SM$T)"
+    IL_008f:  callvirt   "Function Object.ToString() As String"
+    IL_0094:  stloc.0
+    IL_0095:  leave.s    IL_00bb
+  }
+  catch System.Exception
+  {
+    IL_0097:  dup
+    IL_0098:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_009d:  stloc.s    V_4
+    IL_009f:  ldarg.0
+    IL_00a0:  ldc.i4.s   -2
+    IL_00a2:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+    IL_00ad:  ldloc.s    V_4
+    IL_00af:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetException(System.Exception)"
+    IL_00b4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00b9:  leave.s    IL_00d1
+  }
+  IL_00bb:  ldarg.0
+  IL_00bc:  ldc.i4.s   -2
+  IL_00be:  dup
+  IL_00bf:  stloc.1
+  IL_00c0:  stfld      "C.VB$StateMachine_2_Test(Of SM$T).$State As Integer"
+  IL_00c5:  ldarg.0
+  IL_00c6:  ldflda     "C.VB$StateMachine_2_Test(Of SM$T).$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String)"
+  IL_00cb:  ldloc.0
+  IL_00cc:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of String).SetResult(String)"
+  IL_00d1:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub TupleAsyncCapture03()
+
+            ' REMOVE AFTER REVIEW: this test crashes
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub Main()
+        Console.Write(Test(42).Result)
+    End Sub
+    Shared Async Function Test(Of T)(a As T) As Task(Of String)
+        Dim x = (f1:=a, f2:=a)
+        Await Task.Yield()
+        Return x.Test(a)
+    End Function
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+        Public Overrides Function ToString() As String
+            Return "{" + Item1?.ToString() + ", " + Item2?.ToString() + "}"
+        End Function
+        Public Function Test(Of U)(val As U) As U
+            Return val
+        End Function
+    End Structure
+End Namespace
+    </file>
+</compilation>, additionalRefs:={MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub LongTupleWithSubstitution()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub Main()
+        Console.Write(Test(42).Result)
+    End Sub
+    Shared Async Function Test(Of T)(a As T) As Task(Of T)
+        Dim x = (f1:=1, f2:=2, f3:=3, f4:=4, f5:=5, f6:=6, f7:=7, f8:=a)
+        Await Task.Yield()
+        Return x.f8
+    End Function
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleUsageWithoutTupleLibrary()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (Integer, String) = (1, "hello")
+    End Sub
+End Module
+
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, String) = (1, "hello")
+                 ~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, String) = (1, "hello")
+                 ~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim x As (Integer, String) = (1, "hello")
+                                     ~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleUsageWithMissingTupleMembers()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (Integer, String) = (1, 2)
+    End Sub
+End Module
+
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace
+]]></file>
+</compilation>)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'ValueTuple..ctor' is not defined.
+        Dim x As (Integer, String) = (1, 2)
+                                     ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithDuplicateNames()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37262: Tuple member names must be unique.
+        Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
+                                ~
+BC37262: Tuple member names must be unique.
+        Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
+                                                      ~
+BC37262: Tuple member names must be unique.
+        Dim x As (a As Integer, a As String) = (b:=1, b:="hello", b:=2)
+                                                                  ~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithDuplicateReservedNames()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (Item1 As Integer, Item1 As String) = (Item1:=1, Item1:="hello")
+        Dim y As (Item2 As Integer, Item2 As String) = (Item2:=1, Item2:="hello")
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37261: Tuple member name 'Item1' is only allowed at position 1.
+        Dim x As (Item1 As Integer, Item1 As String) = (Item1:=1, Item1:="hello")
+                                    ~~~~~
+BC37261: Tuple member name 'Item1' is only allowed at position 1.
+        Dim x As (Item1 As Integer, Item1 As String) = (Item1:=1, Item1:="hello")
+                                                                  ~~~~~
+BC37261: Tuple member name 'Item2' is only allowed at position 2.
+        Dim y As (Item2 As Integer, Item2 As String) = (Item2:=1, Item2:="hello")
+                  ~~~~~
+BC37261: Tuple member name 'Item2' is only allowed at position 2.
+        Dim y As (Item2 As Integer, Item2 As String) = (Item2:=1, Item2:="hello")
+                                                        ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithNonReservedNames()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37261: Tuple member name 'Item10' is only allowed at position 10.
+        Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
+                                                       ~~~~~~
+BC37261: Tuple member name 'Item1' is only allowed at position 1.
+        Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
+                                                                                        ~~~~~
+BC37261: Tuple member name 'Item10' is only allowed at position 10.
+        Dim x As (Item1 As Integer, Item01 As Integer, Item10 As Integer) = (Item01:=1, Item1:=2, Item10:=3)
+                                                                                                  ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub DefaultValueForTuple()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x As (a As Integer, b As String) = (1, "hello")
+        x = Nothing
+        System.Console.WriteLine(x.a)
+        System.Console.WriteLine(If(x.b, "null"))
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0
+null]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithDuplicateMemberNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (a As Integer, a As String) = (b:=1, c:="hello", b:=2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37262: Tuple member names must be unique.
+        Dim x As (a As Integer, a As String) = (b:=1, c:="hello", b:=2)
+                                ~
+BC37262: Tuple member names must be unique.
+        Dim x As (a As Integer, a As String) = (b:=1, c:="hello", b:=2)
+                                                                  ~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithReservedMemberNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
+            (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37261: Tuple member name 'Item3' is only allowed at position 3.
+        Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
+                                    ~~~~~
+BC37261: Tuple member name 'Item2' is only allowed at position 2.
+        Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
+                                                     ~~~~~
+BC37260: Tuple membername 'Rest' is disallowed at any position.
+        Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
+                                                                                                                                               ~~~~
+BC37261: Tuple member name 'Item2' is only allowed at position 2.
+            (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
+             ~~~~~
+BC37261: Tuple member name 'Item4' is only allowed at position 4.
+            (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
+                           ~~~~~
+BC37260: Tuple membername 'Rest' is disallowed at any position.
+            (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
+                                                                                           ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithExistingUnderlyingMemberNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37260: Tuple membername 'CompareTo' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                 ~~~~~~~~~
+BC37260: Tuple membername 'Deconstruct' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                                          ~~~~~~~~~~~
+BC37260: Tuple membername 'Equals' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                                                          ~~~~~~
+BC37260: Tuple membername 'GetHashCode' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                                                                     ~~~~~~~~~~~
+BC37260: Tuple membername 'Rest' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                                                                                     ~~~~
+BC37260: Tuple membername 'ToString' is disallowed at any position.
+        Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
+                                                                                              ~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub LongTupleDeclaration()
+            ' REMOVE AFTER REVIEW this test crashes because the symbol returned by GetDeclaredSymbol is null
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, String, Integer, Integer, Integer, Integer) =
+            (1, 2, 3, 4, 5, 6, 7, "Alice", 2, 3, 4, 5)
+        System.Console.Write($"{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12}")
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5]]>,
+                sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                           Dim compilation = m.DeclaringCompilation
+                                           Dim tree = compilation.SyntaxTrees.First()
+                                           Dim model = compilation.GetSemanticModel(tree)
+                                           Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                                           Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().Single().Names(0)
+
+                                           Assert.Equal("x As (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, " _
+                                               + "System.String, System.Int32, System.Int32, System.Int32, System.Int32)",
+                                               model.GetDeclaredSymbol(x).ToTestDisplayString())
+                                       End Sub)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+
+
     End Class
 
 End Namespace
