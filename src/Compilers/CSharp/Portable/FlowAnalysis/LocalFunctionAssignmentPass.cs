@@ -50,24 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ClearDirtyBits(_assignedVars.Values);
 
-                foreach (var stmt in node.Statements)
-                {
-                    if ((object)currentMethodOrLambda == topLevelMethod)
-                    {
-                        if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                        {
-                            VisitLocalFunctionStatement((BoundLocalFunctionStatement)stmt);
-                        }
-                    }
-                    else
-                    {
-                        VisitStatement(stmt);
-                    }
-                }
+                VisitStatementsWithLocalFunctions(node);
             }
             while (HasDirtyLocalFunctions(_assignedVars.Values));
 
             return null;
+        }
+
+        protected override void ReportIfUnused(LocalFunctionSymbol symbol)
+        {
+            // Don't report unused diagnostics
         }
 
         protected override void ReplayReadsAndWrites(
@@ -91,10 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Don't check for 'async-without-await' since we don't visit any
         // statements outside local functions
         protected override ImmutableArray<PendingBranch> RemoveReturns() => RemoveReturnsCore();
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node) =>
-            // Record assignments outside local functions
-            VisitLocalFunction(node, recordAssigns: true);
 
         protected override void RecordCapturedAssigns(ref LocalState state)
         {

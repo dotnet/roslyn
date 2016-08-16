@@ -1458,14 +1458,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
 
-            // First assemble possibly-unassigned reads for all
-            // local functions
-            RecordReadsInLocalFunctions(node);
+            VisitStatementsWithLocalFunctions(node);
 
-            var result = base.VisitBlock(node);
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
-            return result;
+
+            return null;
+        }
+
+        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
+        {
+            // Visit the statements in two phases:
+            //   1. Local function declarations
+            //   2. Everything else
+            //
+            // The idea behind visiting local functions first is
+            // that we may be able to gather the captured variables
+            // they read and write ahead of time in a single pass, so
+            // when they are used by other statements in the block we
+            // won't have to recompute the set by doing multiple passes.
+            //
+            // If the local functions contain forward calls to other local
+            // functions then we will have to do another pass regardless,
+            // but hopefully that will be an uncommon case in real-world code.
+
+            // First phase
+            if (!block.LocalFunctions.IsDefaultOrEmpty)
+            {
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    {
+                        VisitLocalFunctionStatement(
+                            (BoundLocalFunctionStatement)stmt);
+                    }
+                }
+            }
+
+            // Second phase
+            foreach (var stmt in block.Statements)
+            {
+                if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                {
+                    VisitStatement(stmt);
+                }
+            }
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -1692,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        protected virtual void ReportIfUnused(LocalFunctionSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -1785,11 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitMethodGroup(node);
         }
 
-        public override BoundNode VisitLambda(BoundLambda node) =>
-            // Lambdas can't definitely assign captured vars
-            VisitLambdaOrLocalFunction(node);
-
-        protected BoundNode VisitLambdaOrLocalFunction(BoundLambda node)
+        public override BoundNode VisitLambda(BoundLambda node)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = node.Symbol;

@@ -96,27 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual LocalFuncAssignmentResults GetResults() => null;
 
-        /// <summary>
-        /// Records all possibly-unassigned reads in all local
-        /// functions in the given block.
-        /// </summary>
-        private void RecordReadsInLocalFunctions(BoundBlock block)
-        {
-            if (block.LocalFunctions.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            foreach (var stmt in block.Statements)
-            {
-                if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                {
-                    var localFunc = (BoundLocalFunctionStatement)stmt;
-                    VisitLocalFunction(localFunc, recordAssigns: false);
-                }
-            }
-        }
-
         private void EnterAllParameters()
         {
             foreach (var info in variableBySlot)
@@ -226,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundNode VisitLocalFunction(BoundLocalFunctionStatement localFunc, bool recordAssigns)
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = localFunc.Symbol;
@@ -264,11 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
 
-            if (recordAssigns)
-            {
-                // Check for assignments to captured variables
-                RecordCapturedAssigns(ref stateAtReturn);
-            }
+            // Check for assignments to captured variables
+            RecordCapturedAssigns(ref stateAtReturn);
 
             this.State = savedState;
             this.currentMethodOrLambda = oldMethodOrLambda;

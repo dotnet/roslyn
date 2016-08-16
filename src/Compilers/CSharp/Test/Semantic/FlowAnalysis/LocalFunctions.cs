@@ -728,5 +728,40 @@ class C
                 //         var z = x;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(29, 17));
         }
+
+        [Fact]
+        public void LocalFunctionFromOtherSwitch()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int x;
+        int y;
+        switch("""".Length)
+        {
+            case 0:
+                void L1()
+                {
+                    y = 0;
+                    L2();
+                }
+                break;
+            case 1:
+                L1();
+                y = x;
+                break;
+            case 2:
+                void L2()
+                {
+                    x = y;
+                }
+                break;
+         }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
     }
 }
