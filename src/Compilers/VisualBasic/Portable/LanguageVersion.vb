@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic12,
                     LanguageVersion.VisualBasic14,
                     LanguageVersion.VisualBasic15
+
                     Return True
             End Select
 
