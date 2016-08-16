@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Syntax;
-
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.Syntax
 {
     internal struct SyntaxListBuilder<TNode> where TNode : SyntaxNode
     {
@@ -66,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             _builder.AddRange(nodes, offset, length);
         }
 
-        public bool Any(SyntaxKind kind)
+        public bool Any(int kind)
         {
-            return _builder.Any((int)kind);
+            return _builder.Any(kind);
         }
 
         public SyntaxList<TNode> ToList()

@@ -110,7 +110,7 @@
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
-    <Compile Include="Syntax\AbstractSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\AbstractSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Enumerator.cs" />
@@ -139,6 +139,7 @@
     <Compile Include="Syntax\CommonSyntaxList.WithTwoChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />

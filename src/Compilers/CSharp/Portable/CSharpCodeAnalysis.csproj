@@ -817,7 +817,6 @@
     <Compile Include="Syntax\SyntaxKind.cs" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
-    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxFacts.cs" />

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Xml.Linq;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
