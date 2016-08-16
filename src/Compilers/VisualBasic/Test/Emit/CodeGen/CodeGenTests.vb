@@ -7980,7 +7980,7 @@ DERIVED: f(x As Integer, Optional y As String = "")
 
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_B()
-            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             CompileAndVerify(
