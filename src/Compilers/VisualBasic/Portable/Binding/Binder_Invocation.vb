@@ -3029,13 +3029,10 @@ ProduceBoundNode:
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
 
-            If defaultConstantValue Is Nothing Then
-                If param.HasExplicitDefaultValue = False Then
-                    If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _compilation.Options.ParseOptions) Then
-                        defaultConstantValue = ConstantValue.Nothing
-
-                    End If
-                End If
+            ' Deal with Optional arguments, with no explicitly expressed default value
+            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _compilation.Options.ParseOptions) AndAlso
+               (defaultConstantValue Is Nothing) AndAlso (param.HasExplicitDefaultValue = False) Then
+                defaultConstantValue = ConstantValue.Nothing
             End If
 
             If defaultConstantValue IsNot Nothing Then
