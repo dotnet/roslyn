@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 this.InitializeChildren();
             }
 
+            internal WithManyChildrenBase(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+                : base(diagnostics, annotations)
+            {
+                this.children = children;
+                this.InitializeChildren();
+            }
+
             private void InitializeChildren()
             {
                 int n = children.Length;
@@ -118,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
             }
 
+            internal WithManyChildren(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+                : base(diagnostics, annotations, children)
+            {
+            }
+
             internal WithManyChildren(ObjectReader reader)
                 : base(reader)
             {
@@ -126,6 +138,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             internal override Func<ObjectReader, object> GetReader()
             {
                 return r => new WithManyChildren(r);
+            }
+
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)
+            {
+                return new WithManyChildren(errors, this.GetAnnotations(), children);
+            }
+
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            {
+                return new WithManyChildren(GetDiagnostics(), annotations, children);
             }
         }
     }

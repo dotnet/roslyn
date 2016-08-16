@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
         }
 
+        internal CommonSyntaxList(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+            : base(GreenNode.ListKind, diagnostics, annotations)
+        {
+        }
+
         internal CommonSyntaxList(ObjectReader reader)
             : base(reader)
         {
@@ -138,16 +143,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 return List(left, right);
             }
-        }
-
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        {
-            throw ExceptionUtilities.Unreachable;
         }
 
         public override string Language

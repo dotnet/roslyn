@@ -408,7 +408,7 @@
 '                Return New WithManyChildren(errors, Me.GetAnnotations(), Me._children)
 '            End Function
 
-'            Friend Overrides Function SetAnnotations(annotations() As SyntaxAnnotation) As GreenNode
+'            Friend Overrides Function SetAnnotations(annotations() As SyntawixAnnotation) As GreenNode
 '                Return New WithManyChildren(Me.GetDiagnostics(), annotations, Me._children)
 '            End Function
 '        End Class

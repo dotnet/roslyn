@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _childOffsets = CalculateOffsets(children);
             }
 
+            internal WithLotsOfChildren(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children, int[] childOffsets)
+                : base(diagnostics, annotations, children)
+            {
+                _childOffsets = childOffsets;
+            }
+
             internal WithLotsOfChildren(ObjectReader reader)
                 : base(reader)
             {
@@ -66,6 +72,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     offset += children[i].Value.FullWidth;
                 }
                 return childOffsets;
+            }
+
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)
+            {
+                return new WithLotsOfChildren(errors, this.GetAnnotations(), children, _childOffsets);
+            }
+
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            {
+                return new WithLotsOfChildren(GetDiagnostics(), annotations, children, _childOffsets);
             }
         }
     }

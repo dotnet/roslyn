@@ -24,6 +24,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _child2 = child2;
             }
 
+            internal WithThreeChildren(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, GreenNode child0, GreenNode child1, GreenNode child2)
+                : base(diagnostics, annotations)
+            {
+                this.SlotCount = 3;
+                this.AdjustFlagsAndWidth(child0);
+                _child0 = child0;
+                this.AdjustFlagsAndWidth(child1);
+                _child1 = child1;
+                this.AdjustFlagsAndWidth(child2);
+                _child2 = child2;
+            }
+
             internal WithThreeChildren(ObjectReader reader)
                 : base(reader)
             {
@@ -74,6 +86,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
             {
                 return new Syntax.CommonSyntaxList.WithThreeChildren(this, parent, position);
+            }
+
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)
+            {
+                return new WithThreeChildren(errors, this.GetAnnotations(), _child0, _child1, _child2);
+            }
+
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            {
+                return new WithThreeChildren(GetDiagnostics(), annotations, _child0, _child1, _child2);
             }
         }
     }
