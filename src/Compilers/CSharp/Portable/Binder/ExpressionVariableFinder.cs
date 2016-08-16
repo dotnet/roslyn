@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Condition);
         }
 
+        public override void VisitSwitchStatement(SwitchStatementSyntax node)
+        {
+            Visit(node.Expression);
+        }
+
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
             _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));

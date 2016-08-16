@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -49,20 +50,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
-        public static SmallDictionary<SyntaxNode, Binder> BuildMap(Symbol containingMemberOrLambda, SyntaxNode syntax, Binder enclosing, ArrayBuilder<SyntaxNode> methodsWithYields)
+        public static SmallDictionary<SyntaxNode, Binder> BuildMap(
+            Symbol containingMemberOrLambda, 
+            SyntaxNode syntax, 
+            Binder enclosing, 
+            ArrayBuilder<SyntaxNode> methodsWithYields,
+            Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
-            var exprNode = syntax as ExpressionSyntax;
-            if (exprNode != null)
+            StatementSyntax statement;
+            var expressionSyntax = syntax as ExpressionSyntax;
+            if (expressionSyntax != null)
             {
-                var binder = new ExpressionVariableBinder(syntax, enclosing);
-                builder.AddToMap(syntax, binder);
-                builder.Visit(exprNode, binder);
+                enclosing = new ExpressionVariableBinder(syntax, enclosing);
+
+                if ((object)rootBinderAdjusterOpt != null)
+                {
+                    enclosing = rootBinderAdjusterOpt(enclosing, syntax);
+                }
+
+                builder.AddToMap(syntax, enclosing);
+                builder.Visit(expressionSyntax, enclosing);
+            }
+            else if (syntax.Kind() != SyntaxKind.Block && (statement = syntax as StatementSyntax) != null)
+            {
+                CSharpSyntaxNode embeddedScopeDesignator;
+                enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
+
+                if ((object)rootBinderAdjusterOpt != null)
+                {
+                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDesignator);
+                }
+
+                if (embeddedScopeDesignator != null)
+                {
+                    builder.AddToMap(embeddedScopeDesignator, enclosing);
+                }
+
+                builder.Visit(statement, enclosing);
             }
             else
             {
-                builder.Visit(syntax);
+                if ((object)rootBinderAdjusterOpt != null)
+                {
+                    enclosing = rootBinderAdjusterOpt(enclosing, null);
+                }
+
+                builder.Visit(syntax, enclosing);
             }
 
             // the other place this is possible is in a local function
@@ -296,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitBlock(BlockSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var blockBinder = new BlockBinder(_enclosing, node.Statements);
+            var blockBinder = new BlockBinder(_enclosing, node);
             AddToMap(node, blockBinder);
 
             // Visit all the statements inside this block
@@ -473,12 +508,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new ExpressionVariableBinder(node.Expression, _enclosing);
-            AddToMap(node.Expression, patternBinder);
+            AddToMap(node.Expression, _enclosing);
+            Visit(node.Expression, _enclosing);
 
-            Visit(node.Expression, patternBinder);
-
-            var switchBinder = SwitchBinder.Create(patternBinder, node);
+            var switchBinder = SwitchBinder.Create(_enclosing, node);
             AddToMap(node, switchBinder);
 
             foreach (SwitchSectionSyntax section in node.Sections)
@@ -708,32 +741,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             _map[node] = binder;
         }
 
+        private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing, out CSharpSyntaxNode embeddedScopeDesignator)
+        {
+            switch (statement.Kind())
+            {
+                case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.LocalFunctionStatement:
+                // It is an error to have a declaration or a label in an embedded statement,
+                // but we still want to bind it.  
+
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.IfStatement:
+                    Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
+                    embeddedScopeDesignator = statement;
+                    return new EmbeddedStatementBinder(enclosing, statement);
+
+                case SyntaxKind.SwitchStatement:
+                    Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
+                    var switchStatement = (SwitchStatementSyntax)statement;
+                    embeddedScopeDesignator = switchStatement.Expression;
+                    return new ExpressionVariableBinder(switchStatement.Expression, enclosing);
+
+                default:
+                    embeddedScopeDesignator = null;
+                    return enclosing;
+            }
+        }
+
         private void VisitPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing)
         {
             if (statement != null)
             {
-                switch (statement.Kind())
+                CSharpSyntaxNode embeddedScopeDesignator;
+                enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
+
+                if (embeddedScopeDesignator != null)
                 {
-                    case SyntaxKind.LocalDeclarationStatement:
-                    case SyntaxKind.LabeledStatement:
-                    case SyntaxKind.LocalFunctionStatement:
-                        // It is an error to have a declaration or a label in an embedded statement,
-                        // but we still want to bind it.  We'll pretend that the statement was
-                        // inside a block.
-
-                    case SyntaxKind.ExpressionStatement:
-                    case SyntaxKind.WhileStatement:
-                    case SyntaxKind.DoStatement:
-                    case SyntaxKind.LockStatement:
-                    case SyntaxKind.IfStatement:
-                        Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
-                        var blockBinder = new BlockBinder(enclosing, new SyntaxList<StatementSyntax>(statement));
-                        AddToMap(statement, blockBinder);
-                        Visit(statement, blockBinder);
-                        return;
-
-                    default:
-                        break;
+                    AddToMap(embeddedScopeDesignator, enclosing);
                 }
 
                 Visit(statement, enclosing);

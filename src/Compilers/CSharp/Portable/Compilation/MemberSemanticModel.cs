@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (current is ExpressionSyntax && 
                             ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
                              (current.Parent as SwitchStatementSyntax)?.Expression == current ||
-                             (current.Parent as CommonForEachStatementSyntax)?.Expression == current ||
-                             (current.Parent as IfStatementSyntax)?.Condition == current))
+                             (current.Parent as CommonForEachStatementSyntax)?.Expression == current))
                 {
                     binder = rootBinder.GetBinder(current);
                 }

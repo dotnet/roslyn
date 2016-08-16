@@ -486,7 +486,7 @@ Public Class BuildDevDivInsertionFiles
         ' TODO: remove
         Public ReadOnly Property IsInteractiveWindow As Boolean
             Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
+                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow" OrElse PackageName = "Microsoft.VisualStudio.VsInteractiveWindow"
             End Get
         End Property
     End Class
@@ -538,7 +538,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' TODO: remove once we have a proper package
         result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.VsInteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
 
         Return result
     End Function
@@ -971,7 +971,7 @@ Public Class BuildDevDivInsertionFiles
                       <Project DefaultTargets="Localize" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
                           <ItemGroup>
                               <LocalizeFile Include=<%= "$(Sources)\" & devdivPath %>>
-                                  <TranslationFile><%= "$(LocRepo)\{Lang}Roslyn\" & lclFileName %></TranslationFile>
+                                  <TranslationFile><%= "$(LocRepo)\{Lang}\Roslyn\" & lclFileName %></TranslationFile>
                                   <LciCommentFile><%= "$(Sources)\Roslyn\LCI\" & lciFileName %></LciCommentFile>
                                   <%= If(CompilerFiles.Contains(fileName),
                                       <SimShip xmlns="http://schemas.microsoft.com/developer/msbuild/2003">

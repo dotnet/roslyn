@@ -198,6 +198,9 @@
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
     <value>Command-line syntax error: Missing Guid for option '{1}'</value>
   </data>
+  <data name="ERR_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
   </data>
@@ -5368,6 +5371,9 @@
   </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
   <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
     <value>Tuple member names must be unique.</value>

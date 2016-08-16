@@ -279,10 +279,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
-                case SyntaxKind.IfStatement: 
+                case SyntaxKind.IfStatement:
                     Binder binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
-                    return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics)); 
+                    return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
+
+                case SyntaxKind.SwitchStatement:
+                    var switchStatement = (SwitchStatementSyntax)node;
+                    binder = this.GetBinder(switchStatement.Expression);
+                    Debug.Assert(binder != null);
+                    return binder.WrapWithVariablesIfAny(switchStatement.Expression, binder.BindStatement(node, diagnostics));
 
                 default:
                     return BindStatement(node, diagnostics);
@@ -2974,7 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
-            return switchBinder.GetBinder(node.Expression).WrapWithVariablesIfAny(node.Expression, switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics));
+            return switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics);
         }
 
         internal virtual BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
