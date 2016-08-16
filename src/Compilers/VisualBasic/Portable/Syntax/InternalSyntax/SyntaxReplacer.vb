@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 _skipCnt = prevIdx
-                Return DirectCast(result, VisualBasicSyntaxNode)
+                Return result
             Else
                 Return MyBase.Visit(DirectCast(node, SyntaxToken))
             End If
