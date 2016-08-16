@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, base, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, base, typeSuffix, value, leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
         Public Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double) As SyntaxToken
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, typeSuffix, value, leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
         Public Shared Function Identifier(text As String, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter) As SyntaxToken
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, isBracketed, identifierText, typeCharacter), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, isBracketed, identifierText, typeCharacter), 0, 0)
         End Function
 
         Public Shared Function Identifier(text As String) As SyntaxToken
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, False, text, TypeCharacter.None), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, False, text, TypeCharacter.None), 0, 0)
         End Function
 
         ''' <summary>
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "[" + text + "]", DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, True, text, TypeCharacter.None), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "[" + text + "]", leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, True, text, TypeCharacter.None), 0, 0)
         End Function
 
         ''' <summary>
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingIdentifier() As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingIdentifier(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode,
                     kind, False, "", TypeCharacter.None), 0, 0)
         End Function
 
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingKeyword(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.KeywordSyntax(kind, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingPunctuation(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.PunctuationSyntax(kind, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -698,7 +698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
             Return New SyntaxToken(Nothing, New InternalSyntax.BadTokenSyntax(SyntaxKind.BadToken, InternalSyntax.SyntaxSubKind.None, Nothing, Nothing, text,
-                    DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
 #End Region
