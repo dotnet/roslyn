@@ -922,27 +922,29 @@ public class Test
         [Fact]
         public void NoRefInIndex()
         {
-            // Quoting LanguageParser.cs:
-            //
-            // According to Language Specification, section 7.6.7 Element access
-            //      The argument-list of an element-access is not allowed to contain ref or out arguments.
-            // However, due to backward compatibility, compiler overlooks this restriction during parsing
-            // and even ignores out/ref modifiers in element access during binding. The "strict" feature
-            // causes the compiler to diagnose this situation.
             var text = @"
 class C
 {
-    static object F(object[] a, int i)
+    void F(object[] a, int i)
     {
-        return a[ref i];
+        int j;
+        j = a[ref i];    // error 1
+        j = a[out i];    // error 2
+        j = this[ref i]; // error 3
     }
-}";
+    public int this[int i] => 1;
+}
+";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                );
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
-                // (6,18): error CS1073: Unexpected token 'ref'
-                //         return a[ref i];
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 18)
+                // (7,19): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         j = a[ref i];    // error 1
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(7, 19),
+                // (8,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         j = a[out i];    // error 2
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "out").WithLocation(8, 19),
+                // (9,22): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         j = this[ref i]; // error 3
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(9, 22)
                 );
         }
     }

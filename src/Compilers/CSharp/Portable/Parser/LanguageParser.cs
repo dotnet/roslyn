@@ -9781,13 +9781,10 @@ tryAgain:
             {
                 // According to Language Specification, section 7.6.7 Element access
                 //      The argument-list of an element-access is not allowed to contain ref or out arguments.
-                // However, due to backward compatibility, compiler overlooks this restriction during parsing
-                // and even ignores out/ref modifiers in element access during binding. The "strict" feature
-                // causes the compiler to diagnose this situation.
-                //
-                // We will enforce that language rule for out variable declarations at the parser level. 
-                if (!isIndexer &&
-                    refOrOutKeyword != null && refOrOutKeyword.Kind == SyntaxKind.OutKeyword &&
+                // However, we actually do support ref indexing of indexed properties in COM interop
+                // scenarios, and when indexing an object of static type "dynamic". So we enforce
+                // that the ref/out of the argument must match the parameter when binding the argument list.
+                if (!isIndexer && refOrOutKeyword?.Kind == SyntaxKind.OutKeyword &&
                     IsPossibleOutVarDeclaration())
                 {
                     TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
@@ -9799,11 +9796,6 @@ tryAgain:
                 }
                 else
                 {
-                    if (isIndexer && refOrOutKeyword != null && IsStrict)
-                    {
-                        refOrOutKeyword = this.AddError(refOrOutKeyword, ErrorCode.ERR_UnexpectedToken, refOrOutKeyword.Text);
-                    }
-
                     expression = this.ParseSubExpression(Precedence.Expression);
                 }
             }
