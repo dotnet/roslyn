@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAbstract
         {
-            get { return (object)Constructor == null; }
+            get { return (object)Constructor == null && this.TypeKind != TypeKind.Struct; }
         }
 
         internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
