@@ -374,7 +374,7 @@ Friend Class GreenNodeFactoryWriter
                 If child.IsList Then
                     _writer.Write(", {0}.Node", ChildParamName(child, factoryFunctionName))
                 ElseIf Not True AndAlso KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", DirectCast({0}.Node, {1})", ChildParamName(child, factoryFunctionName), ChildConstructorTypeRef(child, True))
+                    _writer.Write(", {0}.Node)", ChildParamName(child, factoryFunctionName), ChildConstructorTypeRef(child, True))
                 Else
                     _writer.Write(", {0}", ChildParamName(child, factoryFunctionName))
                 End If
