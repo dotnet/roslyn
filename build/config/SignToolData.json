@@ -44,6 +44,7 @@
             "Microsoft.VisualStudio.LanguageServices.Next.dll",
             "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+            "Microsoft.VisualStudio.LanguageServices.Xaml.dll",
             "Microsoft.VisualStudio.VisualBasic.Repl.dll",
             "Microsoft.VisualStudio.VsInteractiveWindow.dll",
             "Pdb2Xml.exe",

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Next.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Xaml.dll")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",
     GenerateCodeBase = false,
