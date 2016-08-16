@@ -165,5 +165,28 @@ namespace Microsoft.CodeAnalysis.Syntax
             Array.Copy(Nodes, tmp, Nodes.Length);
             Nodes = tmp;
         }
+
+        internal GreenNode ToListNode()
+        {
+            switch (this.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return Nodes[0].Value;
+                case 2:
+                    return InternalSyntax.CommonSyntaxList.List(Nodes[0].Value, Nodes[1].Value);
+                case 3:
+                    return InternalSyntax.CommonSyntaxList.List(Nodes[0].Value, Nodes[1].Value, Nodes[2].Value);
+                default:
+                    var tmp = new ArrayElement<GreenNode>[this.Count];
+                    for (int i = 0; i < this.Count; i++)
+                    {
+                        tmp[i].Value = Nodes[i].Value;
+                    }
+
+                    return InternalSyntax.CommonSyntaxList.List(tmp);
+            }
+        }
     }
 }
