@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
 
         // lock _guard to read/write
         private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new Dictionary<string, Assembly>();
+        private readonly Dictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByPath = new Dictionary<string, AssemblyIdentity>();
         private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new Dictionary<AssemblyIdentity, Assembly>();
 
         // maps file name to a full path (lock _guard to read/write):
@@ -53,27 +54,49 @@ namespace Microsoft.CodeAnalysis
 
         private Assembly LoadFromPathUnchecked(string fullPath)
         {
+            return LoadFromPathUncheckedCore(fullPath);
+        }
+
+        private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity identity = null)
+        {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
+            // Check if we have already loaded an assembly with the same identity or from the given path.
+            Assembly loadedAssembly = null;
             lock (_guard)
             {
                 Assembly existingAssembly;
                 if (_loadedAssembliesByPath.TryGetValue(fullPath, out existingAssembly))
                 {
-                    return existingAssembly;
+                    loadedAssembly = existingAssembly;
+                }
+                else
+                {
+                    identity = identity ?? GetOrAddAssemblyIdentity(fullPath);
+                    if (identity != null && _loadedAssembliesByIdentity.TryGetValue(identity, out existingAssembly))
+                    {
+                        loadedAssembly = existingAssembly;
+                    }
                 }
             }
 
-            Assembly assembly = LoadFromPathImpl(fullPath);
-            return AddToCache(assembly, fullPath);
+            // Otherwise, load the assembly.
+            if (loadedAssembly == null)
+            {
+                loadedAssembly = LoadFromPathImpl(fullPath);
+            }
+
+            // Add the loaded assembly to both path and identity cache.
+            return AddToCache(loadedAssembly, fullPath, identity);
         }
 
-        private Assembly AddToCache(Assembly assembly, string fullPath)
+        private Assembly AddToCache(Assembly assembly, string fullPath, AssemblyIdentity identity)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             Debug.Assert(assembly != null);
 
-            var identity = AssemblyIdentity.FromAssemblyDefinition(assembly);
+            identity = AddToCache(fullPath, identity ?? AssemblyIdentity.FromAssemblyDefinition(assembly));
+            Debug.Assert(identity != null);
 
             lock (_guard)
             {
@@ -82,10 +105,12 @@ namespace Microsoft.CodeAnalysis
                 Assembly existingAssembly;
                 if (_loadedAssembliesByIdentity.TryGetValue(identity, out existingAssembly))
                 {
-                    return existingAssembly;
+                    assembly = existingAssembly;
                 }
-
-                _loadedAssembliesByIdentity.Add(identity, assembly);
+                else
+                {
+                    _loadedAssembliesByIdentity.Add(identity, assembly);
+                }
 
                 // An assembly file might be replaced by another file with a different identity.
                 // Last one wins.
@@ -93,6 +118,41 @@ namespace Microsoft.CodeAnalysis
 
                 return assembly;
             }
+        }
+
+        private AssemblyIdentity GetOrAddAssemblyIdentity(string fullPath)
+        {
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+
+            lock (_guard)
+            {
+                AssemblyIdentity existingIdentity;
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out existingIdentity))
+                {
+                    return existingIdentity;
+                }
+            }
+
+            var identity = AssemblyIdentityUtils.TryGetAssemblyIdentity(fullPath);
+            return AddToCache(fullPath, identity);
+        }
+
+        private AssemblyIdentity AddToCache(string fullPath, AssemblyIdentity identity)
+        {
+            lock (_guard)
+            {
+                AssemblyIdentity existingIdentity;
+                if (_loadedAssemblyIdentitiesByPath.TryGetValue(fullPath, out existingIdentity) && existingIdentity != null)
+                {
+                    identity = existingIdentity;
+                }
+                else
+                {
+                    _loadedAssemblyIdentitiesByPath[fullPath] = identity;
+                }
+            }
+
+            return identity;
         }
 
         public Assembly Load(string displayName)
@@ -129,11 +189,11 @@ namespace Microsoft.CodeAnalysis
             // Load the one that matches the requested identity (if any).
             foreach (var candidatePath in candidatePaths)
             {
-                var candidateIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(candidatePath);
+                var candidateIdentity = GetOrAddAssemblyIdentity(candidatePath);
 
                 if (requestedIdentity.Equals(candidateIdentity))
                 {
-                    return LoadFromPathUnchecked(candidatePath);
+                    return LoadFromPathUncheckedCore(candidatePath, candidateIdentity);
                 }
             }
 
