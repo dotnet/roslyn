@@ -1774,9 +1774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node) =>
             // Lambdas can't definitely assign captured vars
-            VisitLambdaOrLocalFunction(node, recordAssigns: false);
+            VisitLambdaOrLocalFunction(node);
 
-        protected BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node, bool recordAssigns)
+        protected BoundNode VisitLambdaOrLocalFunction(BoundLambda node)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = node.Symbol;
@@ -1785,13 +1785,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // State after the lambda/local function exits
             LocalState stateAfterLambda = this.State;
-            // Only used in local functions, which may assign captured variables
-            LocalState stateAtReturn;
-
-            // If this is a local function we don't care about reachability,
-            // everything should be unassigned
-            Debug.Assert(currentMethodOrLambda.MethodKind != MethodKind.LocalFunction ||
-                         this.State.Reachable);
 
             this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
 
@@ -1804,7 +1797,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
 
             IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
-            stateAtReturn = this.State;
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
@@ -1819,6 +1811,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
+            }
+
+            this.State = stateAfterLambda;
+
+            this.currentMethodOrLambda = oldMethodOrLambda;
+            return null;
+        }
+
+        protected BoundNode VisitLocalFunction(BoundLocalFunctionStatement localFunc, bool recordAssigns)
+        {
+            var oldMethodOrLambda = this.currentMethodOrLambda;
+            this.currentMethodOrLambda = localFunc.Symbol;
+
+            var oldPending = SavePending(); // we do not support branches into a lambda
+
+            // Local functions don't affect outer state and are analyzed
+            // with everything unassigned and reachable
+            var savedState = this.State;
+            this.State = this.ReachableState();
+
+            if (!localFunc.WasCompilerGenerated) EnterParameters(localFunc.Symbol.Parameters);
+            var oldPending2 = SavePending();
+            VisitAlways(localFunc.Body);
+            RestorePending(oldPending2); // process any forward branches within the lambda body
+            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+            RestorePending(oldPending);
+            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, null);
+
+            LocalState stateAtReturn = this.State;
+            foreach (PendingBranch pending in pendingReturns)
+            {
+                this.State = pending.State;
+                if (pending.Branch.Kind == BoundKind.ReturnStatement)
+                {
+                    // ensure out parameters are definitely assigned at each return
+                    LeaveParameters(localFunc.Symbol.Parameters, pending.Branch.Syntax, null);
+                }
+                else
+                {
+                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
+                }
+
                 IntersectWith(ref stateAtReturn, ref this.State);
             }
 
@@ -1828,9 +1862,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RecordCapturedAssigns(ref stateAtReturn);
             }
 
-            this.State = stateAfterLambda;
-
+            this.State = savedState;
             this.currentMethodOrLambda = oldMethodOrLambda;
+
             return null;
         }
 

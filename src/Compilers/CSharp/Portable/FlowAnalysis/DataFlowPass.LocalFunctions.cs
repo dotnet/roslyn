@@ -118,21 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
                     {
-                        var savedState = this.State;
                         var localFunc = (BoundLocalFunctionStatement)stmt;
-
-                        // Clear the state before visitation since all captured
-                        // reads could be unassigned at the local function callsite
-                        this.State = new LocalState(
-                            BitVector.Create(this.State.Assigned.Capacity));
-
-                        // Assign all parameters of all parent functions
-                        EnterAllParameters();
-
-                        VisitLambdaOrLocalFunction(localFunc,
-                            recordAssigns: false);
-
-                        this.State = savedState;
+                        VisitLocalFunction(localFunc, recordAssigns: false);
                     }
                 }
             } while (HasDirtyLocalFunctions(_readVars.Values));

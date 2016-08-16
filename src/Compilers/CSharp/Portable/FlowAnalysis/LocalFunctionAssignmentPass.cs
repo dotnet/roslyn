@@ -92,18 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // statements outside local functions
         protected override ImmutableArray<PendingBranch> RemoveReturns() => RemoveReturnsCore();
 
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            // Visit local functions with a clear state
-            var savedState = this.State;
-            this.State = ReachableState();
-
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node) =>
             // Record assignments outside local functions
-            VisitLambdaOrLocalFunction(node, recordAssigns: true);
-
-            this.State = savedState;
-            return null;
-        }
+            VisitLocalFunction(node, recordAssigns: true);
 
         protected override void RecordCapturedAssigns(ref LocalState state)
         {
