@@ -13,7 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenOverridingAndHiding
         Inherits BasicTestBase
 
-        Dim _ImplicitDefaultOptionalParameter_ As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithImplicitDefaultOptionalParameter
+        Private ReadOnly _VBParseOptionsWithoutImplicitDefaultOptionalParameter As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)
+        Private ReadOnly _VBParseOptionsWithImplicitDefaultOptionalParameter As VisualBasicParseOptions = _VBParseOptionsWithoutImplicitDefaultOptionalParameter.WithImplicitDefaultOptionalParameter
+
 
         <WorkItem(540852, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540852")>
         <Fact>
@@ -479,10 +481,8 @@ BC30308: 'Public Overrides Sub Format(i As Integer, j As Integer)' cannot overri
 
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_A()
-            Dim useOpts = VisualBasicParseOptions.Default
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
             ' NOTE: this matches Dev11 implementation, not Dev10
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -538,7 +538,7 @@ Class C7 ' disallowed
     End Sub
 End Class
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -561,10 +561,9 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
         End Sub
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_B()
-            Dim useOpts = _ImplicitDefaultOptionalParameter_
-            If Not InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, useOpts) Then
-                Assert.True(False, $"Feature{NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)} is not present")
-            End If
+            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+                         "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
             ' NOTE: this matches Dev11 implementation, not Dev10
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -592,7 +591,7 @@ Class C3 ' allowed
     End Sub
 End Class
 
-Class C4 ' allowed`
+Class C4 ' allowed
     Shared Sub f(Optional ByVal x As Integer)
     End Sub
     Shared Sub f(ByVal ParamArray xx As Integer())
@@ -620,7 +619,7 @@ Class C7 ' disallowed
     End Sub
 End Class
         </file>
-    </compilation>, parseOptions:=useOpts)
+    </compilation>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
