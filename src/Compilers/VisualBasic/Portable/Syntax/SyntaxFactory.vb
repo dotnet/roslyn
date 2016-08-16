@@ -1067,6 +1067,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If options.Kind = SourceCodeKind.Regular Then
                 Throw New ArgumentException(VBResources.SyntaxTreeIsNotASubmission)
             End If
+
             Dim languageVersion As LanguageVersion = options.LanguageVersion
 
             If Not tree.HasCompilationUnitRoot Then

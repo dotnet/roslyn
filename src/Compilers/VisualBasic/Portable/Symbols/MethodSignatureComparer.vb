@@ -634,18 +634,18 @@ Done:
                             optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, param2.ExplicitDefaultConstantValue)
                         Else
 
-                            Dim AreValuesMismatched As Boolean
+                            Dim areValuesMismatched As Boolean
                             If param1.HasExplicitDefaultValue Then
-                                AreValuesMismatched = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, ConstantValue.Nothing)
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, ConstantValue.Nothing)
 
                             ElseIf param2.HasExplicitDefaultValue Then
-                                AreValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, param2.ExplicitDefaultConstantValue)
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, param2.ExplicitDefaultConstantValue)
                             Else
-                                AreValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, ConstantValue.Nothing)
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, ConstantValue.Nothing)
 
                             End If
-                            If Not AreValuesMismatched Then
-                                optionalParameterMismatch = AreValuesMismatched
+                            If Not areValuesMismatched Then
+                                optionalParameterMismatch = areValuesMismatched
                             Else
 
                                 ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.

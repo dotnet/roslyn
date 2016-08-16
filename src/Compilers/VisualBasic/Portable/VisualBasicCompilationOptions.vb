@@ -966,7 +966,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionExplicit = other.OptionExplicit AndAlso
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
-                   Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso Me.ParseOptions.Equals(other.ParseOptions)
+                   Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
+                   Me.ParseOptions.Equals(other.ParseOptions)
         End Function
 
         ''' <summary>

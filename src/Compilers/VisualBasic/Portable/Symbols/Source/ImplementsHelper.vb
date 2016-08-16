@@ -438,7 +438,7 @@ DoneWithErrorReporting:
                 Dim implementedProperty As PropertySymbol = TryCast(implementedSym, PropertySymbol)
                 Dim implementingProperty As PropertySymbol = TryCast(implementingSym, PropertySymbol)
                 If (implementedProperty.GetMethod IsNot Nothing AndAlso implementingProperty.GetMethod Is Nothing) OrElse
-                    (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
+                   (implementedProperty.SetMethod IsNot Nothing AndAlso implementingProperty.SetMethod Is Nothing) Then
                     ' "'{0}' cannot be implemented by a {1} property."
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
