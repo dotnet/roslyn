@@ -1,6 +1,6 @@
 set-variable -name LastExitCode 0
 set-strictmode -version 2.0
-\$ErrorActionPreference="Stop"
+$ErrorActionPreference="Stop"
 
 Invoke-WebRequest -Uri http://dotnetci.blob.core.windows.net/roslyn-perf/cpc.zip -OutFile cpc.zip
 [Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
