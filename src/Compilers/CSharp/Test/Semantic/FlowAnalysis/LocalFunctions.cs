@@ -605,7 +605,11 @@ class C
         const int y = 0;
         Local();
 
-        int Local() => x + y + S.z;
+        int Local()
+        {
+            const int a = 1;
+            return a + x + y + S.z;
+        }
     }
 }");
             comp.VerifyDiagnostics();

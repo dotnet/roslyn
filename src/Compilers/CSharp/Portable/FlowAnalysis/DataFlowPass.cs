@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
-            FreeLocalFuncInfos(_readVars.Values);
             _localFuncAssignmentResults?.Free();
 
             base.Free();
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            this.backwardBranchChanged = false;              // prepare to detect backward goto statements
+            this.stateChangedAfterUse = false;              // prepare to detect backward goto statements
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
@@ -858,7 +857,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the given variable is definitely assigned.  If not, produce an error.
         /// </summary>
-        private void CheckAssigned(Symbol symbol, CSharpSyntaxNode node, int? slotOpt)
+        /// <remarks>
+        /// Specifying the slot manually may be necessary if the symbol is a field,
+        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
+        /// which containing slot to look for.
+        /// </remarks>
+        private void CheckAssigned(Symbol symbol, CSharpSyntaxNode node, int slot)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
@@ -867,7 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.State.Reachable)
                 {
-                    int slot = slotOpt ?? VariableSlot(symbol);
                     if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
@@ -882,17 +885,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             int slot = slotOpt ?? VariableSlot(symbol);
             if (slot <= 0) return;
 
-            // If we're recording reads and the symbol is captured by the nearest
-            // local function, record the read and skip the diagnostic
-            if (_recordingReads)
+            Debug.Assert(ReferenceEquals(variableBySlot[slot].Symbol, symbol));
+
+            // If this is a constant, constants are always definitely assigned
+            // so we should skip reporting. This can happen in a local function
+            // where we use a constant before we actually visit its definition
+            // (since local function declarations are visited before other statements).
+            if (symbol.Kind == SymbolKind.Local && ((LocalSymbol)symbol).IsConst)
             {
-                if ((symbol.Kind == SymbolKind.Local &&
-                    ((LocalSymbol)symbol).IsConst) ||
-                    IsCapturedInLocalFunction(slot))
-                {
-                    RecordReadInLocalFunction(slot);
-                    return;
-                }
+                return;
+            }
+
+            // If the symbol is captured by the nearest
+            // local function, record the read and skip the diagnostic
+            if (IsCapturedInLocalFunction(slot))
+            {
+                RecordReadInLocalFunction(slot);
+                return;
             }
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
@@ -923,7 +932,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorCode = ErrorCode.ERR_UseDefViolationField;
                     }
                 }
-                else if (symbol.Kind == SymbolKind.Parameter && ((ParameterSymbol)symbol).RefKind == RefKind.Out)
+                else if (symbol.Kind == SymbolKind.Parameter &&
+                         ((ParameterSymbol)symbol).RefKind == RefKind.Out)
                 {
                     if (((ParameterSymbol)symbol).IsThis)
                     {
@@ -941,7 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Diagnostics.Add(errorCode, new SourceLocation(node), symbolName);
             }
 
-            _alreadyReported[slot] = true; // mark the variable's slot so that we don't complain about the variable again
+            // mark the variable's slot so that we don't complain about the variable again
+            _alreadyReported[slot] = true;
         }
 
         /// <summary>
@@ -1699,8 +1710,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // That's because this code assumes the variable is being read, not written.
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
+
             if (localSymbol.IsFixed &&
-                (this.currentMethodOrLambda.MethodKind == MethodKind.AnonymousFunction || this.currentMethodOrLambda.MethodKind == MethodKind.LocalFunction) &&
+                (this.currentMethodOrLambda.MethodKind == MethodKind.AnonymousFunction ||
+                 this.currentMethodOrLambda.MethodKind == MethodKind.LocalFunction) &&
                 _capturedVariables.Contains(localSymbol))
             {
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
@@ -1816,55 +1829,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.State = stateAfterLambda;
 
             this.currentMethodOrLambda = oldMethodOrLambda;
-            return null;
-        }
-
-        protected BoundNode VisitLocalFunction(BoundLocalFunctionStatement localFunc, bool recordAssigns)
-        {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = localFunc.Symbol;
-
-            var oldPending = SavePending(); // we do not support branches into a lambda
-
-            // Local functions don't affect outer state and are analyzed
-            // with everything unassigned and reachable
-            var savedState = this.State;
-            this.State = this.ReachableState();
-
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFunc.Symbol.Parameters);
-            var oldPending2 = SavePending();
-            VisitAlways(localFunc.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, null);
-
-            LocalState stateAtReturn = this.State;
-            foreach (PendingBranch pending in pendingReturns)
-            {
-                this.State = pending.State;
-                if (pending.Branch.Kind == BoundKind.ReturnStatement)
-                {
-                    // ensure out parameters are definitely assigned at each return
-                    LeaveParameters(localFunc.Symbol.Parameters, pending.Branch.Syntax, null);
-                }
-                else
-                {
-                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
-                }
-
-                IntersectWith(ref stateAtReturn, ref this.State);
-            }
-
-            if (recordAssigns)
-            {
-                // Check for assignments to captured variables
-                RecordCapturedAssigns(ref stateAtReturn);
-            }
-
-            this.State = savedState;
-            this.currentMethodOrLambda = oldMethodOrLambda;
-
             return null;
         }
 

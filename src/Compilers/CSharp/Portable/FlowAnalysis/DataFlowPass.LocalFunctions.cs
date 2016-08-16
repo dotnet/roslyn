@@ -18,15 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private LocalFuncAssignmentResults _localFuncAssignmentResults;
 
-        /// <summary>
-        /// True if we're currently recording reads, rather than reporting
-        /// diagnostics.
-        /// </summary>
-        private bool _recordingReads = false;
+        private SmallDictionary<LocalFunctionSymbol, LocalFuncReads> _readVars =
+            new SmallDictionary<LocalFunctionSymbol, LocalFuncReads>();
 
-        private SmallDictionary<LocalFunctionSymbol, LocalFuncInfo> _readVars =
-            new SmallDictionary<LocalFunctionSymbol, LocalFuncInfo>();
 
+        private class LocalFuncReads
+        {
+            public BitVector ReadVars = BitVector.Empty;
+
+            public bool Used { get; set; } = false;
+        }
 
         protected class LocalFuncInfo
         {
@@ -106,25 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-
-            var recordingState = _recordingReads;
-            _recordingReads = true;
-
-            do
+            foreach (var stmt in block.Statements)
             {
-                ClearDirtyBits(_readVars.Values);
-
-                foreach (var stmt in block.Statements)
+                if (stmt.Kind == BoundKind.LocalFunctionStatement)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
-                    {
-                        var localFunc = (BoundLocalFunctionStatement)stmt;
-                        VisitLocalFunction(localFunc, recordAssigns: false);
-                    }
+                    var localFunc = (BoundLocalFunctionStatement)stmt;
+                    VisitLocalFunction(localFunc, recordAssigns: false);
                 }
-            } while (HasDirtyLocalFunctions(_readVars.Values));
-
-            _recordingReads = recordingState;
+            }
         }
 
         private void EnterAllParameters()
@@ -144,20 +134,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(localFunc != null);
 
-            LocalFuncInfo readInfo;
+            LocalFuncReads readInfo;
             if (_readVars.TryGetValue(localFunc, out readInfo))
             {
-                if (!readInfo.UsedVars.Contains(slot))
+                if (!readInfo.ReadVars[slot])
                 {
-                    readInfo.IsDirty = true;
-                    readInfo.UsedVars.Add(slot);
+                    readInfo.ReadVars[slot] = true;
+
+                    // If we've already "used" the reads of this local
+                    // function then we know the previous use is invalid --
+                    // it didn't include the read that was added here. We
+                    // must do another pass to include this read.
+                    if (readInfo.Used)
+                    {
+                        stateChangedAfterUse = true;
+                        readInfo.Used = false;
+                    }
                 }
             }
             else
             {
-                readInfo = new LocalFuncInfo();
-                readInfo.IsDirty = true;
-                readInfo.UsedVars.Add(slot);
+                readInfo = new LocalFuncReads();
+                readInfo.ReadVars[slot] = true;
                 _readVars.Add(localFunc, readInfo);
             }
         }
@@ -175,21 +173,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usedLocalFunctions.Add(localFunc);
 
             // First process the reads
-            LocalFuncInfo info;
-            if (_readVars.TryGetValue(localFunc, out info))
+            LocalFuncReads reads;
+            if (_readVars.TryGetValue(localFunc, out reads))
             {
-                foreach (var usedVarSlot in info.UsedVars)
+                // Start at slot 1 (slot 0 just indicates reachability)
+                for (int slot = 1; slot < reads.ReadVars.Capacity; slot++)
                 {
-                    var symbol = variableBySlot[usedVarSlot].Symbol;
-                    CheckAssigned(symbol, syntax, usedVarSlot);
+                    if (reads.ReadVars[slot])
+                    {
+                        var symbol = variableBySlot[slot].Symbol;
+                        CheckAssigned(symbol, syntax, slot);
+                    }
                 }
+            }
+            else
+            {
+                // No reads to replay, but we need to record that we used
+                // the reads, in case reads are later added to the read set
+                reads = new LocalFuncReads();
+                reads.Used = true;
+                _readVars.Add(localFunc, reads);
             }
 
             // Now the writes
+            LocalFuncInfo info = null;
             if (writes &&
                 _localFuncAssignmentResults?.AssignedVars
                     .TryGetValue(localFunc, out info) == true)
             {
+                Debug.Assert(info != null);
+
                 foreach (var usedVarSlot in info.UsedVars)
                 {
                     SetSlotAssigned(usedVarSlot);
@@ -213,7 +226,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected bool IsCapturedInLocalFunction(int slot,
+        protected BoundNode VisitLocalFunction(BoundLocalFunctionStatement localFunc, bool recordAssigns)
+        {
+            var oldMethodOrLambda = this.currentMethodOrLambda;
+            this.currentMethodOrLambda = localFunc.Symbol;
+
+            var oldPending = SavePending(); // we do not support branches into a lambda
+
+            // Local functions don't affect outer state and are analyzed
+            // with everything unassigned and reachable
+            var savedState = this.State;
+            this.State = this.ReachableState();
+
+            if (!localFunc.WasCompilerGenerated) EnterParameters(localFunc.Symbol.Parameters);
+
+            var oldPending2 = SavePending();
+            VisitAlways(localFunc.Body);
+            RestorePending(oldPending2); // process any forward branches within the lambda body
+            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+            RestorePending(oldPending);
+            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, null);
+
+            LocalState stateAtReturn = this.State;
+            foreach (PendingBranch pending in pendingReturns)
+            {
+                this.State = pending.State;
+                if (pending.Branch.Kind == BoundKind.ReturnStatement)
+                {
+                    // ensure out parameters are definitely assigned at each return
+                    LeaveParameters(localFunc.Symbol.Parameters, pending.Branch.Syntax, null);
+                }
+                else
+                {
+                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
+                }
+
+                IntersectWith(ref stateAtReturn, ref this.State);
+            }
+
+            if (recordAssigns)
+            {
+                // Check for assignments to captured variables
+                RecordCapturedAssigns(ref stateAtReturn);
+            }
+
+            this.State = savedState;
+            this.currentMethodOrLambda = oldMethodOrLambda;
+
+            return null;
+        }
+
+        private bool IsCapturedInLocalFunction(int slot,
             ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
             if (slot <= 0) return false;
