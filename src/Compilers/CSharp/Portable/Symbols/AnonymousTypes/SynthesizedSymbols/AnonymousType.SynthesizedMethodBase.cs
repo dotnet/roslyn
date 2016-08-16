@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return F;
             }
 
-            internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind)
+            internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
             {
                 throw ExceptionUtilities.Unreachable;
             }

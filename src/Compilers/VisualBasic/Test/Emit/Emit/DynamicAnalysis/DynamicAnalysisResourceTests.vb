@@ -711,6 +711,12 @@ Structure E
                                     Return 1567
                                 End Function)
 End Structure
+
+Module F
+    Public s_c As New C(Function()
+                            Return 333
+                        End Function)
+End Module
 ]]>
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
@@ -764,6 +770,10 @@ End Structure
                         New SpanResult(37, 29, 37, 51, "New C(Function() 1444)"),
                         New SpanResult(39, 36, 39, 47, "Return 1567"),
                         New SpanResult(38, 26, 40, 45, "New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(7), sourceLines,                                         ' Synthesized shared constructor for F
+                        New SpanResult(45, 28, 45, 38, "Return 333"),
+                        New SpanResult(44, 18, 46, 37, "New C(Function()"))
         End Sub
 
         <Fact>

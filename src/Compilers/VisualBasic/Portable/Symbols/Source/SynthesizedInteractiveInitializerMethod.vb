@@ -139,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ImmutableArray.Create(Of BoundStatement)(New BoundLabelStatement(syntax, ExitLabel)))
         End Function
 
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, localKind As SynthesizedLocalKind) As Integer
-            Return DirectCast(m_containingType, SourceMemberContainerTypeSymbol).CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isShared:=False, localKind:=localKind)
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
+            Return DirectCast(m_containingType, SourceMemberContainerTypeSymbol).CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isShared:=False)
         End Function
 
         Private Shared Sub CalculateReturnType(

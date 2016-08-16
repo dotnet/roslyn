@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree, SynthesizedLocalKind localKind)
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             return localPosition;
         }

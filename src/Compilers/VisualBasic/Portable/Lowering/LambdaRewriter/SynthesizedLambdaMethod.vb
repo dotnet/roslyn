@@ -218,10 +218,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, localKind As SynthesizedLocalKind) As Integer
+        Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             ' Syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method.
             ' The offset is thus relative to the top-level method body start.
-            Return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree, localKind)
+            Return _topLevelMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function
 
         ' The lambda method body needs to be updated when the containing top-level method body is updated.

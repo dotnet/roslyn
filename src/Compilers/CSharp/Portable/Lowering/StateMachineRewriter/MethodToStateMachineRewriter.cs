@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree, local.SynthesizedKind);
+                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree);
             }
             else
             {

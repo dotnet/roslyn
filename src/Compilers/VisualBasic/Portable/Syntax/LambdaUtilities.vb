@@ -677,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' lambda expression body closure
                     Return True
 
-                Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock
+                Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.ModuleBlock
                     ' With dynamic analysis instrumentation, a type declaration can be the syntax associated
                     ' with the analysis payload local of a synthesized constructor.
                     ' If the synthesized constructor includes an initializer with a lambda,

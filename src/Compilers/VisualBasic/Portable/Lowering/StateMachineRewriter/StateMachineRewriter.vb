@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '      When emitting a delta the id is only used to map to the existing field in the previous generation.
 
                 Dim declaratorSyntax As SyntaxNode = local.GetDeclaratorSyntax()
-                Dim syntaxOffset As Integer = Me.Method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree, local.SynthesizedKind)
+                Dim syntaxOffset As Integer = Me.Method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree)
                 Dim ordinal As Integer = SynthesizedLocalOrdinals.AssignLocalOrdinal(local.SynthesizedKind, syntaxOffset)
                 id = New LocalDebugId(syntaxOffset, ordinal)
 

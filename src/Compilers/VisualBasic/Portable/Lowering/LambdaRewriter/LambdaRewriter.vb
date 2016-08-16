@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     delegateRelaxationIdDispenser += 1
                 Else
                     methodId = GetTopLevelMethodId()
-                    closureId = GetClosureId(syntax, closureDebugInfo, localKind)
+                    closureId = GetClosureId(syntax, closureDebugInfo)
                 End If
 
                 frame = New LambdaFrame(_topLevelMethod,
@@ -960,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(SlotAllocatorOpt?.MethodId, New DebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal))
         End Function
 
-        Private Function GetClosureId(syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo), localKind As SynthesizedLocalKind) As DebugId
+        Private Function GetClosureId(syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo)) As DebugId
             Debug.Assert(syntax IsNot Nothing)
 
             Dim closureId As DebugId
@@ -971,7 +971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 closureId = New DebugId(closureDebugInfo.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree, localKind)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
             closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId))
             Return closureId
         End Function
@@ -1012,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaId = New DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
-            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree, SynthesizedLocalKind.UserDefined)
+            Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree)
             _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal))
             Return lambdaId
         End Function

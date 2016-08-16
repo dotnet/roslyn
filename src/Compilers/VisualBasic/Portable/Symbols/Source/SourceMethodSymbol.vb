@@ -1201,7 +1201,7 @@ lReportErrorOnTwoTokens:
             Return New BoundBlock(methodBlock, methodBlock.Statements, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(boundStatement))
         End Function
 
-        Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree, localKind As SynthesizedLocalKind) As Integer
+        Friend NotOverridable Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Dim span As TextSpan
 
             Dim block = BlockSyntax

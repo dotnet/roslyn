@@ -1443,6 +1443,7 @@ Module Program
         Dim z As Integer = dd._c._function()
         Dim zz As Integer = D.s_c._function()
         Dim zzz As Integer = dd._c1._function()
+        Dim zzzz As Integer = F.s_c._function()
     End Sub
 End Module
 
@@ -1473,9 +1474,17 @@ Structure E
                                 End Function)
 End Structure
 
+Module F
+    Public s_c As New C(Function()
+                            Return 333
+                        End Function)
+End Module
+
 ' Method 3 is the synthesized shared constructor for C.
 ' Method 5 is the synthesized shared constructor for D.
 ' Method 6 is the synthesized instance constructor for D.
+' Method 7 (which is not called, and so does not appear in the output) is the synthesized shared constructor for E.
+' Method 8 is the synthesized shared constructor for F.
 ]]>
                                          </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
@@ -1491,6 +1500,7 @@ True
 True
 Method 2
 File 1
+True
 True
 True
 True
@@ -1517,7 +1527,11 @@ True
 True
 True
 True
-Method 10
+Method 8
+File 1
+True
+True
+Method 11
 File 1
 True
 True
