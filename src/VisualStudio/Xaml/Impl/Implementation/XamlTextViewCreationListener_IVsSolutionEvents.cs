@@ -10,22 +10,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
@@ -37,27 +37,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
     }
 }

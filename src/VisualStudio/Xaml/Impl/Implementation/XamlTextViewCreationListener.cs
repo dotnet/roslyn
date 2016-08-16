@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -179,6 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
 
             IVisualStudioHostDocument newDocument = project.GetCurrentDocumentFromPath(newMoniker);
+            Debug.Assert(newDocument == null, "Why does the renamed document already exist in the project?");
             if (newDocument == null)
             {
                 if (TryCreateXamlDocument(project, newMoniker, out newDocument))
@@ -186,6 +188,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     project.AddDocument(newDocument, isCurrentContext: true);
                 }
             }
+        }
+
+        private void OnDocumentClosed(uint docCookie)
+        {
+            RunningDocumentInfo info = _rdt.Value.GetDocumentInfo(docCookie);
+            AbstractProject project = GetXamlProject(info.Hierarchy);
+            if (project == null)
+            {
+                return;
+            }
+
+            IVisualStudioHostDocument document = project.GetCurrentDocumentFromPath(info.Moniker);
+            if (document == null)
+            {
+                return;
+            }
+
+            project.RemoveDocument(document);
         }
     }
 }
