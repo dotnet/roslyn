@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BlockBinder(Binder enclosing, BlockSyntax block, BinderFlags additionalFlags)
             : base(enclosing, enclosing.Flags | additionalFlags)
         {
+            Debug.Assert(block != null);
             _block = block;
         }
 

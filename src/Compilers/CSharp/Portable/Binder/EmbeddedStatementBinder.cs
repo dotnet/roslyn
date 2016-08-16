@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
             : base(enclosing, enclosing.Flags)
         {
+            Debug.Assert(statement != null);
             _statements = new SyntaxList<StatementSyntax>(statement);
         }
 

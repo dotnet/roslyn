@@ -831,12 +831,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             Binder originalRootBinder = null;
-            CSharpSyntaxNode declaredLocalsScopeDisagnator = null;
+            CSharpSyntaxNode declaredLocalsScopeDesignator = null;
             var executableBinder = new ExecutableCodeBinder(syntax, substitutedSourceMethod, binder,
-                                              (rootBinder, declaredLocalsScopeDisagnatorOpt) =>
+                                              (rootBinder, declaredLocalsScopeDesignatorOpt) =>
                                               {
                                                   originalRootBinder = rootBinder;
-                                                  declaredLocalsScopeDisagnator = declaredLocalsScopeDisagnatorOpt;
+                                                  declaredLocalsScopeDesignator = declaredLocalsScopeDesignatorOpt;
                                                   binder = new EEMethodBinder(method, substitutedSourceMethod, rootBinder);
 
                                                   if (methodNotType)
@@ -854,9 +854,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(originalRootBinder != null);
             Debug.Assert(executableBinder.Next != binder);
 
-            if (declaredLocalsScopeDisagnator != null)
+            if (declaredLocalsScopeDesignator != null)
             {
-                declaredLocals = originalRootBinder.GetDeclaredLocalsForScope(declaredLocalsScopeDisagnator);
+                declaredLocals = originalRootBinder.GetDeclaredLocalsForScope(declaredLocalsScopeDesignator);
+            }
+            else
+            {
+                declaredLocals = ImmutableArray<LocalSymbol>.Empty;
             }
 
             return binder;

@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            builder.AddRange(_aliases);
-            return builder.ToImmutableAndFree();
+            return _aliases;
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
