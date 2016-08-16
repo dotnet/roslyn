@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, CSharpSyntaxNode syntax)
+        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, SyntaxNode syntax)
         {
             declaredLocals.Add(local);
 

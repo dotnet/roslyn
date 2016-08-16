@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             Binder originalRootBinder = null;
-            CSharpSyntaxNode declaredLocalsScopeDesignator = null;
+            SyntaxNode declaredLocalsScopeDesignator = null;
             var executableBinder = new ExecutableCodeBinder(syntax, substitutedSourceMethod, binder,
                                               (rootBinder, declaredLocalsScopeDesignatorOpt) =>
                                               {
