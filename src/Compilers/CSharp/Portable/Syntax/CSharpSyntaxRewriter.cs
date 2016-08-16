@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

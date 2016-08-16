@@ -1,20 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal abstract class AbstractSyntaxListBuilder
+    internal class SyntaxListBuilder
     {
         protected ArrayElement<GreenNode>[] Nodes;
         public int Count { get; protected set; }
 
-        protected AbstractSyntaxListBuilder(int size)
+        public SyntaxListBuilder(int size)
         {
             Nodes = new ArrayElement<GreenNode>[size];
         }
@@ -159,6 +155,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
+        internal void RemoveLast()
+        {
+            this.Count -= 1;
+            this.Nodes[Count] = default(ArrayElement<GreenNode>);
+        }
+
         protected void Grow(int size)
         {
             var tmp = new ArrayElement<GreenNode>[size];
@@ -187,6 +189,16 @@ namespace Microsoft.CodeAnalysis.Syntax
 
                     return InternalSyntax.CommonSyntaxList.List(tmp);
             }
+        }
+
+        public static implicit operator SyntaxList<SyntaxNode>(SyntaxListBuilder builder)
+        {
+            if (builder == null)
+            {
+                return default(SyntaxList<SyntaxNode>);
+            }
+
+            return builder.ToList();
         }
     }
 }
