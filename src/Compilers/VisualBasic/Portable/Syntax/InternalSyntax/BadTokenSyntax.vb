@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia)
+            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, trivia, GetTrailingTrivia)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode))
+            Return New BadTokenSyntax(Kind, SubKind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, trivia)
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode

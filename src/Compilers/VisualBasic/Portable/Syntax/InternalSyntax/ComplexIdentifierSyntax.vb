@@ -92,11 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
+            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, trivia, GetTrailingTrivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode), PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
+            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, trivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode

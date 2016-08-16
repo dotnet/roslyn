@@ -93,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New IntegerLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia, _base, _typeSuffix, _value)
+            Return New IntegerLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, trivia, GetTrailingTrivia, _base, _typeSuffix, _value)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New IntegerLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode), _base, _typeSuffix, _value)
+            Return New IntegerLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, trivia, _base, _typeSuffix, _value)
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode
@@ -217,11 +217,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New FloatingLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia, _typeSuffix, _value)
+            Return New FloatingLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, trivia, GetTrailingTrivia, _typeSuffix, _value)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New FloatingLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode), _typeSuffix, _value)
+            Return New FloatingLiteralTokenSyntax(Of T)(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, trivia, _typeSuffix, _value)
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode
