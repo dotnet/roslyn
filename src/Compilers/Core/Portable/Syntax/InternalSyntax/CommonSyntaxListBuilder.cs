@@ -4,12 +4,18 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal class CommonSyntaxListBuilder : 
+    internal class CommonSyntaxListBuilder :
         AbstractSyntaxListBuilder<GreenNode, CommonSyntaxList<GreenNode>>
     {
         public CommonSyntaxListBuilder(int size) : base(size)
         {
         }
+
+        public static CommonSyntaxListBuilder Create()
+        {
+            return new CommonSyntaxListBuilder(8);
+        }
+
 
         public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
         {
@@ -49,5 +55,15 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         //    return builder.ToList();
         //}
+
+        public CommonSyntaxList<GreenNode> ToList()
+        {
+            return new CommonSyntaxList<GreenNode>(ToListNode());
+        }
+
+        public CommonSyntaxList<TNode> ToList<TNode>() where TNode : GreenNode
+        {
+            return new CommonSyntaxList<TNode>(ToListNode());
+        }
     }
 }

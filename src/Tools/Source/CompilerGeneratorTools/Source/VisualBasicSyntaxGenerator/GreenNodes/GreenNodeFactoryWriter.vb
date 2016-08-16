@@ -251,7 +251,7 @@ Friend Class GreenNodeFactoryWriter
         If nodeStructure.IsToken Then
             ' tokens have trivia also.
             If needComma Then _writer.Write(", ") : needComma = False
-            _writer.Write("leadingTrivia As {0}, trailingTrivia As {0}", StructureTypeName(_parseTree.RootStructure))
+            _writer.Write("leadingTrivia As GreenNode, trailingTrivia As GreenNode", StructureTypeName(_parseTree.RootStructure))
 
         End If
 

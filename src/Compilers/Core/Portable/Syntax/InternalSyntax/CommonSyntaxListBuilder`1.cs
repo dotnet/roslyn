@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
         }
 
+        public static CommonSyntaxListBuilder<TNode> Create()
+        {
+            return new CommonSyntaxListBuilder<TNode>(8);
+        }
+
         internal CommonSyntaxListBuilder(CommonSyntaxListBuilder builder)
         {
             _builder = builder;
@@ -79,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         public CommonSyntaxList<TNode> ToList()
         {
             return _builder.ToList();
+        }
+
+        public CommonSyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
+        {
+            return new CommonSyntaxList<TDerived>(ToListNode());
         }
 
         public GreenNode ToListNode()

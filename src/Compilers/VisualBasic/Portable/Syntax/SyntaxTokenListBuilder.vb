@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -88,14 +86,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Case 1
                         Return New SyntaxTokenList(Nothing, Me._nodes(0), 0, 0)
                     Case 2
-                        Return New SyntaxTokenList(Nothing, InternalSyntax.SyntaxList.List(Me._nodes(0), Me._nodes(1)), 0, 0)
+                        Return New SyntaxTokenList(Nothing, CommonSyntaxList.List(Me._nodes(0), Me._nodes(1)), 0, 0)
                     Case 3
-                        Return New SyntaxTokenList(Nothing, InternalSyntax.SyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2)), 0, 0)
+                        Return New SyntaxTokenList(Nothing, CommonSyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2)), 0, 0)
                 End Select
-                Return New SyntaxTokenList(Nothing, InternalSyntax.SyntaxList.List(Me._nodes, Me._count), 0, 0)
+                Return New SyntaxTokenList(Nothing, CommonSyntaxList.List(Me._nodes, Me._count), 0, 0)
             End If
             Return New SyntaxTokenList
         End Function
-
     End Class
 End Namespace

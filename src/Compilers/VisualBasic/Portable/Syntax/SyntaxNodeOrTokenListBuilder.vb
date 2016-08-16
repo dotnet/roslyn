@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -69,16 +70,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Case 1
                         Return New SyntaxNodeOrTokenList(Me._nodes(0).CreateRed(Nothing, 0), 0)
                     Case 2
-                        Return New SyntaxNodeOrTokenList(InternalSyntax.SyntaxList.List(Me._nodes(0), Me._nodes(1)).CreateRed(Nothing, 0), 0)
+                        Return New SyntaxNodeOrTokenList(CommonSyntaxList.List(Me._nodes(0), Me._nodes(1)).CreateRed(Nothing, 0), 0)
                     Case 3
-                        Return New SyntaxNodeOrTokenList(InternalSyntax.SyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2)).CreateRed(Nothing, 0), 0)
+                        Return New SyntaxNodeOrTokenList(CommonSyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2)).CreateRed(Nothing, 0), 0)
                 End Select
-                Dim tmp = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+                Dim tmp = New ArrayElement(Of GreenNode)(Me._count - 1) {}
                 Dim i As Integer
                 For i = 0 To Me._count - 1
                     tmp(i).Value = Me._nodes(i)
                 Next i
-                Return New SyntaxNodeOrTokenList(InternalSyntax.SyntaxList.List(tmp).CreateRed(Nothing, 0), 0)
+                Return New SyntaxNodeOrTokenList(CommonSyntaxList.List(tmp).CreateRed(Nothing, 0), 0)
             End If
             Return Nothing
         End Function

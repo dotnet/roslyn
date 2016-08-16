@@ -52,6 +52,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
+        internal GreenNode ItemUntyped(int index)
+        {
+            var node = this._node;
+            if (node.IsList)
+            {
+                return node.GetSlot(index);
+            }
+
+            Debug.Assert(index == 0);
+            return node;
+        }
+
         public bool Any()
         {
             return _node != null;
@@ -70,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return false;
         }
 
-        // for debugging
-        private TNode[] Nodes
+        internal TNode[] Nodes
         {
             get
             {
@@ -81,6 +92,20 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     arr[i] = this[i];
                 }
                 return arr;
+            }
+        }
+
+        public TNode Last
+        {
+            get
+            {
+                var node = this._node;
+                if (node.IsList)
+                {
+                    return (TNode)node.GetSlot(node.SlotCount - 1);
+                }
+
+                return (TNode)node;
             }
         }
 

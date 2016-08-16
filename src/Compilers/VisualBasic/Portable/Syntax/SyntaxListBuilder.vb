@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Me.Nodes(Count) = Nothing
         End Sub
 
-        Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)()
-            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me.Count - 1) {}
+        Friend Function ToGreenArray() As ArrayElement(Of GreenNode)()
+            Dim array = New ArrayElement(Of GreenNode)(Me.Count - 1) {}
             Dim i As Integer
             For i = 0 To array.Length - 1
                 array(i).Value = DirectCast(Me.Nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
@@ -35,11 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Case 1
                     Return DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
                 Case 2
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
                 Case 3
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.List(DirectCast(Me.Nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me.Nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
             End Select
-            Return InternalSyntax.SyntaxList.List(Me.ToGreenArray)
+
+            Return Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList.List(Me.ToGreenArray)
         End Function
     End Class
 End Namespace

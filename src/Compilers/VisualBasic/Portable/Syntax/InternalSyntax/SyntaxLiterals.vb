@@ -47,12 +47,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly _value As T
 
-        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
+        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia, base, typeSuffix)
             Me._value = value
         End Sub
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia, base, typeSuffix)
             Me._value = value
         End Sub
@@ -118,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend ReadOnly _base As LiteralBase
         Friend ReadOnly _typeSuffix As TypeCharacter
 
-        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter)
+        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, base As LiteralBase, typeSuffix As TypeCharacter)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia)
             Me._base = base
             Me._typeSuffix = typeSuffix
         End Sub
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, base As LiteralBase, typeSuffix As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
             Me._base = base
             Me._typeSuffix = typeSuffix
@@ -171,12 +171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly _value As T
 
-        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter, value As T)
+        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia, typeSuffix)
             Me._value = value
         End Sub
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter, value As T)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia, typeSuffix)
             Me._value = value
         End Sub
@@ -241,12 +241,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly _typeSuffix As TypeCharacter
 
-        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter)
+        Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia)
             Me._typeSuffix = typeSuffix
         End Sub
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
             Me._typeSuffix = typeSuffix
         End Sub

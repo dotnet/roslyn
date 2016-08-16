@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return trivia.WithAnnotations(SyntaxAnnotation.ElasticAnnotation)
         End Function
 
-        Friend Shared Function Token(leading As VisualBasicSyntaxNode, kind As SyntaxKind, trailing As VisualBasicSyntaxNode, Optional text As String = Nothing) As SyntaxToken
+        Friend Shared Function Token(leading As GreenNode, kind As SyntaxKind, trailing As GreenNode, Optional text As String = Nothing) As SyntaxToken
             Return SyntaxToken.Create(kind, leading, trailing, If(text Is Nothing, SyntaxFacts.GetText(kind), text))
         End Function
 

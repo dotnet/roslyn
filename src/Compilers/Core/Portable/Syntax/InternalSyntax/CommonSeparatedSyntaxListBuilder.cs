@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.Clear();
         }
 
+        public void RemoveLast()
+        {
+            this._builder.RemoveLast();
+        }
+
         public CommonSeparatedSyntaxListBuilder<TNode> Add(TNode node)
         {
             _builder.Add(node);
@@ -105,6 +110,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         public static implicit operator CommonSeparatedSyntaxList<TNode>(CommonSeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder.ToList();
+        }
+
+        public static implicit operator CommonSyntaxListBuilder(CommonSeparatedSyntaxListBuilder<TNode> builder)
+        {
+            return builder._builder;
         }
     }
 }

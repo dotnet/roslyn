@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class VisualBasicSyntaxRewriter
         Inherits VisualBasicSyntaxVisitor
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxList(Of TNode)
-            Dim alternate As SyntaxListBuilder(Of TNode) = Nothing
+        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CommonSyntaxList(Of TNode)) As CommonSyntaxList(Of TNode)
+            Dim alternate As CommonSyntaxListBuilder(Of TNode) = Nothing
             Dim i As Integer = 0
             Dim n As Integer = list.Count
             Do While (i < n)
                 Dim item As TNode = list.Item(i)
                 Dim visited As TNode = DirectCast(Me.Visit(item), TNode)
                 If item IsNot visited AndAlso alternate.IsNull Then
-                    alternate = New SyntaxListBuilder(Of TNode)(n)
+                    alternate = New CommonSyntaxListBuilder(Of TNode)(n)
                     alternate.AddRange(list, 0, i)
                 End If
 
@@ -45,59 +46,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return list
         End Function
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As SeparatedSyntaxList(Of TNode)
-            Dim alternate As SeparatedSyntaxListBuilder(Of TNode) = Nothing
-            Dim i As Integer = 0
-            Dim itemCount As Integer = list.Count
-            Dim separatorCount As Integer = list.SeparatorCount
+        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CommonSeparatedSyntaxList(Of TNode)) As CommonSeparatedSyntaxList(Of TNode)
+            'Dim alternate As CommonSeparatedSyntaxListBuilder(Of TNode) = Nothing
+            'Dim i As Integer = 0
+            'Dim itemCount As Integer = list.Count
+            'Dim separatorCount As Integer = list.SeparatorCount
 
-            While i < itemCount
-                Dim item = list(i)
-                Dim visitedItem = Me.Visit(item)
+            'While i < itemCount
+            '    Dim item = list(i)
+            '    Dim visitedItem = Me.Visit(item)
 
-                Dim separator As SyntaxToken = Nothing
-                Dim visitedSeparator As SyntaxToken = Nothing
+            '    Dim separator As GreenNode = Nothing
+            '    Dim visitedSeparator As GreenNode = Nothing
 
-                If (i < separatorCount) Then
+            '    If (i < separatorCount) Then
+            '        separator = list.GetSeparator(i)
+            '        ' LastTokenReplacer depends on us calling Visit rather than VisitToken for separators.
+            '        ' It is not clear whether this is desirable/acceptable.
+            '        Dim visitedSeparatorNode = Me.Visit(separator)
+            '        Debug.Assert(TypeOf visitedSeparatorNode Is SyntaxToken, "Cannot replace a separator with a non-separator")
 
-                    separator = list.GetSeparator(i)
-                    ' LastTokenReplacer depends on us calling Visit rather than VisitToken for separators.
-                    ' It is not clear whether this is desirable/acceptable.
-                    Dim visitedSeparatorNode = Me.Visit(separator)
-                    Debug.Assert(TypeOf visitedSeparatorNode Is SyntaxToken, "Cannot replace a separator with a non-separator")
+            '        visitedSeparator = DirectCast(visitedSeparatorNode, SyntaxToken)
 
-                    visitedSeparator = DirectCast(visitedSeparatorNode, SyntaxToken)
+            '        Debug.Assert((separator Is Nothing AndAlso separator.RawKind = SyntaxKind.None) OrElse
+            '            (visitedSeparator IsNot Nothing AndAlso visitedSeparator.RawKind <> SyntaxKind.None),
+            '        "Cannot delete a separator from a separated list. Removing an element will remove the corresponding separator.")
+            '    End If
 
-                    Debug.Assert((separator Is Nothing AndAlso separator.Kind = SyntaxKind.None) OrElse
-                        (visitedSeparator IsNot Nothing AndAlso visitedSeparator.Kind <> SyntaxKind.None),
-                    "Cannot delete a separator from a separated list. Removing an element will remove the corresponding separator.")
-                End If
+            '    If (item IsNot visitedItem OrElse separator IsNot visitedSeparator) AndAlso alternate.IsNull Then
+            '        alternate = New CommonSeparatedSyntaxListBuilder(Of TNode)(itemCount)
+            '        alternate.AddRange(list, i)
+            '    End If
 
-                If (item IsNot visitedItem OrElse separator IsNot visitedSeparator) AndAlso alternate.IsNull Then
-                    alternate = New SeparatedSyntaxListBuilder(Of TNode)(itemCount)
-                    alternate.AddRange(list, i)
-                End If
+            '    If Not alternate.IsNull Then
+            '        If visitedItem IsNot Nothing AndAlso visitedItem.Kind <> SyntaxKind.None Then
+            '            alternate.Add(DirectCast(visitedItem, TNode))
+            '            If visitedSeparator IsNot Nothing Then
+            '                alternate.AddSeparator(visitedSeparator)
+            '            End If
+            '        ElseIf i >= separatorCount AndAlso alternate.Count > 0 Then ' last element deleted
+            '            alternate.RemoveLast() ' delete *preceding* separator
+            '        End If
+            '    End If
 
-                If Not alternate.IsNull Then
-                    If visitedItem IsNot Nothing AndAlso visitedItem.Kind <> SyntaxKind.None Then
-                        alternate.Add(DirectCast(visitedItem, TNode))
-                        If visitedSeparator IsNot Nothing Then
-                            alternate.AddSeparator(visitedSeparator)
-                        End If
-                    ElseIf i >= separatorCount AndAlso alternate.Count > 0 Then ' last element deleted
-                        alternate.RemoveLast() ' delete *preceding* separator
-                    End If
-                End If
+            '    i += 1
+            'End While
 
-                i += 1
-            End While
+            'If Not alternate.IsNull Then
+            '    Return alternate.ToList()
+            'End If
 
-            If Not alternate.IsNull Then
-                Return alternate.ToList()
+            'Return list
+
+            ' A separated list Is filled with VB nodes And VB tokens.  Both of which
+            ' derive from InternalSyntax.VisualBasicSyntaxNode.  So this cast Is appropriately
+            ' typesafe.
+            Dim withSeps = CType(list.GetWithSeparators(), CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim result = Me.VisitList(withSeps)
+            If result <> withSeps Then
+                Return result.AsSeparatedList(Of TNode)()
             End If
 
             Return list
         End Function
-
     End Class
 End Namespace

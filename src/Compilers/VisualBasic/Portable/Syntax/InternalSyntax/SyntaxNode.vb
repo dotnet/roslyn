@@ -72,31 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 #End Region
 
-        ''' <summary>
-        ''' Add all the tokens in this node and children to the build token list builder. While doing this, add any
-        ''' diagnostics not on tokens to the given diagnostic info list.
-        ''' </summary>
-        Friend Overridable Sub CollectConstituentTokensAndDiagnostics(tokenListBuilder As SyntaxListBuilder(Of SyntaxToken),
-                                                                      nonTokenDiagnostics As IList(Of DiagnosticInfo))
-            ' This implementation is overridden for tokens; this is the implementation for non-token nodes.
-
-            ' Add diagnostics.
-            Dim diagnostics As DiagnosticInfo() = Me.GetDiagnostics()
-            If diagnostics IsNot Nothing AndAlso diagnostics.Length > 0 Then
-                For Each diag In diagnostics
-                    nonTokenDiagnostics.Add(diag)
-                Next
-            End If
-
-            ' Recurse to subtrees.
-            For i = 0 To SlotCount() - 1
-                Dim green = GetSlot(i)
-                If green IsNot Nothing Then
-                    DirectCast(green, VisualBasicSyntaxNode).CollectConstituentTokensAndDiagnostics(tokenListBuilder, nonTokenDiagnostics)
-                End If
-            Next
-        End Sub
-
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
 
@@ -147,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the leading trivia a green array, recursively to first token.
-        Friend Overridable Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetLeadingTrivia() As GreenNode
             Dim possibleFirstChild = GetFirstToken()
             If possibleFirstChild IsNot Nothing Then
                 Return possibleFirstChild.GetLeadingTrivia()
@@ -161,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the trailing trivia a green array, recursively to first token.
-        Friend Overridable Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetTrailingTrivia() As GreenNode
             Dim possibleLastChild = GetLastToken()
             If possibleLastChild IsNot Nothing Then
                 Return possibleLastChild.GetTrailingTrivia()
@@ -363,31 +338,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return [structure]
         End Function
 
-        Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
-            If nodes Is Nothing Then
-                Return Nothing
-            End If
+        'Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
+        '    If nodes Is Nothing Then
+        '        Return Nothing
+        '    End If
 
-            Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
+        '    Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
 
-            Dim count = list.Length
-            Select Case count
-                Case 0
-                    Return Nothing
-                Case 1
-                    If alwaysCreateListNode Then
-                        Return SyntaxList.List(list)
-                    Else
-                        Return list(0)
-                    End If
-                Case 2
-                    Return SyntaxList.List(list(0), list(1))
-                Case 3
-                    Return SyntaxList.List(list(0), list(1), list(2))
-                Case Else
-                    Return SyntaxList.List(list)
-            End Select
-        End Function
+        '    Dim count = list.Length
+        '    Select Case count
+        '        Case 0
+        '            Return Nothing
+        '        Case 1
+        '            If alwaysCreateListNode Then
+        '                Return SyntaxList.List(list)
+        '            Else
+        '                Return list(0)
+        '            End If
+        '        Case 2
+        '            Return SyntaxList.List(list(0), list(1))
+        '        Case 3
+        '            Return SyntaxList.List(list(0), list(1), list(2))
+        '        Case Else
+        '            Return SyntaxList.List(list)
+        '    End Select
+        'End Function
 
         Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken

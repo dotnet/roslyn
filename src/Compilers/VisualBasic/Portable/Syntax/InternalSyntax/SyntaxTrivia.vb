@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend NotOverridable Overrides Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetTrailingTrivia() As GreenNode
             Return Nothing
         End Function
 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend NotOverridable Overrides Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetLeadingTrivia() As GreenNode
             Return Nothing
         End Function
 

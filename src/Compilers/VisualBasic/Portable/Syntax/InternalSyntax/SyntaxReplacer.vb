@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class FirstTokenReplacer
         Inherits VisualBasicSyntaxRewriter
@@ -54,11 +56,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _newItem = newItem
         End Sub
 
-        Friend Shared Function Replace(Of TTree As VisualBasicSyntaxNode)(
+        Friend Shared Function Replace(Of TTree As GreenNode)(
                     root As TTree,
                     newItem As Func(Of SyntaxToken, SyntaxToken)) As TTree
 
-            Return DirectCast(New LastTokenReplacer(newItem).Visit(root), TTree)
+            Return DirectCast(New LastTokenReplacer(newItem).VisitNodeOrList(root), TTree)
+        End Function
+
+        Private Function VisitNodeOrList(nodeOrList As GreenNode) As GreenNode
+            If nodeOrList.IsList Then
+                Return VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(nodeOrList)).Node
+            Else
+                Return DirectCast(nodeOrList, VisualBasicSyntaxNode).Accept(Me)
+            End If
         End Function
 
         Public Overrides Function Visit(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
@@ -96,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim prevIdx = _skipCnt
                 _skipCnt = allChildrenCnt - 1
-                Dim result As VisualBasicSyntaxNode
+                Dim result As GreenNode
                 If node.IsList Then
                     result = VisitList(Of VisualBasicSyntaxNode)(node).Node
                 Else
@@ -104,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 _skipCnt = prevIdx
-                Return result
+                Return DirectCast(result, VisualBasicSyntaxNode)
             Else
                 Return MyBase.Visit(node)
             End If

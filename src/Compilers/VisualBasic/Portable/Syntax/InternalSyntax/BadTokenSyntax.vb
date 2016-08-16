@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _subKind As SyntaxSubKind
 
-        Friend Sub New(kind As SyntaxKind, subKind As SyntaxSubKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode)
+        Friend Sub New(kind As SyntaxKind, subKind As SyntaxSubKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
 
             _subKind = subKind

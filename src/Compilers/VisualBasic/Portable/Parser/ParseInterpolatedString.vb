@@ -2,6 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 '
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim contentBuilder = _pool.Allocate(Of InterpolatedStringContentSyntax)
 
             Dim doubleQuoteToken As PunctuationSyntax
-            Dim skipped As SyntaxListBuilder(Of SyntaxToken) = Nothing
+            Dim skipped As CommonSyntaxListBuilder(Of SyntaxToken) = Nothing
             Do
                 Dim content As InterpolatedStringContentSyntax
 
@@ -279,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return token
             End If
 
-            Dim triviaList As New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+            Dim triviaList As New CommonSyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
 
             Dim indexOfFirstColon As Integer = -1
             Dim newTrailingTrivia As GreenNode

@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _list.GetHashCode();
         }
 
+        public static implicit operator CommonSeparatedSyntaxList<GreenNode>(CommonSeparatedSyntaxList<TNode> list)
+        {
+            return new CommonSeparatedSyntaxList<GreenNode>(list.GetWithSeparators());
+        }
+
 #if DEBUG
         [Obsolete("For debugging only", true)]
         private TNode[] Nodes
