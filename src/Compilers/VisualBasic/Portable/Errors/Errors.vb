@@ -1686,7 +1686,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PeWritingFailure = 37256
 
         ERR_OptionMustBeAbsolutePath = 37257
-        ERR_SourceLinkRequiresPortablePdb = 37258
 
         ERR_TupleExplicitNamesOnAllMembersOrNone = 37258
         ERR_TupleTooFewElements = 37259
@@ -1695,6 +1694,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_TupleDuplicateMemberName = 37262
 
         ERR_RefReturningCallInExpressionTree = 37263
+
+        ERR_SourceLinkRequiresPortablePdb = 37264
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
