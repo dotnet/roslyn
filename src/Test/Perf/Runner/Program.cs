@@ -33,7 +33,9 @@ namespace Runner
             };
             parameterOptions.Parse(args);
 
+            Cleanup();
             AsyncMain(isCiTest).GetAwaiter().GetResult();
+
             if (isCiTest)
             {
                 Log("Running under continuous integration");
@@ -49,6 +51,24 @@ namespace Runner
             {
                 Log("Uploading traces");
                 UploadTraces(GetCPCDirectoryPath(), traceDestination);
+            }
+        }
+
+        private static void Cleanup()
+        {
+            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
+            if (File.Exists(consumptionTempResultsPath))
+            {
+                File.Delete(consumptionTempResultsPath);
+            }
+
+            if (Directory.Exists(GetCPCDirectoryPath()))
+            {
+                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
+                foreach (var databackDirectory in databackDirectories)
+                {
+                    Directory.Delete(databackDirectory, true);
+                }
             }
         }
 
@@ -85,7 +105,6 @@ namespace Runner
             foreach (var test in testInstances)
             {
                 var traceManager = test.GetTraceManager();
-                traceManager.Initialize();
                 test.Setup();
                 traceManager.Setup();
 

@@ -10,7 +10,6 @@ namespace Roslyn.Test.Performance.Utilities
     {
         bool HasWarmUpIteration { get; }
 
-        void Initialize();
         void Cleanup();
         void EndEvent();
         void EndScenario();

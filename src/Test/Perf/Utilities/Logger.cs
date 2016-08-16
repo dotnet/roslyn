@@ -38,7 +38,14 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         public ConsoleAndFileLogger()
         {
-            _file = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "perf-log.txt");
+            if (Directory.Exists(TestUtilities.GetCPCDirectoryPath()))
+            {
+                _file = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "perf-log.txt");
+            }
+            else
+            {
+                _file = "./perf-log.txt";
+            }
         }
 
         void ILogger.Flush()

@@ -17,7 +17,7 @@ namespace Roslyn.Test.Performance.Utilities
             }
             else
             {
-                Log($"WARNING: Could not find CPC at {cpcFullPath}");
+                Log($"WARNING: Could not find CPC at {cpcFullPath} (no traces will be collected)");
                 return new NoOpTraceManager();
             }
         }
@@ -43,27 +43,6 @@ namespace Roslyn.Test.Performance.Utilities
         }
 
         public bool HasWarmUpIteration => true;
-
-        // Cleanup the results directory and files before every run
-        public void Initialize()
-        {
-            /*
-            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            if (File.Exists(consumptionTempResultsPath))
-            {
-                File.Delete(consumptionTempResultsPath);
-            }
-
-            if (Directory.Exists(GetCPCDirectoryPath()))
-            {
-                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
-                foreach (var databackDirectory in databackDirectories)
-                {
-                    Directory.Delete(databackDirectory, true);
-                }
-            }
-            */
-        }
 
         public void Setup()
         {
