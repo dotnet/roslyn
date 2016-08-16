@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' don't do anything.
             Private Sub FinishInProgressTokens()
                 If _skippedTokensBuilder.Count > 0 Then
-                    Dim skippedTokensTrivia As VisualBasicSyntaxNode = SyntaxFactory.SkippedTokensTrivia(_skippedTokensBuilder.ToList())
+                    Dim skippedTokensTrivia As GreenNode = SyntaxFactory.SkippedTokensTrivia(_skippedTokensBuilder.ToList())
 
                     If _diagnosticsToAdd IsNot Nothing Then
                         For Each d In _diagnosticsToAdd

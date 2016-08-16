@@ -994,5 +994,35 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(2) == child3;
         }
         #endregion //Caching
+
+        /// <summary>
+        /// Add an error to the given node, creating a new node that is the same except it has no parent,
+        /// and has the given error attached to it. The error span is the entire span of this node.
+        /// </summary>
+        /// <param name="err">The error to attach to this node</param>
+        /// <returns>A new node, with no parent, that has this error added to it.</returns>
+        /// <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
+        /// then add an error with this method to create another node.</remarks>
+        internal GreenNode AddError(DiagnosticInfo err)
+        {
+            DiagnosticInfo[] errorInfos;
+
+            // If the green node already has errors, add those on.
+            if (GetDiagnostics() == null)
+            {
+                errorInfos = new[] { err };
+            }
+            else
+            {
+                // Add the error to the error list.
+                errorInfos = GetDiagnostics();
+                var length = errorInfos.Length;
+                Array.Resize(ref errorInfos, length + 1);
+                errorInfos[length] = err;
+            }
+
+            // Get a new green node with the errors added on.
+            return SetDiagnostics(errorInfos);
+        }
     }
 }

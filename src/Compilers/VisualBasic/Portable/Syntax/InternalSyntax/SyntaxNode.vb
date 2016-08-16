@@ -180,32 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         ''' <summary>
-        ''' Add an error to the given node, creating a new node that is the same except it has no parent,
-        ''' and has the given error attached to it. The error span is the entire span of this node.
-        ''' </summary>
-        ''' <param name="err">The error to attach to this node</param>
-        ''' <returns>A new node, with no parent, that has this error added to it.</returns>
-        ''' <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
-        ''' then add an error with this method to create another node.</remarks>
-        Friend Function AddError(err As DiagnosticInfo) As VisualBasicSyntaxNode
-            Dim errorInfos() As DiagnosticInfo
-
-            ' If the green node already has errors, add those on.
-            If GetDiagnostics() Is Nothing Then
-                errorInfos = {err}
-            Else
-                ' Add the error to the error list.
-                errorInfos = GetDiagnostics()
-                Dim length As Integer = errorInfos.Length
-                ReDim Preserve errorInfos(length)
-                errorInfos(length) = err
-            End If
-
-            ' Get a new green node with the errors added on.
-            Return DirectCast(SetDiagnostics(errorInfos), VisualBasicSyntaxNode)
-        End Function
-
-        ''' <summary>
         ''' Get all syntax errors associated with this node, or any child nodes, grand-child nodes, etc. The errors
         ''' are not in order.
         ''' </summary>

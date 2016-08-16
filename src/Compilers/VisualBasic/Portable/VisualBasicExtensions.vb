@@ -266,12 +266,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxNode.DoGetSyntaxErrors(tree, token)
         End Function
 
-        <Extension>
-        Friend Function AddError(node As GreenNode, diagnostic As DiagnosticInfo) As GreenNode
-            Dim green = TryCast(node, InternalSyntax.VisualBasicSyntaxNode)
-            Return green.AddError(diagnostic)
-        End Function
-
         ''' <summary>
         ''' Checks to see if SyntaxToken is a bracketed identifier.
         ''' </summary>
