@@ -282,13 +282,13 @@ Friend Class GreenNodeWriter
 
         _writer.WriteLine("        Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "DirectCast(trivia, VisualBasicSyntaxNode)", "GetTrailingTrivia")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "trivia", "GetTrailingTrivia")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
         _writer.WriteLine("        Public Overrides Function WithTrailingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "DirectCast(trivia, VisualBasicSyntaxNode)")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "trivia")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
