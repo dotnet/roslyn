@@ -489,6 +489,25 @@ Public Class BuildDevDivInsertionFiles
                 Return PackageName = "Microsoft.VisualStudio.InteractiveWindow" OrElse PackageName = "Microsoft.VisualStudio.VsInteractiveWindow"
             End Get
         End Property
+
+        ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
+        ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
+        Public ReadOnly Property IsCoreXTCompatible As Boolean
+            Get
+                Select Case PackageName
+                    Case "System.Security.Cryptography.Algorithms",
+                          "System.Security.Cryptography.X509Certificates",
+                          "System.Reflection.TypeExtensions",
+                          "System.Net.Security",
+                          "System.Diagnostics.Process",
+                          "System.AppContext"
+
+                        Return False
+                    Case Else
+                        Return True
+                End Select
+            End Get
+        End Property
     End Class
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
@@ -622,6 +641,12 @@ Public Class BuildDevDivInsertionFiles
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
             If dependency.IsInteractiveWindow Then
+                Continue For
+            End If
+
+            ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
+            ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
+            If dependency.IsCoreXTCompatible Then
                 Continue For
             End If
 
