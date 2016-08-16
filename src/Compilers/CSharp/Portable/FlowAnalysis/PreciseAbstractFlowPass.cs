@@ -463,7 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return to the caller the set of pending return statements.
         /// </summary>
         /// <returns></returns>
-        protected virtual ImmutableArray<PendingBranch> RemoveReturns()
+        protected virtual ImmutableArray<PendingBranch> RemoveReturns() => RemoveReturnsCore();
+
+        protected ImmutableArray<PendingBranch> RemoveReturnsCore()
         {
             ImmutableArray<PendingBranch> result;
             if (_trackExceptions)

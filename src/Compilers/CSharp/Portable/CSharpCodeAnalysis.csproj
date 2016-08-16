@@ -353,6 +353,7 @@
     <Compile Include="FlowAnalysis\ControlFlowPass.cs" />
     <Compile Include="FlowAnalysis\CSharpDataFlowAnalysis.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.cs" />
+    <Compile Include="FlowAnalysis\DataFlowPass.LocalFunctions.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.VariableIdentifier.cs" />
     <Compile Include="FlowAnalysis\DataFlowsInWalker.cs" />
     <Compile Include="FlowAnalysis\DataFlowsOutWalker.cs" />
@@ -360,6 +361,7 @@
     <Compile Include="FlowAnalysis\EntryPointsWalker.cs" />
     <Compile Include="FlowAnalysis\ExitPointsWalker.cs" />
     <Compile Include="FlowAnalysis\FlowAnalysisPass.cs" />
+    <Compile Include="FlowAnalysis\LocalFunctionAssignmentPass.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.AbstractLocalState.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass_Switch.cs" />
