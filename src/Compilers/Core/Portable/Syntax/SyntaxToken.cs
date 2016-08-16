@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis
             var greenList = trivia?.Select(t => t.UnderlyingNode);
 
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(Syntax.InternalSyntax.CommonSyntaxList.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis
             var greenList = trivia?.Select(t => t.UnderlyingNode);
 
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(Syntax.InternalSyntax.CommonSyntaxList.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 

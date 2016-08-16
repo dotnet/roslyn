@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxList<TNode>);
             }
 
-            var newGreen = Syntax.InternalSyntax.CommonSyntaxList.CreateList(items.Select(n => n.Green));
+            var newGreen = creator.CreateList(items.Select(n => n.Green));
             return new SyntaxList<TNode>(newGreen.CreateRed());
         }
 

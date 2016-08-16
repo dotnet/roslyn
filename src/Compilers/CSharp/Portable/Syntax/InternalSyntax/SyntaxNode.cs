@@ -246,6 +246,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return flags;
         }
 
+        public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)
+        {
+            if (nodes == null)
+            {
+                return null;
+            }
+
+            var list = nodes.Select(n => (CSharpSyntaxNode)n).ToArray();
+
+            switch (list.Length)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    if (alwaysCreateListNode)
+                    {
+                        goto default;
+                    }
+                    else
+                    {
+                        return list[0];
+                    }
+                case 2:
+                    return CommonSyntaxList.List(list[0], list[1]);
+                case 3:
+                    return CommonSyntaxList.List(list[0], list[1], list[2]);
+                default:
+                    return CommonSyntaxList.List(list);
+            }
+        }
+
         public override Microsoft.CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
             return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);

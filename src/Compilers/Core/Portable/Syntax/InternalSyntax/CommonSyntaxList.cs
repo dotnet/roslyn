@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
@@ -172,6 +171,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
             throw ExceptionUtilities.Unreachable;
@@ -180,37 +184,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         public override bool IsTriviaWithEndOfLine()
         {
             return false;
-        }
-
-        public static GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false)
-        {
-            if (nodes == null)
-            {
-                return null;
-            }
-
-            var list = nodes.ToArray();
-
-            switch (list.Length)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    if (alwaysCreateListNode)
-                    {
-                        goto default;
-                    }
-                    else
-                    {
-                        return list[0];
-                    }
-                case 2:
-                    return CommonSyntaxList.List(list[0], list[1]);
-                case 3:
-                    return CommonSyntaxList.List(list[0], list[1], list[2]);
-                default:
-                    return CommonSyntaxList.List(list);
-            }
         }
     }
 }
