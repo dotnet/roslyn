@@ -14,6 +14,17 @@ namespace Microsoft.CodeAnalysis.Syntax
             return new SyntaxList<SyntaxNode>(builder.ToListNode().CreateRed());
         }
 
+        public static SyntaxList<TNode> ToList<TNode>(this SyntaxListBuilder builder)
+            where TNode : SyntaxNode
+        {
+            if (builder == null || builder.Count == 0)
+            {
+                return new SyntaxList<TNode>();
+            }
+
+            return new SyntaxList<TNode>(builder.ToListNode().CreateRed());
+        }
+
         public static SeparatedSyntaxList<TNode> ToSeparatedList<TNode>(this SyntaxListBuilder builder) where TNode : SyntaxNode
         {
             if (builder == null || builder.Count == 0)
