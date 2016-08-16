@@ -4,7 +4,7 @@
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Dependencies.props" />
 
   <Target Name="Build">
-    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(OutDir)&quot;" WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(OutDir.TrimEnd('\'))&quot;" WorkingDirectory="$(ProjectDir)" />
   </Target>
 
 </Project>
