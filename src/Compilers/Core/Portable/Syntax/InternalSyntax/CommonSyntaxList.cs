@@ -171,11 +171,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
         public override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
             throw ExceptionUtilities.Unreachable;
