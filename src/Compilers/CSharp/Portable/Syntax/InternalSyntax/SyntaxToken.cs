@@ -385,19 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (triviaList != null && triviaList.ContainsDirectives)
             {
-                // If we have a list of trivia, then that node is not actually a CSharpSyntaxNode.
-                // Just defer to our standard ApplyDirectives helper as it will do the appropriate
-                // walking of this list to ApplyDirectives to the children.
-                if (triviaList.RawKind == GreenNode.ListKind)
-                {
-                    return ApplyDirectives(triviaList, stack);
-                }
-                else
-                {
-                    // Otherwise, we must have an actual piece of C# trivia.  Just apply the stack
-                    // to that node directly.
-                    return ((CSharpSyntaxNode)triviaList).ApplyDirectives(stack);
-                }
+                return ApplyDirectivesToListOrNode(triviaList, stack);
             }
 
             return stack;

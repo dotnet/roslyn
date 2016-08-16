@@ -164,12 +164,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var child = node.GetSlot(i);
                     if (child != null)
                     {
-                        stack = ((CSharpSyntaxNode)child).ApplyDirectives(stack);
+                        stack = ApplyDirectivesToListOrNode(child, stack);
                     }
                 }
             }
 
             return stack;
+        }
+
+        internal static DirectiveStack ApplyDirectivesToListOrNode(GreenNode listOrNode, DirectiveStack stack)
+        {
+            // If we have a list of trivia, then that node is not actually a CSharpSyntaxNode.
+            // Just defer to our standard ApplyDirectives helper as it will do the appropriate
+            // walking of this list to ApplyDirectives to the children.
+            if (listOrNode.RawKind == GreenNode.ListKind)
+            {
+                return ApplyDirectives(listOrNode, stack);
+            }
+            else
+            {
+                // Otherwise, we must have an actual piece of C# trivia.  Just apply the stack
+                // to that node directly.
+                return ((CSharpSyntaxNode)listOrNode).ApplyDirectives(stack);
+            }
         }
 
         internal virtual IList<DirectiveTriviaSyntax> GetDirectives()
