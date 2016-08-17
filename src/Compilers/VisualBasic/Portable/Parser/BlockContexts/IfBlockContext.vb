@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class IfBlockContext
         Inherits ExecutableStatementContext
 
-        Private _elseIfBlocks As SyntaxListBuilder(Of ElseIfBlockSyntax)
+        Private _elseIfBlocks As CommonSyntaxListBuilder(Of ElseIfBlockSyntax)
         Private _optionalElseBlock As ElseBlockSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)

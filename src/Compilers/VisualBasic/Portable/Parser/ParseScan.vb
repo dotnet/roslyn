@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //
@@ -246,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' TODO: note that queries sometimes use very large lists of resync tokens.
         ' linear search may not make much sense. Perhaps could use lazy-inited hashtables?
-        Private Sub ResyncAt(skippedTokens As SyntaxListBuilder(Of SyntaxToken), state As ScannerState, resyncTokens As SyntaxKind())
+        Private Sub ResyncAt(skippedTokens As CommonSyntaxListBuilder(Of SyntaxToken), state As ScannerState, resyncTokens As SyntaxKind())
             Debug.Assert(resyncTokens IsNot Nothing)
 
             While CurrentToken.Kind <> SyntaxKind.EndOfFileToken
@@ -268,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
         End Sub
 
-        Private Function ResyncAt(state As ScannerState, resyncTokens As SyntaxKind()) As SyntaxList(Of SyntaxToken)
+        Private Function ResyncAt(state As ScannerState, resyncTokens As SyntaxKind()) As CommonSyntaxList(Of SyntaxToken)
             Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
 
             ResyncAt(skippedTokens, state, resyncTokens)
@@ -282,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Resyncs to next statement terminator. Used in Preprocessor
         ''' </summary>
-        Private Function ResyncAndConsumeStatementTerminator() As SyntaxList(Of SyntaxToken)
+        Private Function ResyncAndConsumeStatementTerminator() As CommonSyntaxList(Of SyntaxToken)
             Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
 
             While CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
@@ -306,11 +307,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        Friend Function ResyncAt() As SyntaxList(Of SyntaxToken)
+        Friend Function ResyncAt() As CommonSyntaxList(Of SyntaxToken)
             Return ResyncAt(ScannerState.VB, SpecializedCollections.EmptyArray(Of SyntaxKind))
         End Function
 
-        Friend Function ResyncAt(resyncTokens As SyntaxKind()) As SyntaxList(Of SyntaxToken)
+        Friend Function ResyncAt(resyncTokens As SyntaxKind()) As CommonSyntaxList(Of SyntaxToken)
             Debug.Assert(resyncTokens IsNot Nothing)
             Return ResyncAt(ScannerState.VB, resyncTokens)
         End Function
@@ -325,10 +326,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return syntax.AddTrailingSyntax(ResyncAt())
         End Function
 
-        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
+        Private Function ResyncAt(Of T As GreenNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
             Debug.Assert(resyncTokens IsNot Nothing)
 
-            Return syntax.AddTrailingSyntax(ResyncAt(resyncTokens))
+            Return syntax.AddTrailingSyntax(ResyncAt(resyncTokens).Node)
         End Function
 
         ''' <summary>

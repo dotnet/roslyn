@@ -7,6 +7,7 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._doNotRequireXmlDocCommentPrefix = True
         End Sub
 
-        Private Function TryScanXmlDocComment(tList As SyntaxListBuilder) As Boolean
+        Private Function TryScanXmlDocComment(tList As CommonSyntaxListBuilder) As Boolean
             Debug.Assert(IsAtNewLine)
 
             ' leading whitespace until we see ''' should be regular whitespace
@@ -180,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Returns False if trivia ends line.
         ''' </summary>
-        Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As SyntaxListBuilder(Of VisualBasicSyntaxNode)) As Boolean
+        Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As CommonSyntaxListBuilder(Of VisualBasicSyntaxNode)) As Boolean
             Debug.Assert(IsScanningXmlDoc)
             Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
@@ -228,14 +229,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' // [14]    CharData    ::=    [^<&]* - ([^<&]* ']]>' [^<&]*)
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
             If IsAtNewLine() OrElse _isStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 _isStartingFirstXmlDocLine = False           ' no longer starting
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
             Dim Here As Integer = 0
@@ -451,14 +452,14 @@ CleanUp:
             ' //  =
             ' //  Whitespace
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
             If IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
             While CanGet()

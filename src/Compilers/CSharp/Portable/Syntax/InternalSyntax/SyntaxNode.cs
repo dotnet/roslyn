@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -63,13 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return (SyntaxKind)this.RawKind; }
         }
 
-        public override string KindText
-        {
-            get
-            {
-                return this.Kind.ToString();
-            }
-        }
+        public override string KindText => this.Kind.ToString();
 
         public override int RawContextualKind
         {
@@ -95,6 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
+        public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
+
         public override int GetSlotOffset(int index)
         {
             // This implementation should not support arbitrary
@@ -114,44 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return offset;
         }
 
-        internal ChildSyntaxList ChildNodesAndTokens()
-        {
-            return new ChildSyntaxList(this);
-        }
-
-        /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
-        /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
-        {
-            yield return this;
-
-            var stack = new Stack<ChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
-            {
-                var en = stack.Pop();
-                if (!en.MoveNext())
-                {
-                    // no more down this branch
-                    continue;
-                }
-
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!(current is SyntaxToken))
-                {
-                    // not token, so consider children
-                    stack.Push(((CSharpSyntaxNode)current).ChildNodesAndTokens().GetEnumerator());
-                    continue;
-                }
-            }
-        }
-
         public SyntaxToken GetFirstToken()
         {
             return (SyntaxToken)this.GetFirstTerminal();
@@ -167,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return (SyntaxToken)this.GetLastNonmissingTerminal();
         }
 
-        public virtual CSharpSyntaxNode GetLeadingTrivia()
+        public virtual GreenNode GetLeadingTrivia()
         {
             return null;
         }
@@ -177,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.GetLeadingTrivia();
         }
 
-        public virtual CSharpSyntaxNode GetTrailingTrivia()
+        public virtual GreenNode GetTrailingTrivia()
         {
             return null;
         }
@@ -187,41 +146,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.GetTrailingTrivia();
         }
 
-        public override string ToString()
-        {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: false, trailing: false);
-            return sb.ToStringAndFree();
-        }
-
-        public override string ToFullString()
-        {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: true, trailing: true);
-            return sb.ToStringAndFree();
-        }
-
         public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
 
         public abstract void Accept(CSharpSyntaxVisitor visitor);
 
         internal virtual DirectiveStack ApplyDirectives(DirectiveStack stack)
         {
-            if (this.ContainsDirectives)
+            return ApplyDirectives(this, stack);
+        }
+
+        internal static DirectiveStack ApplyDirectives(GreenNode node, DirectiveStack stack)
+        {
+            if (node.ContainsDirectives)
             {
-                for (int i = 0, n = this.SlotCount; i < n; i++)
+                for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
-                    var child = this.GetSlot(i);
+                    var child = node.GetSlot(i);
                     if (child != null)
                     {
-                        stack = ((CSharpSyntaxNode)child).ApplyDirectives(stack);
+                        stack = ApplyDirectivesToListOrNode(child, stack);
                     }
                 }
             }
 
             return stack;
+        }
+
+        internal static DirectiveStack ApplyDirectivesToListOrNode(GreenNode listOrNode, DirectiveStack stack)
+        {
+            // If we have a list of trivia, then that node is not actually a CSharpSyntaxNode.
+            // Just defer to our standard ApplyDirectives helper as it will do the appropriate
+            // walking of this list to ApplyDirectives to the children.
+            if (listOrNode.RawKind == GreenNode.ListKind)
+            {
+                return ApplyDirectives(listOrNode, stack);
+            }
+            else
+            {
+                // Otherwise, we must have an actual piece of C# trivia.  Just apply the stack
+                // to that node directly.
+                return ((CSharpSyntaxNode)listOrNode).ApplyDirectives(stack);
+            }
         }
 
         internal virtual IList<DirectiveTriviaSyntax> GetDirectives()
@@ -296,45 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return flags;
-        }
-
-        public override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
-        }
-
-        public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)
-        {
-            if (nodes == null)
-            {
-                return null;
-            }
-
-            var list = nodes.Select(n => (CSharpSyntaxNode)n).ToArray();
-
-            switch (list.Length)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    if (alwaysCreateListNode)
-                    {
-                        goto default;
-                    }
-                    else
-                    {
-                        return list[0];
-                    }
-                case 2:
-                    return SyntaxList.List(list[0], list[1]);
-                case 3:
-                    return SyntaxList.List(list[0], list[1], list[2]);
-                default:
-                    return SyntaxList.List(list);
-            }
         }
 
         public override Microsoft.CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)

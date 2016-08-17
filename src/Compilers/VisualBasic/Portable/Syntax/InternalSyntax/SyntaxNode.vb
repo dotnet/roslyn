@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -66,107 +66,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 context.IsWithinIteratorContext = Me.ParsedInIterator
         End Function
 
-        ''' <summary>
-        ''' Append the full text of this node including children and trivia to the given stringbuilder.
-        ''' </summary>
-        Public Overrides Sub WriteTo(writer As IO.TextWriter)
-            Dim stack = ArrayBuilder(Of GreenNode).GetInstance
-            stack.Push(Me)
-
-            While stack.Count > 0
-                DirectCast(stack.Pop(), InternalSyntax.VisualBasicSyntaxNode).WriteToOrFlatten(writer, stack)
-            End While
-
-            stack.Free()
-        End Sub
-
-        Protected Overrides Sub WriteTo(writer As IO.TextWriter, leading As Boolean, trailing As Boolean)
-            Me.WriteTo(writer)
-        End Sub
-
-        ''' <summary>
-        ''' NOTE: the method should write OR push children, but never do both
-        ''' </summary>
-        Friend Overridable Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-            ' By default just push children to the stack
-            For i = Me.SlotCount() - 1 To 0 Step -1
-                Dim node As GreenNode = GetSlot(i)
-                If node IsNot Nothing Then
-                    stack.Push(GetSlot(i))
-                End If
-            Next
-        End Sub
-
 #Region "Serialization"
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
         End Sub
 #End Region
 
-        ''' <summary>
-        ''' Add all the tokens in this node and children to the build token list builder. While doing this, add any
-        ''' diagnostics not on tokens to the given diagnostic info list.
-        ''' </summary>
-        Friend Overridable Sub CollectConstituentTokensAndDiagnostics(tokenListBuilder As SyntaxListBuilder(Of SyntaxToken),
-                                                                      nonTokenDiagnostics As IList(Of DiagnosticInfo))
-            ' This implementation is overridden for tokens; this is the implementation for non-token nodes.
-
-            ' Add diagnostics.
-            Dim diagnostics As DiagnosticInfo() = Me.GetDiagnostics()
-            If diagnostics IsNot Nothing AndAlso diagnostics.Length > 0 Then
-                For Each diag In diagnostics
-                    nonTokenDiagnostics.Add(diag)
-                Next
-            End If
-
-            ' Recurse to subtrees.
-            For i = 0 To SlotCount() - 1
-                Dim green = GetSlot(i)
-                If green IsNot Nothing Then
-                    DirectCast(green, VisualBasicSyntaxNode).CollectConstituentTokensAndDiagnostics(tokenListBuilder, nonTokenDiagnostics)
-                End If
-            Next
-        End Sub
-
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
-
-        ''' <summary>
-        ''' Returns the string representation of this node, not including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        Public Overrides Function ToString() As String
-            ' We get the full text into the string builder, and then only
-            ' grab the part that doesn't contain the preceding and trailing trivia.
-
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture)
-
-            WriteTo(writer)
-
-            Dim leadingWidth = GetLeadingTriviaWidth()
-            Dim trailingWidth = GetTrailingTriviaWidth()
-
-            Debug.Assert(FullWidth = builder.Length)
-            Debug.Assert(FullWidth >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, FullWidth - leadingWidth - trailingWidth)
-        End Function
-
-        ''' <summary>
-        ''' Returns full string representation of this node including its leading and trailing trivia.
-        ''' </summary>
-        ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        ''' <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        Public Overrides Function ToFullString() As String
-            Dim builder = Collections.PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture)
-
-            WriteTo(writer)
-
-            Return builder.ToStringAndFree()
-        End Function
 
         Public Overrides ReadOnly Property IsStructuredTrivia As Boolean
             Get
@@ -177,6 +84,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Public Overrides ReadOnly Property IsDirective As Boolean
             Get
                 Return TypeOf Me Is DirectiveTriviaSyntax
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsSkippedTokensTrivia As Boolean
+            Get
+                Return Me.Kind = SyntaxKind.SkippedTokensTrivia
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsDocumentationCommentTrivia As Boolean
+            Get
+                Return Me.Kind = SyntaxKind.DocumentationCommentTrivia
             End Get
         End Property
 
@@ -203,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the leading trivia a green array, recursively to first token.
-        Friend Overridable Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetLeadingTrivia() As GreenNode
             Dim possibleFirstChild = GetFirstToken()
             If possibleFirstChild IsNot Nothing Then
                 Return possibleFirstChild.GetLeadingTrivia()
@@ -217,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the trailing trivia a green array, recursively to first token.
-        Friend Overridable Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend Overridable Function GetTrailingTrivia() As GreenNode
             Dim possibleLastChild = GetLastToken()
             If possibleLastChild IsNot Nothing Then
                 Return possibleLastChild.GetTrailingTrivia()
@@ -259,32 +178,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(CType(kind, UInt16), diagnostics, annotations, fullWidth)
             GreenStats.NoteGreen(Me)
         End Sub
-
-        ''' <summary>
-        ''' Add an error to the given node, creating a new node that is the same except it has no parent,
-        ''' and has the given error attached to it. The error span is the entire span of this node.
-        ''' </summary>
-        ''' <param name="err">The error to attach to this node</param>
-        ''' <returns>A new node, with no parent, that has this error added to it.</returns>
-        ''' <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
-        ''' then add an error with this method to create another node.</remarks>
-        Friend Function AddError(err As DiagnosticInfo) As VisualBasicSyntaxNode
-            Dim errorInfos() As DiagnosticInfo
-
-            ' If the green node already has errors, add those on.
-            If GetDiagnostics() Is Nothing Then
-                errorInfos = {err}
-            Else
-                ' Add the error to the error list.
-                errorInfos = GetDiagnostics()
-                Dim length As Integer = errorInfos.Length
-                ReDim Preserve errorInfos(length)
-                errorInfos(length) = err
-            End If
-
-            ' Get a new green node with the errors added on.
-            Return DirectCast(SetDiagnostics(errorInfos), VisualBasicSyntaxNode)
-        End Function
 
         ''' <summary>
         ''' Get all syntax errors associated with this node, or any child nodes, grand-child nodes, etc. The errors
@@ -393,26 +286,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Public Overrides Function GetSlotOffset(index As Integer) As Integer
-            ' This implementation should not support arbitrary
-            ' length lists since the implementation is O(n).
-            Debug.Assert(index < 12) ' Max. slots 12 (DeclareStatement)
-
-            Dim offset = 0
-
-            For i = 0 To index - 1
-                Dim child = GetSlot(i)
-                If child IsNot Nothing Then
-                    offset += child.FullWidth
-                End If
-            Next
-            Return offset
-        End Function
-
-        Friend Function ChildNodesAndTokens() As ChildSyntaxList
-            Return New ChildSyntaxList(Me)
-        End Function
-
         ' Use conditional weak table so we always return same identity for structured trivia
         Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, Dictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
 
@@ -439,37 +312,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return [structure]
         End Function
 
-        Public Overrides ReadOnly Property Navigator As AbstractSyntaxNavigator
-            Get
-                Return SyntaxNavigator.Instance
-            End Get
-        End Property
+        'Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
+        '    If nodes Is Nothing Then
+        '        Return Nothing
+        '    End If
 
-        Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
-            If nodes Is Nothing Then
-                Return Nothing
-            End If
+        '    Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
 
-            Dim list = nodes.Select(Function(n) DirectCast(n, InternalSyntax.VisualBasicSyntaxNode)).ToArray()
-
-            Dim count = list.Length
-            Select Case count
-                Case 0
-                    Return Nothing
-                Case 1
-                    If alwaysCreateListNode Then
-                        Return SyntaxList.List(list)
-                    Else
-                        Return list(0)
-                    End If
-                Case 2
-                    Return SyntaxList.List(list(0), list(1))
-                Case 3
-                    Return SyntaxList.List(list(0), list(1), list(2))
-                Case Else
-                    Return SyntaxList.List(list)
-            End Select
-        End Function
+        '    Dim count = list.Length
+        '    Select Case count
+        '        Case 0
+        '            Return Nothing
+        '        Case 1
+        '            If alwaysCreateListNode Then
+        '                Return SyntaxList.List(list)
+        '            Else
+        '                Return list(0)
+        '            End If
+        '        Case 2
+        '            Return SyntaxList.List(list(0), list(1))
+        '        Case 3
+        '            Return SyntaxList.List(list(0), list(1), list(2))
+        '        Case Else
+        '            Return SyntaxList.List(list)
+        '    End Select
+        'End Function
 
         Public Overrides Function CreateSeparator(Of TNode As SyntaxNode)(element As SyntaxNode) As CodeAnalysis.SyntaxToken
             Dim separatorKind As SyntaxKind = SyntaxKind.CommaToken

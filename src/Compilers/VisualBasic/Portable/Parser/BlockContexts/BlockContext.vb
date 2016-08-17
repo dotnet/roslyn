@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _beginStatement As StatementSyntax
 
         Protected _parser As Parser
-        Protected _statements As SyntaxListBuilder(Of StatementSyntax)
+        Protected _statements As CommonSyntaxListBuilder(Of StatementSyntax)
 
         Private ReadOnly _kind As SyntaxKind
         Private ReadOnly _endKind As SyntaxKind
@@ -145,6 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+        Public Function GetNodeFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetNodeFlags
+            Dim flags = SyntaxNodeCache.GetDefaultNodeFlags()
+            Return VisualBasicSyntaxNode.SetFactoryContext(flags, Me)
+        End Function
+
         Friend ReadOnly Property IsWithinIteratorMethodOrLambdaOrProperty As Boolean
             Get
                 Return _isWithinIteratorMethodOrLambdaOrProperty
@@ -194,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _statements.Add(DirectCast(node, StatementSyntax))
         End Sub
 
-        Friend ReadOnly Property Statements As SyntaxListBuilder(Of StatementSyntax)
+        Friend ReadOnly Property Statements As CommonSyntaxListBuilder(Of StatementSyntax)
             Get
                 Return _statements
             End Get
@@ -204,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _parser._pool.Free(_statements)
         End Sub
 
-        Friend Function Body() As SyntaxList(Of StatementSyntax)
+        Friend Function Body() As CommonSyntaxList(Of StatementSyntax)
             Dim result = _statements.ToList()
 
             _statements.Clear()
@@ -224,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Return an empty body if the body is a single, zero-width EmptyStatement,
         ''' otherwise returns the entire body.
         ''' </summary>
-        Friend Function OptionalBody() As SyntaxList(Of StatementSyntax)
+        Friend Function OptionalBody() As CommonSyntaxList(Of StatementSyntax)
             Dim statement = SingleStatementOrDefault()
 
             If statement IsNot Nothing AndAlso
@@ -236,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Body()
         End Function
 
-        Friend Function Body(Of T As StatementSyntax)() As SyntaxList(Of T)
+        Friend Function Body(Of T As StatementSyntax)() As CommonSyntaxList(Of T)
             Dim result = _statements.ToList(Of T)()
 
             _statements.Clear()
@@ -246,9 +252,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Same as Body(), but use a SyntaxListWithManyChildren if the
         ' body is large enough, so we get red node with weak children.
-        Friend Function BodyWithWeakChildren() As SyntaxList(Of StatementSyntax)
+        Friend Function BodyWithWeakChildren() As CommonSyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
-                Dim result = New SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
+                Dim result = New CommonSyntaxList(Of StatementSyntax)(CommonSyntaxList.List(CType(_statements, CommonSyntaxListBuilder).ToArray))
 
                 _statements.Clear()
 
@@ -259,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Is this statement list non-empty, and large enough to make using weak children beneficial?
-        Private Shared Function IsLargeEnoughNonEmptyStatementList(statements As SyntaxListBuilder(Of StatementSyntax)) As Boolean
+        Private Shared Function IsLargeEnoughNonEmptyStatementList(statements As CommonSyntaxListBuilder(Of StatementSyntax)) As Boolean
             If statements.Count = 0 Then
                 Return False
             ElseIf statements.Count <= 2 Then
@@ -274,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Friend Function BaseDeclarations(Of T As InheritsOrImplementsStatementSyntax)() As SyntaxList(Of T)
+        Friend Function BaseDeclarations(Of T As InheritsOrImplementsStatementSyntax)() As CommonSyntaxList(Of T)
 
             Dim result = _statements.ToList(Of T)()
 
@@ -319,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Private Sub HandleAnyUnexpectedTokens(currentStmt As StatementSyntax, unexpected As SyntaxList(Of SyntaxToken))
+        Private Sub HandleAnyUnexpectedTokens(currentStmt As StatementSyntax, unexpected As CommonSyntaxList(Of SyntaxToken))
             If unexpected.Node Is Nothing Then
                 Return
             End If

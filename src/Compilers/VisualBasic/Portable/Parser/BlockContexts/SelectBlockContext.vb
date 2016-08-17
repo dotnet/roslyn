@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class SelectBlockContext
         Inherits ExecutableStatementContext
 
-        Private _caseBlocks As SyntaxListBuilder(Of CaseBlockSyntax)
+        Private _caseBlocks As CommonSyntaxListBuilder(Of CaseBlockSyntax)
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.SelectBlock, statement, prevContext)
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' a BadCaseStatement? Compile a list of all uses of missing statements.
 
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExpectedCase)
-                    Dim caseStmt = SyntaxFactory.CaseStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.CaseKeyword), New SeparatedSyntaxList(Of CaseClauseSyntax)())
+                    Dim caseStmt = SyntaxFactory.CaseStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.CaseKeyword), New CommonSeparatedSyntaxList(Of CaseClauseSyntax)())
                     Dim context = New CaseBlockContext(SyntaxKind.CaseBlock, caseStmt, Me)
                     ' Previously we explicitly added a missing terminator.  Now, missing terminators are added automatically if a statement
                     ' is added next to a statement.

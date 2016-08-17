@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         Dim boundFunctionLocal = New BoundLocal(node.Syntax, functionLocal, functionLocal.Type)
 
-                        Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
+                        Dim syntaxNode As SyntaxNode = node.Syntax
 
                         Dim assignment As BoundStatement = New BoundExpressionStatement(
                                                                 syntaxNode,

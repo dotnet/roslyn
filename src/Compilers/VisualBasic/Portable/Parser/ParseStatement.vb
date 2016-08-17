@@ -5,6 +5,7 @@
 '-----------------------------------------------------------------------------
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -216,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     If stmtError <> ERRID.ERR_None Then
                         statement = SyntaxFactory.ReturnStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.ReturnKeyword), Nothing)
-                        statement = statement.AddLeadingSyntax(SyntaxList.List(exitKeyword, CurrentToken), stmtError)
+                        statement = statement.AddLeadingSyntax(CommonSyntaxList.List(exitKeyword, CurrentToken), stmtError)
                         GetNextToken()
                         Return statement
                     End If
@@ -491,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
             ' Put the 'ENDIF'/'WEND'/'GOSUB' token in the unexpected.
-            Dim unexpected As SyntaxList(Of SyntaxToken) = ResyncAt()
+            Dim unexpected As CommonSyntaxList(Of SyntaxToken) = ResyncAt()
 
             Dim missingEndKeyword As KeywordSyntax = InternalSyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword)
             Dim statement As StatementSyntax = Nothing
@@ -1136,7 +1137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' A non-parenthesized argument list cannot contain
                     ' a newline.
 
-                    Dim unexpected As VisualBasicSyntaxNode = Nothing
+                    Dim unexpected As GreenNode = Nothing
                     Dim arguments = ParseArguments(unexpected)
                     Dim closeParen = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseParenToken)
                     If unexpected IsNot Nothing Then
@@ -1577,7 +1578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return ReportSyntaxError(SyntaxFactory.LabelStatement(labelName, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonToken)), ERRID.ERR_ObsoleteLineNumbersAreLabels)
             End If
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(labelName.GetTrailingTrivia())
+            Dim trivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(labelName.GetTrailingTrivia())
             Debug.Assert(trivia.Count > 0)
             Dim index = -1
             For i = 0 To trivia.Count - 1
@@ -1618,7 +1619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
-            Dim argumentsBuilder As SeparatedSyntaxListBuilder(Of ArgumentSyntax) = _pool.AllocateSeparated(Of ArgumentSyntax)()
+            Dim argumentsBuilder As CommonSeparatedSyntaxListBuilder(Of ArgumentSyntax) = _pool.AllocateSeparated(Of ArgumentSyntax)()
             Dim comma As PunctuationSyntax = Nothing
 
             ' Parse the first required argument followed by a comma
@@ -1640,7 +1641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 argumentsBuilder.Add(ParseArgument(RedimOrNewParent:=False))
             End If
 
-            Dim arguments As SeparatedSyntaxList(Of ArgumentSyntax) = argumentsBuilder.ToList
+            Dim arguments As CommonSeparatedSyntaxList(Of ArgumentSyntax) = argumentsBuilder.ToList
             _pool.Free(argumentsBuilder)
 
             Dim closeParen As PunctuationSyntax = Nothing
@@ -1790,7 +1791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
 
             Dim optionalExpression As ExpressionSyntax = Nothing
-            Dim variables As SeparatedSyntaxList(Of VariableDeclaratorSyntax) = Nothing
+            Dim variables As CommonSeparatedSyntaxList(Of VariableDeclaratorSyntax) = Nothing
 
             Dim nextToken As SyntaxToken = PeekToken(1)
 

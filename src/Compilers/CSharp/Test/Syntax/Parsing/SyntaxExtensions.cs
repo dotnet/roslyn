@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ArrayBuilder<DiagnosticInfo> b = ArrayBuilder<DiagnosticInfo>.GetInstance();
 
-            var l = new InternalSyntax.SyntaxDiagnosticInfoList(node);
+            var l = new CodeAnalysis.Syntax.InternalSyntax.SyntaxDiagnosticInfoList(node);
 
             foreach (var item in l)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ArrayBuilder<DiagnosticInfo> b = ArrayBuilder<DiagnosticInfo>.GetInstance();
 
-            var l = new InternalSyntax.SyntaxDiagnosticInfoList(node);
+            var l = new CodeAnalysis.Syntax.InternalSyntax.SyntaxDiagnosticInfoList(node);
 
             foreach (var item in l)
             {

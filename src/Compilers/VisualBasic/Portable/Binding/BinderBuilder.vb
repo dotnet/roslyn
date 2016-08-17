@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' before it. Method type parameters and parameters are in scope.
         ' If Option Explicit Off is in effect, an ImplicitVariableBinder
         ' is created also.
-        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder) As Binder
+        Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder) As Binder
             Debug.Assert(TypeOf VBSemanticModel.StripSemanticModelBinder(containingBinder) Is NamedTypeBinder)
 
             Dim methodDeclBinder As Binder = CreateBinderForMethodDeclaration(methodSymbol, containingBinder)

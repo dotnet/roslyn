@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public void ParseRemainder(SyntaxListBuilder<XmlNodeSyntax> nodes)
+        public void ParseRemainder(CommonSyntaxListBuilder<XmlNodeSyntax> nodes)
         {
             bool endTag = this.CurrentToken.Kind == SyntaxKind.LessThanSlashToken;
 
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ResetMode(saveMode);
         }
 
-        private void ParseXmlNodes(SyntaxListBuilder<XmlNodeSyntax> nodes)
+        private void ParseXmlNodes(CommonSyntaxListBuilder<XmlNodeSyntax> nodes)
         {
             while (true)
             {
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // assuming this is not used concurrently
         private readonly HashSet<string> _attributesSeen = new HashSet<string>();
 
-        private void ParseXmlAttributes(ref XmlNameSyntax elementName, SyntaxListBuilder<XmlAttributeSyntax> attrs)
+        private void ParseXmlAttributes(ref XmlNameSyntax elementName, CommonSyntaxListBuilder<XmlAttributeSyntax> attrs)
         {
             _attributesSeen.Clear();
             while (true)
@@ -369,13 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SkipResult SkipBadTokens<T>(
             ref T startNode,
-            SyntaxListBuilder list,
+            CommonSyntaxListBuilder list,
             Func<DocumentationCommentParser, bool> isNotExpectedFunction,
             Func<DocumentationCommentParser, bool> abortFunction,
             XmlParseErrorCode error
             ) where T : CSharpSyntaxNode
         {
-            var badTokens = default(SyntaxListBuilder<SyntaxToken>);
+            var badTokens = default(CommonSyntaxListBuilder<SyntaxToken>);
             bool hasError = false;
 
             try
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], badTokens.ToListNode());
+                        list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], badTokens.ToListNode());
                     }
 
                     return result;
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             attrName,
                             equals,
                             SyntaxFactory.MissingToken(SyntaxKind.DoubleQuoteToken),
-                            default(SyntaxList<SyntaxToken>),
+                            default(CommonSyntaxList<SyntaxToken>),
                             SyntaxFactory.MissingToken(SyntaxKind.DoubleQuoteToken));
                 }
             }
@@ -585,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             endQuote = ParseXmlAttributeEndQuote(quoteKind);
         }
 
-        private void ParseXmlAttributeText(out SyntaxToken startQuote, SyntaxListBuilder<SyntaxToken> textTokens, out SyntaxToken endQuote)
+        private void ParseXmlAttributeText(out SyntaxToken startQuote, CommonSyntaxListBuilder<SyntaxToken> textTokens, out SyntaxToken endQuote)
         {
             startQuote = ParseXmlAttributeStartQuote();
             SyntaxKind quoteKind = startQuote.Kind;
@@ -747,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var startCDataToken = this.EatToken(SyntaxKind.XmlCDataStartToken);
             var saveMode = this.SetMode(LexerMode.XmlCDataSectionText);
-            var textTokens = new SyntaxListBuilder<SyntaxToken>(10);
+            var textTokens = new CommonSyntaxListBuilder<SyntaxToken>(10);
             while (this.CurrentToken.Kind == SyntaxKind.XmlTextLiteralToken
                || this.CurrentToken.Kind == SyntaxKind.XmlTextLiteralNewLineToken)
             {
@@ -770,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // but Dev10 does not enforce this.
 
             this.SetMode(LexerMode.XmlProcessingInstructionText); //this mode consumes text
-            var textTokens = new SyntaxListBuilder<SyntaxToken>(10);
+            var textTokens = new CommonSyntaxListBuilder<SyntaxToken>(10);
             while (this.CurrentToken.Kind == SyntaxKind.XmlTextLiteralToken
                || this.CurrentToken.Kind == SyntaxKind.XmlTextLiteralNewLineToken)
             {

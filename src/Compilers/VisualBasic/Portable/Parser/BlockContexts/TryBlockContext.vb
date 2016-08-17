@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class TryBlockContext
         Inherits ExecutableStatementContext
 
-        Private _catchParts As SyntaxListBuilder(Of CatchBlockSyntax)
+        Private _catchParts As CommonSyntaxListBuilder(Of CatchBlockSyntax)
         Private _optionalFinallyPart As FinallyBlockSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)

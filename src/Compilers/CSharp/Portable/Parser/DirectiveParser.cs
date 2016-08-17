@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                eod = eod.WithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
+                eod = eod.TokenWithLeadingTrivia(CommonSyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
                 if (_context.HasUnfinishedRegion())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword)
                 {
                     style = this.EatToken();
-                    var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
+                    var ids = new CommonSeparatedSyntaxListBuilder<ExpressionSyntax>(10);
                     while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
                     {
                         SyntaxToken id;
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     style = this.EatToken(SyntaxKind.DisableKeyword, ErrorCode.WRN_IllegalPPWarning, reportError: isActive);
                     var end = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
-                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
+                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(CommonSeparatedSyntaxList<ExpressionSyntax>), end, isActive);
                 }
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ChecksumKeyword)
@@ -511,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var warning = this.EatToken(SyntaxKind.WarningKeyword, ErrorCode.WRN_IllegalPragma, reportError: isActive);
                 var style = this.EatToken(SyntaxKind.DisableKeyword, reportError: false);
                 var eod = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
-                return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(SeparatedSyntaxList<ExpressionSyntax>), eod, isActive);
+                return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(CommonSeparatedSyntaxList<ExpressionSyntax>), eod, isActive);
             }
         }
 
@@ -547,7 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (builder != null)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.PreprocessingMessage(builder.ToString()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.PreprocessingMessage(builder.ToString()));
             }
 
             return endOfDirective;
@@ -555,13 +557,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SyntaxToken ParseEndOfDirective(bool ignoreErrors, bool afterPragma = false, bool afterLineNumber = false)
         {
-            var skippedTokens = new SyntaxListBuilder<SyntaxToken>();
+            var skippedTokens = new CommonSyntaxListBuilder<SyntaxToken>();
 
             // Consume all extraneous tokens as leading SkippedTokens trivia.
             if (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
                 this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {
-                skippedTokens = new SyntaxListBuilder<SyntaxToken>(10);
+                skippedTokens = new CommonSyntaxListBuilder<SyntaxToken>(10);
 
                 if (!ignoreErrors)
                 {
@@ -592,7 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (!skippedTokens.IsNull)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
             }
 
             return endOfDirective;

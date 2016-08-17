@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
+        protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
             if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda) return;
             if (Diagnostics != null && this.State.Reachable)
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="symbol"></param>
         /// <param name="node"></param>
-        protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node)
+        protected void CheckAssigned(Symbol symbol, SyntaxNode node)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="symbol"></param>
         /// <param name="node"></param>
-        protected virtual void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             int slot = VariableSlot(symbol);
             if (slot <= 0) return;
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _alreadyReported[slot] = true; // mark the variable's slot so that we don't complain about the variable again
         }
 
-        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
+        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
         {
             int unassignedSlot;
             if (this.State.Reachable && !IsAssigned(expr, out unassignedSlot))
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.State.IsAssigned(unassignedSlot);
         }
 
-        protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             _alreadyReported.EnsureCapacity(unassignedSlot + 1);
             if (!_alreadyReported[unassignedSlot])
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, CSharpSyntaxNode syntax, Location location)
+        private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
         {
             if (!this.State.Reachable)
             {
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void LeaveParameter(ParameterSymbol parameter, CSharpSyntaxNode syntax, Location location)
+        private void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         {
             if (parameter.RefKind != RefKind.None)
             {
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected void CheckAssigned(BoundExpression expr, CSharpSyntaxNode node)
+        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
             if (!this.State.Reachable) return;
             int slot = MakeSlot(expr);

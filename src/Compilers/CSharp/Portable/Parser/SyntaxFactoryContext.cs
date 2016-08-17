@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information
+
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// Read-only outside SyntaxParser (not enforced for perf reasons).
     /// Reference type so that the factory stays up-to-date.
     /// </remarks>
-    internal class SyntaxFactoryContext
+    internal class SyntaxFactoryContext : IFactoryContext
     {
         /// <summary>
         /// If a method goes from async to non-async, or vice versa, then every occurrence of "await"
@@ -30,6 +32,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal bool IsInQuery
         {
             get { return QueryDepth > 0; }
+        }
+
+        public GreenNode.NodeFlags GetNodeFlags()
+        {
+            var flags = SyntaxNodeCache.GetDefaultNodeFlags();
+
+            if (this.IsInAsync)
+            {
+                flags |= GreenNode.NodeFlags.FactoryContextIsInAsync;
+            }
+
+            if (this.IsInQuery)
+            {
+                flags |= GreenNode.NodeFlags.FactoryContextIsInQuery;
+            }
+
+            return flags;
         }
     }
 }

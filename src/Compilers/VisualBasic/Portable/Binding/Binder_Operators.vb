@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindIsExpression(
              left As BoundExpression,
              right As BoundExpression,
-             node As VisualBasicSyntaxNode,
+             node As SyntaxNode,
              [isNot] As Boolean,
              diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              left,
                                              right,
                                              checked:=False,
-                                             Type:=booleanType,
+                                             type:=booleanType,
                                              hasErrors:=booleanType.IsErrorType())
 
             ' TODO: Add rewrite for Nullable.
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If divideByZero Then
                         Debug.Assert(value.IsBad)
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ZeroDivide))
-                    ElseIf compoundLengthOutOfLimit
+                    ElseIf compoundLengthOutOfLimit Then
                         Debug.Assert(value.IsBad)
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstantStringTooLong))
                     ElseIf (value.IsBad OrElse integerOverflow) Then
@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindUserDefinedNonShortCircuitingBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -621,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     !T.IsTrue(temp = x) ? T.Or(temp, y) : temp
         ''' </summary>
         Private Function BindUserDefinedShortCircuitingOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             opKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -809,7 +809,7 @@ Done:
         ''' lookups and construction of new instances of symbols.
         ''' </summary>
         Private Function GetSpecialTypeForBinaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             leftType As TypeSymbol,
             rightType As TypeSymbol,
             specialType As SpecialType,
@@ -933,7 +933,7 @@ Done:
         End Function
 
         Private Sub ReportUndefinedOperatorError(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             left As BoundExpression,
             right As BoundExpression,
             operatorTokenKind As SyntaxKind,
@@ -1211,7 +1211,7 @@ Done:
         End Function
 
         Private Function BindUserDefinedUnaryOperator(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             opKind As UnaryOperatorKind,
             operand As BoundExpression,
             <[In]> ByRef userDefinedOperator As OverloadResolution.OverloadResolutionResult,
