@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct CommonChildSyntaxList
+    internal partial struct ChildSyntaxList
     {
         internal struct Enumerator
         {

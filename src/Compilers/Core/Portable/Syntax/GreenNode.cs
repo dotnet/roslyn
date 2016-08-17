@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis
             return offset;
         }
 
-        internal CommonChildSyntaxList ChildNodesAndTokens()
+        internal Syntax.InternalSyntax.ChildSyntaxList ChildNodesAndTokens()
         {
-            return new CommonChildSyntaxList(this);
+            return new Syntax.InternalSyntax.ChildSyntaxList(this);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         {
             yield return this;
 
-            var stack = new Stack<CommonChildSyntaxList.Enumerator>(24);
+            var stack = new Stack<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>(24);
             stack.Push(this.ChildNodesAndTokens().GetEnumerator());
 
             while (stack.Count > 0)
