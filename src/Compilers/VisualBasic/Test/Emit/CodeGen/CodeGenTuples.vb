@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -4486,6 +4487,89 @@ End Class
             verifier.VerifyDiagnostics()
 
         End Sub
+
+        <Fact()>
+        Public Sub Tuple2To8Members()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Console
+Class C
+    Shared Sub Main()
+        Write((1, 2).Item1)
+        Write((1, 2).Item2)
+        WriteLine()
+        Write((1, 2, 3).Item1)
+        Write((1, 2, 3).Item2)
+        Write((1, 2, 3).Item3)
+        WriteLine()
+        Write((1, 2, 3, 4).Item1)
+        Write((1, 2, 3, 4).Item2)
+        Write((1, 2, 3, 4).Item3)
+        Write((1, 2, 3, 4).Item4)
+        WriteLine()
+        Write((1, 2, 3, 4, 5).Item1)
+        Write((1, 2, 3, 4, 5).Item2)
+        Write((1, 2, 3, 4, 5).Item3)
+        Write((1, 2, 3, 4, 5).Item4)
+        Write((1, 2, 3, 4, 5).Item5)
+        WriteLine()
+        Write((1, 2, 3, 4, 5, 6).Item1)
+        Write((1, 2, 3, 4, 5, 6).Item2)
+        Write((1, 2, 3, 4, 5, 6).Item3)
+        Write((1, 2, 3, 4, 5, 6).Item4)
+        Write((1, 2, 3, 4, 5, 6).Item5)
+        Write((1, 2, 3, 4, 5, 6).Item6)
+        WriteLine()
+        Write((1, 2, 3, 4, 5, 6, 7).Item1)
+        Write((1, 2, 3, 4, 5, 6, 7).Item2)
+        Write((1, 2, 3, 4, 5, 6, 7).Item3)
+        Write((1, 2, 3, 4, 5, 6, 7).Item4)
+        Write((1, 2, 3, 4, 5, 6, 7).Item5)
+        Write((1, 2, 3, 4, 5, 6, 7).Item6)
+        Write((1, 2, 3, 4, 5, 6, 7).Item7)
+        WriteLine()
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item1)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item2)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item3)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item4)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item5)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item6)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item7)
+        Write((1, 2, 3, 4, 5, 6, 7, 8).Item8)
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[12
+123
+1234
+12345
+123456
+1234567
+12345678]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_BadArguments()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=Nothing))
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+            Try
+                comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Item1"))
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
+            End Try
+
+        End Sub
+
+
 
 
 

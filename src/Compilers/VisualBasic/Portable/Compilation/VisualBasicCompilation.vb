@@ -2594,7 +2594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Sub CheckTupleElementNames(cardinality As Integer, elementNames As ImmutableArray(Of String))
             If Not elementNames.IsDefault Then
                 If elementNames.Length <> cardinality Then
-                    Throw New ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, NameOf(elementNames))
+                    Throw New ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, NameOf(elementNames))
                 End If
 
                 For i As Integer = 0 To elementNames.Length - 1
