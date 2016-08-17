@@ -131,7 +131,7 @@ namespace CSharpSyntaxGenerator
                         string typeName;
                         if (isGreen)
                         {
-                            typeName = internalNamespace + "Common" + field.Type.Replace("<", "<" + csharpNamespace);
+                            typeName = internalNamespace + field.Type.Replace("<", "<" + csharpNamespace);
                         }
                         else
                         {
