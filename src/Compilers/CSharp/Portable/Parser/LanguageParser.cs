@@ -3331,7 +3331,7 @@ parse_member_name:;
         private AccessorListSyntax ParseAccessorList(bool isEvent)
         {
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
-            var accessors = default(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax>);
+            var accessors = default(SyntaxList<AccessorDeclarationSyntax>);
 
             if (!openBrace.IsMissing || !this.IsTerminator())
             {
@@ -4550,7 +4550,7 @@ tryAgain:
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool variableDeclarationsExpected,
             bool allowLocalFunctions,
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> mods,
+            SyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction)
         {
             variables.Add(
@@ -4702,7 +4702,7 @@ tryAgain:
             VariableFlags flags,
             bool isFirst,
             bool allowLocalFunctions,
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> mods,
+            SyntaxList<SyntaxToken> mods,
             out LocalFunctionStatementSyntax localFunction,
             bool isExpressionContext = false)
         {
@@ -5066,7 +5066,7 @@ tryAgain:
                 _pool.Free(tmpList);
             }
 
-            var members = default(CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
+            var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             if (!openBrace.IsMissing)
@@ -7229,11 +7229,11 @@ tryAgain:
                 openBrace = (SyntaxToken)tmp;
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
-                CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statementList;
+                SyntaxList<StatementSyntax> statementList;
                 if (isMethodBody && IsLargeEnoughNonEmptyStatementList(statements))
                 {
                     // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
-                    statementList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()));
+                    statementList = new SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()));
                 }
                 else
                 {
@@ -8476,7 +8476,7 @@ tryAgain:
                     }
                 }
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
+                SeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
                 result = _syntaxFactory.ParenthesizedVariableComponent(openParen, listOfComponents, closeParen);
                 _pool.Free(listOfComponents);
             }
@@ -8640,7 +8640,7 @@ tryAgain:
         private void ParseLocalDeclaration(
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> mods,
+            SyntaxList<SyntaxToken> mods,
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
@@ -8784,7 +8784,7 @@ tryAgain:
         }
 
         private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers,
+            SyntaxList<SyntaxToken> modifiers,
             TypeSyntax type,
             SyntaxToken identifier)
         {
@@ -9638,7 +9638,7 @@ tryAgain:
             }
 
             SyntaxToken openToken, closeToken;
-            CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments;
+            SeparatedSyntaxList<ArgumentSyntax> arguments;
             ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
 
             return _syntaxFactory.ArgumentList(openToken, arguments, closeToken);
@@ -9652,7 +9652,7 @@ tryAgain:
             }
 
             SyntaxToken openToken, closeToken;
-            CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments;
+            SeparatedSyntaxList<ArgumentSyntax> arguments;
             ParseArgumentList(out openToken, out arguments, out closeToken, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
 
             return _syntaxFactory.BracketedArgumentList(openToken, arguments, closeToken);
@@ -9660,7 +9660,7 @@ tryAgain:
 
         private void ParseArgumentList(
             out SyntaxToken openToken,
-            out CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments,
+            out SeparatedSyntaxList<ArgumentSyntax> arguments,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
