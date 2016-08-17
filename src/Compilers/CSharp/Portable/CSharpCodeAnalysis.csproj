@@ -775,10 +775,10 @@
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\Syntax.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLastTokenReplacer.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNode.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxRewriter.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.MissingTokenWithTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxIdentifier.cs" />
@@ -790,7 +790,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.SyntaxTokenWithTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxFirstTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxVisitor.cs" />
     <Compile Include="Syntax\AnonymousMethodExpressionSyntax.cs" />
     <Compile Include="Syntax\LookupPosition.cs" />
     <Compile Include="Syntax\IndexerDeclarationSyntax.cs" />
