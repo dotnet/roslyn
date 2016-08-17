@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, CSharpSyntaxNode syntax)
+        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, SyntaxNode syntax)
         {
             declaredLocals.Add(local);
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             statements.Add(new BoundExpressionStatement(syntax, call));
         }
 
-        private static BoundExpression GetCustomTypeInfoPayloadId(CSharpSyntaxNode syntax, MethodSymbol guidConstructor, bool hasCustomTypeInfoPayload)
+        private static BoundExpression GetCustomTypeInfoPayloadId(SyntaxNode syntax, MethodSymbol guidConstructor, bool hasCustomTypeInfoPayload)
         {
             if (!hasCustomTypeInfoPayload)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 
-        private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, CSharpSyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
+        private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, SyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,

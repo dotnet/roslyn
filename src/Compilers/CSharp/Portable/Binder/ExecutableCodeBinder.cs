@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class ExecutableCodeBinder : Binder
     {
         private readonly Symbol _memberSymbol;
-        private readonly CSharpSyntaxNode _root;
-        private readonly Func<Binder, CSharpSyntaxNode, Binder> _rootBinderAdjusterOpt;
-        private SmallDictionary<CSharpSyntaxNode, Binder> _lazyBinderMap;
+        private readonly SyntaxNode _root;
+        private readonly Func<Binder, SyntaxNode, Binder> _rootBinderAdjusterOpt;
+        private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
-        internal ExecutableCodeBinder(CSharpSyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, CSharpSyntaxNode, Binder> rootBinderAdjusterOpt = null)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
             : this(root, memberSymbol, next, next.Flags)
         {
             _rootBinderAdjusterOpt = rootBinderAdjusterOpt;
         }
 
-        internal ExecutableCodeBinder(CSharpSyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
             : base(next, (next.Flags | additionalFlags) & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
         {
             Debug.Assert((object)memberSymbol == null ||
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
-        internal override Binder GetBinder(CSharpSyntaxNode node)
+        internal override Binder GetBinder(SyntaxNode node)
         {
             Binder binder;
             return this.BinderMap.TryGetValue(node, out binder) ? binder : Next.GetBinder(node);
@@ -55,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ComputeBinderMap()
         {
-            SmallDictionary<CSharpSyntaxNode, Binder> map;
+            SmallDictionary<SyntaxNode, Binder> map;
             ImmutableArray<MethodSymbol> methodSymbolsWithYield;
 
             // Ensure that the member symbol is a method symbol.
             if ((object)_memberSymbol != null && _root != null)
             {
-                var methodsWithYield = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
+                var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
                 map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _rootBinderAdjusterOpt);
                 foreach (var methodWithYield in methodsWithYield)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                map = SmallDictionary<CSharpSyntaxNode, Binder>.Empty;
+                map = SmallDictionary<SyntaxNode, Binder>.Empty;
                 methodSymbolsWithYield = ImmutableArray<MethodSymbol>.Empty;
             }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableInterlocked.InterlockedCompareExchange(ref _methodSymbolsWithYield, methodSymbolsWithYield, default(ImmutableArray<MethodSymbol>));
         }
 
-        private SmallDictionary<CSharpSyntaxNode, Binder> BinderMap
+        private SmallDictionary<SyntaxNode, Binder> BinderMap
         {
             get
             {

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If such node makes into a regular bound tree it will be eventually rewritten (all Yields are rewritten at some point)
         ''' and that will trigger validation.
         ''' </summary>
-        Friend Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, hasErrors As Boolean, returnTypeIsBeingInferred As Boolean)
+        Friend Sub New(syntax As SyntaxNode, expression As BoundExpression, hasErrors As Boolean, returnTypeIsBeingInferred As Boolean)
             MyBase.New(BoundKind.YieldStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
 
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")

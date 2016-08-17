@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // insert the implicit "return" statement at the end of the method body
         // Normally, we wouldn't bother attaching syntax trees to compiler-generated nodes, but these
         // ones are going to have sequence points.
-        internal static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, CSharpSyntaxNode syntax = null)
+        internal static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, SyntaxNode syntax = null)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);

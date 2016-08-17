@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel,
             LocalOrParameter key,
-            CSharpSyntaxNode syntaxNode)
+            SyntaxNode syntaxNode)
         {
             LocalDefinition keyHash = null;
 
@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ImmutableArray<LocalSymbol> locals,
             ImmutableArray<BoundSwitchSection> switchSections,
             GeneratedLabelSymbol breakLabel,
-            CSharpSyntaxNode syntaxNode)
+            SyntaxNode syntaxNode)
         {
             var hasLocals = !locals.IsEmpty;
 
@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _builder.LocalSlotManager.GetLocal(symbol);
         }
 
-        private LocalDefinition DefineLocal(LocalSymbol local, CSharpSyntaxNode syntaxNode)
+        private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
             var transformFlags = default(ImmutableArray<TypedConstant>);
             bool hasDynamic = local.Type.ContainsDynamic();

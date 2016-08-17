@@ -737,13 +737,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private Symbol UnwrapAlias(Symbol symbol, DiagnosticBag diagnostics, CSharpSyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
+        private Symbol UnwrapAlias(Symbol symbol, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
         {
             AliasSymbol discarded;
             return UnwrapAlias(symbol, out discarded, diagnostics, syntax, basesBeingResolved);
         }
 
-        private Symbol UnwrapAlias(Symbol symbol, out AliasSymbol alias, DiagnosticBag diagnostics, CSharpSyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
+        private Symbol UnwrapAlias(Symbol symbol, out AliasSymbol alias, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(diagnostics != null);
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructBoundMethodGroupAndReportOmittedTypeArguments.
         /// </remarks>
-        private NamedTypeSymbol ConstructNamedTypeUnlessTypeArgumentOmitted(CSharpSyntaxNode typeSyntax, NamedTypeSymbol type, SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeSymbol> typeArguments, DiagnosticBag diagnostics)
+        private NamedTypeSymbol ConstructNamedTypeUnlessTypeArgumentOmitted(SyntaxNode typeSyntax, NamedTypeSymbol type, SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeSymbol> typeArguments, DiagnosticBag diagnostics)
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Keep check and error in sync with ConstructNamedTypeUnlessTypeArgumentOmitted.
         /// </remarks>
         private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeSymbol> typeArguments,
             BoundExpression receiver,
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamedTypeSymbol ConstructNamedType(
             NamedTypeSymbol type,
-            CSharpSyntaxNode typeSyntax,
+            SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeSymbol> typeArguments,
             ConsList<Symbol> basesBeingResolved,
@@ -1158,12 +1158,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return right;
         }
 
-        internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, CSharpSyntaxNode node)
+        internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, SyntaxNode node)
         {
             return GetSpecialType(this.Compilation, typeId, node, diagnostics);
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, SyntaxNode node, DiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
         /// </summary>
-        internal Symbol GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, CSharpSyntaxNode syntax)
+        internal Symbol GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             Symbol memberSymbol;
             return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there was an error among the reported diagnostics
         /// </returns>
-        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, CSharpSyntaxNode node)
+        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxNode node)
         {
             DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
             return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, node.Location);
@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         /// type isn't found.
         /// </summary>
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, CSharpSyntaxNode node)
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
             NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Retrieves a well-known type member and reports diagnostics.
         /// </summary>
         /// <returns>Null if the symbol is missing.</returns>
-        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, DiagnosticBag diagnostics, Location location = null, CSharpSyntaxNode syntax = null, bool isOptional = false)
+        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, DiagnosticBag diagnostics, Location location = null, SyntaxNode syntax = null, bool isOptional = false)
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string simpleName,
             int arity,
-            CSharpSyntaxNode where,
+            SyntaxNode where,
             DiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics,
             out bool wasError,
@@ -1688,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (result.Kind == LookupResultKind.Empty)
             {
                 string aliasOpt = null;
-                CSharpSyntaxNode node = where;
+                SyntaxNode node = where;
                 while (node is ExpressionSyntax)
                 {
                     if (node.Kind() == SyntaxKind.AliasQualifiedName)
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// This is only intended to be called when the type isn't found (i.e. not when it is found but is inaccessible, has the wrong arity, etc).
         /// </remarks>
-        private CSDiagnosticInfo NotFound(CSharpSyntaxNode where, string simpleName, int arity, string whereText, DiagnosticBag diagnostics, string aliasOpt, NamespaceOrTypeSymbol qualifierOpt, LookupOptions options)
+        private CSDiagnosticInfo NotFound(SyntaxNode where, string simpleName, int arity, string whereText, DiagnosticBag diagnostics, string aliasOpt, NamespaceOrTypeSymbol qualifierOpt, LookupOptions options)
         {
             var location = where.Location;
             // Lookup totally ignores type forwarders, but we want the type lookup diagnostics

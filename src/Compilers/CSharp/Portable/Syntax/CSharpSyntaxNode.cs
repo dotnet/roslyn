@@ -37,14 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
-        }
-
         //TODO: move to common
         /// <summary>
         /// Creates a clone of a red node that can be used as a root of given syntaxTree.
@@ -169,38 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (SyntaxKind)this.Green.RawKind;
         }
 
-        protected override string KindText
-        {
-            get
-            {
-                return this.Kind().ToString();
-            }
-        }
-
         /// <summary>
         /// The language name that this node is syntax of.
         /// </summary>
         public override string Language
         {
             get { return LanguageNames.CSharp; }
-        }
-
-        internal bool HasErrors
-        {
-            get
-            {
-                if (!this.ContainsDiagnostics)
-                {
-                    return false;
-                }
-
-                return HasErrorsSlow();
-            }
-        }
-
-        private bool HasErrorsSlow()
-        {
-            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any((info) => info.Severity == DiagnosticSeverity.Error);
         }
 
         /// <summary>
@@ -219,25 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lastToken = this.GetLastToken(includeZeroWidth: true);
             return lastToken.TrailingTrivia;
-        }
-
-        internal Location Location
-        {
-            get
-            {
-                // CSharpSyntaxNode always has a non-null SyntaxTree, however the tree might be rooted at a node which is not a CompilationUnit.
-                // These kind of nodes may be seen during binding in couple of scenarios:
-                //   (a) Compiler synthesized syntax nodes (e.g. missing nodes, qualified names for command line using directives, etc.)
-                //   (b) Speculatively binding syntax nodes through the semantic model.
-                //
-                // For scenario (a), we need to ensure that we return NoLocation for generating location agnostic compiler diagnostics.
-                // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
-                // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
-
-                var tree = (CSharpSyntaxTree)SyntaxTree;
-                Debug.Assert(tree != null);
-                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
-            }
         }
 
         /// <summary>

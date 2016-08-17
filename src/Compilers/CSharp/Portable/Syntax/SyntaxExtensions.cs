@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(syntax) && IsInContextWhichNeedsTupleNamesAttribute(syntax);
         }
 
-        internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)
+        internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {

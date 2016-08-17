@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly BoundExpression Single;
             public readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
-            public readonly CSharpSyntaxNode Syntax;
+            public readonly SyntaxNode Syntax;
 
-            public DeconstructionVariable(BoundExpression variable, CSharpSyntaxNode syntax)
+            public DeconstructionVariable(BoundExpression variable, SyntaxNode syntax)
             {
                 Single = variable;
                 NestedVariables = null;

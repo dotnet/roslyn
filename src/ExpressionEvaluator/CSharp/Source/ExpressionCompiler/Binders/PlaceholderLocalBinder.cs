@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return _aliases;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }

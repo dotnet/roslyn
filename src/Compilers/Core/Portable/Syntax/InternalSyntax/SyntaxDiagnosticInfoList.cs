@@ -1,15 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     //This used to implement IEnumerable and have more functionality, but it was not tested or used.
     internal struct SyntaxDiagnosticInfoList
@@ -110,10 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void PushNodeOrToken(GreenNode node)
             {
-                var token = node as SyntaxToken;
-                if (token != null)
+                if (node.IsToken)
                 {
-                    this.PushToken(token);
+                    this.PushToken(node);
                 }
                 else
                 {
@@ -121,16 +113,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            private void PushToken(SyntaxToken token)
+            private void PushToken(GreenNode token)
             {
-                var trailing = token.GetTrailingTrivia();
+                var trailing = token.GetTrailingTriviaCore();
                 if (trailing != null)
                 {
                     this.Push(trailing);
                 }
 
                 this.Push(token);
-                var leading = token.GetLeadingTrivia();
+                var leading = token.GetLeadingTriviaCore();
                 if (leading != null)
                 {
                     this.Push(leading);

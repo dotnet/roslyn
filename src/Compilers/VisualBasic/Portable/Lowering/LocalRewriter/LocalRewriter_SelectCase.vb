@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Function RewriteSelectStatement(
             node As BoundSelectStatement,
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             selectExpressionStmt As BoundExpressionStatement,
             exprPlaceholderOpt As BoundRValuePlaceholder,
             caseBlocks As ImmutableArray(Of BoundCaseBlock),
