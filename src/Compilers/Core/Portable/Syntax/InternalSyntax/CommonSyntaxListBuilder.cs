@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _nodes = new ArrayElement<GreenNode>[size];
         }
 
+        public static CommonSyntaxListBuilder Create()
+        {
+            return new CommonSyntaxListBuilder(8);
+        }
+
         public void Clear()
         {
             this.Count = 0;
@@ -106,17 +111,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
-        public GreenNode[] ToArray()
-        {
-            var array = new GreenNode[this.Count];
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = _nodes[i];
-            }
-
-            return array;
-        }
-
         public void RemoveLast()
         {
             Count--;
@@ -152,9 +146,15 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return false;
         }
 
-        public static CommonSyntaxListBuilder Create()
+        public GreenNode[] ToArray()
         {
-            return new CommonSyntaxListBuilder(8);
+            var array = new GreenNode[this.Count];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = _nodes[i];
+            }
+
+            return array;
         }
 
         public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
