@@ -2559,9 +2559,9 @@ parse_member_name:;
             var types = _pool.AllocateSeparated<TypeSyntax>();
             foreach (var p in typeParameterList.Parameters.GetWithSeparators())
             {
-                switch (p.RawKind)
+                switch ((SyntaxKind)p.RawKind)
                 {
-                    case (int)SyntaxKind.TypeParameter:
+                    case SyntaxKind.TypeParameter:
                         var typeParameter = (TypeParameterSyntax)p;
                         var typeArgument = _syntaxFactory.IdentifierName(typeParameter.Identifier);
                         // NOTE: reverse order of variance keyword and attributes list so they come out in the right order.
@@ -2579,7 +2579,7 @@ parse_member_name:;
                         }
                         types.Add(typeArgument);
                         break;
-                    case (int)SyntaxKind.CommaToken:
+                    case SyntaxKind.CommaToken:
                         types.AddSeparator((SyntaxToken)p);
                         break;
                     default:
