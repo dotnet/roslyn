@@ -81,15 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
             {
-                var p = parent;
-                if (p != null && p is CSharp.Syntax.BlockSyntax)
+                if (parent != null && parent.ShouldCreateWeakList())
                 {
-                    var gp = p.Parent;
-                    if (gp != null && (gp is CSharp.Syntax.MemberDeclarationSyntax || gp is CSharp.Syntax.AccessorDeclarationSyntax))
-                    {
-                        Debug.Assert(!this.GetSlot(0).IsToken);
-                        return new CSharp.Syntax.SyntaxList.WithManyWeakChildren(this, parent, position);
-                    }
+                    return new CSharp.Syntax.SyntaxList.WithManyWeakChildren(this, parent, position);
                 }
 
                 if (this.SlotCount > 1 && HasNodeTokenPattern())

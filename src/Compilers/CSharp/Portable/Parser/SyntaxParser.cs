@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private BlendedNode _currentNode;
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
-        private CSharpSyntaxNode _prevTokenTrailingTrivia;
+        private GreenNode _prevTokenTrailingTrivia;
         private int _firstToken;
         private int _tokenOffset;
         private int _tokenCount;
@@ -799,14 +800,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, CSharpSyntaxNode skippedSyntax) where TNode : CSharpSyntaxNode
+        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var oldToken = node as SyntaxToken ?? node.GetFirstToken();
             var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
-        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, CSharpSyntaxNode skippedSyntax) where TNode : CSharpSyntaxNode
+        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var token = node as SyntaxToken;
             if (token != null)
@@ -825,9 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Converts skippedSyntax node into tokens and adds these as trivia on the target token.
         /// Also adds the first error (in depth-first preorder) found in the skipped syntax tree to the target token.
         /// </summary>
-        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, CSharpSyntaxNode skippedSyntax, bool trailing)
+        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
-            var builder = new SyntaxListBuilder(4);
+            var builder = new CommonSyntaxListBuilder(4);
 
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
@@ -846,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (token.Width > 0)
                     {
                         // separate trivia from the tokens
-                        SyntaxToken tk = token.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                        var tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
                         // adjust relative offsets of diagnostics attached to the token:
                         int leadingWidth = token.GetLeadingTriviaWidth();
@@ -897,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var trailingTrivia = target.GetTrailingTrivia();
                 triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.WithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
+                target = target.TokenWithTrailingTrivia(CommonSyntaxList.Concat(trailingTrivia, trivia));
             }
             else
             {
@@ -914,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var leadingTrivia = target.GetLeadingTrivia();
-                target = target.WithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
+                target = target.TokenWithLeadingTrivia(CommonSyntaxList.Concat(trivia, leadingTrivia));
                 triviaOffset = 0; //added trivia is first, so offset is zero
             }
 

@@ -30,6 +30,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using System.Collections.Generic;");
             WriteLine("using System.Linq;");
             WriteLine("using System.Threading;");
+            WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine();
         }
@@ -165,7 +166,7 @@ namespace CSharpSyntaxGenerator
                 for (int i = 0, n = nodeFields.Count; i < n; i++)
                 {
                     var field = nodeFields[i];
-                    var type = GetFieldType(field);
+                    var type = GetFieldType(field, green: true);
                     WriteLine("    internal readonly {0} {1};", type, CamelCase(field.Name));
                 }
 
@@ -292,7 +293,7 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 Write(", {0} {1}", type, CamelCase(field.Name));
             }
 
@@ -319,7 +320,7 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type);
                 WriteLine("      if ({0} != null)", CamelCase(field.Name));
                 WriteLine("      {");
@@ -331,7 +332,7 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      this.{0} = ({1})reader.{2}();", CamelCase(field.Name), type, GetReaderMethod(type));
             }
 
@@ -346,14 +347,14 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      writer.WriteValue(this.{0});", CamelCase(field.Name));
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
-                var type = GetFieldType(field);
+                var type = GetFieldType(field, green: true);
                 WriteLine("      writer.{0}(this.{1});", GetWriterMethod(type), CamelCase(field.Name));
             }
 
@@ -959,7 +960,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            var type = GetFieldType(field);
+                            var type = GetFieldType(field, green: false);
                             WriteLine("    private {0} {1};", type, CamelCase(field.Name));
                         }
                     }

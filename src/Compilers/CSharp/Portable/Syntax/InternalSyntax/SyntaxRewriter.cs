@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (leading != token.LeadingTrivia)
                 {
-                    token = token.WithLeadingTrivia(leading.Node);
+                    token = token.TokenWithLeadingTrivia(leading.Node);
                 }
 
                 if (trailing != token.TrailingTrivia)
                 {
-                    token = token.WithTrailingTrivia(trailing.Node);
+                    token = token.TokenWithTrailingTrivia(trailing.Node);
                 }
             }
 
