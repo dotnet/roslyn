@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
+        Public Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
             Get
                 ' This debug information is only emitted for the benefit of legacy EE.
                 ' Since EnC requires Roslyn and Roslyn doesn't need this information we don't emit it during EnC.

@@ -2321,6 +2321,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        /// </summary>
+        internal static string ERR_CannotEmbedWithoutPdb {
+            get {
+                return ResourceManager.GetString("ERR_CannotEmbedWithoutPdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
@@ -3698,6 +3707,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
+        /// </summary>
+        internal static string ERR_EncUpdateFailedMissingAttribute {
+            get {
+                return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #endif directive expected.
         /// </summary>
         internal static string ERR_EndifDirectiveExpected {
@@ -4103,6 +4121,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain an &apos;is&apos; pattern-matching operator..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsIsMatch {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsIsMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a reference to a local function.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsLocalFunction {
@@ -4139,11 +4166,38 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain an out argument variable declaration..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsOutVariable {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain an unsafe pointer operation.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsPointerOp {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeContainsPointerOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple conversion..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleConversion {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple literal..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsTupleLiteral {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsTupleLiteral", resourceCulture);
             }
         }
         
@@ -9585,15 +9639,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to declaration expression.
-        /// </summary>
-        internal static string IDS_FeatureDeclarationExpression {
-            get {
-                return ResourceManager.GetString("IDS_FeatureDeclarationExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to default operator.
         /// </summary>
         internal static string IDS_FeatureDefault {
@@ -9905,15 +9950,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureRefLocalsReturns {
             get {
                 return ResourceManager.GetString("IDS_FeatureRefLocalsReturns", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to replaced members.
-        /// </summary>
-        internal static string IDS_FeatureReplace {
-            get {
-                return ResourceManager.GetString("IDS_FeatureReplace", resourceCulture);
             }
         }
         

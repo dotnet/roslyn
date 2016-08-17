@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
             SubsystemVersion subsystemVersion = SubsystemVersion.None;
-            LanguageVersion languageVersion = CSharpParseOptions.Default.LanguageVersion;
+            LanguageVersion languageVersion = LanguageVersion.Default;
             string mainTypeName = null;
             string win32ManifestFile = null;
             string win32ResourceFile = null;
@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
+            bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
             var checksumAlgorithm = SourceHashAlgorithm.Sha1;
@@ -1097,7 +1099,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics));
+                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            continue;
+
+                        case "embed":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                embedAllSourceFiles = true;
+                                continue;
+                            }
+                            
+                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
                     }
                 }
@@ -1161,9 +1173,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceLink != null)
             {
-                if (!emitPdb || debugInformationFormat != DebugInformationFormat.PortablePdb && debugInformationFormat != DebugInformationFormat.Embedded)
+                if (!emitPdb || !debugInformationFormat.IsPortable())
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
+                }
+            }
+            
+            if (embedAllSourceFiles)
+            {
+                embeddedFiles.AddRange(sourceFiles);
+            }
+
+            if (embeddedFiles.Count > 0)
+            {
+                // Restricted to portable PDBs for now, but the IsPortable condition should be removed
+                // and the error message adjusted accordingly when native PDB support is added.
+                if (!emitPdb || !debugInformationFormat.IsPortable())
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
                 }
             }
 
@@ -1273,7 +1300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
-                ReportAnalyzer = reportAnalyzer
+                ReportAnalyzer = reportAnalyzer,
+                EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }
 
@@ -1695,11 +1723,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
         {
-            var defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
-
             if (str == null)
             {
-                version = defaultVersion;
+                version = LanguageVersion.Default;
                 return true;
             }
 
@@ -1718,7 +1744,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case "default":
-                    version = defaultVersion;
+                    version = LanguageVersion.Default;
+                    return true;
+
+                case "latest":
+                    version = LanguageVersion.Latest;
                     return true;
 
                 default:
@@ -1735,7 +1765,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         version = (LanguageVersion)versionNumber;
                         return true;
                     }
-                    version = defaultVersion;
+
+                    version = LanguageVersion.Default;
                     return false;
             }
         }

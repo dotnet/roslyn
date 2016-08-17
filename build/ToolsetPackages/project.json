@@ -12,7 +12,8 @@
     "xunit.assert": "2.1.0",
     "xunit.runner.console": "2.2.0-beta1-build3239",
     "Roslyn.Build.Util": "0.9.4-portable",
-    "RoslynDependencies.OptimizationData": "1.3.0-beta5-60518-02"
+    "RoslynDependencies.OptimizationData": "1.3.0-beta5-60518-02",
+    "RoslynTools.Microsoft.SignTool": "0.2.0-beta"
   },
   "frameworks": {
     "net461": {}

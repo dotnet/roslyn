@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.OrganizeDocument,
         ContentTypeNames.CSharpContentType,
-        ContentTypeNames.VisualBasicContentType)]
+        ContentTypeNames.VisualBasicContentType,
+        ContentTypeNames.XamlContentType)]
     internal class OrganizeDocumentCommandHandler :
         ICommandHandler<OrganizeDocumentCommandArgs>,
         ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>

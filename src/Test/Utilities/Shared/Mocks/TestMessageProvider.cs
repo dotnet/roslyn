@@ -19,6 +19,11 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
 
+        public override Diagnostic CreateDiagnostic(DiagnosticInfo info)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture)
         {
             throw new NotImplementedException();

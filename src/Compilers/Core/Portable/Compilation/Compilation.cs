@@ -1511,6 +1511,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions emitOptions,
             IMethodSymbol debugEntryPoint,
             Stream sourceLinkStream,
+            IEnumerable<EmbeddedText> embeddedTexts,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -1527,7 +1528,7 @@ namespace Microsoft.CodeAnalysis
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
 
-        internal bool StartSourceChecksumCalculation(DebugDocumentsBuilder documentsBuilder, DiagnosticBag diagnostics)
+        internal bool CreateDebugDocuments(DebugDocumentsBuilder documentsBuilder, IEnumerable<EmbeddedText> embeddedTexts, DiagnosticBag diagnostics)
         {
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
@@ -1545,6 +1546,32 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
+            // Add debug documents for all embedded text first. This ensures that embedding
+            // takes priority over the syntax tree pass, which will not embed.
+            if (!embeddedTexts.IsEmpty())
+            {
+                var embeddedDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
+
+                foreach (var text in embeddedTexts)
+                {
+                    Debug.Assert(!string.IsNullOrEmpty(text.FilePath));
+                    string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(text.FilePath, basePath: null);
+                    var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
+                    if (existingDoc == null)
+                    {
+                        var document = new Cci.DebugSourceDocument(
+                            normalizedPath,
+                            DebugSourceDocumentLanguageId,
+                            () => text.GetDebugSourceInfo());
+
+                        documentsBuilder.AddDebugDocument(document);
+                        embeddedDocuments.Add(document);
+                    }
+                }
+
+                documentsBuilder.EmbeddedDocuments = embeddedDocuments.ToImmutableAndFree();
+            }
+
             // Add debug documents for all trees with distinct paths.
             foreach (var tree in SyntaxTrees)
             {
@@ -1559,7 +1586,7 @@ namespace Microsoft.CodeAnalysis
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath, 
                             DebugSourceDocumentLanguageId, 
-                            () => tree.GetChecksumAndAlgorithm()));
+                            () => tree.GetDebugSourceInfo()));
                     }
                 }
             }
@@ -1567,6 +1594,7 @@ namespace Microsoft.CodeAnalysis
             // Add debug documents for all pragmas. 
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
+            // Therefore we need to add these in a separate pass after documents for syntax trees were added.
             foreach (var tree in SyntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
@@ -1646,6 +1674,7 @@ namespace Microsoft.CodeAnalysis
                         debugEntryPoint: null,
                         manifestResources: null,
                         sourceLinkStream: null,
+                        embeddedTexts: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
                         cancellationToken: cancellationToken);
@@ -1689,7 +1718,9 @@ namespace Microsoft.CodeAnalysis
                 win32Resources,
                 manifestResources,
                 options,
-                null,
+                default(IMethodSymbol),
+                default(Stream),
+                default(IEnumerable<EmbeddedText>),
                 cancellationToken);
         }
 
@@ -1714,6 +1745,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 default(Stream),
+                default(IEnumerable<EmbeddedText>),
                 cancellationToken);
         }
 
@@ -1746,6 +1778,10 @@ namespace Microsoft.CodeAnalysis
         /// Stream containing information linking the compilation to a source control.
         /// Only supported when emitting Portable PDBs.
         /// </param>
+        /// <param name="embeddedTexts">
+        /// Texts to embed in the PDB.
+        /// Only supported when emitting Portable PDBs.
+        /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
@@ -1756,6 +1792,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions options = null,
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
+            IEnumerable<EmbeddedText> embeddedTexts = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -1803,6 +1840,15 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
                 }
             }
+            if (embeddedTexts != null && !embeddedTexts.IsEmpty())
+            {
+                if (options == null || 
+                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
+                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePortablePdb, nameof(embeddedTexts));
+                }
+            }
 
             return Emit(
                 peStream,
@@ -1813,6 +1859,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 sourceLinkStream,
+                embeddedTexts,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -1830,6 +1877,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
             Stream sourceLinkStream,
+            IEnumerable<EmbeddedText> embeddedTexts,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -1844,6 +1892,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 sourceLinkStream,
+                embeddedTexts,
                 testData,
                 cancellationToken);
 
@@ -1992,6 +2041,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions options,
             IMethodSymbol debugEntryPoint,
             Stream sourceLinkStream,
+            IEnumerable<EmbeddedText> embeddedTexts,
             CompilationTestData testData,
             CancellationToken cancellationToken)
         {
@@ -2039,6 +2089,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 debugEntryPoint,
                 sourceLinkStream,
+                embeddedTexts,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2166,7 +2217,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     if (Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
+                        new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
                         getPortablePdbStream,
@@ -2265,7 +2316,7 @@ namespace Microsoft.CodeAnalysis
                 testSymWriterFactory,
                 deterministic: false))
             {
-                var context = new EmitContext((Cci.IModule)moduleBeingBuilt, null, diagnostics);
+                var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();
 
                 try

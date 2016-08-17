@@ -362,5 +362,93 @@ class C
                 // error CS0041: Unexpected error writing debug information -- 'Error!'
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Error!").WithLocation(1, 1));
         }
+
+        [Fact]
+        public void EmbeddedSource()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var tree = Parse(source, "f:/build/foo.cs");
+            var c = CreateCompilationWithMscorlib(tree, options: TestOptions.DebugDll);
+
+            var pdbStream = new MemoryStream();
+            c.EmitToArray(
+                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), 
+                pdbStream: pdbStream,
+                embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
+            pdbStream.Position = 0;
+
+            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
+            {
+                var pdbReader = provider.GetMetadataReader();
+
+                var embeddedSource =
+                    (from documentHandle in pdbReader.Documents
+                     let document = pdbReader.GetDocument(documentHandle)
+                     select new
+                     {
+                         FilePath = pdbReader.GetString(document.Name),
+                         Text = pdbReader.GetEmbeddedSource(documentHandle)
+                     }).Single();
+
+                Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs");
+                Assert.Equal(source, embeddedSource.Text.ToString());
+            }
+        }
+
+        [Fact]
+        public void EmbeddedSource_InEmbeddedPdb()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var tree = Parse(source, "f:/build/foo.cs");
+            var c = CreateCompilationWithMscorlib(tree, options: TestOptions.DebugDll);
+
+            var pdbStream = new MemoryStream();
+            var peBlob = c.EmitToArray(
+                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
+                embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
+            pdbStream.Position = 0;
+
+            using (var peReader = new PEReader(peBlob))
+            {
+                var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+
+                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+                {
+                    var pdbReader = embeddedMetadataProvider.GetMetadataReader();
+
+                    var embeddedSource =
+                        (from documentHandle in pdbReader.Documents
+                         let document = pdbReader.GetDocument(documentHandle)
+                         select new
+                         {
+                             FilePath = pdbReader.GetString(document.Name),
+                             Text = pdbReader.GetEmbeddedSource(documentHandle)
+                         }).Single();
+
+                    Assert.Equal(embeddedSource.FilePath, "f:/build/foo.cs");
+                    Assert.Equal(source, embeddedSource.Text.ToString());
+                }
+            }
+        }
     }
 }

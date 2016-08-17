@@ -1006,17 +1006,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDynamicQuery = 1979,
         ERR_DynamicAttributeMissing = 1980,
         WRN_IsDynamicIsConfusing = 1981,
-        ERR_DynamicNotAllowedInAttribute = 1982,                    // Replaced by ERR_BadAttributeParamType in Roslyn.
+        //ERR_DynamicNotAllowedInAttribute = 1982,                    // Replaced by ERR_BadAttributeParamType in Roslyn.
         ERR_BadAsyncReturn = 1983,
         ERR_BadAwaitInFinally = 1984,
         ERR_BadAwaitInCatch = 1985,
         ERR_BadAwaitArg = 1986,
         ERR_BadAsyncArgType = 1988,
         ERR_BadAsyncExpressionTree = 1989,
-        ERR_WindowsRuntimeTypesMissing = 1990,
+        //ERR_WindowsRuntimeTypesMissing = 1990, // unused in Roslyn
         ERR_MixingWinRTEventWithRegular = 1991,
         ERR_BadAwaitWithoutAsync = 1992,
-        ERR_MissingAsyncTypes = 1993,
+        //ERR_MissingAsyncTypes = 1993, // unused in Roslyn
         ERR_BadAsyncLacksBody = 1994,
         ERR_BadAwaitInQuery = 1995,
         ERR_BadAwaitInLock = 1996,
@@ -1061,7 +1061,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPortablePdb = 2044,
-        // unused 2045-2999
+        ERR_CannotEmbedWithoutPdb = 2045,
+        // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1352,9 +1353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PatternValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
+        ERR_ExpressionTreeContainsIsMatch = 8122,
         #endregion diagnostics for pattern-matching introduced in C# 7
-
-        // Available = 8122
 
         #region tuple diagnostics introduced in C# 7
         WRN_TupleLiteralNameMismatch = 8123,
@@ -1377,9 +1377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
-        #endregion tuple diagnostics introduced in C# 7
+        ERR_ExpressionTreeContainsTupleLiteral = 8143,
+        ERR_ExpressionTreeContainsTupleConversion = 8144,
 
-        // Available = 8143, 8144
+        #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
         ERR_AutoPropertyCannotBeRefReturning = 8145,
@@ -1423,6 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
+        ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
     }
 }

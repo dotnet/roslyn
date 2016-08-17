@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSDiagnostic(info, location);
         }
 
+        public override Diagnostic CreateDiagnostic(DiagnosticInfo info)
+        {
+            return new CSDiagnostic(info, Location.None);
+        }
+
         public override string GetErrorDisplayString(ISymbol symbol)
         {
             // show extra info for assembly if possible such as version, public key token etc.

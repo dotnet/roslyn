@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Some nodes have special binder's for their contents (like Block's)
         /// </summary>
-        internal virtual Binder GetBinder(CSharpSyntaxNode node)
+        internal virtual Binder GetBinder(SyntaxNode node)
         {
             return this.Next.GetBinder(node);
         }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
         }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, CSharpSyntaxNode syntax)
+        internal static void Error(DiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));
         }

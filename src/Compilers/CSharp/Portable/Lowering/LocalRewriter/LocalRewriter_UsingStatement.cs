@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.DeclarationsOpt != null);
 
-                CSharpSyntaxNode usingSyntax = node.Syntax;
+                SyntaxNode usingSyntax = node.Syntax;
                 Conversion idisposableConversion = node.IDisposableConversion;
                 ImmutableArray<BoundLocalDeclaration> declarations = node.DeclarationsOpt.LocalDeclarations;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             TypeSymbol expressionType = rewrittenExpression.Type;
-            CSharpSyntaxNode expressionSyntax = rewrittenExpression.Syntax;
+            SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
             BoundAssignmentOperator tempAssignment;
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(CSharpSyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
+        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
         {
-            CSharpSyntaxNode declarationSyntax = localDeclaration.Syntax;
+            SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
             TypeSymbol localType = localSymbol.Type;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(CSharpSyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 

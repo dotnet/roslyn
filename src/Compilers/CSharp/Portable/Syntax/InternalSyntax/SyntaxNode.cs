@@ -63,13 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return (SyntaxKind)this.RawKind; }
         }
 
-        public override string KindText
-        {
-            get
-            {
-                return this.Kind.ToString();
-            }
-        }
+        public override string KindText => this.Kind.ToString();
 
         public override int RawContextualKind
         {
@@ -94,6 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return this is DirectiveTriviaSyntax;
             }
         }
+
+        public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
+        public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
 
         public override int GetSlotOffset(int index)
         {
@@ -296,14 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return flags;
-        }
-
-        public override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
         }
 
         public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)

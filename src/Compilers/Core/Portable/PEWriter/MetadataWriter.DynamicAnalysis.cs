@@ -211,12 +211,12 @@ namespace Microsoft.Cci
                 documentRowId = _documentTable.Count + 1;
                 index.Add(document, documentRowId);
 
-                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
+                var sourceInfo = document.GetSourceInfo();
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = (checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : GetOrAddGuid(checksumAndAlgorithm.Item2)),
-                    Hash = (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : GetOrAddBlob(checksumAndAlgorithm.Item1)
+                    HashAlgorithm = (sourceInfo.Checksum.IsDefault ? default(GuidHandle) : GetOrAddGuid(sourceInfo.ChecksumAlgorithmId)),
+                    Hash = (sourceInfo.Checksum.IsDefault) ? default(BlobHandle) : GetOrAddBlob(sourceInfo.Checksum)
                 });
             }
 

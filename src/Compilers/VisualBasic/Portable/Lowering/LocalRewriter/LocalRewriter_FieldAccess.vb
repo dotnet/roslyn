@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' produces fieldAccess(field=Item1, receiver=fieldAccess(field=Rest, receiver=ValueTuple for tuple))
         ''' </summary>
         Private Function MakeTupleFieldAccess(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             tupleField As FieldSymbol,
             rewrittenReceiver As BoundExpression,
             constantValueOpt As ConstantValue,
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundFieldAccess(syntax, rewrittenReceiver, underlyingField, isLValue, underlyingField.Type)
         End Function
 
-        Private Shared Function MakeBadFieldAccess(syntax As VisualBasicSyntaxNode, tupleField As FieldSymbol, rewrittenReceiver As BoundExpression) As BoundBadExpression
+        Private Shared Function MakeBadFieldAccess(syntax As SyntaxNode, tupleField As FieldSymbol, rewrittenReceiver As BoundExpression) As BoundBadExpression
             Return New BoundBadExpression(
                                     syntax,
                                     LookupResultKind.Empty,

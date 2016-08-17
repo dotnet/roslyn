@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
-        public async Task<ImmutableArray<DiagnosticData>> DeserializeAsync(object documentOrProject, string key, CancellationToken cancellationToken)
+        public async Task<StrongBox<ImmutableArray<DiagnosticData>>> DeserializeAsync(object documentOrProject, string key, CancellationToken cancellationToken)
         {
             // we have persisted data
             var solution = GetSolution(documentOrProject);
@@ -64,11 +65,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             {
                 if (stream == null)
                 {
-                    return default(ImmutableArray<DiagnosticData>);
+                    return null;
                 }
 
                 using (var reader = new ObjectReader(stream))
                 {
+                    // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
+                    // when returning default(value type)
                     return ReadFrom(reader, documentOrProject, cancellationToken);
                 }
             }
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return storage.ReadStreamAsync(project, key, cancellationToken);
         }
 
-        public ImmutableArray<DiagnosticData> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
+        public StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
         {
             var document = documentOrProject as Document;
             if (document != null)
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return ReadFrom(reader, project, null, cancellationToken);
         }
 
-        private ImmutableArray<DiagnosticData> ReadFrom(ObjectReader reader, Project project, Document document, CancellationToken cancellationToken)
+        private StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, Project project, Document document, CancellationToken cancellationToken)
         {
             try
             {
@@ -228,29 +231,30 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     var format = reader.ReadInt32();
                     if (format != FormatVersion)
                     {
-                        return default(ImmutableArray<DiagnosticData>);
+                        return null;
                     }
 
                     // saved data is for same analyzer of different version of dll
                     var analyzerVersion = VersionStamp.ReadFrom(reader);
                     if (analyzerVersion != AnalyzerVersion)
                     {
-                        return default(ImmutableArray<DiagnosticData>);
+                        return null;
                     }
 
                     var version = VersionStamp.ReadFrom(reader);
                     if (version != VersionStamp.Default && version != Version)
                     {
-                        return default(ImmutableArray<DiagnosticData>);
+                        return null;
                     }
 
                     ReadFrom(reader, project, document, list, cancellationToken);
-                    return list.ToImmutableArray();
+
+                    return new StrongBox<ImmutableArray<DiagnosticData>>(list.ToImmutableArray());
                 }
             }
             catch (Exception)
             {
-                return default(ImmutableArray<DiagnosticData>);
+                return null;
             }
         }
 

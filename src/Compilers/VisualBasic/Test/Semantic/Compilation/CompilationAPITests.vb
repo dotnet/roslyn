@@ -242,34 +242,60 @@ End Namespace
         Public Sub Emit_BadArgs()
             Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
 
-            Assert.Throws(Of ArgumentNullException)(Sub() comp.Emit(peStream:=Nothing))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+            Assert.Throws(Of ArgumentNullException)("peStream", Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)("peStream", Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=Nothing,
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            ' EmbeddedText not supported at all in VB for now
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            ' EmbeddedText not supported at all in VB for now
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
 

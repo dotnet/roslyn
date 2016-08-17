@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class LowPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class LowPriorityProcessor : AbstractPriorityProcessor
                 {
                     private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly AsyncProjectWorkItemQueue _workItemQueue;
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 

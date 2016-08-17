@@ -31,12 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _syntaxTree = syntaxTree
         End Sub
 
-        Friend Overrides ReadOnly Property Navigator As AbstractSyntaxNavigator
-            Get
-                Return SyntaxNavigator.Instance
-            End Get
-        End Property
-
         'TODO: may be eventually not needed
         Friend ReadOnly Property VbGreen As InternalSyntax.VisualBasicSyntaxNode
             Get
@@ -112,12 +106,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Kind() As SyntaxKind
             Return CType(Me.Green.RawKind, SyntaxKind)
         End Function
-
-        Protected Overrides ReadOnly Property KindText As String
-            Get
-                Return Me.Kind.ToString()
-            End Get
-        End Property
 
         ''' <summary>
         ''' The language name this node is syntax of.
@@ -283,13 +271,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function GetTrailingTrivia() As SyntaxTriviaList
             Return GetLastToken(includeZeroWidth:=True).TrailingTrivia
         End Function
-
-        Friend ReadOnly Property HasErrors As Boolean
-            Get
-                ' TODO (tomat): share impl with C#
-                Return Me.ContainsDiagnostics AndAlso Me.GetSyntaxErrors(Me.SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
-            End Get
-        End Property
 
         ' an empty collection of syntax errors.
         Friend Shared EmptyErrorCollection As New ReadOnlyCollection(Of Diagnostic)(New VBDiagnostic() {})
@@ -615,14 +596,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function IsEquivalentToCore(node As SyntaxNode, Optional topLevel As Boolean = False) As Boolean
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
-        End Function
-
-        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
-            Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
-        End Function
-
-        Friend Overrides Function GetLambda() As SyntaxNode
-            Return LambdaUtilities.GetLambda(Me)
         End Function
     End Class
 End Namespace

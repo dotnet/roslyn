@@ -124,14 +124,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return DirectCast(_syntaxReference.GetSyntax(), VisualBasicSyntaxNode)
             End Get
         End Property
 
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+            Dim syntax As SyntaxNode = Me.Syntax
             Return New BoundBlock(
                 syntax,
                 Nothing,

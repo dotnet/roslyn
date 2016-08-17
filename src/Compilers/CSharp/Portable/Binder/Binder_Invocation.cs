@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
         internal BoundExpression MakeInvocationExpression(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
@@ -197,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind an expression as a method invocation.
         /// </summary>
         private BoundExpression BindInvocationExpression(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindDynamicInvocation(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression expression,
             AnalyzedArguments arguments,
             ImmutableArray<MethodSymbol> applicableMethods,
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Returns true if there were errors.
         private static bool ReportBadDynamicArguments(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             ImmutableArray<BoundExpression> arguments,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
@@ -417,8 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindDelegateInvocation(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
@@ -465,8 +465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindMethodGroupInvocation(
-            CSharpSyntaxNode syntax,
-            CSharpSyntaxNode expression,
+            SyntaxNode syntax,
+            SyntaxNode expression,
             string methodName,
             BoundMethodGroup methodGroup,
             AnalyzedArguments analyzedArguments,
@@ -605,8 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
-            CSharpSyntaxNode syntax,
-            CSharpSyntaxNode expression,
+            SyntaxNode syntax,
+            SyntaxNode expression,
             string methodName,
             BoundMethodGroup boundMethodGroup,
             DiagnosticBag diagnostics,
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
-            CSharpSyntaxNode syntax, 
+            SyntaxNode syntax, 
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
@@ -797,8 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <returns>BoundCall or error expression representing the invocation.</returns>
         private BoundCall BindInvocationExpressionContinued(
-            CSharpSyntaxNode node,
-            CSharpSyntaxNode expression,
+            SyntaxNode node,
+            SyntaxNode expression,
             string methodName,
             OverloadResolutionResult<MethodSymbol> result,
             AnalyzedArguments analyzedArguments,
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
-        private static Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
+        private static Location GetLocationForOverloadResolutionDiagnostic(SyntaxNode node, SyntaxNode expression)
         {
             if (node != expression)
             {
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundCall CreateBadCall(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             string name,
             BoundExpression receiver,
             ImmutableArray<MethodSymbol> methods,
@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundCall CreateBadCall(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             BoundExpression expr,
             LookupResultKind resultKind,
             AnalyzedArguments analyzedArguments)

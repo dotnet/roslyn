@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend MustOverride ReadOnly Property ContainingSymbol As Symbol
         Friend MustOverride ReadOnly Property Type As NamedTypeSymbol
         Friend MustOverride Function ToOtherMethod(method As MethodSymbol, typeMap As TypeSubstitution) As DisplayClassInstance
-        Friend MustOverride Function ToBoundExpression(syntax As VisualBasicSyntaxNode) As BoundExpression
+        Friend MustOverride Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
     End Class
 
     Friend NotInheritable Class DisplayClassInstanceFromLocal
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return New DisplayClassInstanceFromLocal(otherInstance)
         End Function
 
-        Friend Overrides Function ToBoundExpression(syntax As VisualBasicSyntaxNode) As BoundExpression
+        Friend Overrides Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
             Return New BoundLocal(syntax, Me.Local, Me.Local.Type).MakeCompilerGenerated()
         End Function
     End Class
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return New DisplayClassInstanceFromParameter(otherParameter)
         End Function
 
-        Friend Overrides Function ToBoundExpression(syntax As VisualBasicSyntaxNode) As BoundExpression
+        Friend Overrides Function ToBoundExpression(syntax As SyntaxNode) As BoundExpression
             Return New BoundParameter(syntax, Me.Parameter, Me.Parameter.Type).MakeCompilerGenerated()
         End Function
     End Class

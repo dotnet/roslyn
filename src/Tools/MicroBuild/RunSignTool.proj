@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Settings.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Dependencies.props" />
+
+  <Target Name="Build">
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(OutDir.TrimEnd('\'))&quot;" WorkingDirectory="$(ProjectDir)" />
+  </Target>
+
+</Project>
+

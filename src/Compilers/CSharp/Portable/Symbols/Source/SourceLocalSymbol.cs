@@ -637,8 +637,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
-                        Debug.Assert(_enclosingBinderOpt == null);
-                        this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
+                        Debug.Assert(_enclosingBinderOpt == null || _enclosingBinderOpt == this.binder);
+                        (_enclosingBinderOpt ?? this.binder).BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
