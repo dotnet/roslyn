@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ReadOnly s_valueTupleRefs As MetadataReference() = New MetadataReference() {ValueTupleRef, SystemRuntimeFacadeRef}
+
         ReadOnly s_trivial2uple As String = "
 Namespace System
     Public Structure ValueTuple(Of T1, T2)
@@ -27,7 +28,6 @@ Namespace System
     End Structure
 End Namespace
 "
-
 
         <Fact()>
         Public Sub TupleTypeBinding()
@@ -147,7 +147,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -237,7 +237,7 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 3
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.M1", <![CDATA[
 {
@@ -286,7 +286,7 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 hello
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
@@ -391,7 +391,7 @@ End Module
 </compilation>, expectedOutput:=<![CDATA[
 42
 123
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("Module1.Main", <![CDATA[
 {
@@ -445,7 +445,7 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 42
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
@@ -491,7 +491,7 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 (1, 2)
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
@@ -525,7 +525,7 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 hello
-            ]]>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
@@ -618,7 +618,7 @@ Module m1
 End module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -644,7 +644,7 @@ Module m1
 End module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -671,7 +671,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, )
             ]]>)
 
@@ -722,7 +722,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -750,7 +750,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (42, hi)
             ]]>)
         End Sub
@@ -771,7 +771,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (42, )
             ]]>)
         End Sub
@@ -791,7 +791,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, 1)
             ]]>)
 
@@ -828,7 +828,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, 1)
             ]]>)
 
@@ -867,7 +867,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, 100)
             ]]>)
 
@@ -909,7 +909,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, 100)
             ]]>)
 
@@ -951,7 +951,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, 100)
             ]]>)
 
@@ -993,7 +993,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1051,7 +1051,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1111,7 +1111,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.ReleaseExe.WithOverflowChecks(False), expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.ReleaseExe.WithOverflowChecks(False), expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1159,7 +1159,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (1, (2, 3))
             ]]>)
 
@@ -1230,7 +1230,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 integer
 integer
 long            ]]>)
@@ -1296,7 +1296,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1347,7 +1347,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1397,7 +1397,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1457,7 +1457,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (100, 100)
             ]]>)
 
@@ -1532,7 +1532,7 @@ Class C1
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (2, 2)
 (2, 2)
             ]]>)
@@ -1619,7 +1619,7 @@ Class C1
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (2, 2)
 (2, 2)
             ]]>)
@@ -1706,7 +1706,7 @@ Class C1
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (2, 2)
 (2, 2)
             ]]>)
@@ -1825,7 +1825,7 @@ Class C1
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (1, 2)
 (3, (4, 5))
 (6, (7, (8, (9, (10, (11, (12, (13, (14, (15, (16, 17)))))))))))
@@ -1888,7 +1888,7 @@ Class C1
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (1, 2)
 (3, (4, 5))
 (6, (7, (8, (9, (10, (11, (12, (13, (14, (15, (16, 17)))))))))))
@@ -1917,7 +1917,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Int32
 System.String
 (1, q)
@@ -1948,7 +1948,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Object
 (System.Object, q)
 
@@ -2014,7 +2014,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -2045,7 +2045,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.String
 (, q)
             ]]>)
@@ -2079,7 +2079,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Object
 (System.Object, q)
 System.ValueTuple`2[System.Object,System.String]
@@ -2115,7 +2115,7 @@ Module C
     End Function
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -2150,7 +2150,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Object
 System.Object
             ]]>)
@@ -2180,7 +2180,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Collections.Generic.IEnumerable`1[System.Int32]
 System.Int32
             ]]>)
@@ -2210,7 +2210,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Collections.Generic.IEnumerable`1[System.Int32]
 System.Int32
             ]]>)
@@ -2241,7 +2241,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Int64
 System.Int64
             ]]>)
@@ -2279,7 +2279,7 @@ Module Module1
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -2318,7 +2318,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 first
 3
 second
@@ -2354,7 +2354,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 1
 1
 2
@@ -2385,7 +2385,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (((0, 0), (0, 0)), ((0, 0), (0, 0)))
 System.Int32
 System.ValueTuple`2[System.Int32,System.Int32]
@@ -2418,7 +2418,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (((0, ), (0, )), ((0, ), (0, )))
 System.Object
 System.ValueTuple`2[System.Int32,System.Object]
@@ -2441,7 +2441,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(1, (2, (3, 4)))]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(1, (2, (3, 4)))]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("Module1.Main", <![CDATA[
@@ -2487,7 +2487,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2
 42]]>)
 
             verifier.VerifyDiagnostics()
@@ -2534,7 +2534,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2
 42]]>)
 
             verifier.VerifyDiagnostics()
@@ -2581,7 +2581,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2
 42]]>)
 
             verifier.VerifyDiagnostics()
@@ -2628,7 +2628,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[2
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2
 42]]>)
 
             verifier.VerifyDiagnostics()
@@ -2682,7 +2682,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(1, hello, 2)]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(1, hello, 2)]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("Module1.Main", <![CDATA[
@@ -2716,7 +2716,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -2729,6 +2729,7 @@ BC30311: Value of type '(Integer, String, Integer)' cannot be converted to '(Int
 
         <Fact()>
         Public Sub TupleTypeMismatch_02()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -2739,7 +2740,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -2752,6 +2753,7 @@ BC30491: Expression does not produce a value.
 
         <Fact()>
         Public Sub LongTupleTypeMismatch()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -2803,6 +2805,7 @@ BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTupl
 
         <Fact()>
         Public Sub TupleTypeWithLateDiscoveredName()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -2853,10 +2856,11 @@ Module Module1
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[1
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1
 hello]]>)
 
             verifier.VerifyDiagnostics()
+
         End Sub
 
         <Fact()>
@@ -2884,7 +2888,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[4]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[4]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.Main", <![CDATA[
@@ -2916,6 +2920,7 @@ End Class
   IL_0042:  ret
 }
 ]]>)
+
         End Sub
 
         <Fact()>
@@ -2937,7 +2942,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C._Closure$__2-0(Of $CLS0)._Lambda$__0()", <![CDATA[
@@ -2950,6 +2955,7 @@ End Class
   IL_000b:  ret
 }
 ]]>)
+
         End Sub
 
         <Fact()>
@@ -2970,7 +2976,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[(42, 42)]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(42, 42)]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C._Closure$__2-0(Of $CLS0)._Lambda$__0()", <![CDATA[
@@ -2984,11 +2990,13 @@ End Class
   IL_0011:  ret
 }
 ]]>)
+
         End Sub
 
         <Fact(Skip:="REMOVE")>
         Public Sub TupleLambdaCapture03()
-            ' REMOVE AFTER REVIEW: this test crashes
+
+            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3020,7 +3028,7 @@ Namespace System
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("Module1.Main", <![CDATA[
@@ -3030,7 +3038,8 @@ End Namespace
 
         <Fact(Skip:="REMOVE")>
         Public Sub TupleLambdaCapture04()
-            ' REMOVE AFTER REVIEW: this test crashes
+
+            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3062,17 +3071,19 @@ Namespace System
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("Module1.Main", <![CDATA[
 
 ]]>)
+
         End Sub
 
         <Fact(Skip:="REMOVE")>
         Public Sub TupleLambdaCapture05()
-            ' REMOVE AFTER REVIEW: this test crashes
+
+            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3106,12 +3117,13 @@ Namespace System
 End Namespace
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42]]>)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("Module1.Main", <![CDATA[
 
 ]]>)
+
         End Sub
 
         <Fact()>
@@ -3231,6 +3243,7 @@ End Class
   IL_00cb:  ret
 }
 ]]>)
+
         End Sub
 
         <Fact()>
@@ -3350,12 +3363,13 @@ End Class
   IL_00d1:  ret
 }
 ]]>)
+
         End Sub
 
         <Fact(Skip:="REMOVE")>
         Public Sub TupleAsyncCapture03()
 
-            ' REMOVE AFTER REVIEW: this test crashes
+            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3372,6 +3386,7 @@ Class C
         Return x.Test(a)
     End Function
 End Class
+
 Namespace System
     Public Structure ValueTuple(Of T1, T2)
         Public Item1 As T1
@@ -3394,6 +3409,7 @@ End Namespace
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
 ]]>)
+
         End Sub
 
         <Fact()>
@@ -3424,6 +3440,7 @@ End Class
 
         <Fact()>
         Public Sub TupleUsageWithoutTupleLibrary()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3455,6 +3472,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
 
         <Fact()>
         Public Sub TupleUsageWithMissingTupleMembers()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3484,6 +3502,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         <Fact()>
         Public Sub TupleWithDuplicateNames()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3495,7 +3514,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3514,6 +3533,7 @@ BC37262: Tuple member names must be unique.
 
         <Fact()>
         Public Sub TupleWithDuplicateReservedNames()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3526,7 +3546,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3548,6 +3568,7 @@ BC37261: Tuple member name 'Item2' is only allowed at position 2.
 
         <Fact()>
         Public Sub TupleWithNonReservedNames()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3559,7 +3580,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3592,7 +3613,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[0
 null]]>)
 
             verifier.VerifyDiagnostics()
@@ -3613,7 +3634,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3642,7 +3663,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3682,7 +3703,7 @@ Module C
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -3710,6 +3731,7 @@ BC37260: Tuple membername 'ToString' is disallowed at any position.
 
         <Fact>
         Public Sub LongTupleDeclaration()
+
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3722,7 +3744,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                additionalRefs:=s_valueTupleRefs,
                 expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5]]>,
                 sourceSymbolValidator:=
                     Sub(m As ModuleSymbol)
@@ -3744,6 +3766,7 @@ End Class
 
         <Fact>
         Public Sub LongTupleDeclarationWithNames()
+
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3757,7 +3780,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                additionalRefs:=s_valueTupleRefs,
                 expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5]]>,
                 sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                            Dim compilation = m.DeclaringCompilation
@@ -3797,7 +3820,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertNoDiagnostics()
 
@@ -3823,12 +3846,13 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
         End Sub
 
         <Fact()>
         Public Sub GenericTupleWithoutTupleLibrary_01()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3915,10 +3939,12 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
             Assert.True(mItem1.Locations.IsEmpty)
             Assert.False(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
+
         End Sub
 
         <Fact()>
         Public Sub GenericTupleWithoutTupleLibrary_02()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
@@ -3964,12 +3990,13 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0 False]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[0 False]]>)
 
         End Sub
 
         <Fact>
         Public Sub LongTupleCreation()
+
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3982,7 +4009,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                additionalRefs:=s_valueTupleRefs,
                 expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3]]>,
                 sourceSymbolValidator:=
                     Sub(m As ModuleSymbol)
@@ -4016,7 +4043,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42 Alice]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -4035,7 +4062,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42 Alice]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -4056,7 +4083,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42 Alice]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -4101,7 +4128,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(<![CDATA[
 BC30059: Constant expression is required.
@@ -4126,7 +4153,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0 ]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[0 ]]>)
 
             verifier.VerifyDiagnostics()
         End Sub
@@ -4147,7 +4174,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[42 Alice]]>)
 
             verifier.VerifyDiagnostics()
         End Sub
@@ -4166,7 +4193,7 @@ Class C
 End Class
     </file>
 </compilation>,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                additionalRefs:=s_valueTupleRefs,
                 expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3]]>,
                 sourceSymbolValidator:=
                     Sub(m As ModuleSymbol)
