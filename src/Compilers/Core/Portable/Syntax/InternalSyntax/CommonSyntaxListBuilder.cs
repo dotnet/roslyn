@@ -76,22 +76,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        protected void EnsureAdditionalCapacity(int additionalCount)
-        {
-            int currentSize = _nodes.Length;
-            int requiredSize = this.Count + additionalCount;
-
-            if (requiredSize <= currentSize) return;
-
-            int newSize =
-                requiredSize < 8 ? 8 :
-                requiredSize >= (int.MaxValue / 2) ? int.MaxValue :
-                Math.Max(requiredSize, currentSize * 2); // NB: Size will *at least* double.
-            Debug.Assert(newSize >= requiredSize);
-
-            Array.Resize(ref _nodes, newSize);
-        }
-
         public void AddRange(GreenNode[] items)
         {
             this.AddRange(items, 0, items.Length);
@@ -150,6 +134,22 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 Debug.Assert(_nodes[i].Value != null);
             }
+        }
+
+        private void EnsureAdditionalCapacity(int additionalCount)
+        {
+            int currentSize = _nodes.Length;
+            int requiredSize = this.Count + additionalCount;
+
+            if (requiredSize <= currentSize) return;
+
+            int newSize =
+                requiredSize < 8 ? 8 :
+                requiredSize >= (int.MaxValue / 2) ? int.MaxValue :
+                Math.Max(requiredSize, currentSize * 2); // NB: Size will *at least* double.
+            Debug.Assert(newSize >= requiredSize);
+
+            Array.Resize(ref _nodes, newSize);
         }
 
         public static CommonSyntaxListBuilder Create()
