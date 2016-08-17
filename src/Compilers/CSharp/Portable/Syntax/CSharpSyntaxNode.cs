@@ -37,14 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
-        }
-
         //TODO: move to common
         /// <summary>
         /// Creates a clone of a red node that can be used as a root of given syntaxTree.
@@ -167,14 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxKind Kind()
         {
             return (SyntaxKind)this.Green.RawKind;
-        }
-
-        protected override string KindText
-        {
-            get
-            {
-                return this.Kind().ToString();
-            }
         }
 
         /// <summary>

@@ -909,6 +909,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
+            if (declaration.Declarations.Length >= 1 && position == declaration.Declarations[0].Location.SourceSpan.Start)
+            {
+                // With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                // the syntax associated with both the analysis payload local of a synthesized constructor
+                // and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                // that lambda needs a closure that captures the analysis payload of the constructor,
+                // and the offset of the syntax for the local within the constructor is by definition zero.
+                return 0;
+            }
+
             // an implicit constructor has no body and no initializer, so the variable has to be declared in a member initializer
             throw ExceptionUtilities.Unreachable;
         }

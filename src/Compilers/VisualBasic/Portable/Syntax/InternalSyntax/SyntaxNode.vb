@@ -180,6 +180,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsSkippedTokensTrivia As Boolean
+            Get
+                Return Me.Kind = SyntaxKind.SkippedTokensTrivia
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsDocumentationCommentTrivia As Boolean
+            Get
+                Return Me.Kind = SyntaxKind.DocumentationCommentTrivia
+            End Get
+        End Property
+
         Protected Overrides Function GetSlotCount() As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
@@ -438,12 +450,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return [structure]
         End Function
-
-        Public Overrides ReadOnly Property Navigator As AbstractSyntaxNavigator
-            Get
-                Return SyntaxNavigator.Instance
-            End Get
-        End Property
 
         Public Overrides Function CreateList(nodes As IEnumerable(Of GreenNode), Optional alwaysCreateListNode As Boolean = False) As GreenNode
             If nodes Is Nothing Then
