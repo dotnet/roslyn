@@ -918,5 +918,46 @@ public class Test
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
         }
+
+        [Fact]
+        public void NoRefInIndex()
+        {
+            var text = @"
+class C
+{
+    void F(object[] a, object[,] a2, int i)
+    {
+        int j;
+        j = a[ref i];    // error 1
+        j = a[out i];    // error 2
+        j = this[ref i]; // error 3
+        j = a2[i, out i]; // error 4
+        j = a2[i, ref i]; // error 5
+        j = a2[ref i, out i]; // error 6
+    }
+    public int this[int i] => 1;
+}
+";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (7,19): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         j = a[ref i];    // error 1
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(7, 19),
+                // (8,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         j = a[out i];    // error 2
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "out").WithLocation(8, 19),
+                // (9,22): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         j = this[ref i]; // error 3
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(9, 22),
+                // (10,23): error CS1615: Argument 2 may not be passed with the 'out' keyword
+                //         j = a2[i, out i]; // error 4
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "out").WithLocation(10, 23),
+                // (11,23): error CS1615: Argument 2 may not be passed with the 'ref' keyword
+                //         j = a2[i, ref i]; // error 5
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "ref").WithLocation(11, 23),
+                // (12,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         j = a2[ref i, out i]; // error 6
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(12, 20)
+                );
+        }
     }
 }

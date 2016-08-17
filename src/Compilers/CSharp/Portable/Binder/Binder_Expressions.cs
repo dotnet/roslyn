@@ -6010,13 +6010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // must be of type int, uint, long, ulong, or must be implicitly convertible to one or
             // more of these types.
 
-            // UNDONE: An array access cannot be ref/out either.
-
             if (arguments.Names.Count > 0)
             {
                 Error(diagnostics, ErrorCode.ERR_NamedArgumentForArray, node);
             }
 
+            bool hasErrors = ReportRefOrOutArgument(arguments, diagnostics);
             var arrayType = (ArrayTypeSymbol)expr.Type;
 
             // Note that the spec says to determine which of {int, uint, long, ulong} *each* index
@@ -6054,7 +6053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType);
+            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType, hasErrors);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics)
@@ -6137,30 +6136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            ArrayBuilder<BoundExpression> arguments = analyzedArguments.Arguments;
-            int numArguments = arguments.Count;
-
-            if (!hasErrors)
-            {
-                for (int i = 0; i < numArguments; i++)
-                {
-                    // NOTE: probably can't hit this if the syntax node came from the parser.
-                    RefKind refKind = analyzedArguments.RefKind(i);
-                    if (refKind != RefKind.None)
-                    {
-                        // CONSIDER: would it be nicer to have a resource string for the keyword?
-                        Error(diagnostics, ErrorCode.ERR_BadArgExtraRef, analyzedArguments.Argument(i).Syntax, i + 1, refKind.ToDisplayString());
-                        hasErrors = true;
-                        break;
-                    }
-                }
-            }
+            hasErrors = hasErrors || ReportRefOrOutArgument(analyzedArguments, diagnostics);
 
             Debug.Assert(expr.Type.IsPointerType());
             PointerTypeSymbol pointerType = (PointerTypeSymbol)expr.Type;
             TypeSymbol pointedAtType = pointerType.PointedAtType;
 
-            if (numArguments != 1)
+            ArrayBuilder<BoundExpression> arguments = analyzedArguments.Arguments;
+            if (arguments.Count != 1)
             {
                 if (!hasErrors)
                 {
@@ -6179,6 +6162,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             index = ConvertToArrayIndex(index, index.Syntax, diagnostics);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
+        }
+
+        private static bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            int numArguments = analyzedArguments.Arguments.Count;
+            for (int i = 0; i < numArguments; i++)
+            {
+                RefKind refKind = analyzedArguments.RefKind(i);
+                if (refKind != RefKind.None)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadArgExtraRef, analyzedArguments.Argument(i).Syntax, i + 1, refKind.ToDisplayString());
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
