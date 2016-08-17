@@ -1,21 +1,161 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal class CommonSyntaxListBuilder :
-        AbstractSyntaxListBuilder<GreenNode, CommonSyntaxList<GreenNode>>
+    internal class CommonSyntaxListBuilder
     {
-        public CommonSyntaxListBuilder(int size) : base(size)
+        private ArrayElement<GreenNode>[] _nodes;
+        public int Count { get; private set; }
+
+        public CommonSyntaxListBuilder(int size)
         {
+            _nodes = new ArrayElement<GreenNode>[size];
+        }
+
+        public bool Any(int kind)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (_nodes[i].Value.RawKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void Clear()
+        {
+            this.Count = 0;
+        }
+
+        public void RemoveLast()
+        {
+            Count--;
+            _nodes[Count].Value = null;
+        }
+
+        public GreenNode this[int index]
+        {
+            get
+            {
+                return _nodes[index];
+            }
+
+            set
+            {
+                _nodes[index].Value = value;
+            }
+        }
+
+        public void Add(GreenNode item)
+        {
+            if (item == null) return;
+
+            if (item.IsList)
+            {
+                int slotCount = item.SlotCount;
+
+                // Necessary, but not sufficient (e.g. for nested lists).
+                EnsureAdditionalCapacity(slotCount);
+
+                for (int i = 0; i < slotCount; i++)
+                {
+                    this.Add((GreenNode)item.GetSlot(i));
+                }
+            }
+            else
+            {
+                EnsureAdditionalCapacity(1);
+
+                _nodes[Count++].Value = item;
+            }
+        }
+
+        protected void EnsureAdditionalCapacity(int additionalCount)
+        {
+            int currentSize = _nodes.Length;
+            int requiredSize = this.Count + additionalCount;
+
+            if (requiredSize <= currentSize) return;
+
+            int newSize =
+                requiredSize < 8 ? 8 :
+                requiredSize >= (int.MaxValue / 2) ? int.MaxValue :
+                Math.Max(requiredSize, currentSize * 2); // NB: Size will *at least* double.
+            Debug.Assert(newSize >= requiredSize);
+
+            Array.Resize(ref _nodes, newSize);
+        }
+
+        public void AddRange(GreenNode[] items)
+        {
+            this.AddRange(items, 0, items.Length);
+        }
+
+        public void AddRange(GreenNode[] items, int offset, int length)
+        {
+            // Necessary, but not sufficient (e.g. for nested lists).
+            EnsureAdditionalCapacity(length - offset);
+
+            int oldCount = this.Count;
+
+            for (int i = offset; i < length; i++)
+            {
+                Add(items[i]);
+            }
+
+            Validate(oldCount, this.Count);
+        }
+
+        public void AddRange(CommonSyntaxList<GreenNode> list)
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
+        public void AddRange(CommonSyntaxList<GreenNode> list, int offset, int length)
+        {
+            // Necessary, but not sufficient (e.g. for nested lists).
+            EnsureAdditionalCapacity(length - offset);
+
+            int oldCount = this.Count;
+
+            for (int i = offset; i < length; i++)
+            {
+                Add(list[i]);
+            }
+
+            Validate(oldCount, this.Count);
+        }
+
+        public GreenNode[] ToArray()
+        {
+            var array = new GreenNode[this.Count];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = _nodes[i];
+            }
+
+            return array;
+        }
+
+        [Conditional("DEBUG")]
+        protected void Validate(int start, int end)
+        {
+            for (int i = start; i < end; i++)
+            {
+                Debug.Assert(_nodes[i].Value != null);
+            }
         }
 
         public static CommonSyntaxListBuilder Create()
         {
             return new CommonSyntaxListBuilder(8);
         }
-
 
         public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
         {
@@ -24,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void AddRange<TNode>(CommonSyntaxList<TNode> list, int offset, int length) where TNode : GreenNode
         {
-            base.AddRange(new CommonSyntaxList<GreenNode>(list.Node), offset, length);
+            this.AddRange(new CommonSyntaxList<GreenNode>(list.Node), offset, length);
         }
 
         internal GreenNode ToListNode()
@@ -34,14 +174,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 case 0:
                     return null;
                 case 1:
-                    return Nodes[0];
+                    return _nodes[0];
                 case 2:
-                    return CommonSyntaxList.List(Nodes[0], Nodes[1]);
+                    return CommonSyntaxList.List(_nodes[0], _nodes[1]);
                 case 3:
-                    return CommonSyntaxList.List(Nodes[0], Nodes[1], Nodes[2]);
+                    return CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
-                    Array.Copy(Nodes, tmp, this.Count);
+                    Array.Copy(_nodes, tmp, this.Count);
                     return CommonSyntaxList.List(tmp);
             }
         }

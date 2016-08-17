@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct CommonSyntaxList<TNode> : IEquatable<CommonSyntaxList<TNode>>, ISyntaxList<TNode>
+    internal partial struct CommonSyntaxList<TNode> : IEquatable<CommonSyntaxList<TNode>>
         where TNode : GreenNode
     {
         private readonly GreenNode _node;

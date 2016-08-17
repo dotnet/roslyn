@@ -112,13 +112,11 @@
     <Compile Include="Symbols\TypeCompareKind.cs" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SyntaxListBuilder.cs" />
-    <Compile Include="Syntax\InternalSyntax\AbstractSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\IFactoryContext.cs" />
-    <Compile Include="Syntax\InternalSyntax\ISyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithLotsOfChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithManyChildren.cs" />
