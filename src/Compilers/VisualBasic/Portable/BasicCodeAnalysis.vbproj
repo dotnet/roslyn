@@ -895,7 +895,6 @@
     <Compile Include="Syntax\SyntaxNodeRemover.vb" />
     <Compile Include="Syntax\SyntaxReplacer.vb" />
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
-    <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
