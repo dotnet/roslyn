@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     //This used to implement IEnumerable and have more functionality, but it was not tested or used.
-    internal struct SyntaxDiagnosticInfoList
+    internal struct SyntaxDiagnosticInfoList : IEnumerable<DiagnosticInfo>
     {
         private readonly GreenNode _node;
 
@@ -19,6 +21,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return new Enumerator(_node);
         }
 
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        IEnumerator<DiagnosticInfo> IEnumerable<DiagnosticInfo>.GetEnumerator() => GetEnumerator();
+
         internal bool Any(Func<DiagnosticInfo, bool> predicate)
         {
             var enumerator = GetEnumerator();
@@ -31,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return false;
         }
 
-        public struct Enumerator
+        public struct Enumerator : IEnumerator<DiagnosticInfo>
         {
             private struct NodeIteration
             {
@@ -147,10 +153,21 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _count--;
             }
 
+            public void Reset()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Dispose()
+            {
+            }
+
             public DiagnosticInfo Current
             {
                 get { return _current; }
             }
+
+            object IEnumerator.Current => Current;
         }
     }
 }

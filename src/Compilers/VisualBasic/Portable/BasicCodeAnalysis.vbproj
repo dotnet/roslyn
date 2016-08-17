@@ -862,7 +862,6 @@
     <Compile Include="Syntax\InternalSyntax\SimpleIdentifierSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\StructuredTriviaSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\Syntax.vb" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.vb" />
