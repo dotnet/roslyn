@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     var rootTreeNode = _treeCollection.CreateRootTreeNode(solution);
 
-                    var builder = new SnapshotBuilder(rootTreeNode);
+                    var builder = new ChecksumTreeBuilder(rootTreeNode);
                     var snapshot = new ChecksumScope(_treeCollection, rootTreeNode, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
 
                     return snapshot;

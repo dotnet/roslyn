@@ -9,12 +9,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    internal struct SnapshotBuilder
+    internal struct ChecksumTreeBuilder
     {
         private readonly Serializer _serializer;
         private readonly IChecksumTreeNode _checksumTree;
 
-        public SnapshotBuilder(IChecksumTreeNode checksumTree)
+        public ChecksumTreeBuilder(IChecksumTreeNode checksumTree)
         {
             _checksumTree = checksumTree;
             _serializer = checksumTree.Serializer;
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var subTreeNode = _checksumTree.GetOrCreateSubTreeNode(key);
 
-            var subSnapshotBuilder = new SnapshotBuilder(subTreeNode);
+            var subSnapshotBuilder = new ChecksumTreeBuilder(subTreeNode);
 
             var documents = await subSnapshotBuilder.BuildAsync(key.DocumentStates, project.Documents, WellKnownChecksumObjects.Documents, cancellationToken).ConfigureAwait(false);
-            var projectReferences = await subSnapshotBuilder.BuildAsync(project.AllProjectReferences, project.ProjectReferences, cancellationToken).ConfigureAwait(false);
+            var projectReferences = await subSnapshotBuilder.BuildAsync(project.AllProjectReferences, project.AllProjectReferences, cancellationToken).ConfigureAwait(false);
             var metadataReferences = await subSnapshotBuilder.BuildAsync(project.MetadataReferences, project.MetadataReferences, cancellationToken).ConfigureAwait(false);
             var analyzerReferences = await subSnapshotBuilder.BuildAsync(project.AnalyzerReferences, project.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
             var additionalDocuments = await subSnapshotBuilder.BuildAsync(key.AdditionalDocumentStates, project.AdditionalDocuments, WellKnownChecksumObjects.TextDocuments, cancellationToken).ConfigureAwait(false);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return GetEmptyChecksumCollectionTask(kind);
             }
 
-            var snapshotBuilder = new SnapshotBuilder(_checksumTree.GetOrCreateSubTreeNode(key));
+            var snapshotBuilder = new ChecksumTreeBuilder(_checksumTree.GetOrCreateSubTreeNode(key));
             return CreateChecksumCollectionsAsync(projects, kind, snapshotBuilder.BuildAsync, cancellationToken);
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return GetEmptyChecksumCollectionTask(kind);
             }
 
-            var snapshotBuilder = new SnapshotBuilder(_checksumTree.GetOrCreateSubTreeNode(key));
+            var snapshotBuilder = new ChecksumTreeBuilder(_checksumTree.GetOrCreateSubTreeNode(key));
             return CreateChecksumCollectionsAsync(documents, kind, snapshotBuilder.BuildAsync, cancellationToken);
         }
 
