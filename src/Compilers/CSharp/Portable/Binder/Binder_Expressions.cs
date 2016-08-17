@@ -6164,7 +6164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
-        private bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        private static bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
             int numArguments = analyzedArguments.Arguments.Count;
             for (int i = 0; i < numArguments; i++)
