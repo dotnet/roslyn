@@ -111,6 +111,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
+        public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
+        public void AddRange<TNode>(CommonSyntaxList<TNode> list, int offset, int length) where TNode : GreenNode
+        {
+            this.AddRange(new CommonSyntaxList<GreenNode>(list.Node), offset, length);
+        }
+
         public void RemoveLast()
         {
             Count--;
@@ -155,16 +165,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
 
             return array;
-        }
-
-        public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
-        {
-            this.AddRange(list, 0, list.Count);
-        }
-
-        public void AddRange<TNode>(CommonSyntaxList<TNode> list, int offset, int length) where TNode : GreenNode
-        {
-            this.AddRange(new CommonSyntaxList<GreenNode>(list.Node), offset, length);
         }
 
         internal GreenNode ToListNode()
