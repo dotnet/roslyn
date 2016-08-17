@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // receiver for first Deconstruct step
             var boundRHS = rhsPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
 
-            boundRHS = FixTupleLiteral(checkedVariables, boundRHS, node, right, diagnostics);
+            boundRHS = FixTupleLiteral(checkedVariables, boundRHS, node, diagnostics);
 
             if ((object)boundRHS.Type == null)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             deconstructions, conversions, assignments, constructions, returnType, hasErrors: hasErrors);
         }
 
-        private BoundExpression FixTupleLiteral(ArrayBuilder<DeconstructionVariable> checkedVariables, BoundExpression boundRHS, CSharpSyntaxNode syntax, ExpressionSyntax right, DiagnosticBag diagnostics)
+        private BoundExpression FixTupleLiteral(ArrayBuilder<DeconstructionVariable> checkedVariables, BoundExpression boundRHS, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             if (boundRHS.Kind == BoundKind.TupleLiteral)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((object)boundRHS.Type == null)
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, right);
+                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, boundRHS.Syntax);
             }
 
             return boundRHS;
