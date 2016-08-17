@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _skipCnt = allChildrenCnt - 1
                 Dim result As GreenNode
                 If node.IsList Then
-                    result = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(node)).Node
+                    result = VisitList(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(node)).Node
                 Else
                     result = MyBase.Visit(DirectCast(node, VisualBasicSyntaxNode))
                 End If

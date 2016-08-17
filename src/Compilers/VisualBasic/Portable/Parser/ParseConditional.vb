@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 CurrentToken.Kind = SyntaxKind.BadToken Then
 
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
-                missingHash = missingHash.AddLeadingSyntax(New SyntaxList(Of SyntaxToken)(CurrentToken))
+                missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
                 GetNextToken()
                 Return (ParseBadDirective(missingHash))
             End If
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Name = ParseIdentifier()
 
-            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
             If Name.ContainsDiagnostics Then
                 unexpected = ResyncAt({SyntaxKind.EqualsToken})
             End If

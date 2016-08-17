@@ -255,7 +255,7 @@ Public MustInherit Class WriteUtils
 
         If isGreen Then
             If nodeChild.IsList Then
-                Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.Common{0}", result)
+                Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.{0}", result)
             Else
                 Return String.Format("InternalSyntax.{0}", result)
             End If
@@ -311,13 +311,13 @@ Public MustInherit Class WriteUtils
         If nodeChild.IsList Then
             If nodeChild.IsSeparated Then
                 If isGreen Then
-                    Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(of GreenNode)", BaseTypeReference(nodeChild))
+                    Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)", BaseTypeReference(nodeChild))
                 Else
                     Return String.Format("SeparatedSyntaxList(Of {0})", BaseTypeReference(nodeChild))
                 End If
             Else
                 If isGreen Then
-                    Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(of GreenNode)", StructureTypeName(_parseTree.RootStructure))
+                    Return String.Format("Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)", StructureTypeName(_parseTree.RootStructure))
                 Else
                     If KindTypeStructure(nodeChild.ChildKind).IsToken Then
                         Return String.Format("SyntaxTokenList")

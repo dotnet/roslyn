@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Next
             Else
                 Dim tk = DirectCast(node, SyntaxToken)
-                WriteInteriorXml(New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetLeadingTrivia), sb)
+                WriteInteriorXml(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetLeadingTrivia), sb)
                 WriteInteriorXml(tk, sb)
-                WriteInteriorXml(New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia), sb)
+                WriteInteriorXml(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia), sb)
             End If
         End Sub
 

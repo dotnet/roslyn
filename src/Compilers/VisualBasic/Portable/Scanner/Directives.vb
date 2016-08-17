@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Sub ProcessDirective(directiveTrivia As DirectiveTriviaSyntax, tList As SyntaxListBuilder)
 
-            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim statement As DirectiveTriviaSyntax = directiveTrivia
 
             Dim newState = ApplyDirective(_scannerPreprocessorState,

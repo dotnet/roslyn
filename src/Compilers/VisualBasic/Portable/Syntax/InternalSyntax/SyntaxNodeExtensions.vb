@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(CreateSkippedTrivia(unexpected.Node,
                                                                               preserveDiagnostics:=True,
                                                                               addDiagnosticToFirstTokenOnly:=True,
-                                                                              addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+                                                                              addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                 Return AddLeadingTrivia(node, trivia)
             Else
                 Return DirectCast(node.AddError(diagnostic), TSyntax)
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(CreateSkippedTrivia(unexpected,
                                                                               preserveDiagnostics:=False,
                                                                               addDiagnosticToFirstTokenOnly:=False,
-                                                                              addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+                                                                              addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                 Return AddLeadingTrivia(node, trivia)
             Else
                 Return DirectCast(node.AddError(diagnostic), TSyntax)
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(CreateSkippedTrivia(unexpected,
                                                                               preserveDiagnostics:=True,
                                                                               addDiagnosticToFirstTokenOnly:=False,
-                                                                              addDiagnostic:=Nothing), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+                                                                              addDiagnostic:=Nothing), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                 Return AddLeadingTrivia(node, trivia)
             End If
             Return node
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(CreateSkippedTrivia(unexpected.Node,
                                                                                   preserveDiagnostics:=True,
                                                                                   addDiagnosticToFirstTokenOnly:=True,
-                                                                                  addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+                                                                                  addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                 Return AddTrailingTrivia(node, trivia)
             Else
                 Return DirectCast(node.AddError(diagnostic), TSyntax)
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(CreateSkippedTrivia(unexpected,
                                                                preserveDiagnostics:=False,
                                                                addDiagnosticToFirstTokenOnly:=False,
-                                                               addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+                                                               addDiagnostic:=diagnostic), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                 Return AddTrailingTrivia(node, trivia)
             Else
                 Return DirectCast(node.AddError(diagnostic), TSyntax)
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension()>
         Friend Function AddTrailingSyntax(Of TSyntax As GreenNode)(node As TSyntax, unexpected As GreenNode) As TSyntax
             If unexpected IsNot Nothing Then
-                Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode) = CType(CreateSkippedTrivia(unexpected, preserveDiagnostics:=True, addDiagnosticToFirstTokenOnly:=False, addDiagnostic:=Nothing), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of GreenNode))
+                Dim trivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode) = CType(CreateSkippedTrivia(unexpected, preserveDiagnostics:=True, addDiagnosticToFirstTokenOnly:=False, addDiagnostic:=Nothing), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode))
                 Return AddTrailingTrivia(node, trivia)
             End If
             Return node
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(triviaList),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(triviaList), Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
 
             For i = 0 To trivia.Count - 1
                 Select Case trivia.ItemUntyped(i).RawKind
@@ -637,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this), Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
 
             For i = 0 To trivia.Count - 1
                 Dim kind = trivia.ItemUntyped(i).RawKind
@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this), Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
 
             For i = 0 To trivia.Count - 1
                 Dim kind = trivia.ItemUntyped(i).RawKind

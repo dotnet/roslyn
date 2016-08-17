@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 

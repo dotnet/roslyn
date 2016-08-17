@@ -637,14 +637,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(groupKw IsNot Nothing)
 
             Dim byKw As KeywordSyntax = Nothing
-            Dim elements As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ExpressionRangeVariableSyntax))
+            Dim elements As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax))
             If Not TryEatNewLineAndGetContextualKeyword(SyntaxKind.ByKeyword, byKw, createIfMissing:=False) Then
                 TryEatNewLine()
                 ' // parse element selector
                 elements = ParseSelectList()
             End If
 
-            Dim keys As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ExpressionRangeVariableSyntax))
+            Dim keys As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax))
             If byKw IsNot Nothing OrElse TryEatNewLineAndGetContextualKeyword(SyntaxKind.ByKeyword, byKw, createIfMissing:=True) Then
                 TryEatNewLine()
                 ' // parse key selector
@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
-            Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of AggregationRangeVariableSyntax))
+            Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax))
             If TryEatNewLineAndGetContextualKeyword(SyntaxKind.IntoKeyword, intoKw, createIfMissing:=True) Then
                 TryEatNewLine()
                 ' // parse result selector
@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
-            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(rangeVariables.ToList, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of AggregationRangeVariableSyntax))
+            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(rangeVariables.ToList, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax))
             Me._pool.Free(rangeVariables)
             Return result
         End Function
@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim onKw As KeywordSyntax = Nothing
-            Dim Predicate As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of JoinConditionSyntax))
+            Dim Predicate As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax))
             If TryEatNewLineAndGetToken(SyntaxKind.OnKeyword, onKw, createIfMissing:=True) Then
                 TryEatNewLine()
                 Predicate = ParseJoinPredicateExpression()
@@ -711,10 +711,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim missingEq = SyntaxFactory.JoinCondition(InternalSyntaxFactory.MissingExpression,
                                         InternalSyntaxFactory.MissingKeyword(SyntaxKind.EqualsKeyword),
                                         InternalSyntaxFactory.MissingExpression)
-                Predicate = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(missingEq), CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of JoinConditionSyntax))
+                Predicate = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(missingEq), CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax))
             End If
 
-            Dim joinVarList = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of CollectionRangeVariableSyntax))
+            Dim joinVarList = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax))
             Dim moreJoins = moreJoinsBuilder.ToList()
             _pool.Free(moreJoinsBuilder)
 
@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.SimpleJoinClause(joinKw, joinVarList, moreJoins, onKw, Predicate)
             Else
                 Dim intoKw As KeywordSyntax = Nothing
-                Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of AggregationRangeVariableSyntax))
+                Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax))
                 If TryEatNewLineAndGetContextualKeyword(SyntaxKind.IntoKeyword, intoKw, createIfMissing:=True) Then
                     TryEatNewLine()
 
@@ -932,7 +932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                    SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword,
                                    SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                result = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(CType(elements, GreenNode)), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of GreenNode))), CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of JoinConditionSyntax))
+                result = CType(New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(CType(elements, GreenNode)), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode))), CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax))
             End If
 
             Return result
@@ -1211,7 +1211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._pool.Free(moreOperators)
 
             Dim intoKw As KeywordSyntax = Nothing
-            Dim variables As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of AggregationRangeVariableSyntax))
+            Dim variables As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax))
             If TryEatNewLineAndGetContextualKeyword(SyntaxKind.IntoKeyword, intoKw, createIfMissing:=True) Then
                 ' //ILC:  I took the liberty of adding implicit line continuations after query keywords in addition to before them...
                 TryEatNewLine()

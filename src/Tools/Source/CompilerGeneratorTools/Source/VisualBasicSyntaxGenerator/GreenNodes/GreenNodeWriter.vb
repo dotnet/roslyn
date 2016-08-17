@@ -688,10 +688,10 @@ Friend Class GreenNodeWriter
             _writer.WriteLine("                Return Me.{0}", ChildVarName(child))
 
         ElseIf child.IsSeparated Then
-            _writer.WriteLine("                Return new {0}(New CommonSyntaxList(of {1})(Me.{2}))", ChildPropertyTypeRef(node, child, True), BaseTypeReference(child), ChildVarName(child))
+            _writer.WriteLine("                Return new {0}(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of {1})(Me.{2}))", ChildPropertyTypeRef(node, child, True), BaseTypeReference(child), ChildVarName(child))
 
         ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-            _writer.WriteLine("                Return New CommonSyntaxList(of GreenNode)(Me.{1})", BaseTypeReference(child), ChildVarName(child))
+            _writer.WriteLine("                Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me.{1})", BaseTypeReference(child), ChildVarName(child))
 
         Else
             _writer.WriteLine("                Return new {0}(Me.{1})", ChildPropertyTypeRef(node, child, True), ChildVarName(child))
