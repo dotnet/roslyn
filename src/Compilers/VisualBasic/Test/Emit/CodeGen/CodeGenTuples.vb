@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -3695,7 +3696,6 @@ BC37260: Tuple membername 'ToString' is disallowed at any position.
 
         <Fact>
         Public Sub LongTupleDeclaration()
-            ' REMOVE AFTER REVIEW this test crashes because the symbol returned by GetDeclaredSymbol is null
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3710,6 +3710,41 @@ End Class
 </compilation>,
                 additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
                 expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5]]>,
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().Single().Names(0)
+
+                        Assert.Equal("x As (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, " _
+                            + "System.String, System.Int32, System.Int32, System.Int32, System.Int32)",
+                            model.GetDeclaredSymbol(x).ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub LongTupleDeclarationWithNames()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x As (a As Integer, b As Integer, c As Integer, d As Integer, e As Integer, f As Integer, g As Integer, _
+            h As String, i As Integer, j As Integer, k As Integer, l As Integer) =
+            (1, 2, 3, 4, 5, 6, 7, "Alice", 2, 3, 4, 5)
+        System.Console.Write($"{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l}")
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5]]>,
                 sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                            Dim compilation = m.DeclaringCompilation
                                            Dim tree = compilation.SyntaxTrees.First()
@@ -3718,14 +3753,333 @@ End Class
 
                                            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().Single().Names(0)
 
-                                           Assert.Equal("x As (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, " _
-                                               + "System.String, System.Int32, System.Int32, System.Int32, System.Int32)",
+                                           Assert.Equal("x As (a As System.Int32, b As System.Int32, c As System.Int32, d As System.Int32, " _
+                                                        + "e As System.Int32, f As System.Int32, g As System.Int32, h As System.String, " _
+                                                        + "i As System.Int32, j As System.Int32, k As System.Int32, l As System.Int32)",
                                                model.GetDeclaredSymbol(x).ToTestDisplayString())
                                        End Sub)
 
             verifier.VerifyDiagnostics()
 
         End Sub
+
+        <Fact()>
+        Public Sub HugeTupleCreationParses()
+
+            Dim b = New StringBuilder()
+            b.Append("(")
+            For i As Integer = 0 To 3000
+                b.Append("1, ")
+            Next
+            b.Append("1)")
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x = <%= b.ToString() %>
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertNoDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub HugeTupleDeclarationParses()
+
+            Dim b = New StringBuilder()
+            b.Append("(")
+            For i As Integer = 0 To 3000
+                b.Append("Integer, ")
+            Next
+            b.Append("Integer)")
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x As <%= b.ToString() %>;
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+        End Sub
+
+        <Fact()>
+        Public Sub GenericTupleWithoutTupleLibrary_01()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x = M(Of Integer, Boolean)()
+        System.Console.Write($"{x.first} {x.second}")
+    End Sub
+    Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
+        return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30389: '(first As Integer, second As Boolean).first' is not accessible in this context because it is 'Private'.
+        System.Console.Write($"{x.first} {x.second}")
+                                ~~~~~~~
+BC30389: '(first As Integer, second As Boolean).second' is not accessible in this context because it is 'Private'.
+        System.Console.Write($"{x.first} {x.second}")
+                                          ~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+    Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+    Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        return (Nothing, Nothing)
+               ~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW those errors are different than in C# and there seems to be a duplicate
+            ' REMOVE AFTER REVIEW There are commented-out checks below
+
+            Dim mTuple = DirectCast(comp.GetMember(Of MethodSymbol)("C.M").ReturnType, NamedTypeSymbol)
+
+            Assert.True(mTuple.IsTupleType)
+            Assert.Equal(TypeKind.Error, mTuple.TupleUnderlyingType.TypeKind)
+            Assert.Equal(SymbolKind.ErrorType, mTuple.TupleUnderlyingType.Kind)
+            Assert.IsAssignableFrom(Of ErrorTypeSymbol)(mTuple.TupleUnderlyingType)
+            Assert.Equal(TypeKind.Struct, mTuple.TypeKind)
+            'AssertTupleTypeEquality(mTuple)
+            Assert.False(mTuple.IsImplicitlyDeclared)
+            'Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture))
+            Assert.Null(mTuple.BaseType)
+            Assert.False(DirectCast(mTuple, TupleTypeSymbol).UnderlyingDefinitionToMemberMap.Any())
+
+            Dim mFirst = DirectCast(mTuple.GetMembers("first").Single(), FieldSymbol)
+
+            Assert.IsType(Of TupleErrorFieldSymbol)(mFirst)
+
+            Assert.True(mFirst.IsTupleField)
+            Assert.Equal("first", mFirst.Name)
+            Assert.Same(mFirst, mFirst.OriginalDefinition)
+            Assert.True(mFirst.Equals(mFirst))
+            Assert.Null(mFirst.TupleUnderlyingField)
+            Assert.Null(mFirst.AssociatedSymbol)
+            Assert.Same(mTuple, mFirst.ContainingSymbol)
+            Assert.True(mFirst.CustomModifiers.IsEmpty)
+            Assert.True(mFirst.GetAttributes().IsEmpty)
+            'Assert.Null(mFirst.GetUseSiteDiagnostic())
+            Assert.False(mFirst.Locations.IsDefaultOrEmpty)
+            Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.False(mFirst.IsImplicitlyDeclared)
+            Assert.Null(mFirst.TypeLayoutOffset)
+
+            Dim mItem1 = DirectCast(mTuple.GetMembers("Item1").Single(), FieldSymbol)
+
+            Assert.IsType(Of TupleErrorFieldSymbol)(mItem1)
+
+            Assert.True(mItem1.IsTupleField)
+            Assert.Equal("Item1", mItem1.Name)
+            Assert.Same(mItem1, mItem1.OriginalDefinition)
+            Assert.True(mItem1.Equals(mItem1))
+            Assert.Null(mItem1.TupleUnderlyingField)
+            Assert.Null(mItem1.AssociatedSymbol)
+            Assert.Same(mTuple, mItem1.ContainingSymbol)
+            Assert.True(mItem1.CustomModifiers.IsEmpty)
+            Assert.True(mItem1.GetAttributes().IsEmpty)
+            'Assert.Null(mItem1.GetUseSiteDiagnostic())
+            Assert.True(mItem1.Locations.IsEmpty)
+            Assert.False(mItem1.IsImplicitlyDeclared)
+            Assert.Null(mItem1.TypeLayoutOffset)
+        End Sub
+
+        <Fact()>
+        Public Sub GenericTupleWithoutTupleLibrary_02()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Class C
+    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
+        Throw New System.NotSupportedException()
+    End Function
+End Class
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
+                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
+    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
+                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW This is another duplicate diagnostic
+        End Sub
+
+        <Fact()>
+        Public Sub GenericTuple()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x = M(Of Integer, Boolean)()
+        System.Console.Write($"{x.first} {x.second}")
+    End Sub
+    Shared Function M(Of T1, T2)() As (first As T1, second As T2)
+        Return (Nothing, Nothing)
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0 False]]>)
+
+        End Sub
+
+        <Fact>
+        Public Sub LongTupleCreation()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x = (1, 2, 3, 4, 5, 6, 7, "Alice", 2, 3, 4, 5, 6, 7, "Bob", 2, 3)
+        System.Console.Write($"{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} " _
+            + $"{x.Item9} {x.Item10} {x.Item11} {x.Item12} {x.Item13} {x.Item14} {x.Item15} {x.Item16} {x.Item17}")
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3]]>,
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim x = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+                        Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, " _
+                            + "System.String, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, " _
+                            + "System.String, System.Int32, System.Int32)",
+                            model.GetTypeInfo(x).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleInLambda()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim f As System.Action(Of (Integer, String)) = Sub(x As (Integer, String)) System.Console.Write($"{x.Item1} {x.Item2}")
+        f((42, "Alice"))
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleWithNamesInLambda()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim f As System.Action(Of (Integer, String)) = Sub(x As (a As Integer, b As String)) System.Console.Write($"{x.Item1} {x.Item2}")
+        f((c:=42, d:="Alice"))
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleInProperty()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Property P As (a As Integer, b As String)
+
+    Shared Sub Main()
+        P = (42, "Alice")
+        System.Console.Write($"{P.a} {P.b}")
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub ExtensionMethodOnTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module M
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Sub Extension(x As (a As Integer, b As String))
+        System.Console.Write($"{x.a} {x.b}")
+    End Sub
+End Module
+Class C
+    Shared Sub Main()
+        (42, "Alice").Extension()
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46})
+
+            comp.AssertTheseDiagnostics(<![CDATA[
+BC30035: Syntax error.
+        (42, "Alice").Extension()
+        ~
+]]>)
+            ' REMOVE AFTER REVIEW This is different than C#
+        End Sub
+
+
+
+
+
 
 
 
