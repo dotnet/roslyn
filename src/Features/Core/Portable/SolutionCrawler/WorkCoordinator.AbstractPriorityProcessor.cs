@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -16,30 +15,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
+                private abstract class AbstractPriorityProcessor : GlobalOperationAwareIdleProcessor
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
-                    private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
-
-                    private TaskCompletionSource<object> _globalOperation;
-                    private Task _globalOperationTask;
-
-                    public GlobalOperationAwareIdleProcessor(
+                    public AbstractPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
                         this.Processor = processor;
-
-                        _globalOperation = null;
-                        _globalOperationTask = SpecializedTasks.EmptyTask;
-
-                        _globalOperationNotificationService = globalOperationNotificationService;
-                        _globalOperationNotificationService.Started += OnGlobalOperationStarted;
-                        _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
 
                         if (this.Processor._documentTracker != null)
                         {
@@ -65,43 +52,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         this.UpdateLastAccessTime();
                     }
 
-                    protected Task GlobalOperationTask
+                    protected override void PauseOnGlobalOperation()
                     {
-                        get
-                        {
-                            return _globalOperationTask;
-                        }
-                    }
-
-                    protected abstract void PauseOnGlobalOperation();
-
-                    private void OnGlobalOperationStarted(object sender, EventArgs e)
-                    {
-                        Contract.ThrowIfFalse(_globalOperation == null);
-
-                        // events are serialized. no lock is needed
-                        _globalOperation = new TaskCompletionSource<object>();
-                        _globalOperationTask = _globalOperation.Task;
-
                         SolutionCrawlerLogger.LogGlobalOperation(this.Processor._logAggregator);
-
-                        PauseOnGlobalOperation();
-                    }
-
-                    private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
-                    {
-                        if (_globalOperation == null)
-                        {
-                            // we subscribed to the event while it is already running.
-                            return;
-                        }
-
-                        // events are serialized. no lock is needed
-                        _globalOperation.SetResult(null);
-                        _globalOperation = null;
-
-                        // set to empty task so that we don't need a lock
-                        _globalOperationTask = SpecializedTasks.EmptyTask;
                     }
 
                     protected abstract Task HigherQueueOperationTask { get; }
@@ -139,10 +92,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    public virtual void Shutdown()
+                    public override void Shutdown()
                     {
-                        _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
-                        _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
+                        base.Shutdown();
 
                         if (this.Processor._documentTracker != null)
                         {

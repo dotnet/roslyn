@@ -21,7 +21,8 @@
                 "Microsoft.VisualBasic",
                 "Microsoft.Composition",
                 "ManagedEsent",
-                "xunit"
+                "xunit",
+                "RoslynTools.*"
             ]
         }
     },

@@ -286,6 +286,7 @@
     <Compile Include="DocumentationComments\PEDocumentationCommentUtils.cs" />
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpDefinitionMap.cs" />
+    <Compile Include="Emitter\EditAndContinue\CSharpLambdaSyntaxFacts.cs" />
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />

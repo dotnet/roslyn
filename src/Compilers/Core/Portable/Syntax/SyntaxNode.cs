@@ -549,18 +549,6 @@ namespace Microsoft.CodeAnalysis
             return this.SyntaxTree.GetReference(this);
         }
 
-        /// <summary>
-        /// When invoked on a node that represents an anonymous function or a query clause [1]
-        /// with a <paramref name="body"/> of another anonymous function or a query clause of the same kind [2], 
-        /// returns the body of the [1] that positionally corresponds to the specified <paramref name="body"/>.
-        /// 
-        /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
-        /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
-        /// </summary>
-        internal abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body);
-
-        internal abstract SyntaxNode GetLambda();
-
         #region Node Lookup
 
         /// <summary>

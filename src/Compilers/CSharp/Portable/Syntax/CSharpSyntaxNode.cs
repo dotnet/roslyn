@@ -431,16 +431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SyntaxTree.GetDiagnostics(this);
         }
 
-        internal sealed override SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body)
-        {
-            return LambdaUtilities.TryGetCorrespondingLambdaBody(body, this);
-        }
-
-        internal override SyntaxNode GetLambda()
-        {
-            return LambdaUtilities.GetLambda(this);
-        }
-
 #region Directives
 
         internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)

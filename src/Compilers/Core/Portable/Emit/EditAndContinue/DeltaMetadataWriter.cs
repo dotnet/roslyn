@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _standAloneSignatureIndex.Rows;
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
         {
             return _changes.GetTopLevelTypes(this.Context);
         }
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Emit
             ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
             if (typeSymbol != null)
             {
-                translatedType = Context.ModuleBuilder.EncTranslateType(typeSymbol, Context.Diagnostics);
+                translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
             }
 
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
@@ -1420,14 +1420,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
-            public override void Visit(IAssembly assembly)
+            public override void Visit(CommonPEModuleBuilder module)
             {
-                this.Visit((IModule)assembly);
-            }
-
-            public override void Visit(IModule module)
-            {
-                this.module = module;
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));
             }
 
