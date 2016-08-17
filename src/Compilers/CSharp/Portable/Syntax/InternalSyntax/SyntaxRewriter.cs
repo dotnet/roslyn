@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
     {
         protected readonly bool VisitIntoStructuredTrivia;
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
-        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> VisitList<TNode>(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> list) 
+        public SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) 
             where TNode : CSharpSyntaxNode
         {
             SyntaxListBuilder alternate = null;
@@ -68,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return list;
         }
 
-        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> VisitList<TNode>(CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
+        public SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
             // A separated list is filled with C# nodes and C# tokens.  Both of which
             // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
             // typesafe.
-            var withSeps = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
+            var withSeps = (SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
             var result = this.VisitList(withSeps);
             if (result != withSeps)
             {
