@@ -24,29 +24,29 @@ namespace Microsoft.CodeAnalysis.Execution
             _serializer = checksumTree.Serializer;
         }
 
-        public Task<Asset> BuildAsync(Solution solution, CancellationToken cancellationToken)
+        public Task<Asset> BuildAsync(SolutionState solutionState, CancellationToken cancellationToken)
         {
-            return _checksumTree.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionChecksumObjectInfo, CreateSolutionChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(solutionState, GetInfo(solutionState), WellKnownChecksumObjects.SolutionChecksumObjectInfo, CreateSolutionChecksumObjectInfoAsync, cancellationToken);
         }
 
-        public Task<Asset> BuildAsync(Project project, CancellationToken cancellationToken)
+        public Task<Asset> BuildAsync(ProjectState projectState, CancellationToken cancellationToken)
         {
-            return _checksumTree.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectChecksumObjectInfo, CreateProjectChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(projectState, GetInfo(projectState), WellKnownChecksumObjects.ProjectChecksumObjectInfo, CreateProjectChecksumObjectInfoAsync, cancellationToken);
         }
 
-        public Task<Asset> BuildAsync(TextDocument document, CancellationToken cancellationToken)
+        public Task<Asset> BuildAsync(TextDocumentState document, CancellationToken cancellationToken)
         {
-            return _checksumTree.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentChecksumObjectInfo, CreateDocumentChecksumObjectInfoAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(document, GetInfo(document), WellKnownChecksumObjects.DocumentChecksumObjectInfo, CreateDocumentChecksumObjectInfoAsync, cancellationToken);
         }
 
-        public Task<Asset> BuildAsync(Project project, CompilationOptions compilationOptions, CancellationToken cancellationToken)
+        public Task<Asset> BuildAsync(ProjectState projectState, CompilationOptions compilationOptions, CancellationToken cancellationToken)
         {
-            return _checksumTree.GetOrCreateAssetAsync(compilationOptions, project, WellKnownChecksumObjects.CompilationOptions, CreateCompilationOptionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(compilationOptions, projectState, WellKnownChecksumObjects.CompilationOptions, CreateCompilationOptionsAsync, cancellationToken);
         }
 
-        public Task<Asset> BuildAsync(Project project, ParseOptions parseOptions, CancellationToken cancellationToken)
+        public Task<Asset> BuildAsync(ProjectState projectState, ParseOptions parseOptions, CancellationToken cancellationToken)
         {
-            return _checksumTree.GetOrCreateAssetAsync(parseOptions, project, WellKnownChecksumObjects.ParseOptions, CreateParseOptionsAsync, cancellationToken);
+            return _checksumTree.GetOrCreateAssetAsync(parseOptions, projectState, WellKnownChecksumObjects.ParseOptions, CreateParseOptionsAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(ProjectReference reference, CancellationToken cancellationToken)
@@ -89,16 +89,16 @@ namespace Microsoft.CodeAnalysis.Execution
             return Task.FromResult<Asset>(new Asset<DocumentChecksumObjectInfo>(info, kind, _serializer.SerializeDocumentChecksumObjectInfo));
         }
 
-        private Task<Asset> CreateCompilationOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateCompilationOptionsAsync(ProjectState projectState, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new LanguageSpecificAsset<CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.SerializeCompilationOptions));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<CompilationOptions>(projectState.Language, projectState.CompilationOptions, kind, _serializer.SerializeCompilationOptions));
         }
 
-        private Task<Asset> CreateParseOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
+        private Task<Asset> CreateParseOptionsAsync(ProjectState projectState, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new LanguageSpecificAsset<ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.SerializeParseOptions));
+            return Task.FromResult<Asset>(new LanguageSpecificAsset<ParseOptions>(projectState.Language, projectState.ParseOptions, kind, _serializer.SerializeParseOptions));
         }
 
         private Task<Asset> CreateProjectReferenceAsync(ProjectReference reference, string kind, CancellationToken cancellationToken)
@@ -133,25 +133,25 @@ namespace Microsoft.CodeAnalysis.Execution
             return new SourceTextAsset(_serializer, state, checksum, kind);
         }
 
-        private SolutionChecksumObjectInfo GetInfo(Solution solution)
+        private SolutionChecksumObjectInfo GetInfo(SolutionState solutionState)
         {
-            return new SolutionChecksumObjectInfo(solution.Id, solution.Version, solution.FilePath);
+            return new SolutionChecksumObjectInfo(solutionState.Id, solutionState.Version, solutionState.FilePath);
         }
 
-        private ProjectChecksumObjectInfo GetInfo(Project project)
+        private ProjectChecksumObjectInfo GetInfo(ProjectState projectState)
         {
-            return new ProjectChecksumObjectInfo(project.Id, project.Version, project.Name, project.AssemblyName, project.Language, project.FilePath, project.OutputFilePath);
+            return new ProjectChecksumObjectInfo(projectState.Id, projectState.Version, projectState.Name, projectState.AssemblyName, projectState.Language, projectState.FilePath, projectState.OutputFilePath);
         }
 
-        private DocumentChecksumObjectInfo GetInfo(TextDocument document)
+        private DocumentChecksumObjectInfo GetInfo(TextDocumentState documentState)
         {
             // we might just split it to TextDocument and Document.
-            return new DocumentChecksumObjectInfo(document.Id, document.Name, document.Folders, GetSourceCodeKind(document), document.FilePath, IsGenerated(document));
+            return new DocumentChecksumObjectInfo(documentState.Id, documentState.Name, documentState.Folders, GetSourceCodeKind(documentState), documentState.FilePath, IsGenerated(documentState));
         }
 
-        private bool IsGenerated(TextDocument document)
+        private bool IsGenerated(TextDocumentState documentState)
         {
-            var source = document.State as DocumentState;
+            var source = documentState as DocumentState;
             if (source != null)
             {
                 return source.IsGenerated;
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Execution
             return false;
         }
 
-        private SourceCodeKind GetSourceCodeKind(TextDocument document)
+        private SourceCodeKind GetSourceCodeKind(TextDocumentState documentState)
         {
-            var source = document as Document;
+            var source = documentState as DocumentState;
             if (source != null)
             {
                 return source.SourceCodeKind;
@@ -177,11 +177,9 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             public AssetOnlyTreeNode(Solution solution)
             {
-                Solution = solution;
                 Serializer = new Serializer(solution.Workspace.Services);
             }
 
-            public Solution Solution { get; }
             public Serializer Serializer { get; }
 
             public Task<TResult> GetOrCreateAssetAsync<TKey, TValue, TResult>(

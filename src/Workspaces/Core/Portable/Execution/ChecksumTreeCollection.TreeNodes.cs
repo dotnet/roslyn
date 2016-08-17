@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -23,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Execution
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
-            public RootTreeNode(ChecksumTreeCollection owner, Solution solution) :
-                base(owner, GetOrCreateSerializer(solution.Workspace.Services))
+            public RootTreeNode(ChecksumTreeCollection owner, SolutionState solutionState) :
+                base(owner, GetOrCreateSerializer(solutionState.Workspace.Services))
             {
-                Solution = solution;
+                SolutionState = solutionState;
             }
 
-            public Solution Solution { get; }
+            public SolutionState SolutionState { get; }
 
             public void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
             {
@@ -75,12 +74,12 @@ namespace Microsoft.CodeAnalysis.Execution
             //
             // key is green node such as DoucmentState and value is cache of checksome objects 
             // associated with the green node
-            private readonly ConcurrentDictionary<object, ChecksumObjectCache> _cache;
+            private readonly GreenNodeChecksumCache _cache;
 
             public SubTreeNode(ChecksumTreeCollection owner, Serializer serializer)
             {
                 _owner = owner;
-                _cache = new ConcurrentDictionary<object, ChecksumObjectCache>(concurrencyLevel: 2, capacity: 1);
+                _cache = new GreenNodeChecksumCache();
 
                 Serializer = serializer;
             }
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // search needed to be improved.
                 ChecksumObject checksumObject;
-                foreach (var entry in _cache.Values)
+                foreach (var entry in _cache.Caches)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     return self;
                 }
 
-                foreach (var entry in _cache.Values)
+                foreach (var entry in _cache.Caches)
                 {
                     var tree = entry.TryGetSubTreeNode();
                     if (tree == null)
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
             {
-                var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
+                var entry = _cache.GetOrAdd(key);
                 return entry.GetOrCreateSubTreeNode(_owner, Serializer);
             }
 
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private ChecksumObject SaveAndReturn(object key, ChecksumObject checksumObject, ChecksumObjectCache entry = null)
             {
                 // create new entry if it is not already given
-                entry = _cache.GetOrAdd(key, _ => entry ?? new ChecksumObjectCache(checksumObject));
+                entry = entry ?? _cache.GetOrAdd(key);
                 return entry.Add(checksumObject);
             }
 
@@ -229,10 +228,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private static string GetLogInfo<T>(T key)
             {
-                var solution = key as Solution;
-                if (solution != null)
+                var solutionState = key as SolutionState;
+                if (solutionState != null)
                 {
-                    return solution.FilePath;
+                    return solutionState.FilePath;
                 }
 
                 var projectState = key as ProjectState;

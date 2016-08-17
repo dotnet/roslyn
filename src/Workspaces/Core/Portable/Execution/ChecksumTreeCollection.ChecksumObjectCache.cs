@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -23,9 +20,11 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class ChecksumObjectCache
         {
-            private ChecksumObject _checksumObject;
+            private ChecksumObject _checksumObject1;
+            private ChecksumObject _checksumObject2;
 
             private SubTreeNode _lazyChecksumTree;
+
             private ConcurrentDictionary<string, ChecksumObject> _lazyKindToChecksumObjectMap;
             private ConcurrentDictionary<Checksum, ChecksumObject> _lazyChecksumToChecksumObjectMap;
 
@@ -33,30 +32,39 @@ namespace Microsoft.CodeAnalysis.Execution
             {
             }
 
-            public ChecksumObjectCache(ChecksumObject checksumObject)
-            {
-                _checksumObject = checksumObject;
-            }
+            private ChecksumObject ChecksumObject1 => Volatile.Read(ref _checksumObject1);
+            private ChecksumObject ChecksumObject2 => Volatile.Read(ref _checksumObject2);
+
+            private SubTreeNode LazyChecksumTree => Volatile.Read(ref _lazyChecksumTree);
+
+            private ConcurrentDictionary<string, ChecksumObject> LazyKindToChecksumObjectMap => Volatile.Read(ref _lazyKindToChecksumObjectMap);
+            private ConcurrentDictionary<Checksum, ChecksumObject> LazyChecksumToChecksumObjectMap => Volatile.Read(ref _lazyChecksumToChecksumObjectMap);
 
             public ChecksumObject Add(ChecksumObject checksumObject)
             {
-                Interlocked.CompareExchange(ref _checksumObject, checksumObject, null);
-
                 // optimization to not create map. in whole solution level, there is
                 // many case where green node is unique per checksum object such as metadata reference
                 // or p2p reference.
-                if (_checksumObject.Kind == checksumObject.Kind)
+                Interlocked.CompareExchange(ref _checksumObject1, checksumObject, null);
+                if (_checksumObject1.Kind == checksumObject.Kind)
                 {
                     // we already have one
-                    Contract.Requires(_checksumObject.Checksum.Equals(checksumObject.Checksum));
-                    return _checksumObject;
+                    Contract.Requires(_checksumObject1.Checksum.Equals(checksumObject.Checksum));
+                    return _checksumObject1;
+                }
+
+                Interlocked.CompareExchange(ref _checksumObject2, checksumObject, null);
+                if (_checksumObject2.Kind == checksumObject.Kind)
+                {
+                    // we already have one
+                    Contract.Requires(_checksumObject2.Checksum.Equals(checksumObject.Checksum));
+                    return _checksumObject2;
                 }
 
                 // more expansive case. create map to save checksum object per kind
                 EnsureLazyMap();
 
                 _lazyChecksumToChecksumObjectMap.TryAdd(checksumObject.Checksum, checksumObject);
-
                 if (_lazyKindToChecksumObjectMap.TryAdd(checksumObject.Kind, checksumObject))
                 {
                     // just added new one
@@ -69,15 +77,21 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public bool TryGetValue(string kind, out ChecksumObject checksumObject)
             {
-                if (_checksumObject?.Kind == kind)
+                if (ChecksumObject1?.Kind == kind)
                 {
-                    checksumObject = _checksumObject;
+                    checksumObject = ChecksumObject1;
                     return true;
                 }
 
-                if (_lazyKindToChecksumObjectMap != null)
+                if (ChecksumObject2?.Kind == kind)
                 {
-                    return _lazyKindToChecksumObjectMap.TryGetValue(kind, out checksumObject);
+                    checksumObject = ChecksumObject2;
+                    return true;
+                }
+
+                if (LazyKindToChecksumObjectMap != null)
+                {
+                    return LazyKindToChecksumObjectMap.TryGetValue(kind, out checksumObject);
                 }
 
                 checksumObject = null;
@@ -86,15 +100,21 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public bool TryGetValue(Checksum checksum, out ChecksumObject checksumObject)
             {
-                if (_checksumObject?.Checksum == checksum)
+                if (ChecksumObject1?.Checksum == checksum)
                 {
-                    checksumObject = _checksumObject;
+                    checksumObject = ChecksumObject1;
                     return true;
                 }
 
-                if (_lazyChecksumToChecksumObjectMap != null)
+                if (ChecksumObject2?.Checksum == checksum)
                 {
-                    return _lazyChecksumToChecksumObjectMap.TryGetValue(checksum, out checksumObject);
+                    checksumObject = ChecksumObject2;
+                    return true;
+                }
+
+                if (LazyChecksumToChecksumObjectMap != null)
+                {
+                    return LazyChecksumToChecksumObjectMap.TryGetValue(checksum, out checksumObject);
                 }
 
                 checksumObject = null;
@@ -103,17 +123,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public SubTreeNode TryGetSubTreeNode()
             {
-                return _lazyChecksumTree;
+                return LazyChecksumTree;
             }
 
             public SubTreeNode GetOrCreateSubTreeNode(ChecksumTreeCollection owner, Serializer serializer)
             {
-                if (_lazyChecksumTree != null)
+                if (_lazyChecksumTree == null)
                 {
-                    return _lazyChecksumTree;
+                    Interlocked.CompareExchange(ref _lazyChecksumTree, new SubTreeNode(owner, serializer), null);
                 }
 
-                Interlocked.CompareExchange(ref _lazyChecksumTree, new SubTreeNode(owner, serializer), null);
                 return _lazyChecksumTree;
             }
 
