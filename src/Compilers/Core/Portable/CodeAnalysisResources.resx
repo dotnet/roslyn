@@ -558,4 +558,10 @@
   <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
     <value>The stream cannot be written to.</value>
   </data>
+  <data name="ElementIsExpected" xml:space="preserve">
+    <value>element is expected</value>
+  </data>
+  <data name="SeparatorIsExpected" xml:space="preserve">
+    <value>separator is expected</value>
+  </data>
 </root>

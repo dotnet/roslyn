@@ -878,7 +878,6 @@
     <Compile Include="Syntax\MultiLineLambdaExpressionSyntax.vb" />
     <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.vb" />
     <Compile Include="Syntax\NameSyntax.vb" />
-    <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
     <Compile Include="Syntax\SingleLineLambdaExpressionSyntax.vb" />
     <Compile Include="Syntax\SkippedTokensTriviaSyntax.vb" />

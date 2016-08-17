@@ -804,7 +804,6 @@
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
     <Compile Include="Syntax\QualifiedNameSyntax.cs" />
-    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SimpleNameSyntax.cs" />
     <Compile Include="Syntax\SimpleSyntaxReference.cs" />
     <Compile Include="Syntax\SkippedTokensTriviaSyntax.cs" />

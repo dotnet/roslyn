@@ -4236,12 +4236,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
   </data>
-  <data name="SeparatorIsExpected" xml:space="preserve">
-    <value>separator is expected</value>
-  </data>
-  <data name="ElementIsExpected" xml:space="preserve">
-    <value>element is expected</value>
-  </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
   </data>

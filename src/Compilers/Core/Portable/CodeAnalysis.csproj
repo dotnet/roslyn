@@ -110,6 +110,7 @@
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
+    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
     <Compile Include="Syntax\SyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\AbstractSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.cs" />

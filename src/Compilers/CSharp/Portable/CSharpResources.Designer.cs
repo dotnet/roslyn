@@ -98,15 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to element is expected.
-        /// </summary>
-        internal static string ElementIsExpected {
-            get {
-                return ResourceManager.GetString("ElementIsExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Elements cannot be null..
         /// </summary>
         internal static string ElementsCannotBeNull {
@@ -10463,15 +10454,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string PositionNotWithinTree {
             get {
                 return ResourceManager.GetString("PositionNotWithinTree", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to separator is expected.
-        /// </summary>
-        internal static string SeparatorIsExpected {
-            get {
-                return ResourceManager.GetString("SeparatorIsExpected", resourceCulture);
             }
         }
         

@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.Syntax
 {
     internal struct SeparatedSyntaxListBuilder<TNode> where TNode : SyntaxNode
     {
@@ -54,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (_expectedSeparator)
             {
-                throw new InvalidOperationException(CSharpResources.SeparatorIsExpected);
+                throw new InvalidOperationException(CodeAnalysisResources.ElementIsExpected);
             }
         }
 
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (!_expectedSeparator)
             {
-                throw new InvalidOperationException(CSharpResources.ElementIsExpected);
+                throw new InvalidOperationException(CodeAnalysisResources.SeparatorIsExpected);
             }
         }
 

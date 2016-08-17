@@ -397,6 +397,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to element is expected.
+        /// </summary>
+        internal static string ElementIsExpected {
+            get {
+                return ResourceManager.GetString("ElementIsExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Embedded texts are only supported when emitting Portable PDB..
         /// </summary>
         internal static string EmbeddedTextsRequirePortablePdb {
@@ -1096,6 +1105,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string RuleSetMissingAttribute {
             get {
                 return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator is expected.
+        /// </summary>
+        internal static string SeparatorIsExpected {
+            get {
+                return ResourceManager.GetString("SeparatorIsExpected", resourceCulture);
             }
         }
         
