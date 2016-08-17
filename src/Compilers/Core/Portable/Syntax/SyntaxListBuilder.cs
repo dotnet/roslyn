@@ -75,6 +75,18 @@ namespace Microsoft.CodeAnalysis.Syntax
             Validate(start, Count);
         }
 
+        [Conditional("DEBUG")]
+        protected void Validate(int start, int end)
+        {
+            for (int i = start; i < end; i++)
+            {
+                if (_nodes[i].Value == null)
+                {
+                    throw new ArgumentException("Cannot add a null node.");
+                }
+            }
+        }
+
         public void AddRange(SyntaxNodeOrTokenList list)
         {
             this.AddRange(list, 0, list.Count);
@@ -141,18 +153,6 @@ namespace Microsoft.CodeAnalysis.Syntax
         public void AddRange(SyntaxTokenList list, int offset, int length)
         {
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
-        }
-
-        [Conditional("DEBUG")]
-        protected void Validate(int start, int end)
-        {
-            for (int i = start; i < end; i++)
-            {
-                if (_nodes[i].Value == null)
-                {
-                    throw new ArgumentException("Cannot add a null node.");
-                }
-            }
         }
 
         internal void RemoveLast()
