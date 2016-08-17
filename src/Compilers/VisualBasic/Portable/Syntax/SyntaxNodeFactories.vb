@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim builder = New SyntaxNodeOrTokenListBuilder(8)
-            builder.AddRange(nodesAndTokens)
+            builder.Add(nodesAndTokens)
             Return builder.ToList()
         End Function
 

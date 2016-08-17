@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -390,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If list.Count = 0 Then
                 Return SyntaxFactory.TokenList(items)
             Else
-                Dim builder = New Syntax.SyntaxTokenListBuilder(list.Count + items.Length)
+                Dim builder = New SyntaxTokenListBuilder(list.Count + items.Length)
                 If index > 0 Then
                     builder.Add(list, 0, index)
                 End If

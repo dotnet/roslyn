@@ -819,10 +819,8 @@
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxFacts.cs" />
-    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxNodeRemover.cs" />
     <Compile Include="Syntax\SyntaxReplacer.cs" />
-    <Compile Include="Syntax\SyntaxTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.cs" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.cs" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />

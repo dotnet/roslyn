@@ -1,21 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.Syntax
 {
     internal class SyntaxTokenListBuilder
     {
-        private Syntax.InternalSyntax.CSharpSyntaxNode[] _nodes;
+        private GreenNode[] _nodes;
         private int _count;
 
         public SyntaxTokenListBuilder(int size)
         {
-            _nodes = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
+            _nodes = new GreenNode[size];
             _count = 0;
         }
 
@@ -34,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public void Add(SyntaxToken item)
         {
-            this.Add((Syntax.InternalSyntax.SyntaxToken)item.Node);
+            this.Add(item.Node);
         }
 
-        internal void Add(Syntax.InternalSyntax.SyntaxToken item)
+        internal void Add(GreenNode item)
         {
             CheckSpace(1);
             _nodes[_count++] = item;
@@ -65,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             CheckSpace(length);
             for (int i = 0; i < length; i++)
             {
-                _nodes[_count + i] = (InternalSyntax.SyntaxToken)list[offset + i].Node;
+                _nodes[_count + i] = list[offset + i].Node;
             }
             _count += length;
         }
@@ -81,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private void Grow(int newSize)
         {
-            var tmp = new Syntax.InternalSyntax.CSharpSyntaxNode[newSize];
+            var tmp = new GreenNode[newSize];
             Array.Copy(_nodes, tmp, _nodes.Length);
             _nodes = tmp;
         }
@@ -95,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     case 1:
                         return new SyntaxTokenList(null, _nodes[0], 0, 0);
                     case 2:
-                        return new SyntaxTokenList(null, CoreInternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
                     case 3:
-                        return new SyntaxTokenList(null, CoreInternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
                     default:
-                        return new SyntaxTokenList(null, CoreInternalSyntax.CommonSyntaxList.List(_nodes, _count), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes, _count), 0, 0);
                 }
             }
             else
