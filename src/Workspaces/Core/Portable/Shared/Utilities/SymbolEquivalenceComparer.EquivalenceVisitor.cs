@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 if (x.IsTupleType)
                 {
-                    return y.IsTupleType && HandleNamedTypesWorker(x.TupleUnderlyingType, y.TupleUnderlyingType, equivalentTypesWithDifferingAssemblies);
+                    return y.IsTupleType && TypeArgumentsAreEquivalent(x.TupleElementTypes, y.TupleElementTypes, equivalentTypesWithDifferingAssemblies);
                 }
 
                 if (x.IsDefinition != y.IsDefinition ||

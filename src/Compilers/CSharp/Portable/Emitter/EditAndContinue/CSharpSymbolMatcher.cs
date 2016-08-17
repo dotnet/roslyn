@@ -492,8 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 else if (sourceType.IsTupleType)
                 {
-                    var otherDef = (NamedTypeSymbol)this.Visit(originalDef.TupleUnderlyingType);
-                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(originalDef.TupleElementTypes.Length))
+                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypes.Length))
                     {
                         return null;
                     }
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
-                    method.TypeArguments.SequenceEqual(other.TypeArguments, AreTypesEqual);
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
 
             private static MethodSymbol SubstituteTypeParameters(MethodSymbol method)

@@ -5049,57 +5049,51 @@ using System.Collections.Generic;
 
 [ComImport()]
 [Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
-[ComEventInterface(typeof(List<(ITest33, ITest33)>), typeof(int))]
 public interface ITest34
 {
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public ValueTuple(T1 item1, T2 item2) { }
-    }
+    List<(ITest33, ITest33)> M();
 }
 ";
 
             var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
-                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
+                references: new MetadataReference[] { piaCompilation1.EmitToImageReference(embedInteropTypes: true), ValueTupleRef, SystemRuntimeFacadeRef });
 
             CompileAndVerify(piaCompilation2);
 
             string consumer = @"
-class UsePia5
-{
-    public static void Main()
-    {
-    }
+using System;
+using System.Collections.Generic;
 
-    public void M1(ITest34 y)
+public class UsePia5 : ITest34
+{
+    public List<(ITest33, ITest33)> M()
     {
-    }
+        throw new System.Exception();
+    } 
 }
 ";
 
             DiagnosticDescription[] expected = {
-                // error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
-                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies).WithArguments("System.Collections.Generic.List<ValueTuple<ITest33, ITest33>>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                // (5,24): error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // public class UsePia5 : ITest34
+                Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ITest34").WithArguments("System.Collections.Generic.List<ValueTuple<ITest33, ITest33>>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 24)
             };
 
-            var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
-            VerifyEmitDiagnostics(compilation1, false, expected);
+            var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.ToMetadataReference(embedInteropTypes: true), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation1, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
 
-            var compilation2 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true) });
-            VerifyEmitDiagnostics(compilation2, false, expected);
+            var compilation2 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(embedInteropTypes: true), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation2, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
 
-            var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3);
+            var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.ToMetadataReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation3, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
 
-            var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4);
+            var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { piaCompilation2.EmitToImageReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef });
+            VerifyEmitDiagnostics(compilation4, metadataOnlyShouldSucceed: false, expectedFullBuildDiagnostics: expected);
         }
 
         [Fact]

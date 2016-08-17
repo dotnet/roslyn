@@ -17564,9 +17564,6 @@ public class B
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var methodM = comp.GetMember<MethodSymbol>("A.M");
 
             Assert.Equal("(System.Int32, System.Int32)", methodM.ReturnType.ToTestDisplayString());
