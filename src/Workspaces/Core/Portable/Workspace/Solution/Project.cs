@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis
 
         internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return _solution.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
+            return _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
         }
 
-        internal Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return _solution.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken);
+            return (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id));
         }
 
         private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction = CreateDocument;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetCompilation(out Compilation compilation)
         {
-            return _solution.TryGetCompilation(this.Id, out compilation);
+            return _solution.State.TryGetCompilation(this.Id, out compilation);
         }
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.GetCompilationAsync(this, cancellationToken);
+            return _solution.State.GetCompilationAsync(_projectState, cancellationToken);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis
         // TODO: make this public
         internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.HasSuccessfullyLoadedAsync(this, cancellationToken);
+            return _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.GetDependentVersionAsync(this.Id, cancellationToken);
+            return _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+            return _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
         }
 
         /// <summary>

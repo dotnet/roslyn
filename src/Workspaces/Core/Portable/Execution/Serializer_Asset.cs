@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal partial class Serializer
     {
-        public void SerializeSolutionSnapshotInfo(SolutionChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSolutionChecksumObjectInfo(SolutionChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(info.FilePath);
         }
 
-        private SolutionChecksumObjectInfo DeserializeSolutionSnapshotInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private SolutionChecksumObjectInfo DeserializeSolutionChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new SolutionChecksumObjectInfo(solutionId, VersionStamp.Create(), filePath);
         }
 
-        public void SerializeProjectSnapshotInfo(ProjectChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeProjectChecksumObjectInfo(ProjectChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(info.OutputFilePath);
         }
 
-        private ProjectChecksumObjectInfo DeserializeProjectSnapshotInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private ProjectChecksumObjectInfo DeserializeProjectChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new ProjectChecksumObjectInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath);
         }
 
-        public void SerializeDocumentSnapshotInfo(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeDocumentChecksumObjectInfo(DocumentChecksumObjectInfo info, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(info.IsGenerated);
         }
 
-        private DocumentChecksumObjectInfo DeserializeDocumentSnapshotInfo(ObjectReader reader, CancellationToken cancellationToken)
+        private DocumentChecksumObjectInfo DeserializeDocumentChecksumObjectInfo(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

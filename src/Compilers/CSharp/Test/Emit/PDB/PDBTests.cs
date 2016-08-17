@@ -5327,5 +5327,53 @@ public class C
 </symbols>
 ");
         }
+
+        [Fact, WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
+        public void SequencePointsForConstructorWithHiddenInitializer()
+        {
+            string initializerSource = @"
+#line hidden
+partial class C
+{
+    int i = 42;
+}
+";
+
+            string constructorSource = @"
+partial class C
+{
+    C()
+    {
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlib(
+                new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
+                options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""constructor.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""EA, D6,  A, 16, 6C, 6A, BC, C1, 5D, 98,  F, B7, 4B, 78, 13, 93, FB, C7, C2, 5A, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""8"" document=""1"" />
+        <entry offset=""0xf"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x10"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
     }
 }

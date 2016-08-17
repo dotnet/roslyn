@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             await VerifyAssetSerializationAsync<SolutionChecksumObjectInfo>(
                 service, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo,
-                (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.SerializeSolutionSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.SerializeSolutionChecksumObjectInfo)).ConfigureAwait(false);
 
             foreach (var checksum in solutionId.Projects)
             {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<ProjectChecksumObjectInfo>(
                 service, projectId.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo,
-                (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.SerializeProjectSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.SerializeProjectChecksumObjectInfo)).ConfigureAwait(false);
 
             var project = solution.GetProject(info.Id);
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<DocumentChecksumObjectInfo>(
                 service, documentId.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo,
-                (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.SerializeDocumentSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.SerializeDocumentChecksumObjectInfo)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
                 service, documentId.Text, WellKnownChecksumObjects.SourceText,

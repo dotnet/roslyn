@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
-    public partial class Solution
+    internal partial class SolutionState
     {
         private abstract partial class CompilationTranslationAction
         {
