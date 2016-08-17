@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         private SyntaxTrivia[] _nodes;
         private int _count;
-        private SyntaxTrivia[] _previous;
 
         public SyntaxTriviaListBuilder(int size)
         {
@@ -92,16 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private void Grow(int size)
         {
             var tmp = new SyntaxTrivia[size];
-            if (_previous != null)
-            {
-                Array.Copy(_previous, tmp, _count);
-                _previous = null;
-            }
-            else
-            {
-                Array.Copy(_nodes, tmp, _nodes.Length);
-            }
-
+            Array.Copy(_nodes, tmp, _nodes.Length);
             _nodes = tmp;
         }
 
@@ -114,11 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (_count > 0)
             {
-                if (_previous != null)
-                {
-                    this.Grow(_count);
-                }
-
                 switch (_count)
                 {
                     case 1:
