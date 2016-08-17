@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend MustInherit Class VisualBasicSyntaxVisitor
@@ -97,17 +94,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Return list
-
-            '' A separated list Is filled with VB nodes And VB tokens.  Both of which
-            '' derive from InternalSyntax.VisualBasicSyntaxNode.  So this cast Is appropriately
-            '' typesafe.
-            'Dim withSeps = CType(list.GetWithSeparators(), CommonSyntaxList(Of VisualBasicSyntaxNode))
-            'Dim result = Me.VisitList(withSeps)
-            'If result <> withSeps Then
-            '    Return result.AsSeparatedList(Of TNode)()
-            'End If
-
-            'Return list
         End Function
     End Class
 End Namespace
