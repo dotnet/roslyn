@@ -232,60 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return left.IsEquivalentTo(right)
         End Function
 
-        Public Overrides Function IsEquivalentTo(other As GreenNode) As Boolean
-            If Me Is other Then
-                Return True
-            End If
-
-            If other Is Nothing Then
-                Return False
-            End If
-
-            Return EquivalentToInternal(Me, other)
-        End Function
-
-        Private Shared Function EquivalentToInternal(node1 As GreenNode, node2 As GreenNode) As Boolean
-            If node1.RawKind <> node2.RawKind Then
-                ' A single-element list is usually represented as just a single node,
-                ' but can be represented as a List node with one child. Move to that
-                ' child if necessary.
-                If node1.IsList AndAlso node1.SlotCount = 1 Then
-                    node1 = node1.GetSlot(0)
-                End If
-                If node2.IsList AndAlso node2.SlotCount = 1 Then
-                    node2 = node2.GetSlot(0)
-                End If
-
-                If node1.RawKind <> node2.RawKind Then
-                    Return False
-                End If
-            End If
-
-            If node1.FullWidth <> node2.FullWidth Then
-                Return False
-            End If
-
-            Dim n = node1.SlotCount
-
-            If n <> node2.SlotCount Then
-                Return False
-            End If
-
-            For i = 0 To n - 1
-                Dim node1Child = node1.GetSlot(i)
-                Dim node2Child = node2.GetSlot(i)
-
-                If node1Child IsNot Nothing AndAlso
-                   node2Child IsNot Nothing AndAlso
-                   Not node1Child.IsEquivalentTo(node2Child) Then
-
-                    Return False
-                End If
-            Next
-
-            Return True
-        End Function
-
         ' Use conditional weak table so we always return same identity for structured trivia
         Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, Dictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
 
