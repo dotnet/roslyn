@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.Syntax
 {
     internal class SyntaxTriviaListBuilder
     {
@@ -110,15 +106,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     case 1:
                         return new SyntaxTriviaList(default(SyntaxToken), _nodes[0].UnderlyingNode, position: 0, index: 0);
                     case 2:
-                        return new SyntaxTriviaList(default(SyntaxToken), CoreInternalSyntax.CommonSyntaxList.List(
-                            (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].UnderlyingNode,
-                            (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].UnderlyingNode), position: 0, index: 0);
+                        return new SyntaxTriviaList(default(SyntaxToken),
+                            InternalSyntax.CommonSyntaxList.List(
+                            _nodes[0].UnderlyingNode,
+                            _nodes[1].UnderlyingNode), position: 0, index: 0);
                     case 3:
                         return new SyntaxTriviaList(default(SyntaxToken),
-                            CoreInternalSyntax.CommonSyntaxList.List(
-                                (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[0].UnderlyingNode,
-                                (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[1].UnderlyingNode,
-                                (Syntax.InternalSyntax.CSharpSyntaxNode)_nodes[2].UnderlyingNode),
+                            InternalSyntax.CommonSyntaxList.List(
+                                _nodes[0].UnderlyingNode,
+                                _nodes[1].UnderlyingNode,
+                                _nodes[2].UnderlyingNode),
                             position: 0, index: 0);
                     default:
                         {
@@ -128,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 tmp[i].Value = _nodes[i].UnderlyingNode;
                             }
 
-                            return new SyntaxTriviaList(default(SyntaxToken), CoreInternalSyntax.CommonSyntaxList.List(tmp), position: 0, index: 0);
+                            return new SyntaxTriviaList(default(SyntaxToken),
+                                InternalSyntax.CommonSyntaxList.List(tmp), position: 0, index: 0);
                         }
                 }
             }
