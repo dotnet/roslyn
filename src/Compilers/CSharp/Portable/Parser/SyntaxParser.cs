@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal abstract partial class SyntaxParser : IDisposable
     {
         protected readonly Lexer lexer;
@@ -639,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var trivia = _prevTokenTrailingTrivia;
             if (trivia != null)
             {
-                CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> triviaList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(trivia);
+                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
                 bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
                 if (prevTokenHasEndOfLineTrivia)
                 {
