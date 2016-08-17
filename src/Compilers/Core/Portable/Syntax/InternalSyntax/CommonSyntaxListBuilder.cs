@@ -186,16 +186,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        //public static implicit operator CommonSyntaxList<GreenNode>(CommonSyntaxListBuilder builder)
-        //{
-        //    if (builder == null)
-        //    {
-        //        return default(CommonSyntaxList<GreenNode>);
-        //    }
-
-        //    return builder.ToList();
-        //}
-
         public CommonSyntaxList<GreenNode> ToList()
         {
             return new CommonSyntaxList<GreenNode>(ToListNode());
