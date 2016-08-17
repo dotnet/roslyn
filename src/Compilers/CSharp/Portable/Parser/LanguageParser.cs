@@ -2346,7 +2346,7 @@ tryAgain:
                         // if were no attributes and no modifiers we should have parsed it already in namespace body:
                         Debug.Assert(modifiers.Count > 0);
 
-                        modifiers[0] = this.AddError((CSharpSyntaxNode)modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
+                        modifiers[0] = this.AddError(modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
                     }
 
                     var namespaceDecl = ParseNamespaceDeclaration();
@@ -3625,7 +3625,7 @@ parse_member_name:;
                 {
                     if (accMods != null && accMods.Count > 0)
                     {
-                        accMods[0] = this.AddError((CSharpSyntaxNode)accMods[0], ErrorCode.ERR_NoModifiersOnAccessor);
+                        accMods[0] = this.AddError(accMods[0], ErrorCode.ERR_NoModifiersOnAccessor);
                     }
                 }
                 else
@@ -3950,7 +3950,7 @@ tryAgain:
 
                     if (mustBeLastIndex >= 0 && mustBeLastIndex < nodes.Count - 1)
                     {
-                        nodes[mustBeLastIndex] = this.AddError((CSharpSyntaxNode)nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
+                        nodes[mustBeLastIndex] = this.AddError(nodes[mustBeLastIndex], mustBeLastHadParams ? ErrorCode.ERR_ParamsLast : ErrorCode.ERR_VarargsLast);
                     }
                 }
 
