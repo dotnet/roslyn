@@ -160,16 +160,8 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
 
-                    //if (IsNodeList(field.Type))
-                    //{
-                    //    WriteLine("   public abstract {0}Common{1} {2} {{ get; }}",
-                    //        (IsNew(field) ? "new " : ""), field.Type, field.Name);
-                    //}
-                    //else
-                    //{
-                        WriteLine("   public abstract {0}{1} {2} {{ get; }}",
-                            (IsNew(field) ? "new " : ""), field.Type, field.Name);
-                    //}
+                    WriteLine("   public abstract {0}{1} {2} {{ get; }}",
+                        (IsNew(field) ? "new " : ""), field.Type, field.Name);
                 }
 
                 WriteLine("  }");
