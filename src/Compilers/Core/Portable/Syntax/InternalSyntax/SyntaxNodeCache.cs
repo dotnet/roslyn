@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 #endif
     }
 
-    internal static class CommonSyntaxNodeCache
+    internal static class SyntaxNodeCache
     {
         private const int CacheSizeBits = 16;
         private const int CacheSize = 1 << CacheSizeBits;

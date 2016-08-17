@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Debug.Assert(child1 != null);
 
             int hash;
-            GreenNode cached = CommonSyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, out hash);
+            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, out hash);
             if (cached != null)
                 return (WithTwoChildren)cached;
 
             var result = new WithTwoChildren(child0, child1);
             if (hash >= 0)
             {
-                CommonSyntaxNodeCache.AddNode(result, hash);
+                SyntaxNodeCache.AddNode(result, hash);
             }
 
             return result;
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Debug.Assert(child2 != null);
 
             int hash;
-            GreenNode cached = CommonSyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, out hash);
+            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, out hash);
             if (cached != null)
                 return (WithThreeChildren)cached;
 
             var result = new WithThreeChildren(child0, child1, child2);
             if (hash >= 0)
             {
-                CommonSyntaxNodeCache.AddNode(result, hash);
+                SyntaxNodeCache.AddNode(result, hash);
             }
 
             return result;

@@ -3,21 +3,21 @@
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Friend Module SyntaxNodeCache
+    Friend Module VisualBasicSyntaxNodeCache
         Friend Function TryGetNode(kind As Integer, child1 As GreenNode, context As ISyntaxFactoryContext, ByRef hash As Integer) As GreenNode
-            Return CommonSyntaxNodeCache.TryGetNode(kind, child1, GetNodeFlags(context), hash)
+            Return SyntaxNodeCache.TryGetNode(kind, child1, GetNodeFlags(context), hash)
         End Function
 
         Friend Function TryGetNode(kind As Integer, child1 As GreenNode, child2 As GreenNode, context As ISyntaxFactoryContext, ByRef hash As Integer) As GreenNode
-            Return CommonSyntaxNodeCache.TryGetNode(kind, child1, child2, GetNodeFlags(context), hash)
+            Return SyntaxNodeCache.TryGetNode(kind, child1, child2, GetNodeFlags(context), hash)
         End Function
 
         Friend Function TryGetNode(kind As Integer, child1 As GreenNode, child2 As GreenNode, child3 As GreenNode, context As ISyntaxFactoryContext, ByRef hash As Integer) As GreenNode
-            Return CommonSyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), hash)
+            Return SyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), hash)
         End Function
 
         Private Function GetNodeFlags(context As ISyntaxFactoryContext) As GreenNode.NodeFlags
-            Dim flags = CommonSyntaxNodeCache.GetDefaultNodeFlags()
+            Dim flags = SyntaxNodeCache.GetDefaultNodeFlags()
             If context.IsWithinAsyncMethodOrLambda Then
                 flags = flags Or GreenNode.NodeFlags.FactoryContextIsInAsync
             End If

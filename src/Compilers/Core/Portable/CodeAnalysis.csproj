@@ -126,7 +126,7 @@
     <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxList`1.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxNodeCache.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\SyntaxList.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
     <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />

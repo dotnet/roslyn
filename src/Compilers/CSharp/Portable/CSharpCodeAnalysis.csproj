@@ -772,7 +772,7 @@
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
+    <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNodeCache.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />

@@ -305,9 +305,9 @@ Friend Class GreenNodeFactoryWriter
             'Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.ReturnStatement, returnKeyword, expression, hash)
 
             If contextual Then
-                _writer.Write("            Dim cached = SyntaxNodeCache.TryGetNode(")
+                _writer.Write("            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(")
             Else
-                _writer.Write("            Dim cached = CommonSyntaxNodeCache.TryGetNode(")
+                _writer.Write("            Dim cached = SyntaxNodeCache.TryGetNode(")
             End If
 
             GenerateCtorArgs(nodeStructure, nodeKind, contextual, factoryFunctionName)
@@ -328,7 +328,7 @@ Friend Class GreenNodeFactoryWriter
             'If hash >= 0 Then
             _writer.WriteLine("            If hash >= 0 Then")
             '    SyntaxNodeCache.AddNode(result, hash)
-            _writer.WriteLine("                CommonSyntaxNodeCache.AddNode(result, hash)")
+            _writer.WriteLine("                SyntaxNodeCache.AddNode(result, hash)")
             'End If
             _writer.WriteLine("            End If")
             _writer.WriteLine("")

@@ -823,11 +823,11 @@ namespace CSharpSyntaxGenerator
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
                 if (withSyntaxFactoryContext)
                 {
-                    Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                    Write("      var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
                 }
                 else
                 {
-                    Write("      var cached = CommonSyntaxNodeCache.TryGetNode((int)");
+                    Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
                 }
 
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
@@ -845,7 +845,7 @@ namespace CSharpSyntaxGenerator
                 //{
                 WriteLine("      {");
                 //    SyntaxNodeCache.AddNode(result, hash);
-                WriteLine("          CommonSyntaxNodeCache.AddNode(result, hash);");
+                WriteLine("          SyntaxNodeCache.AddNode(result, hash);");
                 //}
                 WriteLine("      }");
                 WriteLine();
