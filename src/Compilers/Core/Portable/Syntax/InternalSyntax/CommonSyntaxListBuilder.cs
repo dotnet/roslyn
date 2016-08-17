@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             this.Count = 0;
         }
 
-        public void RemoveLast()
-        {
-            Count--;
-            _nodes[Count].Value = null;
-        }
-
         public GreenNode this[int index]
         {
             get
@@ -52,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 for (int i = 0; i < slotCount; i++)
                 {
-                    this.Add((GreenNode)item.GetSlot(i));
+                    this.Add(item.GetSlot(i));
                 }
             }
             else
@@ -121,6 +115,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
 
             return array;
+        }
+
+        public void RemoveLast()
+        {
+            Count--;
+            _nodes[Count].Value = null;
         }
 
         private void EnsureAdditionalCapacity(int additionalCount)
