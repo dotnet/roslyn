@@ -283,18 +283,38 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Modify this bit vector by '|'ing each element with the other bit vector.
         /// </summary>
-        /// <param name="other"></param>
-        public void UnionWith(BitVector other)
+        /// <returns>
+        /// True if any bits were set as a result of the union.
+        /// </returns>
+        public bool UnionWith(BitVector other)
         {
+            bool anyChanged = false;
             int l = other._bits.Length;
+
             if (l > _bits.Length)
                 Array.Resize(ref _bits, l + 1);
+
+            Word oldbits = _bits0;
             _bits0 |= other._bits0;
+
+            if (oldbits != _bits0)
+                anyChanged = true;
+
             for (int i = 0; i < l; i++)
+            {
+                oldbits = _bits[i];
                 _bits[i] |= other._bits[i];
+
+                if (_bits[i] != oldbits)
+                    anyChanged = true;
+            }
+
             if (other._capacity > _capacity)
                 EnsureCapacity(other._capacity);
+
             Check();
+
+            return anyChanged;
         }
 
         public bool this[int index]

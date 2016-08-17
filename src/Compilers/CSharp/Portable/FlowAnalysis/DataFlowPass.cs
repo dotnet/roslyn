@@ -116,8 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
-            _localFuncAssignmentResults?.Free();
-
             base.Free();
         }
 
@@ -204,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            this.stateChangedAfterUse = false;              // prepare to detect backward goto statements
-
+            // Every pass starts with no dirty writes
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If
@@ -311,10 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
         {
             var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned);
-            var localFuncWrites = new LocalFunctionAssignmentPass(compilation,
-                                                                  member,
-                                                                  node,
-                                                                  requireOutParamsAssigned: requireOutParamsAssigned);
 
             if (diagnostics != null)
             {
@@ -324,8 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                localFuncWrites.Analyze(ref badRegion, diagnostics);
-                walker.Analyze(ref badRegion, diagnostics, localFuncWrites.GetResults());
+                walker.Analyze(ref badRegion, diagnostics);
                 Debug.Assert(!badRegion);
             }
             catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
@@ -336,32 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker.Free();
             }
-        }
-
-        private void InitializeLocalFuncAssignmentResults(LocalFuncAssignmentResults results)
-        {
-            if (results != null)
-            {
-                _localFuncAssignmentResults = results;
-
-                Debug.Assert(nextVariableSlot == 1);
-
-                variableBySlot = results.VariableSlots.ToArray();
-                nextVariableSlot = variableBySlot.Length;
-                for (int slot = 1; slot < variableBySlot.Length; slot++)
-                {
-                    _variableSlot[variableBySlot[slot]] = slot;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Analyze the body with <see cref="LocalFuncAssignmentResults" />.
-        /// </summary>
-        protected void Analyze(ref bool badRegion, DiagnosticBag diagnostics, LocalFuncAssignmentResults results)
-        {
-            InitializeLocalFuncAssignmentResults(results);
-            Analyze(ref badRegion, diagnostics);
         }
 
         /// <summary>
@@ -1710,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalSymbol symbol, bool assigned)
+        protected virtual void ReportIfUnused(LocalSymbol symbol, bool assigned)
         {
             if (!_usedVariables.Contains(symbol))
             {
@@ -1864,9 +1830,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = oldMethodOrLambda;
             return null;
         }
-
-        protected virtual void RecordCapturedAssigns(ref LocalState state)
-        { }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
         {

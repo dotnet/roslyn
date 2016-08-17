@@ -126,6 +126,40 @@ class C
         }
 
         [Fact]
+        public void LongWriteChain()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x;
+        bool L1()
+        {
+            L2();
+            return x == 0;
+        }
+        bool L2()
+        {
+            L3();
+            return x == 0;
+        }
+        bool L3()
+        {
+            L4();
+            return x == 0;
+        }
+        void L4()
+        {
+            x = 0;
+        }
+        L1();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConvertBeforeDefined()
         {
             var comp = CreateCompilationWithMscorlib(@"
