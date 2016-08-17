@@ -892,7 +892,6 @@
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />
     <Compile Include="Syntax\SyntaxKindFacts.vb" />
-    <Compile Include="Syntax\SyntaxListBuilder`1.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.vb" />

@@ -4,6 +4,16 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal static class SyntaxListBuilderExtensions
     {
+        public static SyntaxTokenList ToTokenList(this SyntaxListBuilder builder)
+        {
+            if (builder == null || builder.Count == 0)
+            {
+                return default(SyntaxTokenList);
+            }
+
+            return new SyntaxTokenList(null, builder.ToListNode(), 0, 0);
+        }
+
         public static SyntaxList<SyntaxNode> ToList(this SyntaxListBuilder builder)
         {
             if (builder == null || builder.Count == 0)
