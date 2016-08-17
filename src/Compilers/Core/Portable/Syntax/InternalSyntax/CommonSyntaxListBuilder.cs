@@ -15,19 +15,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _nodes = new ArrayElement<GreenNode>[size];
         }
 
-        public bool Any(int kind)
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                if (_nodes[i].Value.RawKind == kind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public void Clear()
         {
             this.Count = 0;
@@ -150,6 +137,19 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Debug.Assert(newSize >= requiredSize);
 
             Array.Resize(ref _nodes, newSize);
+        }
+
+        public bool Any(int kind)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (_nodes[i].Value.RawKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static CommonSyntaxListBuilder Create()

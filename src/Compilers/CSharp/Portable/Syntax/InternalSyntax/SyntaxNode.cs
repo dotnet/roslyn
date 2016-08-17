@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return flags;
         }
 
-        public override Microsoft.CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public override CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
-            return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);
+            return CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);
         }
 
         public override bool IsTriviaWithEndOfLine()
@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
-            = new ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
+        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
+            = new ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
 
         /// <summary>
         /// Gets the syntax node represented the structure of this trivia, if any. The HasStructure property can be used to 
@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         ///   documentation comments, where the structure describes the XML structure of the comment.
         ///   skipped tokens, where the structure describes the tokens that were skipped by the parser.
         /// </remarks>
-
         public override SyntaxNode GetStructure(Microsoft.CodeAnalysis.SyntaxTrivia trivia)
         {
             if (trivia.HasStructure)

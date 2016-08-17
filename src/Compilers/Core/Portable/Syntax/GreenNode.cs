@@ -934,7 +934,6 @@ namespace Microsoft.CodeAnalysis
 
         #region Caching
 
-
         internal const int MaxCachedChildNum = 3;
 
         internal bool IsCacheable
@@ -957,7 +956,7 @@ namespace Microsoft.CodeAnalysis
                 var child = GetSlot(i);
                 if (child != null)
                 {
-                    code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child), code);
+                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
                 }
             }
 
