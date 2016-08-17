@@ -109,16 +109,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            return GetBinder((CSharpSyntaxNode)node, position, memberDeclarationOpt, memberOpt);
+            return GetBinder(node, position, memberDeclarationOpt, memberOpt);
         }
 
-        internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(SyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             Debug.Assert(node != null);
 
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position, memberDeclarationOpt, memberOpt);
-            Binder result = node.Accept(visitor);
+            Binder result = visitor.Visit(node);
             _binderFactoryVisitorPool.Free(visitor);
 
             return result;
