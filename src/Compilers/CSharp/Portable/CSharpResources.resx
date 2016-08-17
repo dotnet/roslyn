@@ -4449,7 +4449,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, or Default
+                               4, 5, 6, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 

@@ -270,7 +270,8 @@ End Module"
 
         For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10,
                              LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12,
-                             LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+                             LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic15,
+                             LanguageVersion.Default, LanguageVersion.Latest}
             ParseAndVerify(source, version, False, Nothing)
         Next
     End Sub
@@ -294,7 +295,8 @@ End Namespace"
                 Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
         Next
 
-        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, LanguageVersion.VisualBasic15,
+                             LanguageVersion.Default, LanguageVersion.Latest}
             ParseAndVerify(source, version, False, Nothing)
         Next
     End Sub
