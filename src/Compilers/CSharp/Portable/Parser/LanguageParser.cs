@@ -2610,7 +2610,7 @@ parse_member_name:;
             return result;
         }
 
-        //private bool ReconsiderTypeAsAsyncModifier(ref CommonSyntaxListBuilder modifiers, ref type, ref identifierOrThisOpt, ref typeParameterListOpt))
+        //private bool ReconsiderTypeAsAsyncModifier(ref SyntaxListBuilder modifiers, ref type, ref identifierOrThisOpt, ref typeParameterListOpt))
         //        {
         //            goto parse_member_name;
         //        }
