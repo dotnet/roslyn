@@ -15,6 +15,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenTuples
         Inherits BasicTestBase
 
+        ReadOnly s_valueTupleRefs As MetadataReference() = New MetadataReference() {ValueTupleRef, SystemRuntimeFacadeRef}
+        ReadOnly s_trivial2uple As String = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+    End Structure
+End Namespace
+"
+
+
         <Fact()>
         Public Sub TupleTypeBinding()
 
@@ -4076,7 +4092,400 @@ BC30035: Syntax error.
             ' REMOVE AFTER REVIEW This is different than C#
         End Sub
 
+        <Fact()>
+        Public Sub TupleInOptionalParam()
 
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class C
+    Sub M(x As Integer, Optional y As (a As Integer, b As String) = (42, "Alice"))
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(<![CDATA[
+BC30059: Constant expression is required.
+    Sub M(x As Integer, Optional y As (a As Integer, b As String) = (42, "Alice"))
+                                                                    ~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultInOptionalParam()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        M()
+    End Sub
+    Shared Sub M(Optional x As (a As Integer, b As String) = Nothing)
+        System.Console.Write($"{x.a} {x.b}")
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[0 ]]>)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub TupleAsNamedParam()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        M(y:=(42, "Alice"), x:=1)
+    End Sub
+    Shared Sub M(x As Integer, y As (a As Integer, b As String))
+        System.Console.Write($"{y.a} {y.Item2}")
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[42 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub LongTupleCreationWithNames()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x =
+            (a:=1, b:=2, c:=3, d:=4, e:=5, f:=6, g:=7, h:="Alice", i:=2, j:=3, k:=4, l:=5, m:=6, n:=7, o:="Bob", p:=2, q:=3)
+        System.Console.Write($"{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l} {x.m} {x.n} {x.o} {x.p} {x.q}")
+    End Sub
+End Class
+    </file>
+</compilation>,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                expectedOutput:=<![CDATA[1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3]]>,
+                sourceSymbolValidator:=
+                    Sub(m As ModuleSymbol)
+                        Dim compilation = m.DeclaringCompilation
+                        Dim tree = compilation.SyntaxTrees.First()
+                        Dim model = compilation.GetSemanticModel(tree)
+                        Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+                        Dim x = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+                        Assert.Equal("(a As System.Int32, b As System.Int32, c As System.Int32, d As System.Int32, e As System.Int32, f As System.Int32, g As System.Int32, " _
+                            + "h As System.String, i As System.Int32, j As System.Int32, k As System.Int32, l As System.Int32, m As System.Int32, n As System.Int32, " _
+                            + "o As System.String, p As System.Int32, q As System.Int32)",
+                            model.GetTypeInfo(x).Type.ToTestDisplayString())
+                    End Sub)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub LongTupleWithArgumentEvaluation()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x = (a:=PrintAndReturn(1), b:=2, c:=3, d:=PrintAndReturn(4), e:=5, f:=6, g:=PrintAndReturn(7), h:=PrintAndReturn("Alice"), i:=2, j:=3, k:=4, l:=5, m:=6, n:=PrintAndReturn(7), o:=PrintAndReturn("Bob"), p:=2, q:=PrintAndReturn(3))
+    End Sub
+    Shared Function PrintAndReturn(Of T)(i As T)
+        System.Console.Write($"{i} ")
+        Return i
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1 4 7 Alice 7 Bob 3]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub DuplicateTupleMethodsNotAllowed()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Imports System
+Class C
+    Function M(a As (String, String)) As (Integer, Integer)
+        Return new System.ValueTuple(Of Integer, Integer)(a.Item1.Length, a.Item2.Length)
+    End Function
+    Function M(a As System.ValueTuple(Of String, String)) As System.ValueTuple(Of Integer, Integer)
+        Return (a.Item1.Length, a.Item2.Length)
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30269: 'Public Function M(a As (String, String)) As (Integer, Integer)' has multiple definitions with identical signatures.
+    Function M(a As (String, String)) As (Integer, Integer)
+             ~
+</errors>)
+
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub TupleArrays()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Interface I
+    Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)()
+End Interface
+
+Class C
+    Implements I
+
+    Shared Sub Main()
+        Dim i As I = new C()
+        Dim r = i.M(new System.ValueTuple(Of Integer, Integer)() { new System.ValueTuple(Of Integer, Integer)(1, 2) }
+        System.Console.Write($"{r(0).Item1} {r(0).Item2}")
+    End Sub
+
+    Public Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)()
+        Return New System.ValueTuple(Of Integer, Integer)() { (a(0).Item1, a(0).Item2) }
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
+
+            ' REMOVE AFTER REVIEW 
+            ' Getting error: a.vb(6) : error BC30149: Class 'C' must implement 'Function M(a As (Integer, Integer)()) As (Integer, Integer)()' for interface 'I'.
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleRef()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim r = (1, 2)
+        M(r)
+        System.Console.Write($"{r.Item1} {r.Item2}")
+    End Sub
+    Shared Sub M(ByRef a As (Integer, Integer))
+        System.Console.WriteLine($"{a.Item1} {a.Item2}")
+        a = (3, 4)
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1 2
+3 4]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleOut()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim r As (Integer, Integer)
+        M(r)
+        System.Console.Write($"{r.Item1} {r.Item2}")
+    End Sub
+    Shared Sub M(ByRef a As (Integer, Integer))
+        System.Console.WriteLine($"{a.Item1} {a.Item2}")
+        a = (1, 2)
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[0 0
+1 2]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTypeArgs()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim a = (1, "Alice")
+        Dim r = M(Of Integer, String)(a)
+        System.Console.Write($"{r.Item1} {r.Item2}")
+    End Sub
+    Shared Function M(Of T1, T2)(a As (T1, T2)) As (T1, T2)
+        Return a
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub NullableTuple()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        M((1, "Alice"))
+    End Sub
+    Shared Sub M(a As (Integer, String)?)
+        System.Console.Write($"{a.HasValue} {a.Value.Item1} {a.Value.Item2}")
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[True 1 Alice]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleUnsupportedInUsingStatment()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Imports VT2 = (Integer, Integer)
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30203: Identifier expected.
+Imports VT2 = (Integer, Integer)
+              ~
+BC40056: Namespace or type specified in the Imports '' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports VT2 = (Integer, Integer)
+              ~~~~~~~~~~~~~~~~~~
+BC32093: 'Of' required when specifying type arguments for a generic type or method.
+Imports VT2 = (Integer, Integer)
+               ~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub MissingTypeInAlias()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports VT2 = System.ValueTuple(Of Integer, Integer) ' ValueTuple is referenced but does not exist
+Namespace System
+    Public Class Bogus
+    End Class
+End Namespace
+Namespace TuplesCrash2
+    Class C
+        Shared Sub Main()
+
+        End Sub
+    End Class
+End Namespace
+]]></file>
+</compilation>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = model.LookupStaticMembers(234)
+
+            For i As Integer = 0 To tree.GetText().Length
+                model.LookupStaticMembers(i)
+            Next
+            ' Didn't crash
+
+        End Sub
+
+        <Fact(Skip:="REMOVE")>
+        Public Sub MultipleDefinitionsOfValueTuple()
+
+            Dim source1 =
+<compilation name="comp1">
+    <file name="a.vb">
+Public Module M1
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub Extension(x As Integer, y As (Integer, Integer))
+        System.Console.Write("M1.Extension")
+    End Sub
+End Module
+<%= s_trivial2uple %></file>
+</compilation>
+
+            Dim source2 =
+<compilation name="comp2">
+    <file name="a.vb">
+Public Module M2
+    &lt;System.Runtime.CompilerServices.Extension()&gt;
+    Public Sub Extension(x As Integer, y As (Integer, Integer))
+        System.Console.Write("M2.Extension")
+    End Sub
+End Module
+<%= s_trivial2uple %></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46})
+            comp1.AssertNoDiagnostics()
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46})
+            comp2.AssertNoDiagnostics()
+
+            Dim source =
+<compilation name="comp">
+    <file name="a.vb">
+Imports System
+Imports M1
+Imports M2
+Class C
+    Public Shared Sub Main()
+        Dim x As Integer = 0
+        x.Extension((1, 1))
+    End Sub
+End Class
+</file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={comp1.ToMetadataReference(), comp2.ToMetadataReference()})
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+            ' Crashes in SubstituteNamedType.MakeDeclaredBase
+            ' REMOVE AND UPDATE AFTER REVIEW
+
+            Dim verifier = CompileAndVerify(source, additionalRefs:={comp1.ToMetadataReference()}, expectedOutput:=<![CDATA[M1.Extension]]>)
+            verifier.VerifyDiagnostics()
+
+        End Sub
 
 
 
