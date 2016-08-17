@@ -33,7 +33,9 @@ namespace Runner
             };
             parameterOptions.Parse(args);
 
+            Cleanup();
             AsyncMain(isCiTest).GetAwaiter().GetResult();
+
             if (isCiTest)
             {
                 Log("Running under continuous integration");
@@ -49,6 +51,24 @@ namespace Runner
             {
                 Log("Uploading traces");
                 UploadTraces(GetCPCDirectoryPath(), traceDestination);
+            }
+        }
+
+        private static void Cleanup()
+        {
+            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
+            if (File.Exists(consumptionTempResultsPath))
+            {
+                File.Delete(consumptionTempResultsPath);
+            }
+
+            if (Directory.Exists(GetCPCDirectoryPath()))
+            {
+                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
+                foreach (var databackDirectory in databackDirectories)
+                {
+                    Directory.Delete(databackDirectory, true);
+                }
             }
         }
 
@@ -85,24 +105,33 @@ namespace Runner
             foreach (var test in testInstances)
             {
                 var traceManager = test.GetTraceManager();
-                traceManager.Initialize();
                 test.Setup();
                 traceManager.Setup();
 
                 int iterations;
                 if (isRunningUnderCI)
                 {
-                    Log("Running one iteration per test");
+                    if (RuntimeSettings.IsVerbose) {
+                        Log("Running one iteration per test because we are under CI");
+                    }
                     iterations = 1;
                 }
                 else if (traceManager.HasWarmUpIteration)
                 {
                     iterations = test.Iterations + 1;
+                    if (RuntimeSettings.IsVerbose) {
+                        Log("With warmup iteration");
+                    }
                 }
                 else
                 {
+                    if (RuntimeSettings.IsVerbose) {
+                        Log("No warmup iteration");
+                    }
                     iterations = test.Iterations;
                 }
+
+                Log($"Number of iterations: {iterations}");
 
                 for (int i = 0; i < iterations; i++)
                 {
