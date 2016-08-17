@@ -2,16 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal partial class SyntaxToken : CSharpSyntaxNode
     {
         //====================
@@ -328,14 +324,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return trailing != null ? trailing.FullWidth : 0;
         }
 
-        internal Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> LeadingTrivia
+        internal SyntaxList<CSharpSyntaxNode> LeadingTrivia
         {
-            get { return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
+            get { return new SyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
         }
 
-        internal Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> TrailingTrivia
+        internal SyntaxList<CSharpSyntaxNode> TrailingTrivia
         {
-            get { return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
+            get { return new SyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
         }
 
         public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)

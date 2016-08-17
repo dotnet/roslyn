@@ -20,19 +20,6 @@ namespace Microsoft.CodeAnalysis.Syntax
             this.Count = 0;
         }
 
-        public bool Any(int kind)
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                if (_nodes[i].Value.RawKind == kind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public void Add(SyntaxNode item)
         {
             AddInternal(item.Green);
@@ -76,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         }
 
         [Conditional("DEBUG")]
-        protected void Validate(int start, int end)
+        private void Validate(int start, int end)
         {
             for (int i = start; i < end; i++)
             {
@@ -159,6 +146,19 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             this.Count -= 1;
             this._nodes[Count] = default(ArrayElement<GreenNode>);
+        }
+
+        public bool Any(int kind)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (_nodes[i].Value.RawKind == kind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected void Grow(int size)
