@@ -28,15 +28,5 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             return new CommonSyntaxList<TNode>(builder.ToListNode());
         }
-
-        //public static SeparatedSyntaxList<TNode> ToSeparatedList<TNode>(this SyntaxListBuilder builder) where TNode : CSharpSyntaxNode
-        //{
-        //    if (builder == null)
-        //    {
-        //        return default(SeparatedSyntaxList<TNode>);
-        //    }
-
-        //    return ToList(builder).AsSeparatedList<TNode>();
-        //}
     }
 }
