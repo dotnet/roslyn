@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Syntax
                         return new SyntaxTriviaList(default(SyntaxToken), _nodes[0].UnderlyingNode, position: 0, index: 0);
                     case 2:
                         return new SyntaxTriviaList(default(SyntaxToken),
-                            InternalSyntax.CommonSyntaxList.List(
+                            InternalSyntax.SyntaxList.List(
                             _nodes[0].UnderlyingNode,
                             _nodes[1].UnderlyingNode), position: 0, index: 0);
                     case 3:
                         return new SyntaxTriviaList(default(SyntaxToken),
-                            InternalSyntax.CommonSyntaxList.List(
+                            InternalSyntax.SyntaxList.List(
                                 _nodes[0].UnderlyingNode,
                                 _nodes[1].UnderlyingNode,
                                 _nodes[2].UnderlyingNode),
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                             }
 
                             return new SyntaxTriviaList(default(SyntaxToken),
-                                InternalSyntax.CommonSyntaxList.List(tmp), position: 0, index: 0);
+                                InternalSyntax.SyntaxList.List(tmp), position: 0, index: 0);
                         }
                 }
             }

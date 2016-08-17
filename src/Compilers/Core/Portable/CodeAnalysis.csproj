@@ -114,11 +114,11 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithLotsOfChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithManyChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithThreeChildren.cs" />
-    <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithLotsOfChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithTwoChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxListBuilder.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxListBuilderExtensions.cs" />

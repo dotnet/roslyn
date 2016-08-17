@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             // the position of a child later requires traversing all previous siblings.
             private readonly int[] _childPositions;
 
-            internal WithManyWeakChildren(InternalSyntax.CommonSyntaxList.WithManyChildrenBase green, SyntaxNode parent, int position)
+            internal WithManyWeakChildren(InternalSyntax.SyntaxList.WithManyChildrenBase green, SyntaxNode parent, int position)
                 : base(green, parent, position)
             {
                 int count = green.SlotCount;

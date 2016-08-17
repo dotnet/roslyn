@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             private SyntaxNode _child0;
             private SyntaxNode _child1;
 
-            internal WithTwoChildren(InternalSyntax.CommonSyntaxList green, SyntaxNode parent, int position)
+            internal WithTwoChildren(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
                 : base(green, parent, position)
             {
             }

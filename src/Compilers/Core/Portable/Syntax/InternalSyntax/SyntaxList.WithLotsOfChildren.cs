@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial class CommonSyntaxList
+    internal partial class SyntaxList
     {
         internal sealed class WithLotsOfChildren : WithManyChildrenBase
         {

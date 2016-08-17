@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     If stmtError <> ERRID.ERR_None Then
                         statement = SyntaxFactory.ReturnStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.ReturnKeyword), Nothing)
-                        statement = statement.AddLeadingSyntax(CommonSyntaxList.List(exitKeyword, CurrentToken), stmtError)
+                        statement = statement.AddLeadingSyntax(SyntaxList.List(exitKeyword, CurrentToken), stmtError)
                         GetNextToken()
                         Return statement
                     End If

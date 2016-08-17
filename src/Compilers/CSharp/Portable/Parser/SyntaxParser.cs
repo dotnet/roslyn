@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var trailingTrivia = target.GetTrailingTrivia();
                 triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.TokenWithTrailingTrivia(CommonSyntaxList.Concat(trailingTrivia, trivia));
+                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
             }
             else
             {
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var leadingTrivia = target.GetLeadingTrivia();
-                target = target.TokenWithLeadingTrivia(CommonSyntaxList.Concat(trivia, leadingTrivia));
+                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
                 triviaOffset = 0; //added trivia is first, so offset is zero
             }
 

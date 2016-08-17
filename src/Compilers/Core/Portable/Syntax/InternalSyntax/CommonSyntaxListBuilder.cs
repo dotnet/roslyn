@@ -176,13 +176,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 case 1:
                     return _nodes[0];
                 case 2:
-                    return CommonSyntaxList.List(_nodes[0], _nodes[1]);
+                    return SyntaxList.List(_nodes[0], _nodes[1]);
                 case 3:
-                    return CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]);
+                    return SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
                     Array.Copy(_nodes, tmp, this.Count);
-                    return CommonSyntaxList.List(tmp);
+                    return SyntaxList.List(tmp);
             }
         }
 

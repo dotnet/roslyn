@@ -7,19 +7,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal abstract partial class CommonSyntaxList : GreenNode
+    internal abstract partial class SyntaxList : GreenNode
     {
-        internal CommonSyntaxList()
+        internal SyntaxList()
             : base(GreenNode.ListKind)
         {
         }
 
-        internal CommonSyntaxList(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        internal SyntaxList(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
             : base(GreenNode.ListKind, diagnostics, annotations)
         {
         }
 
-        internal CommonSyntaxList(ObjectReader reader)
+        internal SyntaxList(ObjectReader reader)
             : base(reader)
         {
         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return List(array);
         }
 
-        internal static CommonSyntaxList List(ArrayElement<GreenNode>[] children)
+        internal static SyntaxList List(ArrayElement<GreenNode>[] children)
         {
             // "WithLotsOfChildren" list will allocate a separate array to hold
             // precomputed node offsets. It may not be worth it for smallish lists.
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 return left;
             }
 
-            var leftList = left as CommonSyntaxList;
-            var rightList = right as CommonSyntaxList;
+            var leftList = left as SyntaxList;
+            var rightList = right as SyntaxList;
             if (leftList != null)
             {
                 if (rightList != null)

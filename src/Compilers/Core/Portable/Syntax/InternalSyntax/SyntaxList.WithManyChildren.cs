@@ -6,9 +6,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial class CommonSyntaxList
+    internal partial class SyntaxList
     {
-        internal abstract class WithManyChildrenBase : CommonSyntaxList
+        internal abstract class WithManyChildrenBase : SyntaxList
         {
             internal readonly ArrayElement<GreenNode>[] children;
 

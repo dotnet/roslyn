@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If nextToken IsNot Nothing Then
-                result = result.AddLeadingSyntax(CommonSyntaxList.List(CurrentToken, nextToken), ERRID.ERR_ExpectedRelational)
+                result = result.AddLeadingSyntax(SyntaxList.List(CurrentToken, nextToken), ERRID.ERR_ExpectedRelational)
                 GetNextToken()
             End If
 

@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Syntax
                     case 1:
                         return new SyntaxTokenList(null, _nodes[0], 0, 0);
                     case 2:
-                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1]), 0, 0);
                     case 3:
-                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]), 0, 0);
                     default:
-                        return new SyntaxTokenList(null, InternalSyntax.CommonSyntaxList.List(_nodes, _count), 0, 0);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes, _count), 0, 0);
                 }
             }
             else

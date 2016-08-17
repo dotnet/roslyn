@@ -4111,7 +4111,7 @@ tryAgain:
                     var open = this.EatToken();
                     var close = this.EatToken();
                     open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
-                    name = AddTrailingSkippedSyntax(name, CommonSyntaxList.List(open, close));
+                    name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
                 }
             }
             else if (this.IsPossibleName())
@@ -7233,7 +7233,7 @@ tryAgain:
                 if (isMethodBody && IsLargeEnoughNonEmptyStatementList(statements))
                 {
                     // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
-                    statementList = new CommonSyntaxList<StatementSyntax>(CommonSyntaxList.List(((CommonSyntaxListBuilder)statements).ToArray()));
+                    statementList = new CommonSyntaxList<StatementSyntax>(SyntaxList.List(((CommonSyntaxListBuilder)statements).ToArray()));
                 }
                 else
                 {
