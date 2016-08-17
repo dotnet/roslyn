@@ -894,11 +894,9 @@
     <Compile Include="Syntax\SyntaxKindFacts.vb" />
     <Compile Include="Syntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\SyntaxNodeFactories.vb" />
-    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.vb" />
     <Compile Include="Syntax\SyntaxNodePartials.vb" />
     <Compile Include="Syntax\SyntaxNodeRemover.vb" />
     <Compile Include="Syntax\SyntaxReplacer.vb" />
-    <Compile Include="Syntax\SyntaxTokenListBuilder.vb" />
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
