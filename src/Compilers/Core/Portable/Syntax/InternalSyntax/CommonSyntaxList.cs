@@ -1,35 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal abstract partial class SyntaxList : CSharpSyntaxNode
+    internal abstract partial class CommonSyntaxList : GreenNode
     {
-        internal SyntaxList()
-            : base(SyntaxKind.List)
+        internal CommonSyntaxList()
+            : base(GreenNode.ListKind)
         {
         }
 
-        internal SyntaxList(ObjectReader reader)
+        internal CommonSyntaxList(ObjectReader reader)
             : base(reader)
         {
         }
 
-        internal static CSharpSyntaxNode List(CSharpSyntaxNode child)
+        internal static GreenNode List(GreenNode child)
         {
             return child;
         }
 
-        internal static WithTwoChildren List(CSharpSyntaxNode child0, CSharpSyntaxNode child1)
+        internal static WithTwoChildren List(GreenNode child0, GreenNode child1)
         {
             Debug.Assert(child0 != null);
             Debug.Assert(child1 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, out hash);
+            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, out hash);
             if (cached != null)
                 return (WithTwoChildren)cached;
 
@@ -42,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        internal static WithThreeChildren List(CSharpSyntaxNode child0, CSharpSyntaxNode child1, CSharpSyntaxNode child2)
+        internal static WithThreeChildren List(GreenNode child0, GreenNode child1, GreenNode child2)
         {
             Debug.Assert(child0 != null);
             Debug.Assert(child1 != null);
             Debug.Assert(child2 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode((short)SyntaxKind.List, child0, child1, child2, out hash);
+            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, out hash);
             if (cached != null)
                 return (WithThreeChildren)cached;
 
@@ -62,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        internal static CSharpSyntaxNode List(CSharpSyntaxNode[] nodes)
+        internal static GreenNode List(GreenNode[] nodes)
         {
             return List(nodes, nodes.Length);
         }
 
-        internal static CSharpSyntaxNode List(CSharpSyntaxNode[] nodes, int count)
+        internal static GreenNode List(GreenNode[] nodes, int count)
         {
-            var array = new ArrayElement<CSharpSyntaxNode>[count];
+            var array = new ArrayElement<GreenNode>[count];
             for (int i = 0; i < count; i++)
             {
                 Debug.Assert(nodes[i] != null);
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return List(array);
         }
 
-        internal static SyntaxList List(ArrayElement<CSharpSyntaxNode>[] children)
+        internal static CommonSyntaxList List(ArrayElement<GreenNode>[] children)
         {
             // "WithLotsOfChildren" list will allocate a separate array to hold
             // precomputed node offsets. It may not be worth it for smallish lists.
@@ -93,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal abstract void CopyTo(ArrayElement<CSharpSyntaxNode>[] array, int offset);
+        internal abstract void CopyTo(ArrayElement<GreenNode>[] array, int offset);
 
-        internal static CSharpSyntaxNode Concat(CSharpSyntaxNode left, CSharpSyntaxNode right)
+        internal static GreenNode Concat(GreenNode left, GreenNode right)
         {
             if (left == null)
             {
@@ -107,20 +108,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return left;
             }
 
-            var leftList = left as SyntaxList;
-            var rightList = right as SyntaxList;
+            var leftList = left as CommonSyntaxList;
+            var rightList = right as CommonSyntaxList;
             if (leftList != null)
             {
                 if (rightList != null)
                 {
-                    var tmp = new ArrayElement<CSharpSyntaxNode>[left.SlotCount + right.SlotCount];
+                    var tmp = new ArrayElement<GreenNode>[left.SlotCount + right.SlotCount];
                     leftList.CopyTo(tmp, 0);
                     rightList.CopyTo(tmp, left.SlotCount);
                     return List(tmp);
                 }
                 else
                 {
-                    var tmp = new ArrayElement<CSharpSyntaxNode>[left.SlotCount + 1];
+                    var tmp = new ArrayElement<GreenNode>[left.SlotCount + 1];
                     leftList.CopyTo(tmp, 0);
                     tmp[left.SlotCount].Value = right;
                     return List(tmp);
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else if (rightList != null)
             {
-                var tmp = new ArrayElement<CSharpSyntaxNode>[rightList.SlotCount + 1];
+                var tmp = new ArrayElement<GreenNode>[rightList.SlotCount + 1];
                 tmp[0].Value = left;
                 rightList.CopyTo(tmp, 1);
                 return List(tmp);
@@ -147,6 +148,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public override string Language
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        public override string KindText
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        public override SyntaxNode GetStructure(SyntaxTrivia parentTrivia)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override bool IsTriviaWithEndOfLine()
+        {
+            return false;
         }
     }
 }

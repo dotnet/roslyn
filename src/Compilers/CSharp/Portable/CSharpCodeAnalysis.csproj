@@ -770,14 +770,9 @@
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
     <Compile Include="Syntax\ForStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
-    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
@@ -797,7 +792,6 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxRewriter.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.MissingTokenWithTrivia.cs" />
@@ -843,7 +837,6 @@
     <Compile Include="Syntax\SyntaxListBuilder.cs" />
     <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
-    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\SyntaxFacts.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />

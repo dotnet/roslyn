@@ -76,13 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         //====================
 
-        public override bool IsToken
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsToken => true;
 
         internal override GreenNode GetSlot(int index)
         {
@@ -405,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             visitor.VisitToken(this);
         }
 
-        protected internal override void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        protected override void WriteTokenTo(System.IO.TextWriter writer, bool leading, bool trailing)
         {
             if (leading)
             {

@@ -4,15 +4,15 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial class SyntaxList
+    internal partial class CommonSyntaxList
     {
-        internal abstract class WithManyChildrenBase : SyntaxList
+        internal abstract class WithManyChildrenBase : CommonSyntaxList
         {
-            internal readonly ArrayElement<CSharpSyntaxNode>[] children;
+            internal readonly ArrayElement<GreenNode>[] children;
 
-            internal WithManyChildrenBase(ArrayElement<CSharpSyntaxNode>[] children)
+            internal WithManyChildrenBase(ArrayElement<GreenNode>[] children)
             {
                 this.children = children;
                 this.InitializeChildren();
@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var length = reader.ReadInt32();
 
-                this.children = new ArrayElement<CSharpSyntaxNode>[length];
+                this.children = new ArrayElement<GreenNode>[length];
                 for (var i = 0; i < length; i++)
                 {
-                    this.children[i].Value = (CSharpSyntaxNode)reader.ReadValue();
+                    this.children[i].Value = (GreenNode)reader.ReadValue();
                 }
 
                 this.InitializeChildren();
@@ -74,25 +74,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return this.children[index];
             }
 
-            internal override void CopyTo(ArrayElement<CSharpSyntaxNode>[] array, int offset)
+            internal override void CopyTo(ArrayElement<GreenNode>[] array, int offset)
             {
                 Array.Copy(this.children, 0, array, offset, this.children.Length);
             }
 
             internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
             {
+                var separated = this.SlotCount > 1 && HasNodeTokenPattern();
                 if (parent != null && parent.ShouldCreateWeakList())
                 {
-                    return new CSharp.Syntax.SyntaxList.WithManyWeakChildren(this, parent, position);
-                }
-
-                if (this.SlotCount > 1 && HasNodeTokenPattern())
-                {
-                    return new CSharp.Syntax.SyntaxList.SeparatedWithManyChildren(this, parent, position);
+                    return separated
+                        ? new Syntax.CommonSyntaxList.SeparatedWithManyWeakChildren(this, parent, position)
+                        : (SyntaxNode)new Syntax.CommonSyntaxList.WithManyWeakChildren(this, parent, position);
                 }
                 else
                 {
-                    return new CSharp.Syntax.SyntaxList.WithManyChildren(this, parent, position);
+                    return separated
+                        ? new Syntax.CommonSyntaxList.SeparatedWithManyChildren(this, parent, position)
+                        : (SyntaxNode)new Syntax.CommonSyntaxList.WithManyChildren(this, parent, position);
                 }
             }
 
@@ -109,21 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return true;
             }
-
-            public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Accept(CSharpSyntaxVisitor visitor)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         internal sealed class WithManyChildren : WithManyChildrenBase
         {
-            internal WithManyChildren(ArrayElement<CSharpSyntaxNode>[] children)
+            internal WithManyChildren(ArrayElement<GreenNode>[] children)
                 : base(children)
             {
             }

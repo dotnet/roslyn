@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
-        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, CSharpSyntaxNode skippedSyntax) where TNode : CSharpSyntaxNode
+        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var token = node as SyntaxToken;
             if (token != null)
@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Converts skippedSyntax node into tokens and adds these as trivia on the target token.
         /// Also adds the first error (in depth-first preorder) found in the skipped syntax tree to the target token.
         /// </summary>
-        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, CSharpSyntaxNode skippedSyntax, bool trailing)
+        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
             var builder = new SyntaxListBuilder(4);
 

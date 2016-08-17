@@ -1226,6 +1226,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be written to..
+        /// </summary>
+        internal static string TheStreamCannotBeWrittenTo {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeWrittenTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to If tuple element names are specified, the number of element names must match the cardinality of the tuple..
         /// </summary>
         internal static string TupleElementNameCountMismatch {

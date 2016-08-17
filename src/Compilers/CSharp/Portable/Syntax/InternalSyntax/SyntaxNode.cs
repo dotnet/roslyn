@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -63,13 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return (SyntaxKind)this.RawKind; }
         }
 
-        public override string KindText
-        {
-            get
-            {
-                return this.Kind.ToString();
-            }
-        }
+        public override string KindText => this.Kind.ToString();
 
         public override int RawContextualKind
         {
@@ -95,6 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        public override bool IsSkippedTokensTrivia => this.Kind == SyntaxKind.SkippedTokensTrivia;
+        public override bool IsDocumentationCommentTrivia => SyntaxFacts.IsDocumentationCommentTrivia(this.Kind);
+
         public override int GetSlotOffset(int index)
         {
             // This implementation should not support arbitrary
@@ -112,44 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return offset;
-        }
-
-        internal ChildSyntaxList ChildNodesAndTokens()
-        {
-            return new ChildSyntaxList(this);
-        }
-
-        /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
-        /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
-        {
-            yield return this;
-
-            var stack = new Stack<ChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
-            {
-                var en = stack.Pop();
-                if (!en.MoveNext())
-                {
-                    // no more down this branch
-                    continue;
-                }
-
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!(current is SyntaxToken))
-                {
-                    // not token, so consider children
-                    stack.Push(((CSharpSyntaxNode)current).ChildNodesAndTokens().GetEnumerator());
-                    continue;
-                }
-            }
         }
 
         public SyntaxToken GetFirstToken()
@@ -185,22 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override GreenNode GetTrailingTriviaCore()
         {
             return this.GetTrailingTrivia();
-        }
-
-        public override string ToString()
-        {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: false, trailing: false);
-            return sb.ToStringAndFree();
-        }
-
-        public override string ToFullString()
-        {
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            this.WriteTo(writer, leading: true, trailing: true);
-            return sb.ToStringAndFree();
         }
 
         public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
@@ -296,14 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return flags;
-        }
-
-        public override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
         }
 
         public override GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode)
