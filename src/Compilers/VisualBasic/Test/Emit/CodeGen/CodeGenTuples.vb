@@ -4680,16 +4680,112 @@ End Class
                 Construct(intType, stringType, intType, stringType, intType, stringType, intType,
                                        comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).Construct(stringType))
 
-            Dim tuple8WithoutNames = comp.CreateTupleTypeSymbol(vt8, ImmutableArray.Create("Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"))
+            Dim tuple8WithNames = comp.CreateTupleTypeSymbol(vt8, ImmutableArray.Create("Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"))
 
-            Assert.True(tuple8WithoutNames.IsTupleType)
+            Assert.True(tuple8WithNames.IsTupleType)
             Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String)",
-                         tuple8WithoutNames.ToTestDisplayString())
+                         tuple8WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, tuple8WithoutNames.TupleElementNames)
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, tuple8WithNames.TupleElementNames)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+                         tuple8WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_Tuple9NoNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest).
+                Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                       comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(stringType, intType))
+
+            Dim tuple9WithoutNames = comp.CreateTupleTypeSymbol(vt9, Nothing)
+
+            Assert.True(tuple9WithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32)",
+                         tuple9WithoutNames.ToTestDisplayString())
+
+            Assert.True(tuple9WithoutNames.TupleElementNames.IsDefault)
+
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
+                         tuple9WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_Tuple9WithNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest).
+                Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                       comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(stringType, intType))
+
+            Dim tuple9WithNames = comp.CreateTupleTypeSymbol(vt9, ImmutableArray.Create("Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"))
+
+            Assert.True(tuple9WithNames.IsTupleType)
+            Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String, Alice9 As System.Int32)",
+                         tuple9WithNames.ToTestDisplayString())
+
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, tuple9WithNames.TupleElementNames)
+
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
+                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_ElementTypeIsError()
+
+            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><%= s_trivial2uple %></file>
+</compilation>)
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, tupleComp.ToMetadataReference()})
+
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, ErrorTypeSymbol.UnknownResultType)
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
+
+            Dim types = tupleWithoutNames.TupleElementTypes
+            Assert.Equal(2, types.Length)
+            Assert.Equal(SymbolKind.NamedType, types(0).Kind)
+            Assert.Equal(SymbolKind.ErrorType, types(1).Kind)
+
+        End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_BadNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+
+            Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+
+            ' Illegal VB identifier and blank
+            Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
+            Assert.Equal({"123", ""}, tuple2.TupleElementNames)
+
+            ' Reserved keywords
+            Dim tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"))
+            Assert.Equal({"return", "class"}, tuple3.TupleElementNames)
+
+            Try
+                comp.CreateTupleTypeSymbol(underlyingType:=intType)
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
+            End Try
 
         End Sub
 
