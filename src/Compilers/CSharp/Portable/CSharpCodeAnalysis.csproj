@@ -492,7 +492,6 @@
     <Compile Include="Parser\QuickScanner.cs" />
     <Compile Include="Parser\SlidingTextWindow.cs" />
     <Compile Include="Parser\SyntaxFactoryContext.cs" />
-    <Compile Include="Parser\SyntaxListPool.cs" />
     <Compile Include="Parser\SyntaxParser.cs" />
     <Compile Include="Parser\SyntaxParser.ResetPoint.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplay.cs" />

@@ -911,7 +911,6 @@
     <Compile Include="Syntax\VisualBasicSyntaxTree.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxWalker.vb" />
     <Compile Include="Utilities\FunctionExtensions.vb" />
-    <Compile Include="Utilities\SyntaxListPool.vb" />
     <Compile Include="Utilities\TypeUnification.vb" />
     <Compile Include="Utilities\VarianceAmbiguity.vb" />
     <Compile Include="VBResources.Designer.vb">

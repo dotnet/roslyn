@@ -3,9 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
@@ -41,17 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return item;
         }
 
-        internal SyntaxListBuilder<TNode> Allocate<TNode>() where TNode : CSharpSyntaxNode
+        internal SyntaxListBuilder<TNode> Allocate<TNode>() where TNode : GreenNode
         {
             return new SyntaxListBuilder<TNode>(this.Allocate());
         }
 
-        internal SeparatedSyntaxListBuilder<TNode> AllocateSeparated<TNode>() where TNode : CSharpSyntaxNode
+        internal SeparatedSyntaxListBuilder<TNode> AllocateSeparated<TNode>() where TNode : GreenNode
         {
             return new SeparatedSyntaxListBuilder<TNode>(this.Allocate());
         }
 
-        internal void Free<TNode>(SeparatedSyntaxListBuilder<TNode> item) where TNode : CSharpSyntaxNode
+        internal void Free<TNode>(SeparatedSyntaxListBuilder<TNode> item) where TNode : GreenNode
         {
             Free(item.UnderlyingBuilder);
         }
@@ -77,6 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var tmp = new ArrayElement<SyntaxListBuilder>[_freeList.Length * 2];
             Array.Copy(_freeList, tmp, _freeList.Length);
             _freeList = tmp;
+        }
+
+        public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
+            where TNode : GreenNode
+        {
+            var list = item.ToList();
+            Free(item);
+            return list;
         }
     }
 }
