@@ -83,6 +83,15 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
+        [Conditional("DEBUG")]
+        protected void Validate(int start, int end)
+        {
+            for (int i = start; i < end; i++)
+            {
+                Debug.Assert(_nodes[i].Value != null);
+            }
+        }
+
         public void AddRange(CommonSyntaxList<GreenNode> list)
         {
             this.AddRange(list, 0, list.Count);
@@ -112,15 +121,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
 
             return array;
-        }
-
-        [Conditional("DEBUG")]
-        protected void Validate(int start, int end)
-        {
-            for (int i = start; i < end; i++)
-            {
-                Debug.Assert(_nodes[i].Value != null);
-            }
         }
 
         private void EnsureAdditionalCapacity(int additionalCount)
