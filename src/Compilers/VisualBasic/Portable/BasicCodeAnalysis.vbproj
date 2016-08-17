@@ -865,6 +865,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxLiterals.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNode.vb" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeExtensions.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodeFactories.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxNodePartials.vb" />

@@ -116,7 +116,6 @@
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonChildSyntaxList.Reversed.Enumerator.cs" />
-    <Compile Include="Syntax\InternalSyntax\IFactoryContext.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithLotsOfChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList.WithManyChildren.cs" />
@@ -129,7 +128,7 @@
     <Compile Include="Syntax\InternalSyntax\CommonSeparatedSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList`1.Enumerator.cs" />
     <Compile Include="Syntax\InternalSyntax\CommonSyntaxList`1.cs" />
-    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
+    <Compile Include="Syntax\InternalSyntax\CommonSyntaxNodeCache.cs" />
     <Compile Include="Syntax\CommonSyntaxList.cs" />
     <Compile Include="Syntax\CommonSyntaxList.SeparatedWithManyChildren.cs" />
     <Compile Include="Syntax\CommonSyntaxList.WithManyChildren.cs" />

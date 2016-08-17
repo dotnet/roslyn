@@ -130,11 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Public Function GetNodeFlags() As GreenNode.NodeFlags Implements ISyntaxFactoryContext.GetNodeFlags
-            Dim flags = SyntaxNodeCache.GetDefaultNodeFlags()
-            Return VisualBasicSyntaxNode.SetFactoryContext(flags, Me)
-        End Function
-
         '
         '============ Methods for parsing declaration constructs ============
         '

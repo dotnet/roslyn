@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// #define STATS
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 using System;
 using System.Diagnostics;
@@ -183,10 +183,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, out int hash)
         {
-            return TryGetNode(kind, child1, GetFlags(), out hash);
+            return TryGetNode(kind, child1, GetDefaultNodeFlags(), out hash);
         }
 
-        public static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode.NodeFlags flags, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode.NodeFlags flags, out int hash)
         {
             if (CanBeCached(child1))
             {
@@ -211,10 +211,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, out int hash)
         {
-            return TryGetNode(kind, child1, child2, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, GetDefaultNodeFlags(), out hash);
         }
 
-        public static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode.NodeFlags flags, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode.NodeFlags flags, out int hash)
         {
             if (CanBeCached(child1, child2))
             {
@@ -239,10 +239,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, out int hash)
         {
-            return TryGetNode(kind, child1, child2, child3, GetFlags(), out hash);
+            return TryGetNode(kind, child1, child2, child3, GetDefaultNodeFlags(), out hash);
         }
 
-        public static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, GreenNode.NodeFlags flags, out int hash)
+        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, GreenNode.NodeFlags flags, out int hash)
         {
             if (CanBeCached(child1, child2, child3))
             {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return null;
         }
 
-        public static GreenNode.NodeFlags GetFlags()
+        public static GreenNode.NodeFlags GetDefaultNodeFlags()
         {
             return GreenNode.NodeFlags.IsNotMissing;
         }

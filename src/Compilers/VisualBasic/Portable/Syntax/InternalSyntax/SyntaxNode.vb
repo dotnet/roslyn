@@ -49,18 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Friend Shared Function SetFactoryContext(flags As NodeFlags, context As ISyntaxFactoryContext) As NodeFlags
-            If context.IsWithinAsyncMethodOrLambda Then
-                flags = flags Or NodeFlags.FactoryContextIsInAsync
-            End If
-
-            If context.IsWithinIteratorContext Then
-                flags = flags Or NodeFlags.FactoryContextIsInIterator
-            End If
-
-            Return flags
-        End Function
-
         Friend Function MatchesFactoryContext(context As ISyntaxFactoryContext) As Boolean
             Return context.IsWithinAsyncMethodOrLambda = Me.ParsedInAsync AndAlso
                 context.IsWithinIteratorContext = Me.ParsedInIterator
