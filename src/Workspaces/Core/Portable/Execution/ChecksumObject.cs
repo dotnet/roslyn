@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static Checksum CreateChecksum(string kind, object[] children)
         {
-            return Checksum.Create(kind, children.Select(c => c is Checksum ? c : ((ChecksumCollection)c).Checksum).Cast<Checksum>());
+            return Checksum.Create(kind, children.Select(c => c as Checksum ?? ((ChecksumCollection)c).Checksum));
         }
     }
 

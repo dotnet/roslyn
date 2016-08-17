@@ -12,49 +12,49 @@ namespace Microsoft.CodeAnalysis.Execution
     [ExportWorkspaceServiceFactory(typeof(ISolutionChecksumService)), Shared]
     internal class SolutionChecksumServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly ChecksumTreeNodeCacheCollection _caches = new ChecksumTreeNodeCacheCollection();
+        private readonly ChecksumTreeCollection _trees = new ChecksumTreeCollection();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices, _caches);
+            return new Service(workspaceServices, _trees);
         }
 
         internal class Service : ISolutionChecksumService
         {
             private readonly HostWorkspaceServices _workspaceServices;
-            private readonly ChecksumTreeNodeCacheCollection _caches;
+            private readonly ChecksumTreeCollection _treeCollection;
 
-            public Service(HostWorkspaceServices workspaceServices, ChecksumTreeNodeCacheCollection caches)
+            public Service(HostWorkspaceServices workspaceServices, ChecksumTreeCollection trees)
             {
                 _workspaceServices = workspaceServices;
-                _caches = caches;
+                _treeCollection = trees;
             }
 
             public Serializer Serializer_TestOnly => new Serializer(_workspaceServices);
 
             public void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken)
             {
-                _caches.AddGlobalAsset(value, asset, cancellationToken);
+                _treeCollection.AddGlobalAsset(value, asset, cancellationToken);
             }
 
             public Asset GetGlobalAsset(object value, CancellationToken cancellationToken)
             {
-                return _caches.GetGlobalAsset(value, cancellationToken);
+                return _treeCollection.GetGlobalAsset(value, cancellationToken);
             }
 
             public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
             {
-                _caches.RemoveGlobalAsset(value, cancellationToken);
+                _treeCollection.RemoveGlobalAsset(value, cancellationToken);
             }
 
             public async Task<ChecksumScope> CreateChecksumAsync(Solution solution, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_CreateChecksumAsync, cancellationToken))
                 {
-                    var cache = _caches.CreateRootTreeNodeCache(solution);
+                    var rootTreeNode = _treeCollection.CreateRootTreeNode(solution);
 
-                    var builder = new SnapshotBuilder(cache);
-                    var snapshot = new ChecksumScope(_caches, cache, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+                    var builder = new ChecksumTreeBuilder(rootTreeNode);
+                    var snapshot = new ChecksumScope(_treeCollection, rootTreeNode, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
 
                     return snapshot;
                 }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    return _caches.GetChecksumObject(checksum, cancellationToken);
+                    return _treeCollection.GetChecksumObject(checksum, cancellationToken);
                 }
             }
 

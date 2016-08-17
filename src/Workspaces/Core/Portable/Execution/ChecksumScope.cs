@@ -10,25 +10,25 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal class ChecksumScope : IDisposable
     {
-        private readonly ChecksumTreeNodeCacheCollection _caches;
-        private readonly ChecksumTreeNodeCache _cache;
+        private readonly ChecksumTreeCollection _trees;
+        private readonly IRootChecksumTreeNode _tree;
 
         public readonly SolutionChecksumObject SolutionChecksum;
 
         public ChecksumScope(
-            ChecksumTreeNodeCacheCollection caches,
-            ChecksumTreeNodeCache cache,
+            ChecksumTreeCollection trees,
+            IRootChecksumTreeNode tree,
             SolutionChecksumObject solutionChecksum)
         {
-            _caches = caches;
-            _cache = cache;
+            _trees = trees;
+            _tree = tree;
 
             SolutionChecksum = solutionChecksum;
 
-            _caches.RegisterSnapshot(this, cache);
+            _trees.RegisterSnapshot(this, tree);
         }
 
-        public Workspace Workspace => _cache.Solution.Workspace;
+        public Workspace Workspace => _tree.Solution.Workspace;
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         public void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
         {
-            _cache.AddAdditionalAsset(asset, cancellationToken);
+            _tree.AddAdditionalAsset(asset, cancellationToken);
         }
 
         public void Dispose()
         {
-            _caches.UnregisterSnapshot(this);
+            _trees.UnregisterSnapshot(this);
         }
     }
 }
