@@ -753,7 +753,6 @@
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
-    <Compile Include="Syntax\BaseSyntaxNodeExtensions.cs" />
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
