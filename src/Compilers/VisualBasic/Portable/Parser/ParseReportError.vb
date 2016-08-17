@@ -60,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <remarks></remarks>
         Private Function ReportUnrecognizedStatementError(
             ErrorId As ERRID,
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax),
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax),
             Optional createMissingIdentifier As Boolean = False,
             Optional forceErrorOnFirstToken As Boolean = False) As StatementSyntax
             ' // Create a statement with no operands. It will end up with its error flag set.
@@ -109,11 +109,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return badStmt
         End Function
 
-        Private Function ReportModifiersOnStatementError(attributes As CommonSyntaxList(Of AttributeListSyntax), modifiers As CommonSyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             Return ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, modifiers, keyword)
         End Function
 
-        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CommonSyntaxList(Of AttributeListSyntax), modifiers As CommonSyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             If modifiers.Any Then
                 keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
             End If

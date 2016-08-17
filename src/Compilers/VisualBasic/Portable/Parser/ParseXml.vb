@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End Select
             Loop
 
-            Dim unexpected As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
             If CurrentToken.Kind <> SyntaxKind.QuestionGreaterThanToken Then
                 unexpected = ResyncAt(ScannerState.Element, {SyntaxKind.EndOfXmlToken,
                                                              SyntaxKind.QuestionGreaterThanToken,
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 name = name.AddTrailingSyntax(exp, ERRID.ERR_EmbeddedExpression)
             End If
 
-            Dim skipped As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim skipped As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
             If Not VerifyExpectedToken(SyntaxKind.EqualsToken, equals, ScannerState.Element) Then
                 skipped = ResyncAt(ScannerState.Element,
                                    {SyntaxKind.SingleQuoteToken,
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 13452 - 13452
         ' ExpressionList** .Parser::ParseXmlMisc( [ _Inout_ ParseTree::ExpressionList** Prev ] [ bool IsProlog ] [ _Inout_ bool& ErrorInConstruct ] )
-        Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VisualBasicSyntaxNode) As CommonSyntaxList(Of XmlNodeSyntax)
+        Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VisualBasicSyntaxNode) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
 
             While True
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
 
 
-            Dim builder = CommonSyntaxListBuilder(Of GreenNode).Create()
+            Dim builder = SyntaxListBuilder(Of GreenNode).Create()
 
             Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
             builder.Add(beginDocType)
@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return builder.ToList().Node
         End Function
 
-        Private Sub ParseExternalID(builder As CommonSyntaxListBuilder(Of GreenNode))
+        Private Sub ParseExternalID(builder As SyntaxListBuilder(Of GreenNode))
 
             If CurrentToken.Kind = SyntaxKind.XmlNameToken Then
 
@@ -413,8 +413,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Private Sub ParseInternalSubSet(builder As CommonSyntaxListBuilder(Of GreenNode))
-            Dim unexpected As CommonSyntaxList(Of SyntaxToken) = Nothing
+        Private Sub ParseInternalSubSet(builder As SyntaxListBuilder(Of GreenNode))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
             If CurrentToken.Kind <> SyntaxKind.BadToken OrElse DirectCast(CurrentToken, BadTokenSyntax).SubKind <> SyntaxSubKind.OpenBracketToken Then
                 unexpected = ResyncAt(ScannerState.DocType, {SyntaxKind.BadToken,
                                                             SyntaxKind.GreaterThanToken,
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Sub
 
-        Private Sub ParseXmlMarkupDecl(builder As CommonSyntaxListBuilder(Of GreenNode))
+        Private Sub ParseXmlMarkupDecl(builder As SyntaxListBuilder(Of GreenNode))
 
             Do
                 Select Case CurrentToken.Kind
@@ -547,7 +547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         GetNextToken(enclosingState)
 
-                        Dim unexpectedSyntax = New CommonSyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan))
+                        Dim unexpectedSyntax = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan)),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
 
                         endEmptyElementToken = AddLeadingSyntax(New PunctuationSyntax(SyntaxKind.SlashGreaterThanToken, "", Nothing, Nothing),
                                                                 unexpectedSyntax,
@@ -769,7 +769,7 @@ LessThanSlashTokenCase:
             Return element
         End Function
 
-        Private Function ResyncXmlElement(state As ScannerState, lessThan As PunctuationSyntax, Name As XmlNodeSyntax, attributes As CommonSyntaxList(Of XmlNodeSyntax)) As XmlNodeSyntax
+        Private Function ResyncXmlElement(state As ScannerState, lessThan As PunctuationSyntax, Name As XmlNodeSyntax, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)) As XmlNodeSyntax
 
             Dim unexpectedSyntax = ResyncAt(ScannerState.Element,
                                             {SyntaxKind.SlashGreaterThanToken,
@@ -862,7 +862,7 @@ LessThanSlashTokenCase:
             Dim beginEndElement As PunctuationSyntax = Nothing
             Dim name As XmlNameSyntax = Nothing
             Dim greaterToken As PunctuationSyntax = Nothing
-            Dim unexpected As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
 
             If CurrentToken.Kind <> SyntaxKind.LessThanSlashToken Then
                 unexpected = ResyncAt(ScannerState.Content,
@@ -920,7 +920,7 @@ LessThanSlashTokenCase:
         ' Lines: 13770 - 13770
         ' ExpressionList* .Parser::ParseXmlAttributes( [ bool AllowNameAsExpression ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseXmlAttributes(requireLeadingWhitespace As Boolean, xmlElementName As XmlNodeSyntax) As CommonSyntaxList(Of XmlNodeSyntax)
+        Private Function ParseXmlAttributes(requireLeadingWhitespace As Boolean, xmlElementName As XmlNodeSyntax) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
 
             Dim Attributes = Me._pool.Allocate(Of XmlNodeSyntax)()
 
@@ -1219,7 +1219,7 @@ lFailed:
                         GetNextToken()
                     End If
 
-                    Dim typeArguments As CommonSeparatedSyntaxList(Of CrefSignaturePartSyntax) = signatureTypes.ToList
+                    Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax) = CType(signatureTypes.ToList, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of CrefSignaturePartSyntax))
                     _pool.Free(signatureTypes)
 
                     Return SyntaxFactory.CrefSignature(openParen, typeArguments, closeParen)
@@ -1607,7 +1607,7 @@ lFailed:
             ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name, 
             ' although they both may be represented by a node with kind SyntaxKind.ColonTrivia.
 
-            Dim trailingTrivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia())
+            Dim trailingTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
             If trailingTrivia.Count > 0 AndAlso IsAsciiColonTrivia(trailingTrivia(0)) Then
 
                 Debug.Assert(trailingTrivia.Last.Kind = SyntaxKind.ColonTrivia)
@@ -1693,7 +1693,7 @@ lFailed:
             Return tk
         End Function
 
-        Friend Function ParseRestOfDocCommentContent(nodesSoFar As CommonSyntaxList(Of GreenNode)) As CommonSyntaxList(Of XmlNodeSyntax)
+        Friend Function ParseRestOfDocCommentContent(nodesSoFar As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Dim content = Me._pool.Allocate(Of XmlNodeSyntax)()
 
             For Each node In nodesSoFar.Nodes
@@ -1722,7 +1722,7 @@ lFailed:
         ' File: Parser.cpp
         ' Lines: 14004 - 14004
         ' ExpressionList* .Parser::ParseXmlContent( [ _Inout_ ParseTree::XmlElementExpression* Parent ] [ _Inout_ bool& ErrorInConstruct ] )
-        Friend Function ParseXmlContent(state As ScannerState) As CommonSyntaxList(Of XmlNodeSyntax)
+        Friend Function ParseXmlContent(state As ScannerState) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
             Debug.Assert(IsToken(CurrentToken,
                                  SyntaxKind.XmlTextLiteralToken,
                                  SyntaxKind.DocumentationCommentLineBreakToken,
@@ -2374,7 +2374,7 @@ TryResync:
 
                     leadingTrivia = token.GetLeadingTrivia
                     If (_options._triviaCheck And TriviaCheck.ProhibitLeadingTrivia) = TriviaCheck.ProhibitLeadingTrivia Then
-                        Dim newleadingTrivia = VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
+                        Dim newleadingTrivia = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
                         If newleadingTrivia IsNot leadingTrivia Then
                             anyChanges = True
                             leadingTrivia = newleadingTrivia
@@ -2383,7 +2383,7 @@ TryResync:
 
                     trailingTrivia = token.GetTrailingTrivia
                     If (_options._triviaCheck And TriviaCheck.ProhibitTrailingTrivia) = TriviaCheck.ProhibitTrailingTrivia Then
-                        Dim newTrailingTrivia = VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
+                        Dim newTrailingTrivia = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
                         If newTrailingTrivia IsNot trailingTrivia Then
                             anyChanges = True
                             trailingTrivia = newTrailingTrivia
@@ -2428,7 +2428,7 @@ TryResync:
 
     Friend Structure XmlContext
         Private ReadOnly _start As XmlElementStartTagSyntax
-        Private _content As CommonSyntaxListBuilder(Of XmlNodeSyntax)
+        Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)

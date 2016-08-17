@@ -5,18 +5,18 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct CommonSeparatedSyntaxList<TNode> : IEquatable<CommonSeparatedSyntaxList<TNode>> where TNode : GreenNode
+    internal struct SeparatedSyntaxList<TNode> : IEquatable<SeparatedSyntaxList<TNode>> where TNode : GreenNode
     {
-        private readonly CommonSyntaxList<GreenNode> _list;
+        private readonly SyntaxList<GreenNode> _list;
 
-        internal CommonSeparatedSyntaxList(CommonSyntaxList<GreenNode> list)
+        internal SeparatedSyntaxList(SyntaxList<GreenNode> list)
         {
             Validate(list);
             _list = list;
         }
 
         [Conditional("DEBUG")]
-        private static void Validate(CommonSyntaxList<GreenNode> list)
+        private static void Validate(SyntaxList<GreenNode> list)
         {
             for (int i = 0; i < list.Count; i++)
             {
@@ -68,29 +68,29 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _list[(index << 1) + 1];
         }
 
-        public CommonSyntaxList<GreenNode> GetWithSeparators()
+        public SyntaxList<GreenNode> GetWithSeparators()
         {
             return _list;
         }
 
-        public static bool operator ==(CommonSeparatedSyntaxList<TNode> left, CommonSeparatedSyntaxList<TNode> right)
+        public static bool operator ==(SeparatedSyntaxList<TNode> left, SeparatedSyntaxList<TNode> right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(CommonSeparatedSyntaxList<TNode> left, CommonSeparatedSyntaxList<TNode> right)
+        public static bool operator !=(SeparatedSyntaxList<TNode> left, SeparatedSyntaxList<TNode> right)
         {
             return !left.Equals(right);
         }
 
-        public bool Equals(CommonSeparatedSyntaxList<TNode> other)
+        public bool Equals(SeparatedSyntaxList<TNode> other)
         {
             return _list == other._list;
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is CommonSeparatedSyntaxList<TNode>) && Equals((CommonSeparatedSyntaxList<TNode>)obj);
+            return (obj is SeparatedSyntaxList<TNode>) && Equals((SeparatedSyntaxList<TNode>)obj);
         }
 
         public override int GetHashCode()
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _list.GetHashCode();
         }
 
-        public static implicit operator CommonSeparatedSyntaxList<GreenNode>(CommonSeparatedSyntaxList<TNode> list)
+        public static implicit operator SeparatedSyntaxList<GreenNode>(SeparatedSyntaxList<TNode> list)
         {
-            return new CommonSeparatedSyntaxList<GreenNode>(list.GetWithSeparators());
+            return new SeparatedSyntaxList<GreenNode>(list.GetWithSeparators());
         }
 
 #if DEBUG

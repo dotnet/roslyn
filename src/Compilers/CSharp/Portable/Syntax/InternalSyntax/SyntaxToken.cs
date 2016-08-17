@@ -328,14 +328,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return trailing != null ? trailing.FullWidth : 0;
         }
 
-        internal CommonSyntaxList<CSharpSyntaxNode> LeadingTrivia
+        internal Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> LeadingTrivia
         {
-            get { return new CommonSyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
+            get { return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.GetLeadingTrivia()); }
         }
 
-        internal CommonSyntaxList<CSharpSyntaxNode> TrailingTrivia
+        internal Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> TrailingTrivia
         {
-            get { return new CommonSyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
+            get { return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.GetTrailingTrivia()); }
         }
 
         public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)

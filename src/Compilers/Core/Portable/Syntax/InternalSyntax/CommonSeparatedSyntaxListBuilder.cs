@@ -4,21 +4,21 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct CommonSeparatedSyntaxListBuilder<TNode> where TNode : GreenNode
+    internal struct SeparatedSyntaxListBuilder<TNode> where TNode : GreenNode
     {
-        private readonly CommonSyntaxListBuilder _builder;
+        private readonly SyntaxListBuilder _builder;
 
-        public CommonSeparatedSyntaxListBuilder(int size)
-            : this(new CommonSyntaxListBuilder(size))
+        public SeparatedSyntaxListBuilder(int size)
+            : this(new SyntaxListBuilder(size))
         {
         }
 
-        public static CommonSeparatedSyntaxListBuilder<TNode> Create()
+        public static SeparatedSyntaxListBuilder<TNode> Create()
         {
-            return new CommonSeparatedSyntaxListBuilder<TNode>(8);
+            return new SeparatedSyntaxListBuilder<TNode>(8);
         }
 
-        internal CommonSeparatedSyntaxListBuilder(CommonSyntaxListBuilder builder)
+        internal SeparatedSyntaxListBuilder(SyntaxListBuilder builder)
         {
             _builder = builder;
         }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             this._builder.RemoveLast();
         }
 
-        public CommonSeparatedSyntaxListBuilder<TNode> Add(TNode node)
+        public SeparatedSyntaxListBuilder<TNode> Add(TNode node)
         {
             _builder.Add(node);
             return this;
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.AddRange(items, offset, length);
         }
 
-        public void AddRange(CommonSeparatedSyntaxList<TNode> nodes)
+        public void AddRange(SeparatedSyntaxList<TNode> nodes)
         {
             _builder.AddRange(nodes.GetWithSeparators());
         }
 
-        public void AddRange(CommonSeparatedSyntaxList<TNode> nodes, int count)
+        public void AddRange(SeparatedSyntaxList<TNode> nodes, int count)
         {
             var list = nodes.GetWithSeparators();
             this._builder.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _builder.Any(kind);
         }
 
-        public CommonSeparatedSyntaxList<TNode> ToList()
+        public SeparatedSyntaxList<TNode> ToList()
         {
             return _builder == null
-                ? default(CommonSeparatedSyntaxList<TNode>)
-                : new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<GreenNode>(_builder.ToListNode()));
+                ? default(SeparatedSyntaxList<TNode>)
+                : new SeparatedSyntaxList<TNode>(new SyntaxList<GreenNode>(_builder.ToListNode()));
         }
 
         /// <summary>
@@ -110,17 +110,17 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         /// In order to avoid creating a separate pool of SeparatedSyntaxListBuilders, we expose
         /// our underlying SyntaxListBuilder to SyntaxListPool.
         /// </remarks>
-        internal CommonSyntaxListBuilder UnderlyingBuilder
+        internal SyntaxListBuilder UnderlyingBuilder
         {
             get { return _builder; }
         }
 
-        public static implicit operator CommonSeparatedSyntaxList<TNode>(CommonSeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder.ToList();
         }
 
-        public static implicit operator CommonSyntaxListBuilder(CommonSeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder(SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }

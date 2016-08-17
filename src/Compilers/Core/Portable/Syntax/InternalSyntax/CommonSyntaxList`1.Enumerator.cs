@@ -2,14 +2,14 @@
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct CommonSyntaxList<TNode> where TNode : GreenNode
+    internal partial struct SyntaxList<TNode> where TNode : GreenNode
     {
         internal struct Enumerator
         {
-            private CommonSyntaxList<TNode> _list;
+            private SyntaxList<TNode> _list;
             private int _index;
 
-            internal Enumerator(CommonSyntaxList<TNode> list)
+            internal Enumerator(SyntaxList<TNode> list)
             {
                 _list = list;
                 _index = -1;

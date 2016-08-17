@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
             CSharpSyntaxNode node,
             SyntaxList<MemberDeclarationSyntax> members,
-            CommonSyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static string[] GetNonTypeMemberNames(
-            CommonSyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.FieldDeclaration:
                     anyNonTypeMembers = true;
-                    CommonSeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
+                    CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EventFieldDeclaration:
                     anyNonTypeMembers = true;
-                    CommonSeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
+                    CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)

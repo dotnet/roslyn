@@ -143,7 +143,7 @@ namespace CSharpSyntaxGenerator
                         if (IsSeparatedNodeList(field.Type) || 
                             IsNodeList(field.Type))
                         {
-                            WriteLine("    public abstract {0}Common{1} {2} {{ get; }}",
+                            WriteLine("    public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}",
                                 (IsNew(field) ? "new " : ""), field.Type, field.Name);
                         }
                         else
@@ -244,19 +244,19 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "    ");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine("    public {0}Common{1} {2} {{ get {{ return new Common{1}(this.{3}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(this.{3}); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                             );
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine("    public {0}Common{1} {2} {{ get {{ return new Common{1}(new CommonSyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name), i
                             );
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine("    public {0}CommonSyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new CommonSyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
                             OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)
                             );
                     }
@@ -546,10 +546,10 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
 
                 var type =
-                    field.Type == "SyntaxNodeOrTokenList" ? "CommonSyntaxList<CSharpSyntaxNode>" :
-                    field.Type == "SyntaxTokenList" ? "CommonSyntaxList<SyntaxToken>" :
-                    IsNodeList(field.Type) ? "Common" + field.Type :
-                    IsSeparatedNodeList(field.Type) ? "Common" + field.Type :
+                    field.Type == "SyntaxNodeOrTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>" :
+                    field.Type == "SyntaxTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>" :
+                    IsNodeList(field.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + field.Type :
+                    IsSeparatedNodeList(field.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + field.Type :
                     field.Type;
 
                 Write("{0} {1}", type, CamelCase(field.Name));
@@ -878,12 +878,12 @@ namespace CSharpSyntaxGenerator
                 var type = field.Type;
                 if (type == "SyntaxNodeOrTokenList")
                 {
-                    type = "CommonSyntaxList<CSharpSyntaxNode>";
+                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>";
                 }
                 else if (IsSeparatedNodeList(field.Type) ||
                          IsNodeList(field.Type))
                 {
-                    type = "Common" + type;
+                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + type;
                 }
                 Write("{0} {1}", type, CamelCase(field.Name));
             }

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.Identifier(SyntaxKind.None, SyntaxFactory.Space, text, text, trailing: null);
         }
 
-        private static bool IsSingleSpaceTrivia(CommonSyntaxListBuilder syntax)
+        private static bool IsSingleSpaceTrivia(SyntaxListBuilder syntax)
         {
             return syntax.Count == 1 && SyntaxFactory.Space.IsEquivalentTo(syntax[0]);
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <param name="text">The text of the tag or attribute.</param>
         /// <param name="leading">The leading trivia of the token.</param>
         /// <returns>The SyntaxToken representing the well-known tag or attribute or null if it's not well-known.</returns>
-        public static SyntaxToken LookupToken(string text, CommonSyntaxListBuilder leading)
+        public static SyntaxToken LookupToken(string text, SyntaxListBuilder leading)
         {
             if (leading == null)
             {

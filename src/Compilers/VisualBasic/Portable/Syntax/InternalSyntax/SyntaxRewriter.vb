@@ -21,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class VisualBasicSyntaxRewriter
         Inherits VisualBasicSyntaxVisitor
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CommonSyntaxList(Of TNode)) As CommonSyntaxList(Of TNode)
-            Dim alternate As CommonSyntaxListBuilder(Of TNode) = Nothing
+        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of TNode)) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of TNode)
+            Dim alternate As SyntaxListBuilder(Of TNode) = Nothing
             Dim i As Integer = 0
             Dim n As Integer = list.Count
             Do While (i < n)
                 Dim item As TNode = list.Item(i)
                 Dim visited As TNode = DirectCast(Me.Visit(item), TNode)
                 If item IsNot visited AndAlso alternate.IsNull Then
-                    alternate = New CommonSyntaxListBuilder(Of TNode)(n)
+                    alternate = New SyntaxListBuilder(Of TNode)(n)
                     alternate.AddRange(list, 0, i)
                 End If
 
@@ -46,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return list
         End Function
 
-        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CommonSeparatedSyntaxList(Of TNode)) As CommonSeparatedSyntaxList(Of TNode)
-            Dim alternate As CommonSeparatedSyntaxListBuilder(Of TNode) = Nothing
+        Public Function VisitList(Of TNode As VisualBasicSyntaxNode)(list As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TNode)) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TNode)
+            Dim alternate As SeparatedSyntaxListBuilder(Of TNode) = Nothing
             Dim i As Integer = 0
             Dim itemCount As Integer = list.Count
             Dim separatorCount As Integer = list.SeparatorCount
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If (item IsNot visitedItem OrElse separator IsNot visitedSeparator) AndAlso alternate.IsNull Then
-                    alternate = New CommonSeparatedSyntaxListBuilder(Of TNode)(itemCount)
+                    alternate = New SeparatedSyntaxListBuilder(Of TNode)(itemCount)
                     alternate.AddRange(list, i)
                 End If
 

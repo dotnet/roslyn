@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class CompilationUnitContext
         Inherits NamespaceBlockContext
 
-        Private _optionStmts As CommonSyntaxList(Of OptionStatementSyntax)
-        Private _importsStmts As CommonSyntaxList(Of ImportsStatementSyntax)
-        Private _attributeStmts As CommonSyntaxList(Of AttributesStatementSyntax)
+        Private _optionStmts As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)
+        Private _importsStmts As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)
+        Private _attributeStmts As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)
         Private _state As SyntaxKind
 
         Friend Sub New(parser As Parser)
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _optionStmts = New CommonSyntaxList(Of OptionStatementSyntax)(Body.Node)
+                        _optionStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of OptionStatementSyntax))
                         _state = SyntaxKind.ImportsStatement
 
                     Case SyntaxKind.ImportsStatement
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _importsStmts = New CommonSyntaxList(Of ImportsStatementSyntax)(Body.Node)
+                        _importsStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ImportsStatementSyntax))
                         _state = SyntaxKind.AttributesStatement
 
                     Case SyntaxKind.AttributesStatement
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _attributeStmts = New CommonSyntaxList(Of AttributesStatementSyntax)(Body.Node)
+                        _attributeStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributesStatementSyntax))
                         _state = SyntaxKind.None
 
                     Case Else
@@ -96,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If _state <> SyntaxKind.None Then
                 Select Case _state
                     Case SyntaxKind.OptionStatement
-                        _optionStmts = New CommonSyntaxList(Of OptionStatementSyntax)(Body.Node)
+                        _optionStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of OptionStatementSyntax))
 
                     Case SyntaxKind.ImportsStatement
-                        _importsStmts = New CommonSyntaxList(Of ImportsStatementSyntax)(Body.Node)
+                        _importsStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ImportsStatementSyntax))
 
                     Case SyntaxKind.AttributesStatement
-                        _attributeStmts = New CommonSyntaxList(Of AttributesStatementSyntax)(Body.Node)
+                        _attributeStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributesStatementSyntax))
                 End Select
                 _state = SyntaxKind.None
             End If
@@ -439,14 +439,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If _tokenWithDirectivesBeingVisited Is containingBlock.GetFirstToken() Then
                         Dim leadingTrivia = _tokenWithDirectivesBeingVisited.GetLeadingTrivia()
 
-                        If leadingTrivia IsNot Nothing AndAlso New CommonSyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia).Nodes.Contains(original) Then
+                        If leadingTrivia IsNot Nothing AndAlso New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia).Nodes.Contains(original) Then
                             containingBlock = _declarationBlocksBeingVisited(_declarationBlocksBeingVisited.Count - 2)
                         End If
 
                     ElseIf _tokenWithDirectivesBeingVisited Is containingBlock.GetLastToken() Then
                         Dim trailingTrivia = _tokenWithDirectivesBeingVisited.GetTrailingTrivia()
 
-                        If trailingTrivia IsNot Nothing AndAlso New CommonSyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia).Nodes.Contains(original) Then
+                        If trailingTrivia IsNot Nothing AndAlso New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia).Nodes.Contains(original) Then
                             containingBlock = _declarationBlocksBeingVisited(_declarationBlocksBeingVisited.Count - 2)
                         End If
                     End If
@@ -537,14 +537,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim trailingTrivia = token.GetTrailingTrivia()
 
                 If leadingTrivia IsNot Nothing Then
-                    Dim rewritten = VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
+                    Dim rewritten = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)).Node
                     If leadingTrivia IsNot rewritten Then
                         token = DirectCast(token.WithLeadingTrivia(rewritten), SyntaxToken)
                     End If
                 End If
 
                 If trailingTrivia IsNot Nothing Then
-                    Dim rewritten = VisitList(New CommonSyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
+                    Dim rewritten = VisitList(New SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)).Node
                     If trailingTrivia IsNot rewritten Then
                         token = DirectCast(token.WithTrailingTrivia(rewritten), SyntaxToken)
                     End If

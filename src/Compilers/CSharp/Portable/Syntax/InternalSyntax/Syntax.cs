@@ -242,19 +242,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxTrivia.Create(SyntaxKind.DocumentationCommentExteriorTrivia, text);
         }
 
-        public static CommonSyntaxList<TNode> List<TNode>() where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> List<TNode>() where TNode : CSharpSyntaxNode
         {
-            return default(CommonSyntaxList<TNode>);
+            return default(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>);
         }
 
-        public static CommonSyntaxList<TNode> List<TNode>(TNode node) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> List<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            return new CommonSyntaxList<TNode>(SyntaxList.List(node));
+            return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>(SyntaxList.List(node));
         }
 
-        public static CommonSyntaxList<TNode> List<TNode>(TNode node0, TNode node1) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> List<TNode>(TNode node0, TNode node1) where TNode : CSharpSyntaxNode
         {
-            return new CommonSyntaxList<TNode>(SyntaxList.List(node0, node1));
+            return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>(SyntaxList.List(node0, node1));
         }
 
         internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1)
@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxList.List(node0, node1);
         }
 
-        public static CommonSyntaxList<TNode> List<TNode>(TNode node0, TNode node1, TNode node2) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> List<TNode>(TNode node0, TNode node1, TNode node2) where TNode : CSharpSyntaxNode
         {
-            return new CommonSyntaxList<TNode>(SyntaxList.List(node0, node1, node2));
+            return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>(SyntaxList.List(node0, node1, node2));
         }
 
         internal static GreenNode ListNode(CSharpSyntaxNode node0, CSharpSyntaxNode node1, CSharpSyntaxNode node2)
@@ -272,14 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxList.List(node0, node1, node2);
         }
 
-        public static CommonSyntaxList<TNode> List<TNode>(params TNode[] nodes) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> List<TNode>(params TNode[] nodes) where TNode : CSharpSyntaxNode
         {
             if (nodes != null)
             {
-                return new CommonSyntaxList<TNode>(SyntaxList.List(nodes));
+                return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>(SyntaxList.List(nodes));
             }
 
-            return default(CommonSyntaxList<TNode>);
+            return default(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode>);
         }
 
         internal static GreenNode ListNode(params ArrayElement<GreenNode>[] nodes)
@@ -287,29 +287,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxList.List(nodes);
         }
 
-        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node) where TNode : CSharpSyntaxNode
         {
-            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(node));
+            return new CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode>(new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(node));
         }
 
-        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(SyntaxToken token) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> SeparatedList<TNode>(SyntaxToken token) where TNode : CSharpSyntaxNode
         {
-            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(token));
+            return new CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode>(new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(token));
         }
 
-        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node1, SyntaxToken token, TNode node2) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> SeparatedList<TNode>(TNode node1, SyntaxToken token, TNode node2) where TNode : CSharpSyntaxNode
         {
-            return new CommonSeparatedSyntaxList<TNode>(new CommonSyntaxList<CSharpSyntaxNode>(SyntaxList.List(node1, token, node2)));
+            return new CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode>(new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(SyntaxList.List(node1, token, node2)));
         }
 
-        public static CommonSeparatedSyntaxList<TNode> SeparatedList<TNode>(params CSharpSyntaxNode[] nodes) where TNode : CSharpSyntaxNode
+        public static CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> SeparatedList<TNode>(params CSharpSyntaxNode[] nodes) where TNode : CSharpSyntaxNode
         {
             if (nodes != null)
             {
-                return new CommonSeparatedSyntaxList<TNode>(SyntaxList.List(nodes));
+                return new CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode>(SyntaxList.List(nodes));
             }
 
-            return default(CommonSeparatedSyntaxList<TNode>);
+            return default(CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode>);
         }
 
         internal static IEnumerable<SyntaxTrivia> GetWellKnownTrivia()

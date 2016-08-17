@@ -5,9 +5,9 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal partial class CommonSyntaxList
+    internal partial class SyntaxList
     {
-        internal class WithManyWeakChildren : CommonSyntaxList
+        internal class WithManyWeakChildren : SyntaxList
         {
             private readonly ArrayElement<WeakReference<SyntaxNode>>[] _children;
 

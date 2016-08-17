@@ -2,31 +2,31 @@
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal static class CommonSyntaxListBuilderExtensions
+    internal static class SyntaxListBuilderExtensions
     {
-        public static CommonSyntaxList<GreenNode> ToTokenList(this CommonSyntaxListBuilder builder)
+        public static SyntaxList<GreenNode> ToTokenList(this SyntaxListBuilder builder)
         {
             if (builder == null)
             {
-                return default(CommonSyntaxList<GreenNode>);
+                return default(SyntaxList<GreenNode>);
             }
 
-            return new CommonSyntaxList<GreenNode>(builder.ToListNode());
+            return new SyntaxList<GreenNode>(builder.ToListNode());
         }
 
-        public static CommonSyntaxList<GreenNode> ToList(this CommonSyntaxListBuilder builder)
+        public static SyntaxList<GreenNode> ToList(this SyntaxListBuilder builder)
         {
             return ToList<GreenNode>(builder);
         }
 
-        public static CommonSyntaxList<TNode> ToList<TNode>(this CommonSyntaxListBuilder builder) where TNode : GreenNode
+        public static SyntaxList<TNode> ToList<TNode>(this SyntaxListBuilder builder) where TNode : GreenNode
         {
             if (builder == null)
             {
-                return default(CommonSyntaxList<GreenNode>);
+                return default(SyntaxList<GreenNode>);
             }
 
-            return new CommonSyntaxList<TNode>(builder.ToListNode());
+            return new SyntaxList<TNode>(builder.ToListNode());
         }
     }
 }

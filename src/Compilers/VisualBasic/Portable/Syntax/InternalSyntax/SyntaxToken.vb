@@ -260,14 +260,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim leadingTrivia = GetLeadingTrivia()
             If leadingTrivia IsNot Nothing Then
-                Dim triviaList = New CommonSyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
+                Dim triviaList = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
             Dim trailingTrivia = GetTrailingTrivia()
             If trailingTrivia IsNot Nothing Then
-                Dim triviaList = New CommonSyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
+                Dim triviaList = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
@@ -393,20 +393,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia prepended to the existing preceding trivia
         ''' </summary>
-        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CommonSyntaxList(Of GreenNode)) As T
+        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia())
+            Dim oldTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
             Dim leadingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then
                 leadingTrivia = newTrivia.Node
             Else
-                Dim leadingTriviaBuilder = CommonSyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
+                Dim leadingTriviaBuilder = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
                 leadingTriviaBuilder.AddRange(newTrivia)
 
                 leadingTriviaBuilder.AddRange(oldTrivia)
@@ -419,20 +419,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia appended to the existing following trivia
         ''' </summary>
-        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CommonSyntaxList(Of GreenNode)) As T
+        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+            Dim oldTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
             Dim trailingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then
                 trailingTrivia = newTrivia.Node
             Else
-                Dim trailingTriviaBuilder = CommonSyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
+                Dim trailingTriviaBuilder = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
                 trailingTriviaBuilder.AddRange(oldTrivia)
 
                 trailingTriviaBuilder.AddRange(newTrivia)

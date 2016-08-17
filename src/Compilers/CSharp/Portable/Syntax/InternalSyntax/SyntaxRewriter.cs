@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
-        public CommonSyntaxList<TNode> VisitList<TNode>(CommonSyntaxList<TNode> list) 
+        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> VisitList<TNode>(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TNode> list) 
             where TNode : CSharpSyntaxNode
         {
-            CommonSyntaxListBuilder alternate = null;
+            SyntaxListBuilder alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)
             {
                 var item = list[i];
                 var visited = this.Visit(item);
                 if (item != visited && alternate == null)
                 {
-                    alternate = new CommonSyntaxListBuilder(n);
+                    alternate = new SyntaxListBuilder(n);
                     alternate.AddRange(list, 0, i);
                 }
 
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return list;
         }
 
-        public CommonSeparatedSyntaxList<TNode> VisitList<TNode>(CommonSeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
+        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> VisitList<TNode>(CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
             // A separated list is filled with C# nodes and C# tokens.  Both of which
             // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
             // typesafe.
-            var withSeps = (CommonSyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
+            var withSeps = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
             var result = this.VisitList(withSeps);
             if (result != withSeps)
             {

@@ -6,23 +6,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal static class GreenNodeExtensions
     {
-        internal static CommonSyntaxList<T> ToGreenList<T>(this SyntaxNode node) where T : InternalSyntax.CSharpSyntaxNode
+        internal static Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<T> ToGreenList<T>(this SyntaxNode node) where T : InternalSyntax.CSharpSyntaxNode
         {
             return node != null ?
                 ToGreenList<T>(node.Green) :
-                default(CommonSyntaxList<T>);
+                default(CodeAnalysis.Syntax.InternalSyntax.SyntaxList<T>);
         }
 
-        internal static CommonSeparatedSyntaxList<T> ToGreenSeparatedList<T>(this SyntaxNode node) where T : InternalSyntax.CSharpSyntaxNode
+        internal static Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<T> ToGreenSeparatedList<T>(this SyntaxNode node) where T : InternalSyntax.CSharpSyntaxNode
         {
             return node != null ?
-                new CommonSeparatedSyntaxList<T>(ToGreenList<T>(node.Green)) :
-                default(CommonSeparatedSyntaxList<T>);
+                new CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<T>(ToGreenList<T>(node.Green)) :
+                default(CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<T>);
         }
 
-        internal static CommonSyntaxList<T> ToGreenList<T>(this GreenNode node) where T : InternalSyntax.CSharpSyntaxNode
+        internal static Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<T> ToGreenList<T>(this GreenNode node) where T : InternalSyntax.CSharpSyntaxNode
         {
-            return new CommonSyntaxList<T>(node);
+            return new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<T>(node);
         }
     }
 }

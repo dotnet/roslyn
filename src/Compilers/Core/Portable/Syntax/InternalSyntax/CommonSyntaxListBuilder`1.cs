@@ -2,21 +2,21 @@
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct CommonSyntaxListBuilder<TNode> where TNode : GreenNode
+    internal struct SyntaxListBuilder<TNode> where TNode : GreenNode
     {
-        private readonly CommonSyntaxListBuilder _builder;
+        private readonly SyntaxListBuilder _builder;
 
-        public CommonSyntaxListBuilder(int size)
-            : this(new CommonSyntaxListBuilder(size))
+        public SyntaxListBuilder(int size)
+            : this(new SyntaxListBuilder(size))
         {
         }
 
-        public static CommonSyntaxListBuilder<TNode> Create()
+        public static SyntaxListBuilder<TNode> Create()
         {
-            return new CommonSyntaxListBuilder<TNode>(8);
+            return new SyntaxListBuilder<TNode>(8);
         }
 
-        internal CommonSyntaxListBuilder(CommonSyntaxListBuilder builder)
+        internal SyntaxListBuilder(SyntaxListBuilder builder)
         {
             _builder = builder;
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.Clear();
         }
 
-        public CommonSyntaxListBuilder<TNode> Add(TNode node)
+        public SyntaxListBuilder<TNode> Add(TNode node)
         {
             _builder.Add(node);
             return this;
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.AddRange(items, offset, length);
         }
 
-        public void AddRange(CommonSyntaxList<TNode> nodes)
+        public void AddRange(SyntaxList<TNode> nodes)
         {
             _builder.AddRange(nodes);
         }
 
-        public void AddRange(CommonSyntaxList<TNode> nodes, int offset, int length)
+        public void AddRange(SyntaxList<TNode> nodes, int offset, int length)
         {
             _builder.AddRange(nodes, offset, length);
         }
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _builder.Any(kind);
         }
 
-        public CommonSyntaxList<TNode> ToList()
+        public SyntaxList<TNode> ToList()
         {
             return _builder.ToList();
         }
 
-        public CommonSyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
+        public SyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
         {
-            return new CommonSyntaxList<TDerived>(ToListNode());
+            return new SyntaxList<TDerived>(ToListNode());
         }
 
         public GreenNode ToListNode()
@@ -96,19 +96,19 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _builder.ToListNode();
         }
 
-        public static implicit operator CommonSyntaxListBuilder(CommonSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder(SyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }
 
-        public static implicit operator CommonSyntaxList<TNode>(CommonSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxList<TNode>(SyntaxListBuilder<TNode> builder)
         {
             if (builder._builder != null)
             {
                 return builder.ToList();
             }
 
-            return default(CommonSyntaxList<TNode>);
+            return default(SyntaxList<TNode>);
         }
     }
 }

@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' Wrong arg count
                         Debug.Assert(Args.Count > 3)
 
-                        Dim withSeparators As CommonSyntaxList(Of VisualBasicSyntaxNode) = Args.GetWithSeparators()
+                        Dim withSeparators As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Args.GetWithSeparators(), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
                         Const firstNotUsedIndex As Integer = 5
 
                         Debug.Assert(withSeparators.Count > firstNotUsedIndex)
@@ -829,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' for Dev10 compat we will let it slip through.
 
                 Dim IsArrayCreationExpression = False
-                Dim arrayModifiers As CommonSyntaxList(Of ArrayRankSpecifierSyntax) = Nothing
+                Dim arrayModifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ArrayRankSpecifierSyntax))
                 If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                     ' Parse array modifiers
 
@@ -1146,9 +1146,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Function TransitionFromXmlToVB(Of T As VisualBasicSyntaxNode)(node As T) As T
             node = LastTokenReplacer.Replace(node, Function(token)
-                                                       Dim trivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
-                                                       Dim toRemove As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
-                                                       Dim toAdd As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+                                                       Dim toRemove As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim toAdd As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
                                                        _scanner.TransitionFromXmlToVB(trivia, toRemove, toAdd)
                                                        trivia = trivia.GetStartOfTrivia(trivia.Count - toRemove.Count)
                                                        token = DirectCast(token.WithTrailingTrivia(trivia.Node), SyntaxToken)
@@ -1161,9 +1161,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function TransitionFromVBToXml(Of T As VisualBasicSyntaxNode)(state As ScannerState, node As T) As T
             node = LastTokenReplacer.Replace(node, Function(token)
-                                                       Dim trivia = New CommonSyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
-                                                       Dim toRemove As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
-                                                       Dim toAdd As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+                                                       Dim toRemove As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                                                       Dim toAdd As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
                                                        _scanner.TransitionFromVBToXml(state, trivia, toRemove, toAdd)
                                                        trivia = trivia.GetStartOfTrivia(trivia.Count - toRemove.Count)
                                                        token = DirectCast(token.WithTrailingTrivia(trivia.Node), SyntaxToken)
@@ -1304,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False) As ArgumentListSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be at tkLParen.")
 
-            Dim arguments As CommonSeparatedSyntaxList(Of ArgumentSyntax) = Nothing
+            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ArgumentSyntax))
             Dim openParen As PunctuationSyntax = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
 
@@ -1381,7 +1381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16425 - 16425
         ' .Parser::ParseArguments( [ _In_ ParseTree::ArgumentList** Target ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False) As CommonSeparatedSyntaxList(Of ArgumentSyntax)
+        Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
             Do
@@ -1458,7 +1458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16515 - 16515
         ' .Parser::ParseNamedArguments( [ ParseTree::ArgumentList** Target ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Sub ParseNamedArguments(arguments As CommonSeparatedSyntaxListBuilder(Of ArgumentSyntax))
+        Private Sub ParseNamedArguments(arguments As SeparatedSyntaxListBuilder(Of ArgumentSyntax))
 
             Do
                 Dim argumentName As IdentifierNameSyntax
@@ -1603,7 +1603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseFunctionOrSubLambdaHeader(<Out> ByRef isMultiLine As Boolean, Optional parseModifiers As Boolean = False) As LambdaHeaderSyntax
 
-            Dim modifiers As CommonSyntaxList(Of KeywordSyntax)
+            Dim modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
 
             Dim save_isInMethodDeclarationHeader As Boolean = _isInMethodDeclarationHeader
             _isInMethodDeclarationHeader = True
@@ -1635,7 +1635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim genericParams As TypeParameterListSyntax = Nothing
             Dim openParen As PunctuationSyntax = Nothing
-            Dim params As CommonSeparatedSyntaxList(Of ParameterSyntax) = Nothing
+            Dim params As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ParameterSyntax))
             Dim closeParen As PunctuationSyntax = Nothing
 
             isMultiLine = False
@@ -1659,7 +1659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim asClause As SimpleAsClauseSyntax = Nothing
-            Dim returnTypeAttributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+            Dim returnTypeAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
 
             Dim asKeyword As KeywordSyntax = Nothing
 
@@ -1833,9 +1833,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16738 - 16738
         ' ExpressionList* .Parser::ParseVariableList( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseVariableList() As CommonSeparatedSyntaxList(Of ExpressionSyntax)
+        Private Function ParseVariableList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
 
-            Dim variables As CommonSeparatedSyntaxListBuilder(Of ExpressionSyntax) = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
+            Dim variables As SeparatedSyntaxListBuilder(Of ExpressionSyntax) = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
 
             Do
                 variables.Add(ParseVariable())

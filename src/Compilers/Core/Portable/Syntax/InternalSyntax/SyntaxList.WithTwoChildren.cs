@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
             {
-                return new Syntax.CommonSyntaxList.WithTwoChildren(this, parent, position);
+                return new Syntax.SyntaxList.WithTwoChildren(this, parent, position);
             }
 
             internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)

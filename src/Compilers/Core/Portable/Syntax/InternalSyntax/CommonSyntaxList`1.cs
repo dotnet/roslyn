@@ -6,12 +6,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal partial struct CommonSyntaxList<TNode> : IEquatable<CommonSyntaxList<TNode>>
+    internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
         where TNode : GreenNode
     {
         private readonly GreenNode _node;
 
-        internal CommonSyntaxList(GreenNode node)
+        internal SyntaxList(GreenNode node)
         {
             _node = node;
         }
@@ -122,24 +122,24 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public static bool operator ==(CommonSyntaxList<TNode> left, CommonSyntaxList<TNode> right)
+        public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
             return left._node == right._node;
         }
 
-        public static bool operator !=(CommonSyntaxList<TNode> left, CommonSyntaxList<TNode> right)
+        public static bool operator !=(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
             return left._node != right._node;
         }
 
-        public bool Equals(CommonSyntaxList<TNode> other)
+        public bool Equals(SyntaxList<TNode> other)
         {
             return _node == other._node;
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is CommonSyntaxList<TNode>) && Equals((CommonSyntaxList<TNode>)obj);
+            return (obj is SyntaxList<TNode>) && Equals((SyntaxList<TNode>)obj);
         }
 
         public override int GetHashCode()
@@ -147,24 +147,24 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _node != null ? _node.GetHashCode() : 0;
         }
 
-        public CommonSeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : GreenNode
+        public SeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : GreenNode
         {
-            return new CommonSeparatedSyntaxList<TOther>(this);
+            return new SeparatedSyntaxList<TOther>(this);
         }
 
-        public static implicit operator CommonSyntaxList<TNode>(TNode node)
+        public static implicit operator SyntaxList<TNode>(TNode node)
         {
-            return new CommonSyntaxList<TNode>(node);
+            return new SyntaxList<TNode>(node);
         }
 
-        public static implicit operator CommonSyntaxList<TNode>(CommonSyntaxList<GreenNode> nodes)
+        public static implicit operator SyntaxList<TNode>(SyntaxList<GreenNode> nodes)
         {
-            return new CommonSyntaxList<TNode>(nodes._node);
+            return new SyntaxList<TNode>(nodes._node);
         }
 
-        public static implicit operator CommonSyntaxList<GreenNode>(CommonSyntaxList<TNode> nodes)
+        public static implicit operator SyntaxList<GreenNode>(SyntaxList<TNode> nodes)
         {
-            return new CommonSyntaxList<GreenNode>(nodes.Node);
+            return new SyntaxList<GreenNode>(nodes.Node);
         }
     }
 }

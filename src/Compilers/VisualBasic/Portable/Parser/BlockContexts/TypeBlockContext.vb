@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class TypeBlockContext
         Inherits DeclarationContext
 
-        Protected _inheritsDecls As CommonSyntaxList(Of InheritsStatementSyntax)
-        Private _implementsDecls As CommonSyntaxList(Of ImplementsStatementSyntax)
+        Protected _inheritsDecls As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax)
+        Private _implementsDecls As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax)
         Protected _state As SyntaxKind
 
         Friend Sub New(contextKind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)

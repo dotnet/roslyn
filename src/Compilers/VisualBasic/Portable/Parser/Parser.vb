@@ -438,10 +438,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ParseWithStackGuard(Of CompilationUnitSyntax)(
                 AddressOf Me.ParseCompilationUnitCore,
                 Function() SyntaxFactory.CompilationUnit(
-                    New CommonSyntaxList(Of VisualBasicSyntaxNode)(),
-                    New CommonSyntaxList(Of VisualBasicSyntaxNode)(),
-                    New CommonSyntaxList(Of VisualBasicSyntaxNode)(),
-                    New CommonSyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
                     Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory.EndOfFileToken()))
         End Function
 
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             restorePoint.Restore()
             GetNextToken()
 
-            Dim builder = New CommonSyntaxListBuilder(4)
+            Dim builder = New SyntaxListBuilder(4)
             While CurrentToken.Kind <> SyntaxKind.EndOfFileToken
                 builder.Add(CurrentToken)
                 GetNextToken()
@@ -1043,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' ParseSpecifierDeclaration parses the way we want.
                     ' Move error check to ExecutableStatementContext
 
-                    Dim attributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+                    Dim attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
 
                     If CurrentToken.Kind = SyntaxKind.LessThanToken Then
                         attributes = ParseAttributeLists(allowFileLevelAttributes:=False)
@@ -1281,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 4184 - 4184
         ' Statement* .Parser::ParseSpecifierDeclaration( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseSpecifierDeclaration() As StatementSyntax
-            Dim attributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+            Dim attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
 
             If CurrentToken.Kind = SyntaxKind.LessThanToken Then
                 attributes = ParseAttributeLists(False)
@@ -1290,14 +1290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ParseSpecifierDeclaration(attributes)
         End Function
 
-        Private Function ParseSpecifierDeclaration(attributes As CommonSyntaxList(Of AttributeListSyntax)) As StatementSyntax
+        Private Function ParseSpecifierDeclaration(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)) As StatementSyntax
             Dim modifiers = ParseSpecifiers()
             Return ParseSpecifierDeclaration(attributes, modifiers)
         End Function
 
         Private Function ParseSpecifierDeclaration(
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax)
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As StatementSyntax
             Dim statement As StatementSyntax = Nothing
 
@@ -1449,8 +1449,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 4352 - 4352
         ' EnumTypeStatement* .Parser::ParseEnumStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseEnumStatement(
-                  Optional attributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing,
-                  Optional modifiers As CommonSyntaxList(Of KeywordSyntax) = Nothing
+                  Optional attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = Nothing,
+                  Optional modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax) = Nothing
         ) As EnumStatementSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.EnumKeyword, "ParseEnumStatement called on the wrong token.")
 
@@ -1506,7 +1506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 4438 - 4438
         ' Statement* .Parser::ParseEnumMember( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseEnumMemberOrLabel(attributes As CommonSyntaxList(Of AttributeListSyntax)) As StatementSyntax
+        Private Function ParseEnumMemberOrLabel(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)) As StatementSyntax
 
             If Not attributes.Any() AndAlso ShouldParseAsLabel() Then
                 Return ParseLabel()
@@ -1567,8 +1567,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 4563 - 4563
         ' TypeStatement* .Parser::ParseTypeStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseTypeStatement(
-                  Optional attributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing,
-                  Optional modifiers As CommonSyntaxList(Of KeywordSyntax) = Nothing
+                  Optional attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = Nothing,
+                  Optional modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax) = Nothing
         ) As TypeStatementSyntax
 
             Dim kind As SyntaxKind
@@ -1675,7 +1675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function ParseNamespaceStatement(attributes As CommonSyntaxList(Of AttributeListSyntax), Specifiers As CommonSyntaxList(Of KeywordSyntax)) As NamespaceStatementSyntax
+        Private Function ParseNamespaceStatement(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As NamespaceStatementSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.NamespaceKeyword, "ParseNamespaceStatement called on the wrong token.")
 
             Dim namespaceKeyword As KeywordSyntax = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
@@ -1684,7 +1684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 namespaceKeyword = AddError(namespaceKeyword, ERRID.ERR_NamespaceNotAllowedInScript)
             End If
 
-            Dim unexpectedSyntax As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpectedSyntax As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
             Dim result As NamespaceStatementSyntax
 
             GetNextToken() ' get off NAMESPACE token
@@ -1966,7 +1966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' errors are done here and one in semantics. For consistency the errors should be reports in the same
         ' component, i.e. semantics or parser.
 
-        Private Function ParseSpecifiers() As CommonSyntaxList(Of KeywordSyntax)
+        Private Function ParseSpecifiers() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
 
             Dim kwList = _pool.Allocate(Of KeywordSyntax)()
 
@@ -2090,8 +2090,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 5992 - 5992
         ' Statement* .Parser::ParseVarDeclStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* StmtStart ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseVarDeclStatement(
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax)
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As StatementSyntax
             ' Parse the declarations.
 
@@ -2146,7 +2146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CommonSeparatedSyntaxList(Of VariableDeclaratorSyntax)
+        Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Dim declarations = _pool.AllocateSeparated(Of VariableDeclaratorSyntax)()
 
             Dim comma As PunctuationSyntax
@@ -2404,7 +2404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.CollectionInitializer(openBrace, Nothing, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseBraceToken))
             End If
 
-            Dim initializers As CommonSeparatedSyntaxList(Of ExpressionSyntax) = Nothing
+            Dim initializers As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ExpressionSyntax))
 
             If CurrentToken.Kind <> SyntaxKind.CloseBraceToken Then
 
@@ -2440,7 +2440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetClosingRightBrace() As PunctuationSyntax
             Dim closeBrace As PunctuationSyntax = Nothing
-            Dim skipped As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim skipped As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
 
             ' Dev10 does not resync but this seems to give better results
             ' when there is an error. See bug 904910.
@@ -2500,7 +2500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.ObjectMemberInitializer(withKeyword, openBrace, Nothing, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseBraceToken))
             End If
 
-            Dim initializers As CommonSeparatedSyntaxList(Of FieldInitializerSyntax) = Nothing
+            Dim initializers As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of FieldInitializerSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of FieldInitializerSyntax))
 
             If CurrentToken.Kind <> SyntaxKind.CloseBraceToken AndAlso
                 CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken AndAlso
@@ -3045,7 +3045,7 @@ checkNullable:
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
 
                 Dim elementType = result
-                Dim rankSpecifiers As CommonSyntaxList(Of ArrayRankSpecifierSyntax) = ParseArrayRankSpecifiers()
+                Dim rankSpecifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = CType(ParseArrayRankSpecifiers(), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ArrayRankSpecifierSyntax))
 
                 If allowedEmptyGenericArguments Then
                     ' Need to eat up the array syntax to avoid spuriously parsing
@@ -3054,7 +3054,7 @@ checkNullable:
                     ' Even resyncing to tkRParen will not help in the array of array
                     ' cases. So instead use ParseArrayDeclarator to help skip
                     ' all of the array syntax.
-                    rankSpecifiers = New CommonSyntaxList(Of ArrayRankSpecifierSyntax)(ReportSyntaxError(rankSpecifiers.Node, ERRID.ERR_ArrayOfRawGenericInvalid))
+                    rankSpecifiers = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)(ReportSyntaxError(rankSpecifiers.Node, ERRID.ERR_ArrayOfRawGenericInvalid)), CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ArrayRankSpecifierSyntax))
                 End If
 
                 result = SyntaxFactory.ArrayType(elementType, rankSpecifiers)
@@ -3084,7 +3084,7 @@ checkNullable:
             Dim openParen As PunctuationSyntax
             Dim closeParen As PunctuationSyntax = Nothing
             Dim genericArguments As TypeArgumentListSyntax
-            Dim typeArguments As CommonSeparatedSyntaxList(Of TypeSyntax)
+            Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of TypeSyntax)
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "Generic arguments parsing lost!!!")
 
@@ -3156,17 +3156,17 @@ checkNullable:
             Return genericArguments
         End Function
 
-        Private Function ParseArrayRankSpecifiers(Optional errorForExplicitArraySizes As ERRID = ERRID.ERR_NoExplicitArraySizes) As CommonSyntaxList(Of ArrayRankSpecifierSyntax)
+        Private Function ParseArrayRankSpecifiers(Optional errorForExplicitArraySizes As ERRID = ERRID.ERR_NoExplicitArraySizes) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be a (.")
 
-            Dim arrayModifiers As CommonSyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
+            Dim arrayModifiers As SyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
 
             Do
                 Dim openParen As PunctuationSyntax = Nothing
-                Dim commas As CommonSyntaxList(Of PunctuationSyntax) = Nothing
+                Dim commas As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of PunctuationSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of PunctuationSyntax))
                 Dim closeParen As PunctuationSyntax = Nothing
-                Dim arguments As CommonSeparatedSyntaxList(Of ArgumentSyntax) = Nothing
+                Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ArgumentSyntax))
 
                 Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken)
                 TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
@@ -3199,7 +3199,7 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim result As CommonSyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
+            Dim result As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = CType(arrayModifiers.ToList, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ArrayRankSpecifierSyntax))
             _pool.Free(arrayModifiers)
 
             Return result
@@ -3218,10 +3218,10 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be a (.")
 
             Dim optionalArrayBounds As ArgumentListSyntax = Nothing
-            Dim arrayModifiers As CommonSyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
-            Dim arguments As CommonSeparatedSyntaxList(Of ArgumentSyntax)
+            Dim arrayModifiers As SyntaxListBuilder(Of ArrayRankSpecifierSyntax) = Nothing
+            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim openParen As PunctuationSyntax = Nothing
-            Dim commas As CommonSyntaxList(Of PunctuationSyntax)
+            Dim commas As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of PunctuationSyntax)
             Dim closeParen As PunctuationSyntax
             Dim innerArrayType As Boolean = False
 
@@ -3272,13 +3272,13 @@ checkNullable:
                 innerArrayType = True
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim modifiersArr As CommonSyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
+            Dim modifiersArr As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = CType(arrayModifiers.ToList, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of ArrayRankSpecifierSyntax))
             _pool.Free(arrayModifiers)
 
             Return SyntaxFactory.ModifiedIdentifier(elementType, optionalNullable, optionalArrayBounds, modifiersArr)
         End Function
 
-        Private Function TryReinterpretAsArraySpecifier(argumentList As ArgumentListSyntax, ByRef arrayModifiers As CommonSyntaxList(Of ArrayRankSpecifierSyntax)) As Boolean
+        Private Function TryReinterpretAsArraySpecifier(argumentList As ArgumentListSyntax, ByRef arrayModifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)) As Boolean
             Dim builder = _pool.Allocate(Of PunctuationSyntax)()
 
             ' Try to reinterpret the argumentList as arrayRankSpecifier syntax
@@ -3308,7 +3308,7 @@ checkNullable:
             Return interpretAsArrayModifiers
         End Function
 
-        Private Function ParseSeparators(kind As SyntaxKind) As CommonSyntaxList(Of PunctuationSyntax)
+        Private Function ParseSeparators(kind As SyntaxKind) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of PunctuationSyntax)
             Dim separators = _pool.Allocate(Of PunctuationSyntax)()
 
             While CurrentToken.Kind = kind
@@ -3325,7 +3325,7 @@ checkNullable:
         End Function
 
         ' In Dev10 this was ParseArgument.
-        Private Function ParseArgumentList() As CommonSeparatedSyntaxList(Of ArgumentSyntax)
+        Private Function ParseArgumentList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim comma As PunctuationSyntax
 
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
@@ -3378,7 +3378,7 @@ checkNullable:
         End Function
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
-        Private Function ParsePropertyOrEventAccessor(accessorKind As SyntaxKind, attributes As CommonSyntaxList(Of AttributeListSyntax), modifiers As CommonSyntaxList(Of KeywordSyntax)) As AccessorStatementSyntax
+        Private Function ParsePropertyOrEventAccessor(accessorKind As SyntaxKind, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As AccessorStatementSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.GetKeyword OrElse CurrentToken.Kind = SyntaxKind.SetKeyword OrElse
                      CurrentToken.Kind = SyntaxKind.AddHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RemoveHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RaiseEventKeyword)
 
@@ -3391,7 +3391,7 @@ checkNullable:
             Dim genericParams As TypeParameterListSyntax = Nothing
             Dim optionalParameters As ParameterListSyntax = Nothing
             Dim openParen As PunctuationSyntax = Nothing
-            Dim parameters As CommonSeparatedSyntaxList(Of ParameterSyntax) = Nothing
+            Dim parameters As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ParameterSyntax))
             Dim closeParen As PunctuationSyntax = Nothing
 
             TryRejectGenericParametersForMemberDecl(genericParams)
@@ -3440,7 +3440,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImplementsKeyword, "Implements list parsing lost.")
 
             Dim implementsKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            Dim ImplementsClauses As CommonSeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
+            Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
                 Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
 
             Dim comma As PunctuationSyntax
@@ -3491,7 +3491,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            Dim handlesClauseItems As CommonSeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
+            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
             Dim comma As PunctuationSyntax
 
             GetNextToken() ' get off the handles / comma token
@@ -3584,8 +3584,8 @@ checkNullable:
         ' MethodDeclarationStatement* .Parser::ParseSubDeclaration( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ bool IsDelegate ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseSubStatement(
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax)
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As MethodBaseSyntax
 
             Dim subKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
@@ -3749,8 +3749,8 @@ checkNullable:
         ' MethodDeclarationStatement* .Parser::ParseFunctionDeclaration( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ bool IsDelegate ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseFunctionStatement(
-                attributes As CommonSyntaxList(Of AttributeListSyntax),
-                modifiers As CommonSyntaxList(Of KeywordSyntax)
+                attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             ) As MethodStatementSyntax
 
             Dim functionKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
@@ -3835,7 +3835,7 @@ checkNullable:
             optionalParameters = ParseParameterList()
 
             Dim returnType As TypeSyntax = Nothing
-            Dim returnTypeAttributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+            Dim returnTypeAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
 
             Dim asKeyword As KeywordSyntax = Nothing
 
@@ -3897,8 +3897,8 @@ checkNullable:
         ' Lines: 8711 - 8711
         ' MethodDeclarationStatement* .Parser::ParseOperatorDeclaration( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ bool IsDelegate ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseOperatorStatement(
-                attributes As CommonSyntaxList(Of AttributeListSyntax),
-                modifiers As CommonSyntaxList(Of KeywordSyntax)
+                attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             ) As OperatorStatementSyntax
 
             'TODO - davidsch 
@@ -3957,7 +3957,7 @@ checkNullable:
             End If
 
             Dim optionalParameters As ParameterListSyntax = Nothing
-            Dim params As CommonSeparatedSyntaxList(Of ParameterSyntax) = Nothing
+            Dim params As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ParameterSyntax))
 
             Dim openParenIsMissing As Boolean = False
             Dim openParen As PunctuationSyntax = Nothing
@@ -3990,7 +3990,7 @@ checkNullable:
             End If
 
             Dim returnType As TypeSyntax = Nothing
-            Dim returnTypeAttributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+            Dim returnTypeAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
             Dim asClause As SimpleAsClauseSyntax = Nothing
 
             Dim asKeyword As KeywordSyntax = Nothing
@@ -4078,8 +4078,8 @@ checkNullable:
         ' Used to reorder StatementList in LinkStatement if necessary.
 
         Private Function ParsePropertyDefinition(
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax)
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As PropertyStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.PropertyKeyword, "ParsePropertyDefinition called on the wrong token.")
@@ -4119,7 +4119,7 @@ checkNullable:
 
             Dim openParen As PunctuationSyntax = Nothing ' Track where this is so we can set the punctuators when we build the tree
             Dim closeParen As PunctuationSyntax = Nothing ' Track where this is so we can set the punctuators when we build the tree
-            Dim propertyParameters As CommonSeparatedSyntaxList(Of ParameterSyntax) = Nothing
+            Dim propertyParameters As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ParameterSyntax))
             Dim optionalParameters As ParameterListSyntax = Nothing
 
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
@@ -4192,8 +4192,8 @@ checkNullable:
         ' MethodDeclarationStatement* .Parser::ParseDelegateStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseDelegateStatement(
-            attributes As CommonSyntaxList(Of AttributeListSyntax),
-            modifiers As CommonSyntaxList(Of KeywordSyntax)
+            attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+            modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As DelegateStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DelegateKeyword, "ParseDelegateStatement called on the wrong token.")
@@ -4467,7 +4467,7 @@ checkNullable:
         ' Lines: 9598 - 9598
         ' ParameterList* .Parser::ParseParameters( [ _Inout_ bool& ErrorInConstruct ] [ _Out_ Token*& openParen ] [ _Out_ Token*& closeParen ] )
 
-        Private Function ParseParameters(ByRef openParen As PunctuationSyntax, ByRef closeParen As PunctuationSyntax) As CommonSeparatedSyntaxList(Of ParameterSyntax)
+        Private Function ParseParameters(ByRef openParen As PunctuationSyntax, ByRef closeParen As PunctuationSyntax) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "Parameter list parsing confused.")
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
@@ -4478,7 +4478,7 @@ checkNullable:
                 ' Loop through the list of parameters.
 
                 Do
-                    Dim attributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+                    Dim attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
 
                     If CurrentToken.Kind = SyntaxKind.LessThanToken Then
                         attributes = ParseAttributeLists(False)
@@ -4552,7 +4552,7 @@ checkNullable:
         ' Lines: 9748 - 9748
         ' ParameterSpecifierList* .Parser::ParseParameterSpecifiers( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseParameterSpecifiers(ByRef specifiers As ParameterSpecifiers) As CommonSyntaxList(Of KeywordSyntax)
+        Private Function ParseParameterSpecifiers(ByRef specifiers As ParameterSpecifiers) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             Dim keywords = Me._pool.Allocate(Of KeywordSyntax)()
 
             specifiers = 0
@@ -4624,7 +4624,7 @@ checkNullable:
         ''' <param name="modifiers"></param>
         ''' <returns></returns>
         ''' <remarks>>This replaces both ParseParameter and ParseOptionalParameter in Dev10</remarks>
-        Private Function ParseParameter(attributes As CommonSyntaxList(Of AttributeListSyntax), modifiers As CommonSyntaxList(Of KeywordSyntax)) As ParameterSyntax
+        Private Function ParseParameter(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As ParameterSyntax
             Dim paramName = ParseModifiedIdentifier(False, False)
 
             If paramName.ContainsDiagnostics Then
@@ -4690,7 +4690,7 @@ checkNullable:
         ' Lines: 10120 - 10120
         ' ImportsStatement* .Parser::ParseImportsStatement( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseImportsStatement(Attributes As CommonSyntaxList(Of AttributeListSyntax), Specifiers As CommonSyntaxList(Of KeywordSyntax)) As ImportsStatementSyntax
+        Private Function ParseImportsStatement(Attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As ImportsStatementSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImportsKeyword, "called on wrong token")
 
             Dim importsKeyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
@@ -4845,7 +4845,7 @@ checkNullable:
         ' Lines: 10274 - 10274
         ' Statement* .Parser::ParseInheritsImplementsStatement( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseInheritsImplementsStatement(Attributes As CommonSyntaxList(Of AttributeListSyntax), Specifiers As CommonSyntaxList(Of KeywordSyntax)) As InheritsOrImplementsStatementSyntax
+        Private Function ParseInheritsImplementsStatement(Attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As InheritsOrImplementsStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.InheritsKeyword OrElse CurrentToken.Kind = SyntaxKind.ImplementsKeyword,
                 "ParseInheritsImplementsStatement called on the wrong token.")
@@ -4904,7 +4904,7 @@ checkNullable:
         ' Lines: 10345 - 10345
         ' Statement* .Parser::ParseOptionStatement( [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseOptionStatement(Attributes As CommonSyntaxList(Of AttributeListSyntax), Specifiers As CommonSyntaxList(Of KeywordSyntax)) As StatementSyntax
+        Private Function ParseOptionStatement(Attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As StatementSyntax
             Dim ErrorId As ERRID = ERRID.ERR_None
             Dim optionType As KeywordSyntax = Nothing
             Dim optionValue As KeywordSyntax = Nothing
@@ -5013,7 +5013,7 @@ checkNullable:
         ' Lines: 10586 - 10586
         ' ForeignMethodDeclarationStatement* .Parser::ParseProcDeclareStatement( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* Start ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseProcDeclareStatement(attributes As CommonSyntaxList(Of AttributeListSyntax), modifiers As CommonSyntaxList(Of KeywordSyntax)) As DeclareStatementSyntax
+        Private Function ParseProcDeclareStatement(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)) As DeclareStatementSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DeclareKeyword, "ParseProcDeclareStatement called on wrong token. Must be at a Declare.")
 
             ' Dev10_667800 we are parsing a method declaration and will need to let the scanner know that we
@@ -5065,7 +5065,7 @@ checkNullable:
                 name = name.AddTrailingSyntax(ResyncAt({SyntaxKind.LibKeyword, SyntaxKind.OpenParenToken}))
             End If
 
-            Dim unexpected As CommonSyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of SyntaxToken))
             Dim missingLib As Boolean = False
 
             If CurrentToken.Kind <> SyntaxKind.LibKeyword Then
@@ -5122,7 +5122,7 @@ checkNullable:
                 'todo - davidsch - if sub/function keyword is missing. Use the existence of AS to infer Function
                 GetNextToken()
 
-                Dim returnAttributes As CommonSyntaxList(Of AttributeListSyntax) = Nothing
+                Dim returnAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of AttributeListSyntax))
                 If CurrentToken.Kind = SyntaxKind.LessThanToken Then
                     returnAttributes = ParseAttributeLists(False)
                 End If
@@ -5215,8 +5215,8 @@ checkNullable:
         ''' <returns></returns>
         ''' <remarks>This code used to be in ParseEventDefinition.</remarks>
         Private Function ParseCustomEventDefinition(
-                attributes As CommonSyntaxList(Of AttributeListSyntax),
-                modifiers As CommonSyntaxList(Of KeywordSyntax)
+                attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
         ) As StatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.CustomKeyword, "ParseCustomEventDefinition called on the wrong token.")
@@ -5272,7 +5272,7 @@ checkNullable:
 
                 If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                     Dim openParen As PunctuationSyntax = Nothing
-                    Dim parameters As CommonSeparatedSyntaxList(Of ParameterSyntax)
+                    Dim parameters As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
                     Dim closeParen As PunctuationSyntax = Nothing
 
                     parameters = ParseParameters(openParen, closeParen)
@@ -5322,8 +5322,8 @@ checkNullable:
         ' Statement* .Parser::ParseEventDefinition( [ ParseTree::AttributeSpecifierList* Attributes ] [ ParseTree::SpecifierList* Specifiers ] [ _In_ Token* StatementStart ] [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseEventDefinition(
-                attributes As CommonSyntaxList(Of AttributeListSyntax),
-                modifiers As CommonSyntaxList(Of KeywordSyntax)
+                attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax),
+                modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax)
             ) As EventStatementSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.EventKeyword, "ParseEventDefinition called on the wrong token.")
@@ -5336,7 +5336,7 @@ checkNullable:
 
             Dim optionalParameters As ParameterListSyntax = Nothing
             Dim openParen As PunctuationSyntax = Nothing
-            Dim parameters As CommonSeparatedSyntaxList(Of ParameterSyntax) = Nothing
+            Dim parameters As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSeparatedSyntaxList(Of ParameterSyntax))
             Dim closeParen As PunctuationSyntax = Nothing
 
             Dim asKeyword As KeywordSyntax = Nothing
@@ -5395,7 +5395,7 @@ checkNullable:
             Return eventStatement
         End Function
 
-        Private Function ParseEmptyAttributeLists() As CommonSyntaxList(Of AttributeListSyntax)
+        Private Function ParseEmptyAttributeLists() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanGreaterThanToken)
 
             Dim token = CurrentToken
@@ -5446,7 +5446,7 @@ checkNullable:
         ' AttributeSpecifierList* .Parser::ParseAttributeSpecifier( [ ExpectedAttributeKind Expected ] [ _Inout_ bool& ErrorInConstruct ] )
 
         ' TODO: this function is so complex (n^2 loop?) it times out in CC verifier.
-        Private Function ParseAttributeLists(allowFileLevelAttributes As Boolean) As CommonSyntaxList(Of AttributeListSyntax)
+        Private Function ParseAttributeLists(allowFileLevelAttributes As Boolean) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax)
             Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken, "ParseAttributeSpecifier called on the wrong token.")
 
             Dim attributeBlocks = _pool.Allocate(Of AttributeListSyntax)()
@@ -5699,7 +5699,7 @@ checkNullable:
             End If
 
             If node.HasLeadingTrivia Then
-                Dim triviaList = New CommonSyntaxList(Of VisualBasicSyntaxNode)(node.GetLeadingTrivia)
+                Dim triviaList = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(node.GetLeadingTrivia),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
 
                 For triviaIndex = triviaList.Count - 1 To 0 Step -1
                     Dim kind = triviaList(triviaIndex).Kind
@@ -6088,7 +6088,7 @@ checkNullable:
 
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
             If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
-            Dim b As CommonSyntaxListBuilder(Of SyntaxToken) = CommonSyntaxListBuilder(Of SyntaxToken).Create()
+            Dim b As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
             While (Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken)
                 b.Add(Me.CurrentToken)
                 GetNextToken()

@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var trivia = _prevTokenTrailingTrivia;
             if (trivia != null)
             {
-                CommonSyntaxList<CSharpSyntaxNode> triviaList = new CommonSyntaxList<CSharpSyntaxNode>(trivia);
+                CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> triviaList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(trivia);
                 bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
                 if (prevTokenHasEndOfLineTrivia)
                 {
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
-            var builder = new CommonSyntaxListBuilder(4);
+            var builder = new SyntaxListBuilder(4);
 
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;

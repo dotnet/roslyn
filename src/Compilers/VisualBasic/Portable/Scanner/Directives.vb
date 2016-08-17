@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _isScanningDirective As Boolean = False
         Protected _scannerPreprocessorState As PreprocessorState
 
-        Private Function TryScanDirective(tList As CommonSyntaxListBuilder) As Boolean
+        Private Function TryScanDirective(tList As SyntaxListBuilder) As Boolean
             Debug.Assert(IsAtNewLine())
 
             ' leading whitespace until we see # should be regular whitespace
@@ -70,9 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Entry point to directive processing for Scanner.
         ''' </summary>
-        Private Sub ProcessDirective(directiveTrivia As DirectiveTriviaSyntax, tList As CommonSyntaxListBuilder)
+        Private Sub ProcessDirective(directiveTrivia As DirectiveTriviaSyntax, tList As SyntaxListBuilder)
 
-            Dim disabledCode As CommonSyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.CommonSyntaxList(Of VisualBasicSyntaxNode))
             Dim statement As DirectiveTriviaSyntax = directiveTrivia
 
             Dim newState = ApplyDirective(_scannerPreprocessorState,
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '// 
         '//-------------------------------------------------------------------------------------------------
 
-        Private Function SkipConditionalCompilationSection() As CommonSyntaxList(Of VisualBasicSyntaxNode)
+        Private Function SkipConditionalCompilationSection() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             ' // If skipping encounters a nested #if, it is necessary to skip all of it through its
             ' // #end. NestedConditionalsToSkip keeps track of how many nested #if constructs
             ' // need skipping.
@@ -612,9 +612,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
 
             If lengthSkipped > 0 Then
-                Return New CommonSyntaxList(Of VisualBasicSyntaxNode)(Me.GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
+                Return New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(Me.GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
             Else
-                Return New CommonSyntaxList(Of VisualBasicSyntaxNode)(Nothing)
+                Return New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(Nothing)
             End If
         End Function
 

@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return s_omittedArgument
         End Function
 
-        Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As CommonSyntaxList(Of InheritsStatementSyntax), ByVal [implements] As CommonSyntaxList(Of ImplementsStatementSyntax), ByVal members As CommonSyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
+        Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax), ByVal [implements] As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax), ByVal members As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
             Select Case blockKind
                 Case SyntaxKind.ModuleBlock
                     Return SyntaxFactory.ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
         End Function
 
-        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As CommonSyntaxList(Of GreenNode), ByVal modifiers As CommonSyntaxList(Of GreenNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+        Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, ByVal attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), ByVal modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), ByVal keyword As KeywordSyntax, ByVal identifier As IdentifierTokenSyntax, ByVal typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
             Select Case statementKind
                 Case SyntaxKind.ModuleStatement
                     Return SyntaxFactory.ModuleStatement(attributes, modifiers, keyword, identifier, typeParameterList)

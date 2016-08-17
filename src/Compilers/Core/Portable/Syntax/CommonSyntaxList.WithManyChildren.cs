@@ -4,9 +4,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal partial class CommonSyntaxList
+    internal partial class SyntaxList
     {
-        internal class WithManyChildren : CommonSyntaxList
+        internal class WithManyChildren : SyntaxList
         {
             private readonly ArrayElement<SyntaxNode>[] _children;
 

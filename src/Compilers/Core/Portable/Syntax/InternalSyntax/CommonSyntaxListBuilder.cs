@@ -5,19 +5,19 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal class CommonSyntaxListBuilder
+    internal class SyntaxListBuilder
     {
         private ArrayElement<GreenNode>[] _nodes;
         public int Count { get; private set; }
 
-        public CommonSyntaxListBuilder(int size)
+        public SyntaxListBuilder(int size)
         {
             _nodes = new ArrayElement<GreenNode>[size];
         }
 
-        public static CommonSyntaxListBuilder Create()
+        public static SyntaxListBuilder Create()
         {
-            return new CommonSyntaxListBuilder(8);
+            return new SyntaxListBuilder(8);
         }
 
         public void Clear()
@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public void AddRange(CommonSyntaxList<GreenNode> list)
+        public void AddRange(SyntaxList<GreenNode> list)
         {
             this.AddRange(list, 0, list.Count);
         }
 
-        public void AddRange(CommonSyntaxList<GreenNode> list, int offset, int length)
+        public void AddRange(SyntaxList<GreenNode> list, int offset, int length)
         {
             // Necessary, but not sufficient (e.g. for nested lists).
             EnsureAdditionalCapacity(length - offset);
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Validate(oldCount, this.Count);
         }
 
-        public void AddRange<TNode>(CommonSyntaxList<TNode> list) where TNode : GreenNode
+        public void AddRange<TNode>(SyntaxList<TNode> list) where TNode : GreenNode
         {
             this.AddRange(list, 0, list.Count);
         }
 
-        public void AddRange<TNode>(CommonSyntaxList<TNode> list, int offset, int length) where TNode : GreenNode
+        public void AddRange<TNode>(SyntaxList<TNode> list, int offset, int length) where TNode : GreenNode
         {
-            this.AddRange(new CommonSyntaxList<GreenNode>(list.Node), offset, length);
+            this.AddRange(new SyntaxList<GreenNode>(list.Node), offset, length);
         }
 
         public void RemoveLast()
@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public CommonSyntaxList<GreenNode> ToList()
+        public SyntaxList<GreenNode> ToList()
         {
-            return new CommonSyntaxList<GreenNode>(ToListNode());
+            return new SyntaxList<GreenNode>(ToListNode());
         }
 
-        public CommonSyntaxList<TNode> ToList<TNode>() where TNode : GreenNode
+        public SyntaxList<TNode> ToList<TNode>() where TNode : GreenNode
         {
-            return new CommonSyntaxList<TNode>(ToListNode());
+            return new SyntaxList<TNode>(ToListNode());
         }
     }
 }

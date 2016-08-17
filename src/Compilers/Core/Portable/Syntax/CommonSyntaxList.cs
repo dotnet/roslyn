@@ -6,9 +6,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal abstract partial class CommonSyntaxList : SyntaxNode
+    internal abstract partial class SyntaxList : SyntaxNode
     {
-        internal CommonSyntaxList(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
+        internal SyntaxList(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
             : base(green, parent, position)
         {
         }
