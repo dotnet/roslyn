@@ -3258,6 +3258,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return syntaxOffset
             End If
 
+            If Me._declaration.Declarations.Length >= 1 AndAlso position = Me._declaration.Declarations(0).Location.SourceSpan.Start Then
+                ' With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                ' the syntax associated with both the analysis payload local of a synthesized constructor
+                ' and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                ' that lambda needs a closure that captures the analysis payload of the constructor,
+                ' and the offset of the syntax for the local within the constructor is by definition zero.
+                Return 0
+            End If
+
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
             Throw ExceptionUtilities.Unreachable

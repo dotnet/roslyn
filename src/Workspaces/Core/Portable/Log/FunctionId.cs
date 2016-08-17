@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ServiceHubRemoteHostClient_CreateAsync,
         SolutionChecksumServiceFactory_CreateChecksumAsync,
         SolutionChecksumServiceFactory_GetChecksumObject,
-        ChecksumTreeNodeCache_GetOrCreateChecksumObjectAsync,
+        ChecksumTreeNode_GetOrCreateChecksumObjectAsync,
         Serializer_Deserialize,
         CodeAnalysisService_CalculateDiagnosticsAsync,
         CodeAnalysisService_SerializeDiagnosticResultAsync,

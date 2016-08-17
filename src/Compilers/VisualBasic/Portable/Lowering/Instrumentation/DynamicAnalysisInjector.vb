@@ -153,7 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function InstrumentReturnStatement(original As BoundReturnStatement, rewritten As BoundStatement) As BoundStatement
             Dim previous As BoundStatement = MyBase.InstrumentReturnStatement(original, rewritten)
             If Not original.IsEndOfMethodReturn Then
-                Return AddDynamicAnalysis(original, previous)
+                If original.ExpressionOpt IsNot Nothing Then
+                    ' Synthesized return statements require instrumentation if they return values,
+                    ' e.g. in simple expression lambdas.
+                    Return CollectDynamicAnalysis(original, previous)
+                Else
+                    Return AddDynamicAnalysis(original, previous)
+                End If
             End If
             Return previous
         End Function
@@ -302,6 +308,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim equalsValue = TryCast(statement.Syntax, EqualsValueSyntax)
                     If equalsValue IsNot Nothing Then
                         Return equalsValue.Value
+                    End If
+                    Dim asNew = TryCast(statement.Syntax, AsNewClauseSyntax)
+                    If asNew IsNot Nothing Then
+                        Return asNew._newExpression
                     End If
             End Select
 

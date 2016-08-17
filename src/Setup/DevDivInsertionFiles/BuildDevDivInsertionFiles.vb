@@ -486,7 +486,26 @@ Public Class BuildDevDivInsertionFiles
         ' TODO: remove
         Public ReadOnly Property IsInteractiveWindow As Boolean
             Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
+                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow" OrElse PackageName = "Microsoft.VisualStudio.VsInteractiveWindow"
+            End Get
+        End Property
+
+        ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
+        ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
+        Public ReadOnly Property IsCoreXTCompatible As Boolean
+            Get
+                Select Case PackageName
+                    Case "System.Security.Cryptography.Algorithms",
+                          "System.Security.Cryptography.X509Certificates",
+                          "System.Reflection.TypeExtensions",
+                          "System.Net.Security",
+                          "System.Diagnostics.Process",
+                          "System.AppContext"
+
+                        Return False
+                    Case Else
+                        Return True
+                End Select
             End Get
         End Property
     End Class
@@ -538,7 +557,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' TODO: remove once we have a proper package
         result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.VsInteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
 
         Return result
     End Function
@@ -622,6 +641,12 @@ Public Class BuildDevDivInsertionFiles
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
             If dependency.IsInteractiveWindow Then
+                Continue For
+            End If
+
+            ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
+            ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
+            If dependency.IsCoreXTCompatible Then
                 Continue For
             End If
 
@@ -971,7 +996,7 @@ Public Class BuildDevDivInsertionFiles
                       <Project DefaultTargets="Localize" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
                           <ItemGroup>
                               <LocalizeFile Include=<%= "$(Sources)\" & devdivPath %>>
-                                  <TranslationFile><%= "$(LocRepo)\{Lang}Roslyn\" & lclFileName %></TranslationFile>
+                                  <TranslationFile><%= "$(LocRepo)\{Lang}\Roslyn\" & lclFileName %></TranslationFile>
                                   <LciCommentFile><%= "$(Sources)\Roslyn\LCI\" & lciFileName %></LciCommentFile>
                                   <%= If(CompilerFiles.Contains(fileName),
                                       <SimShip xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
