@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             }
 
             // TODO: send telemetry on session
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
+            using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, cancellationToken).ConfigureAwait(false))
             {
                 var argument = new DiagnosticArguments(
                     analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
