@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         }
 
         [Conditional("DEBUG")]
-        protected void Validate(int start, int end)
+        private void Validate(int start, int end)
         {
             for (int i = start; i < end; i++)
             {
