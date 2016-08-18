@@ -7,6 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     // TODO: The Xml parser recognizes most commonplace XML, according to the XML spec.
     // It does not recognize the following:
     //
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], badTokens.ToListNode());
+                        list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], badTokens.ToListNode());
                     }
 
                     return result;

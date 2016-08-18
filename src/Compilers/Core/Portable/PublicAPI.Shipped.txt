@@ -1743,11 +1743,7 @@ abstract Microsoft.CodeAnalysis.SemanticModel.SyntaxTreeCore.get -> Microsoft.Co
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.NormalizePath(string path, string baseFilePath) -> string
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.OpenRead(string resolvedPath) -> System.IO.Stream
 abstract Microsoft.CodeAnalysis.SourceReferenceResolver.ResolveReference(string path, string baseFilePath) -> string
-abstract Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 abstract Microsoft.CodeAnalysis.SyntaxNode.Language.get -> string
-abstract Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-abstract Microsoft.CodeAnalysis.SyntaxNode.ToFullString() -> string
-abstract Microsoft.CodeAnalysis.SyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 abstract Microsoft.CodeAnalysis.SyntaxReference.GetSyntax(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.SyntaxReference.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 abstract Microsoft.CodeAnalysis.SyntaxReference.SyntaxTree.get -> Microsoft.CodeAnalysis.SyntaxTree
@@ -2005,7 +2001,6 @@ override abstract Microsoft.CodeAnalysis.SourceReferenceResolver.Equals(object o
 override abstract Microsoft.CodeAnalysis.SourceReferenceResolver.GetHashCode() -> int
 override abstract Microsoft.CodeAnalysis.StrongNameProvider.Equals(object other) -> bool
 override abstract Microsoft.CodeAnalysis.StrongNameProvider.GetHashCode() -> int
-override abstract Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.Equals(object other) -> bool
 override abstract Microsoft.CodeAnalysis.XmlReferenceResolver.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.Equals(object obj) -> bool

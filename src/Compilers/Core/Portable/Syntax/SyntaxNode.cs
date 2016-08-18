@@ -279,25 +279,33 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Returns the string representation of this node, not including its leading and trailing trivia.
         /// </summary>
         /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        public abstract override string ToString();
+        public override string ToString()
+        {
+            return this.Green.ToString();
+        }
 
         /// <summary>
         /// Returns full string representation of this node including its leading and trailing trivia.
         /// </summary>
         /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public abstract string ToFullString();
+        public virtual string ToFullString()
+        {
+            return this.Green.ToFullString();
+        }
 
         /// <summary>
         /// Writes the full text of this node to the specified <see cref="TextWriter"/>.
         /// </summary>
-        public abstract void WriteTo(TextWriter writer);
+        public virtual void WriteTo(TextWriter writer)
+        {
+            this.Green.WriteTo(writer, leading: true, trailing: true);
+        }
 
         /// <summary>
         /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
@@ -324,7 +332,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsEquivalentTo(SyntaxNode other)
         {
-            return EquivalentToCore(other);
+            if (this == other)
+            {
+                return true;
+            }
+
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.Green.IsEquivalentTo(other.Green);
         }
 
         /// <summary>
@@ -605,7 +623,19 @@ namespace Microsoft.CodeAnalysis
             return new ChildSyntaxList(this);
         }
 
-        public abstract SyntaxNodeOrToken ChildThatContainsPosition(int position);
+        public virtual SyntaxNodeOrToken ChildThatContainsPosition(int position)
+        {
+            //PERF: it is very important to keep this method fast.
+
+            if (!FullSpan.Contains(position))
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
+            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
+            return childNodeOrToken;
+        }
 
         /// <summary>
         /// Gets node at given node index. 
@@ -1204,14 +1234,37 @@ namespace Microsoft.CodeAnalysis
             return IsEquivalentToCore(node, topLevel);
         }
 
-        public abstract void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        internal static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
+
+        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (!stream.CanWrite)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
+            }
+
+            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            {
+                writer.WriteValue(this.Green);
+            }
+        }
+
+        internal abstract ObjectWriterData GetDefaultObjectWriterData();
 
         #region Core Methods
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
         /// </summary>
-        protected abstract bool EquivalentToCore(SyntaxNode other);
+        protected virtual bool EquivalentToCore(SyntaxNode other)
+        {
+            return IsEquivalentTo(other);
+        }
 
         /// <summary>
         /// Returns SyntaxTree that owns the node or null if node does not belong to a
@@ -1401,7 +1454,19 @@ namespace Microsoft.CodeAnalysis
         /// nodes and tokens must be equivalent. 
         /// </param>
         protected abstract bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false);
+
         #endregion
+
+        /// <summary>
+        /// Whether or not this parent node wants its child SyntaxList node to be 
+        /// converted to a Weak-SyntaxList when creating the red-node equivalent.
+        /// For example, in C# the statements of a Block-Node that is parented by a 
+        /// MethodDeclaration will be held weakly.
+        /// </summary>
+        internal virtual bool ShouldCreateWeakList()
+        {
+            return false;
+        }
 
         internal bool HasErrors
         {

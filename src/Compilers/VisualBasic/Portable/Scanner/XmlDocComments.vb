@@ -7,6 +7,7 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -228,14 +229,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' // [14]    CharData    ::=    [^<&]* - ([^<&]* ']]>' [^<&]*)
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             If IsAtNewLine() OrElse _isStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 _isStartingFirstXmlDocLine = False           ' no longer starting
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             End If
 
             Dim Here As Integer = 0
@@ -451,14 +452,14 @@ CleanUp:
             ' //  =
             ' //  Whitespace
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
 
             If IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             End If
 
             While CanGet()

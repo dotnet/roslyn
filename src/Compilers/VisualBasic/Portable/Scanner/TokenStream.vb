@@ -7,6 +7,7 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -308,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             currentToken = tk
         End Sub
 
-        Friend Sub TransitionFromXmlToVB(toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
+        Friend Sub TransitionFromXmlToVB(toCompare As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
@@ -321,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 
@@ -338,14 +339,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _currentToken = New ScannerToken(_scannerPreprocessorState, _lineBufferOffset, _endOfTerminatorTrivia, Nothing, state)
         End Sub
 
-        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
+        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 

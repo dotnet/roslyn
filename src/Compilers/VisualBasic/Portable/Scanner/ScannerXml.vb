@@ -10,11 +10,12 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
 
-        Private Function ScanXmlTrivia(c As Char) As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Function ScanXmlTrivia(c As Char) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Debug.Assert(Not IsScanningXmlDoc)
             Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' //  =
             ' //  Whitespace
 
-            Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim leadingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
 
             While CanGet()
                 Dim c As Char = Peek()
@@ -330,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanXmlReference(Nothing)
 
                     Case "<"c
-                        Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                        Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
                         If Here <> 0 Then
                             If Not IsAllWhitespace Then
                                 Return XmlMakeTextLiteralToken(Nothing, Here, scratch)
@@ -482,7 +483,7 @@ ScanChars:
         Friend Function ScanXmlComment() As SyntaxToken
             ' // [15]    Comment    ::=    '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             If IsScanningXmlDoc AndAlso IsAtNewLine() Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
@@ -572,7 +573,7 @@ ScanChars:
             ' // [20]    CData    ::=    (Char* - (Char* ']]>' Char*))
             ' // [21]    CDEnd    ::=    ']]>'
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             If IsScanningXmlDoc AndAlso IsAtNewLine() Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
@@ -719,7 +720,7 @@ CleanUp:
 
             ' // Misc    ::=    Comment | PI | S
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             While CanGet()
                 Dim c As Char = Peek()
 
@@ -1048,7 +1049,7 @@ CleanUp:
             Return ScanSurrogatePair(c, Here)
         End Function
 
-        Private Function ScanXmlNcName(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanXmlNcName(precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             ' // Scan a non qualified name per Xml Namespace 1.0
             ' // [4]  NCName ::=  (Letter | '_') (NCNameChar)* /*  An XML Name, minus the ":" */
 
@@ -1129,7 +1130,7 @@ CreateNCNameToken:
             Return MakeMissingToken(precedingTrivia, SyntaxKind.XmlNameToken)
         End Function
 
-        Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
+        Private Function ScanXmlReference(precedingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
             Debug.Assert(CanGet)
             Debug.Assert(Peek() = "&"c)
 

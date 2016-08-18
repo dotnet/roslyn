@@ -3093,7 +3093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var statement = BindExpressionStatement(syntax, syntax, false, diagnostics);
                     statementBuilder.Add(statement);
                 }
-                return BoundStatementList.Synthesized((CSharpSyntaxNode)statements.Node, statementBuilder.ToImmutableAndFree());
+                return BoundStatementList.Synthesized(statements.Node, statementBuilder.ToImmutableAndFree());
             }
         }
 
