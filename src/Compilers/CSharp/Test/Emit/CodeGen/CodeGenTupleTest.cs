@@ -17525,20 +17525,6 @@ public struct S
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13088")]
-        public void AssignNullWithMissingValueTuple()
-        {
-            var source = @"
-public struct S
-{
-    (int, int) t = null;
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(); // crashes
-        }
-
         [Fact]
         public void RetargetTupleErrorType()
         {
@@ -17570,6 +17556,27 @@ public class B
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.False(methodM.ReturnType.IsErrorType());
             Assert.True(methodM.ReturnType.TupleUnderlyingType.IsErrorType());
+        }
+
+        [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
+        public void AssignNullWithMissingValueTuple()
+        {
+            var source = @"
+public class S
+{
+    (int, int) t = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 5),
+                // (4,20): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(4, 20)
+                );
         }
     }
 }
