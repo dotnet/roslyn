@@ -4620,16 +4620,16 @@ checkNullable:
                     value = ParseExpressionCore()
                 End If
             End If
+
             Dim initializer As EqualsValueSyntax = Nothing
 
-            If (equals IsNot Nothing) AndAlso (value IsNot Nothing) Then
+            If value IsNot Nothing Then
 
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
                 End If
 
                 initializer = SyntaxFactory.EqualsValue(equals, value)
-
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
