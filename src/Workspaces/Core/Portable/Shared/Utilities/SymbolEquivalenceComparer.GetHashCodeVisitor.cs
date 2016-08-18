@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private readonly bool _objectAndDynamicCompareEqually;
             private readonly Func<int, IParameterSymbol, int> _parameterAggregator;
             private readonly Func<int, ISymbol, int> _symbolAggregator;
-            private readonly Func<int, INamedTypeSymbol, int> _namedTypeAggregator;
 
             public GetHashCodeVisitor(
                 SymbolEquivalenceComparer symbolEquivalenceComparer,
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
                 _parameterAggregator = (acc, sym) => Hash.Combine(symbolEquivalenceComparer.ParameterEquivalenceComparer.GetHashCode(sym), acc);
                 _symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
-                _namedTypeAggregator = CombineNamedTypeHashCode;
             }
 
             public int GetHashCode(ISymbol x, int currentHash)
@@ -169,10 +167,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
             {
-                return Unwrap(x).Aggregate(currentHash, _namedTypeAggregator);
+                currentHash = CombineNamedTypeHashCode(x, currentHash);
+
+                var errorType = x as IErrorTypeSymbol;
+                if (errorType != null)
+                {
+                    foreach (var candidate in errorType.CandidateSymbols)
+                    {
+                        var candidateNamedType = candidate as INamedTypeSymbol;
+                        if (candidateNamedType != null)
+                        {
+                            currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
+                        }
+                    }
+                }
+
+                return currentHash;
             }
 
-            private int CombineNamedTypeHashCode(int currentHash, INamedTypeSymbol x)
+            private int CombineNamedTypeHashCode(INamedTypeSymbol x, int currentHash)
             {
                 // If we want object and dynamic to be the same, and this is 'object', then return
                 // the same hash we do for 'dynamic'.
