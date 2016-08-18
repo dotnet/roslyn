@@ -7955,6 +7955,8 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
 DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
 ]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
@@ -7994,6 +7996,8 @@ End Module
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
 DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
 ]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
@@ -8002,8 +8006,10 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario3()
             Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
-
-            CompileAndVerify(
+            'Error BC30307 'Public Overrides Sub f(x As Integer, [y As Integer])' cannot override 'Public Overridable Sub f(x As Integer, [y As Integer = 2])' because they differ by the default values of optional parameters.
+            Assert.Throws(Of EmitException)(
+Sub()
+    CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -8015,7 +8021,7 @@ End Class
 
 Class derived
     Inherits base
-    Public Overrides Sub f(x As Integer, Optional y As Integer) 
+    Public Overrides Sub f(x As Integer, Optional y As Integer = 1) 
         Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 1)")
     End Sub
 End Class
@@ -8031,31 +8037,33 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:=<![CDATA[
-BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
-DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 1)
-]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+</compilation>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+
+
+End Sub)
+
         End Sub
 
         <Fact()>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario4()
             Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
-
-            CompileAndVerify(
+            Assert.Throws(Of EmitException)(
+Sub()
+    CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Imports System
 Class base
-    Public Overridable Sub f(x As Integer, Optional y As Integer = 2)
-        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 2)")
+    Public Overridable Sub f(x As Integer, Optional y As Integer = 1)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 1)")
     End Sub
 End Class
 
 Class derived
     Inherits base
-    Public Overrides Sub f(x As Integer, Optional y As Integer) 
-        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    Public Overrides Sub f(x As Integer, Optional y As Integer = 2) 
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 2)")
     End Sub
 End Class
 
@@ -8070,19 +8078,20 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:=<![CDATA[
-BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 2)
-DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
-]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+</compilation>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+
+
+End Sub)
         End Sub
 
 
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_A()
-
-            CompileAndVerify(
+            Assert.False(CheckFeatureAvailability(_VBParseOptionsWithoutImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                         "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
+            Dim compV = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                         <file name="a.vb">
 Imports System
 Class base1
     Public Overridable Sub f(x As Integer)
@@ -8125,14 +8134,14 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+                                     </compilation>, expectedOutput:=<![CDATA[
 BASE2: f(x As Integer, Optional y As Integer = 0)
 BASE2: f(x As Integer, Optional y As Integer = 0)
 BASE1: f(x As Integer, Optional y As String = "")
 DERIVED: f(x As Integer, Optional y As Integer = 0)
 DERIVED: f(x As Integer, Optional y As Integer = 0)
 DERIVED: f(x As Integer, Optional y As String = "")
-]]>)
+]]>, parseOptions:=_VBParseOptionsWithoutImplicitDefaultOptionalParameter)
         End Sub
 
         <Fact>
@@ -8142,7 +8151,7 @@ DERIVED: f(x As Integer, Optional y As String = "")
 
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                             <file name="a.vb">
 Imports System
 Class base1
     Public Overridable Sub f(x As Integer)
@@ -8185,7 +8194,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+                                         </compilation>, expectedOutput:=<![CDATA[
 BASE2: f(x As Integer, Optional y As Integer)
 BASE2: f(x As Integer, Optional y As Integer)
 BASE1: f(x As Integer, Optional y As String = "")
@@ -8196,7 +8205,7 @@ DERIVED: f(x As Integer, Optional y As String = "")
         End Sub
 
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
-        <Fact>
+                                             <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
@@ -8236,7 +8245,7 @@ End Class
         End Sub
 
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
-        <Fact>
+                                                     <Fact>
         Public Sub OverloadsWithOnlyOptionalParameters2()
 
             Dim csCompilation = CreateCSharpCompilation("CSDll",
@@ -8288,7 +8297,7 @@ BC30521: Overload resolution failed because no accessible 'M' is most specific f
 
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                 <file name="a.vb">
 Imports System
 Namespace N
     Structure A
@@ -8306,7 +8315,7 @@ Namespace N
     End Structure
 End Namespace
     </file>
-</compilation>, expectedOutput:="New(Optional x As Integer = 0);New(ParamArray x As Integer());")
+                                                             </compilation>, expectedOutput:="New(Optional x As Integer = 0);New(ParamArray x As Integer());")
 
         End Sub
 
@@ -8315,7 +8324,7 @@ End Namespace
 
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                     <file name="a.vb">
 Imports System
 MustInherit Class A
     Public MustOverride Sub f(Optional x As String = "")
@@ -8341,7 +8350,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, expectedOutput:="f();f(Optional x As String = "");")
+                                                                 </compilation>, expectedOutput:="f();f(Optional x As String = "");")
 
         End Sub
 
@@ -8350,7 +8359,7 @@ End Class
 
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                         <file name="a.vb">
 Imports System
 Class A
     Public Overridable Sub f(Optional x As String = "")
@@ -8386,7 +8395,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, expectedOutput:="f();f(Optional x As String = "");")
+                                                                     </compilation>, expectedOutput:="f();f(Optional x As String = "");")
 
         End Sub
 
@@ -8394,7 +8403,7 @@ End Class
         Public Sub ImplicitStructParameterlessConstructorCallWithMe()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                             <file name="a.vb">
 Imports System
 Structure S1
     Public Sub New(x As Integer)
@@ -8403,7 +8412,7 @@ Structure S1
     End Sub
 End Structure
     </file>
-</compilation>).
+                                                                         </compilation>).
             VerifyIL("S1..ctor(Integer)",
             <![CDATA[
 {
@@ -8420,7 +8429,7 @@ End Structure
         Public Sub ExplicitStructParameterlessConstructorCallWithMe()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                 <file name="a.vb">
 Imports System
 Structure S1
     Public Sub New(x As Integer)
@@ -8430,7 +8439,7 @@ Structure S1
     End Sub
 End Structure
     </file>
-</compilation>).
+                                                                             </compilation>).
             VerifyIL("S1..ctor(Integer)",
             <![CDATA[
 {
@@ -8444,12 +8453,12 @@ End Structure
         End Sub
 
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
-        <Fact>
+                                                                                 <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
+                                                                                     <Fact>
         Public Sub StructNonDefaultConstructorInitializer()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                             <file name="a.vb">
 Structure S
     Public Sub New(x As Integer)
     End Sub
@@ -8459,7 +8468,7 @@ Structure S
     End Sub
 End Structure
     </file>
-</compilation>).
+                                                                                         </compilation>).
             VerifyIL("S..ctor(Integer, String)",
             <![CDATA[
 {
@@ -8477,7 +8486,7 @@ End Structure
         Public Sub PartiallyInitializedValue_PublicConstructor_Fields()
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                 <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8501,7 +8510,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                             </compilation>
 
             CompileAndVerify(vbSource).
                 VerifyIL("C.M",
@@ -8551,7 +8560,7 @@ End Class
         Public Sub PartiallyInitializedValue_PublicConstructor_Locals()
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                     <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8575,7 +8584,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                 </compilation>
 
             CompileAndVerify(vbSource).
                 VerifyIL("C.M",
@@ -8625,7 +8634,7 @@ End Class
         Public Sub PartiallyInitializedValue_PublicConstructor_LocalInLoop()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                         <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8657,7 +8666,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+                                                                                                     </compilation>, expectedOutput:=<![CDATA[
 x=0, y=0
 x=1, y=2
 ]]>).
@@ -8718,7 +8727,7 @@ VerifyIL("C.Main",
         Public Sub PartiallyInitializedValue_PublicConstructor_LocalDeclaration()
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                             <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8737,7 +8746,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                         </compilation>
 
             CompileAndVerify(vbSource).
                 VerifyIL("C.M",
@@ -8776,7 +8785,7 @@ End Class
         Public Sub PartiallyInitializedValue_PublicConstructor_LocalDeclaration_SideEffects()
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                 <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8798,7 +8807,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                             </compilation>
 
             ' NOTE: Current implementation does not support optimization for constructor calls with side effects
             CompileAndVerify(vbSource).
@@ -8866,7 +8875,7 @@ End Class
         Public Sub PartiallyInitializedValue_PublicConstructor_Params()
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                     <file name="a.vb">
 Imports System        
 
 Structure S
@@ -8886,7 +8895,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                 </compilation>
 
             CompileAndVerify(vbSource).
                 VerifyIL("C.M",
@@ -8945,7 +8954,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                         <file name="a.vb">
 Imports System        
 Class C
     Dim Fld As S
@@ -8963,7 +8972,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                     </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
@@ -9024,7 +9033,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                             <file name="a.vb">
 Imports System        
 Class C
     Sub M()
@@ -9042,7 +9051,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                         </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
@@ -9103,7 +9112,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                 <file name="a.vb">
 Imports System        
 Class C
     Sub M(paramByVal As S, ByRef paramByRef As S)
@@ -9117,7 +9126,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                             </compilation>
 
             ' TODO (tomat): verification fails
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
@@ -9167,7 +9176,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                     <file name="a.vb">
 Imports System        
 Class C
     Dim Fld As S
@@ -9185,7 +9194,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                 </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
@@ -9240,7 +9249,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                         <file name="a.vb">
 Imports System        
 Class C
     Sub M()
@@ -9258,7 +9267,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                     </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
@@ -9309,7 +9318,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                             <file name="a.vb">
 Imports System        
 Class C
     Sub M(paramByVal As S, ByRef paramByRef As S)
@@ -9323,7 +9332,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                         </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
@@ -9358,8 +9367,8 @@ End Class
         End Sub
 
         <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
-        <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                             <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
+                                                                                                                                                 <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Public()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9378,7 +9387,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                         <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9394,7 +9403,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                     </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
@@ -9428,7 +9437,7 @@ End Class
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                         <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Protected()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9447,7 +9456,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                 <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9463,7 +9472,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                             </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
@@ -9497,7 +9506,7 @@ End Class
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                                 <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_Private()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9516,7 +9525,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                         <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9532,7 +9541,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                                     </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
@@ -9584,7 +9593,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                             <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9600,7 +9609,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                                         </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDebugDll).
                 VerifyIL("C.Main",
@@ -9643,7 +9652,7 @@ End Class
 
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                                             <Fact>
         Public Sub PublicParameterlessConstructorInMetadata_OptionalParameter()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9663,7 +9672,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                     <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9679,7 +9688,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                                                 </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
@@ -9713,7 +9722,7 @@ End Class
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                                                     <Fact>
         Public Sub SimpleStructInstantiationAndAssigningNothing()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9726,7 +9735,7 @@ End Class
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                             <file name="a.vb">
 Option Infer Off
 Class C
     Shared Sub Main()
@@ -9742,7 +9751,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                                                         </compilation>
 
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
@@ -9776,11 +9785,11 @@ End Class
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                                                             <Fact>
         Public Sub TypeParameterInitializationWithNothing()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                     <file name="a.vb">
 Imports System  
 Class CT(Of X)
     Public Sub T()
@@ -9792,7 +9801,7 @@ Module EmitTest
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                 </compilation>, expectedOutput:="").
             VerifyIL("CT(Of X).T()",
             <![CDATA[
 {
@@ -9804,11 +9813,11 @@ End Module
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact()>
+                                                                                                                                                                                                     <Fact()>
         Public Sub TypeParameterInitializationWithNothing_StructConstraint()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                             <file name="a.vb">
 Imports System  
 Class CT(Of X As Structure)
     Public Sub T()
@@ -9822,7 +9831,7 @@ Module EmitTest
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                         </compilation>, expectedOutput:="").
             VerifyIL("CT(Of X).T()",
             <![CDATA[
 {
@@ -9838,11 +9847,11 @@ End Module
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact()>
+                                                                                                                                                                                                             <Fact()>
         Public Sub TypeParameterInitializationWithNothing_NewConstraint()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                     <file name="a.vb">
 Imports System  
 Class CT(Of X As New)
     Public Sub T()
@@ -9856,7 +9865,7 @@ Module EmitTest
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                                 </compilation>, expectedOutput:="").
             VerifyIL("CT(Of X).T()",
             <![CDATA[
 {
@@ -9872,11 +9881,11 @@ End Module
         End Sub
 
         <WorkItem(541308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541308")>
-        <Fact>
+                                                                                                                                                                                                                     <Fact>
         Public Sub StructInstantiationWithParameters()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                             <file name="a.vb">
 Option Infer Off
 Imports System  
 Structure S
@@ -9891,7 +9900,7 @@ Module EmitTest
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                                         </compilation>, expectedOutput:="").
             VerifyIL("EmitTest.Main",
             <![CDATA[
 {
@@ -9917,8 +9926,8 @@ End Module
         End Sub
 
         <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
-        <WorkItem(541309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")>
-        <Fact>
+                                                                                                                                                                                                                             <WorkItem(541309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")>
+                                                                                                                                                                                                                                 <Fact>
         Public Sub PrivateParameterlessConstructorInMetadata()
             Dim ilSource = <![CDATA[
 .class public sequential ansi sealed beforefieldinit S
@@ -9937,7 +9946,7 @@ End Module
 
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                         <file name="a.vb">
 Class C
     Shared Sub Main()
         Dim s as S = New S()
@@ -9945,7 +9954,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>
+                                                                                                                                                                                                                                     </compilation>
 
             ' CONSIDER: This is the dev10 behavior.
             ' Shouldn't there be an error for trying to call an inaccessible ctor?
@@ -9965,7 +9974,7 @@ End Class
         Public Sub TestAsNewWithMultipleLocals()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                             <file name="a.vb">
 Imports System        
 Module EmitTest
 
@@ -9993,7 +10002,7 @@ Module EmitTest
 
 End Module
     </file>
-</compilation>,
+                                                                                                                                                                                                                                         </compilation>,
 expectedOutput:=<![CDATA[
 1
 2
@@ -10018,11 +10027,11 @@ expectedOutput:=<![CDATA[
         End Sub
 
         <WorkItem(540533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540533")>
-        <Fact()>
+                                                                                                                                                                                                                                             <Fact()>
         Public Sub Bug6817()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System
 Module M1
     Sub foo()
@@ -10038,7 +10047,7 @@ Public Module M2
     End Sub
 End Module
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                 </compilation>,
 expectedOutput:="").
             VerifyIL("M1.foo",
             <![CDATA[
@@ -10059,11 +10068,11 @@ expectedOutput:="").
         End Sub
 
         <WorkItem(8597, "DevDiv_Projects/Roslyn")>
-        <Fact>
+                                                                                                                                                                                                                                                     <Fact>
         Public Sub OpenGenericWithAliasQualifierInGetType()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                             <file name="a.vb">
 Imports System
 Imports OuterOfString = Outer(Of String)
 Imports OuterOfInt = Outer(Of Integer)
@@ -10079,7 +10088,7 @@ Public Module Module1
     End Sub
 End Module
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                         </compilation>,
 expectedOutput:="True")
         End Sub
 
@@ -10087,7 +10096,7 @@ expectedOutput:="True")
         Public Sub ArrayLongLength()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb">
+                                                                                                                                                                                                                                                                 <file name="a.vb">
 public Module A
     Public Sub Main()
         Dim arr As Integer() = New Integer(4) {}
@@ -10095,7 +10104,7 @@ public Module A
     End Sub
 End Module
     </file>
-            </compilation>,
+                                                                                                                                                                                                                                                             </compilation>,
             expectedOutput:="6").
                         VerifyIL("A.Main",
             <![CDATA[
@@ -10116,11 +10125,11 @@ End Module
         End Sub
 
         <WorkItem(528679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528679")>
-        <Fact()>
+                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub FunctionCallWhileOptionInferOn()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb">
+                                                                                                                                                                                                                                                                         <file name="a.vb">
 Option Strict Off
 Option Infer On
 Public Class MyClass1
@@ -10136,7 +10145,7 @@ Public Class MyClass1
     End Sub
 End Class
                 </file>
-            </compilation>,
+                                                                                                                                                                                                                                                                     </compilation>,
             expectedOutput:="").
                         VerifyIL("MyClass1.foo1",
             <![CDATA[
@@ -10154,11 +10163,11 @@ End Class
 
         ' Verify that the metadata for an attribute with a serialized an enum type with generics and nested class is correctly written by compiler and read by reflection.
         <WorkItem(541278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541278")>
-        <Fact>
+                                                                                                                                                                                                                                                                         <Fact>
         Public Sub EmittingAttributesWithGenericsAndNestedClasses()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                 <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 
@@ -10203,7 +10212,7 @@ Module m1
     End Sub
 End Module
 ]]></file>
-            </compilation>,
+                                                                                                                                                                                                                                                                             </compilation>,
             expectedOutput:=<![CDATA[
 AEB
 AED
@@ -10249,7 +10258,7 @@ AEC
         Public Sub NewEnum001()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb">
+                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System
 Class A
     Enum E1
@@ -10266,7 +10275,7 @@ End Class
 
 
     </file>
-            </compilation>,
+                                                                                                                                                                                                                                                                                 </compilation>,
             expectedOutput:="SundayAAA").
                         VerifyIL("A.Main",
             <![CDATA[
@@ -10293,11 +10302,11 @@ End Class
         End Sub
 
         <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
-        <Fact>
+                                                                                                                                                                                                                                                                                     <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReference()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
-                    <file name="a.vb">
+                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Imports System.Collections.Generic
 Imports System.Collections
 
@@ -10313,11 +10322,11 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                                                                                                                                                                                                                                                                                         </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
-                    <file name="b.vb">
+                                                                                                                                                                                                                                                                                             <file name="b.vb">
 Imports System.Collections.Generic
 Imports System.Collections
 
@@ -10330,7 +10339,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                                                                                                                                                                                                                                                                                         </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10346,11 +10355,11 @@ End Class
         End Sub
 
         <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
-        <Fact>
+                                                                                                                                                                                                                                                                                             <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReferenceProperty()
             Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
-                    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System.Collections.Generic
 Imports System.Collections
 
@@ -10371,11 +10380,11 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                                                                                                                                                                                                                                                                                                 </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
-                    <file name="b.vb">
+                                                                                                                                                                                                                                                                                                     <file name="b.vb">
 Imports System.Collections.Generic
 Imports System.Collections
 
@@ -10398,7 +10407,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                                                                                                                                                                                                                                                                                                 </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -10414,11 +10423,11 @@ End Class
         End Sub
 
         <WorkItem(9850, "DevDiv_Projects/Roslyn")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub NullableConversion()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb">
+                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Module M
     Function F() As Object
         Dim o As Integer? = 0
@@ -10426,15 +10435,15 @@ Module M
     End Function
 End Module
     </file>
-            </compilation>)
+                                                                                                                                                                                                                                                                                                         </compilation>)
         End Sub
 
         <WorkItem(9852, "DevDiv_Projects/Roslyn")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub NullableIsNothing()
             CompileAndVerify(
             <compilation>
-                <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Module M
     Function F1(o As Integer?) As Boolean
         Return o Is Nothing
@@ -10444,14 +10453,14 @@ Module M
     End Function
 End Module
     </file>
-            </compilation>)
+                                                                                                                                                                                                                                                                                                                 </compilation>)
         End Sub
 
         <Fact>
         Public Sub MetadataTypeName()
             Dim source =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Namespace Foo
     Class B
     End Class
@@ -10495,7 +10504,7 @@ Namespace Global
     End Namespace
 End Namespace
     </file>
-</compilation>
+                                                                                                                                                                                                                                                                                                                     </compilation>
 
             Dim comp = CompileAndVerify(source, options:=TestOptions.ReleaseDll.WithRootNamespace("Project"), validator:=
                 Sub(a)
@@ -10514,7 +10523,7 @@ End Namespace
         Public Sub LogicalOrWithBinaryExpressionOperands()
             Dim comp = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Module Module1
     Sub Main()
         Dim a = "1"
@@ -10527,7 +10536,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, options:=TestOptions.DebugDll)
+                                                                                                                                                                                                                                                                                                                             </compilation>, options:=TestOptions.DebugDll)
 
             comp.VerifyIL("Module1.Main", <![CDATA[
 {
@@ -10570,7 +10579,7 @@ End Module
         End Sub
 
         <WorkItem(543243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub TestAutoProperty()
             Dim vbCompilation = CreateVisualBasicCompilation("TestAutoProperty",
             <![CDATA[Public Module Program
@@ -10589,11 +10598,11 @@ End Module]]>,
         End Sub
 
         <WorkItem(543243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543243")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub TestOrInDebug()
             Dim c = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System
 Module Module1
     Sub Main()
@@ -10607,7 +10616,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                                                                                                             </compilation>,
             options:=TestOptions.DebugExe,
             expectedOutput:="Pass")
 
@@ -10652,11 +10661,11 @@ End Module
         End Sub
 
         <WorkItem(539392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539392")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub DecimalBinaryOp_01()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Imports System
 Module Program
     Sub Main()
@@ -10664,7 +10673,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="79228162514264337593543950335").
+                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="79228162514264337593543950335").
             VerifyIL("Program.Main",
             <![CDATA[
 {
@@ -10683,11 +10692,11 @@ End Module
         End Sub
 
         <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub CompareToOnDecimalLiteral()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System
 Module Program
     Sub Main()
@@ -10695,7 +10704,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="-1").
+                                                                                                                                                                                                                                                                                                                                                             </compilation>, expectedOutput:="-1").
             VerifyIL("Program.Main",
             <![CDATA[
 {
@@ -10716,11 +10725,11 @@ End Module
         End Sub
 
         <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub CallOnReadonlyValField()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Imports System
 Class Test
 
@@ -10740,7 +10749,7 @@ Class Test
 
 End Class
     </file>
-</compilation>, expectedOutput:="-1").
+                                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="-1").
             VerifyIL("Test.Main",
             <![CDATA[
 {
@@ -10763,7 +10772,7 @@ End Class
         Public Sub CallOnReadonlyValFieldNested()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Imports System
 Class Program
 
@@ -10814,7 +10823,7 @@ End Structure
 
 
     </file>
-</compilation>, expectedOutput:="42").
+                                                                                                                                                                                                                                                                                                                                                                         </compilation>, expectedOutput:="42").
             VerifyIL("Program.Main",
             <![CDATA[
 {
@@ -10848,11 +10857,11 @@ End Structure
 
 
         <WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub MultipleconstsByRef()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System
 Module Program
     Sub Main()
@@ -10870,7 +10879,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                                                                                                                                                                                                 </compilation>, expectedOutput:="").
             VerifyIL("Program.Main",
             <![CDATA[
 {
@@ -10915,11 +10924,11 @@ End Module
         End Sub
 
         <WorkItem(638119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638119")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub ArrayInitZero()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Imports System
 Module Program
     Sub Main()
@@ -10956,7 +10965,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[False
+                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[False
 
 True
 System.Exception: Exception of type 'System.Exception' was thrown.
@@ -11012,7 +11021,7 @@ True
         Public Sub ArrayInitZero_D()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System
 Module Program
     Sub Main()
@@ -11049,7 +11058,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[False
+                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[False
 
 True
 System.Exception: Exception of type 'System.Exception' was thrown.
@@ -11143,11 +11152,11 @@ End Module]]>,
         End Sub
 
         <WorkItem(11640, "DevDiv_Projects/Roslyn")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub TestDecimalConversionCDec01()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Imports Microsoft.VisualBasic
 Imports System.Math
 
@@ -11160,8 +11169,8 @@ Class Test
         End If
     End Sub
 End Class]]>
-    </file>
-</compilation>, expectedOutput:="PASS").
+                                                                                                                                                                                                                                                                                                                                                                                                             </file>
+                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, expectedOutput:="PASS").
                 VerifyIL("Test.Main", <![CDATA[
 {
   // Code size       11 (0xb)
@@ -11175,11 +11184,11 @@ End Class]]>
 
 
         <WorkItem(543757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543757")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub TestNotXor()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb"><![CDATA[
 Imports System
 
 Module Program
@@ -11196,8 +11205,8 @@ Module Program
     End Sub
 End Module
 ]]>
-    </file>
-</compilation>, expectedOutput:="FalseTrue").
+                                                                                                                                                                                                                                                                                                                                                                                                                     </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>, expectedOutput:="FalseTrue").
                 VerifyIL("Program.Main", <![CDATA[
 {
   // Code size       34 (0x22)
@@ -11219,7 +11228,7 @@ End Module
         Public Sub NotEqualIntegralAndFloat()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb"><![CDATA[
 Class Class1
     Shared Sub Main()
         Dim i As Integer = -1
@@ -11248,8 +11257,8 @@ Class Class1
     End Sub
 End Class
 ]]>
-    </file>
-</compilation>, expectedOutput:="notequal1notequal2").
+                                                                                                                                                                                                                                                                                                                                                                                                                         </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="notequal1notequal2").
                 VerifyIL("Class1.Main", <![CDATA[
 {
   // Code size       92 (0x5c)
@@ -11289,14 +11298,14 @@ End Class
         Public Sub CodeGenLambdaNarrowingRelaxation()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Imports System
 Class HasAutoProps
     Property Scen11() As Func(Of String, Integer) = Function(y As Integer) y.ToString()
 End Class
 ]]>
-    </file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                             </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
         End Sub
 
         <Fact(), WorkItem(544182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544182")>
@@ -11347,7 +11356,7 @@ End Class
 ]]>.Value
             Dim vbSource =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Class Bandicoot : Implements IAnimal
     Sub MakeNoise(Optional pitch As Integer = 20000) Implements IAnimal.MakeNoise
     End Sub
@@ -11368,7 +11377,7 @@ Class Platypus : Inherits AbstractAnimal
     End Property
 End Class
     </file>
-</compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>
 
             CompileWithCustomILSource(vbSource, optParameterSource)
         End Sub
@@ -11377,7 +11386,7 @@ End Class
         Public Sub MyClassAssign()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System
 Module M1
     Sub Main()
@@ -11391,7 +11400,7 @@ Structure S
     End Sub
 End Structure
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>,
 expectedOutput:="").
             VerifyIL("S.M",
             <![CDATA[
@@ -11410,7 +11419,7 @@ expectedOutput:="").
         Public Sub TestHostProtectionAttributeWithoutSecurityAction()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Imports System
 
 Module M1
@@ -11422,13 +11431,13 @@ End Module
 Class C1
 End Class
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>,
 expectedOutput:="")
 
         End Sub
 
         <WorkItem(545201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545201")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub TestConversionMultiDimArrayToIList()
             Dim vbCompilation = CreateVisualBasicCompilation("TestConversionMultiDimArrayToIList",
             <![CDATA[Imports System
@@ -11489,11 +11498,11 @@ PASS
         End Sub
 
         <WorkItem(545349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545349")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub CompoundPropGeneric()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -11537,7 +11546,7 @@ Public Structure S1
 End Structure 
 
     </file>
-</compilation>,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>,
 expectedOutput:="2").
             VerifyIL("Test.TestINop(Of T)(T)",
             <![CDATA[
@@ -11574,7 +11583,7 @@ expectedOutput:="2").
                                                        End Sub
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="c.vb"><![CDATA[
 Option Strict On
 Imports System.Runtime.InteropServices
 <ComImport()>
@@ -11590,7 +11599,7 @@ End Class
 Class C
 End Class
     ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=False)
         End Sub
 
@@ -11635,7 +11644,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="c.vb"><![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -11671,7 +11680,7 @@ Module M1
     End Sub
 End Module
     ]]></file>
-</compilation>, TestOptions.ReleaseExe)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator, expectedOutput:="PASS1, PASS2")
         End Sub
 
@@ -11679,7 +11688,7 @@ End Module
         Public Sub ExitPropertyDefaultReturnValue()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="c.vb"><![CDATA[
 Option Strict On
 Class Program
     Property P As Integer
@@ -11692,7 +11701,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>)
 
             ' NOTE: warning, not error for missing return value.
             compilation.VerifyDiagnostics(
@@ -11721,7 +11730,7 @@ End Class
         Public Sub ExitPropertyGetterSetReturnValue()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="c.vb"><![CDATA[
 Option Strict On
 Class Program
     Property P As Integer
@@ -11735,7 +11744,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>)
 
             compilation.VerifyDiagnostics()
 
@@ -11754,7 +11763,7 @@ End Class
         Public Sub ExitPropertySetterSetReturnValue()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="c.vb"><![CDATA[
 Option Strict On
 Class Program
     Property P As Integer
@@ -11768,7 +11777,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -11798,7 +11807,7 @@ BC42026: Expression recursively calls the containing property 'Public Property P
         Public Sub ExitPropertyOutput()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
-    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="c.vb"><![CDATA[
 Imports System
 
 Class Program
@@ -11824,7 +11833,7 @@ Class Program
     End Property
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseExe)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 In get
 1
@@ -11836,18 +11845,18 @@ In get
         End Sub
 
         <WorkItem(545716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545716")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub Regress14344()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Class EdmFunction
     Private Shared Sub SetFunctionAttribute(ByRef field As Byte, attribute As byte)
         field += field And attribute
     End Sub
 End Class
     </file>
-</compilation>).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>).
             VerifyIL("EdmFunction.SetFunctionAttribute",
             <![CDATA[
 {
@@ -11869,11 +11878,11 @@ End Class
         End Sub
 
         <WorkItem(546189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546189")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub Regress15299()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System
 
 Module Module1
@@ -11890,7 +11899,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, expectedOutput:="pass").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, expectedOutput:="pass").
             VerifyIL("Module1.Main",
             <![CDATA[
 {
@@ -11924,11 +11933,11 @@ End Module
         End Sub
 
         <WorkItem(546422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub LateBindingToSystemArrayIndex01()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 option strict off        
 
 Imports System
@@ -11953,7 +11962,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:="12").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:="12").
             VerifyIL("Module1.getTypes",
             <![CDATA[
 {
@@ -12023,11 +12032,11 @@ End Module
         End Sub
 
         <WorkItem(546422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546422")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub LateBindingToSystemArrayIndex01_D()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 option strict off        
 
 Imports System
@@ -12052,7 +12061,7 @@ Module Module1
 End Module
 
     </file>
-</compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:="12").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, options:=TestOptions.ReleaseDebugExe.WithModuleName("MODULE"), expectedOutput:="12").
             VerifyIL("Module1.getTypes",
             <![CDATA[
 {
@@ -12128,12 +12137,12 @@ End Module
 
 
         <WorkItem(575547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575547")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub LateBindingToSystemArrayIndex02()
             ' Option Strict On
             Dim source1 =
                 <compilation>
-                    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="c.vb"><![CDATA[
 Option Strict On
 Class C
     Public Function F() As System.Array
@@ -12148,8 +12157,8 @@ Module M
     End Sub
 End Module
 ]]>
-                    </file>
-                </compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1)
             compilation1.AssertTheseDiagnostics(
 <expected>
@@ -12163,7 +12172,7 @@ BC30574: Option Strict On disallows late binding.
             ' Option Strict Off
             Dim source2 =
                 <compilation>
-                    <file name="c.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="c.vb"><![CDATA[
 Option Strict Off
 Class C
     Public Function F() As System.Array
@@ -12178,8 +12187,8 @@ Module M
     End Sub
 End Module
 ]]>
-                    </file>
-                </compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2)
             compilation2.AssertNoErrors()
         End Sub
@@ -12188,7 +12197,7 @@ End Module
         Public Sub Bug17007()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Module Module1
     Sub Main()
 	System.Console.WriteLine(Test1(100))
@@ -12203,7 +12212,7 @@ Module Module1
     End Function 
 End Module
     </file>
-</compilation>, options:=TestOptions.ReleaseExe,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, options:=TestOptions.ReleaseExe,
 expectedOutput:=
             <![CDATA[
 -100
@@ -12214,8 +12223,8 @@ expectedOutput:=
         Public Sub InitializeComponentTest()
             Dim source =
 <compilation>
-    <file name="a.vb">
-        <![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <![CDATA[
 Module Module1
     Public Sub Main()
     End Sub
@@ -12332,8 +12341,8 @@ Class FromDesigner6
     End Sub
 End Class
     ]]>
-    </file>
-</compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             AssertTheseEmitDiagnostics(compilation,
@@ -12403,7 +12412,7 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
         End Sub
 
         <WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")>
-        <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact>
         Public Sub NopAfterCall()
             ' For a nop to be inserted after a call, two conditions must be met:
             '   1) sub (vs function)
@@ -12411,7 +12420,7 @@ BC40054: 'Public Sub New(c As Integer)' in designer-generated type 'FromDesigner
 
             Dim source =
                 <compilation>
-                    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Module C
     Sub Main()
 	    S()
@@ -12426,7 +12435,7 @@ Module C
     End Function
 End Module
     </file>
-                </compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>
 
             Dim compRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
             Dim compDebug = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
@@ -12461,11 +12470,11 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub Bug529162()
             Dim source =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System
 Imports System.Linq.Expressions
 
@@ -12511,7 +12520,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
@@ -12590,11 +12599,11 @@ Microsoft.VisualBasic.CompilerServices.Versioned - System.String VbTypeName(Syst
         End Sub
 
         <WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub UnusedStructFieldLoad()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Structure S1
     Public field As Integer
 
@@ -12611,7 +12620,7 @@ Class A
 End Class
 
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="").
             VerifyIL("A.Main",
             <![CDATA[
 {
@@ -12626,11 +12635,11 @@ End Class
         End Sub
 
         <WorkItem(531166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531166")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub LoadingEnumValue__()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Imports System        
 Module Program
     Function Foo() As AttributeTargets
@@ -12641,7 +12650,7 @@ Module Program
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="32767").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, expectedOutput:="32767").
             VerifyIL("Program.Main",
             <![CDATA[
 {
@@ -12659,11 +12668,11 @@ End Module
         End Sub
 
         <WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub InitGenericElement()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Imports System
 Class A
 
@@ -12696,7 +12705,7 @@ Class Program
 End Class
 
     </file>
-</compilation>, expectedOutput:="").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="").
             VerifyIL("Program.Foo(Of T)(T())",
             <![CDATA[
 {
@@ -12742,11 +12751,11 @@ End Class
         End Sub
 
         <WorkItem(718502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718502")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <Fact()>
         Public Sub UnaryMinusInCondition()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 imports system
 
 Class A
@@ -12769,7 +12778,7 @@ Class A
 End Class
 
     </file>
-</compilation>, expectedOutput:="11").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, expectedOutput:="11").
             VerifyIL("A.Main",
             <![CDATA[
 {
@@ -12805,11 +12814,11 @@ End Class
         End Sub
 
         <WorkItem(745103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745103")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Fact()>
         Public Sub TestCompoundOnAfieldOfGeneric()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 Class Module1
     Shared Sub Main()
         Dim x = New c0()
@@ -12865,7 +12874,7 @@ Class test(Of T As c0)
 End class
 
     </file>
-</compilation>, expectedOutput:="31").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, expectedOutput:="31").
             VerifyIL("test(Of T).Repro1(T)",
             <![CDATA[
 {
@@ -12930,7 +12939,7 @@ End class
         Public Sub CallFinalMethodOnTypeParam()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 
 
 Module Module1
@@ -12967,7 +12976,7 @@ End Class
 
 
     </file>
-</compilation>, expectedOutput:="FooFooFoo").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, expectedOutput:="FooFooFoo").
             VerifyIL("Module1.Test1(Of T)(T)",
             <![CDATA[
 {
@@ -12995,13 +13004,13 @@ End Class
         End Sub
 
         <WorkItem(770557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub BoolConditionDebug001()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 
-        <![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <![CDATA[
 
 Imports System
 Imports System.Runtime.InteropServices
@@ -13030,8 +13039,8 @@ Friend Module Module1
 End Module
 
 ]]>
-    </file>
-</compilation>, expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>, expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True").
             VerifyIL("Module1.Main",
             <![CDATA[
 {
@@ -13066,13 +13075,13 @@ End Module
         End Sub
 
         <WorkItem(770557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770557")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub BoolConditionDebug002()
             Dim c = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 
-        <![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <![CDATA[
 
 Imports System
 Imports System.Runtime.InteropServices
@@ -13101,8 +13110,8 @@ Friend Module Module1
 End Module
 
 ]]>
-    </file>
-</compilation>, options:=TestOptions.DebugExe,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, options:=TestOptions.DebugExe,
                 expectedOutput:="i=2 -> x.bool = True i=21474836472 -> x.bool = True")
 
             c.VerifyIL("Module1.Main",
@@ -13160,11 +13169,11 @@ End Module
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean()
             Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb"><![CDATA[
 Namespace System
     Public Class [Object]
     End Class
@@ -13190,7 +13199,7 @@ Class C
     End Sub
 End Class
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>)
 
             AssertTheseEmitDiagnostics(compilation,
 <errors>
@@ -13205,11 +13214,11 @@ BC35000: Requested operation is not available because the runtime library functi
 
         ' As above with Microsoft.VisualBasic.CompilerServices.EmbeddedOperators defined.
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean()
             Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Namespace System
     Public Class [Object]
     End Class
@@ -13239,7 +13248,7 @@ Class C
     End Sub
 End Class
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.EmbeddedOperators.CompareString' is not defined.
@@ -13252,11 +13261,11 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
             Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb"><![CDATA[
 Namespace System
     Public Class [Object]
     End Class
@@ -13275,7 +13284,7 @@ Class C
     Shared F As Object = GetType(C)
 End Class
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
@@ -13285,11 +13294,11 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError()
             Dim compilation = CreateCompilationWithoutReferences(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Imports System
 Namespace System
     Public Class [Object]
@@ -13310,7 +13319,7 @@ Class C
     End Sub
 End Class
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
@@ -13323,11 +13332,11 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <WorkItem(765569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765569")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub ConstMatchesType()
             CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports System
  
 Public Enum LineStyle
@@ -13343,7 +13352,7 @@ Friend Class A
 End CLass
 
     </file>
-</compilation>, expectedOutput:="0").
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>, expectedOutput:="0").
             VerifyIL("A.Main",
             <![CDATA[
 {
@@ -13357,11 +13366,11 @@ End CLass
         End Sub
 
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub ConstCircular001()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Imports System
  
 Public Enum LineStyle
@@ -13377,7 +13386,7 @@ Friend Class A
 End CLass
 
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
@@ -13388,11 +13397,11 @@ BC30500: Constant 'blah' cannot depend on its own value.
         End Sub
 
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <Fact()>
         Public Sub ConstCircular002()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb"><![CDATA[
 Imports System
  
 Public Enum LineStyle
@@ -13408,7 +13417,7 @@ Friend Class A
 End CLass
 
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>)
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
@@ -13422,11 +13431,11 @@ BC42104: Variable 'blah' is used before it has been assigned a value. A null ref
         End Sub
 
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
-        <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <Fact()>
         Public Sub ConstCircular003()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-    <file name="a.vb"><![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb"><![CDATA[
 Imports System
  
 Public Enum LineStyle
@@ -13443,7 +13452,7 @@ Friend Class A
 End CLass
 
 ]]></file>
-</compilation>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>)
             comp.AssertTheseDiagnostics(
 <errors>
 BC30500: Constant 'blah' cannot depend on its own value.
@@ -13464,11 +13473,11 @@ BC42104: Variable 'blah1' is used before it has been assigned a value. A null re
         End Sub
 
         <Fact>
-        <WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")>
         Public Sub BadDefaultParameterValue()
             Dim source =
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <file name="a.vb">
 Imports BadDefaultParameterValue
 Module C
     Sub Main
@@ -13476,7 +13485,7 @@ Module C
     End Sub
 End Module
     </file>
-</compilation>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </compilation>
 
             Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, additionalRefs:=New MetadataReference() {testReference})
@@ -13568,8 +13577,8 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
-        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
 
             Dim diagnostics = ImmutableArray(Of Diagnostic).Empty
@@ -13744,9 +13753,9 @@ End Structure
         Public Sub InplaceCtorUsesLocal()
             Dim c = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <file name="a.vb">
 
-        <![CDATA[
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <![CDATA[
 
 Module Module1
     Private arr As S1() = New S1(1) {}
@@ -13774,8 +13783,8 @@ Module Module1
 End Module
 
 ]]>
-    </file>
-</compilation>, options:=TestOptions.ReleaseExe,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </file>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </compilation>, options:=TestOptions.ReleaseExe,
                 expectedOutput:="2")
 
             c.VerifyIL("Module1.Main",
@@ -13811,7 +13820,7 @@ End Module
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <file name="a.vb">
 Public Class TestClass
     Private _rotation As Decimal
     Private Sub CalculateDimensions()
@@ -13826,7 +13835,7 @@ Public Class TestClass
     End Sub    
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </compilation>, options:=TestOptions.ReleaseExe,
                 expectedOutput:="57.2957795130823")
 
             c.VerifyIL("TestClass.CalculateDimensions",
@@ -13855,7 +13864,7 @@ End Class
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>
-    <file name="a.vb">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <file name="a.vb">
 Public Class TestClass
     Private Shared Sub CalculateDimensions(_rotation As Decimal())
         _rotation(GetIndex()) *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
@@ -13873,7 +13882,7 @@ Public Class TestClass
     End Sub    
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             </compilation>, options:=TestOptions.ReleaseExe,
                 expectedOutput:="57.2957795130823")
 
             c.VerifyIL("TestClass.CalculateDimensions",
