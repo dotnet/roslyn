@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             for (var index = 0; index < parameterNames.Count; index++)
             {
                 var parameterName = parameterNames[index];
-                var paramNodes = GetParameterNodes(newDocComment, NodeName);
+                var paramNodes = GetElementNodes(newDocComment, NodeName);
                 if (NodeExists(paramNodes, parameterName))
                 {
                     continue;
@@ -72,19 +72,30 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 // If the index is `0`, try to add the node after the `summary` node,
                 // only if any existing nodes are at the top level--this route will not
                 // be taken if the existing node is nested in another node
-                var summaryNode = GetParameterNodes(newDocComment, "summary").FirstOrDefault();
-                if (index != 0 || !paramNodes.Any() && summaryNode != null)
+                var summaryNode = GetElementNodes(newDocComment, "summary").FirstOrDefault();
+                if (index != 0 || (!paramNodes.Any() && summaryNode != null))
                 {
                     // First, try to get the node before the param node so we know where to insert the new node
-                    SyntaxNode nodeBeforeNewParamNode =  GetLastParamNodeCorrespondingToParameterInList(paramNodes, paramsBeforeCurrentParam) ??
-                                    summaryNode;
+                    TXmlElementSyntax nodeBeforeNewParamNode = null;
+                    if (index > 0)
+                    {
+                        nodeBeforeNewParamNode = GetParamNodeForParamName(paramNodes, parameterNames[index - 1]);
+                    }
 
-                    newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode, new[] { GetNewNode(parameterName, false) });
+                    // This will be hit in the index is `0`, in which case the previous node is the summary node
+                    if (nodeBeforeNewParamNode == null)
+                    {
+                        nodeBeforeNewParamNode = summaryNode;
+                    }
+
+                    newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode,
+                        new[] { GetNewNode(parameterName, isFirstNodeInComment: false) });
+
                     continue;
                 }
                 
                 // At this point, the node has to go at the beginning of the comment
-                var nodeAfterNewParamNode = GetLastParamNodeCorrespondingToParameterInList(paramNodes.AsEnumerable().Reverse(), paramsAfterCurrentParam) ??
+                var nodeAfterNewParamNode = GetFirstParamNodeCorrespondingToParameterInList(paramNodes, paramsAfterCurrentParam) ??
                                                    newDocComment.ChildNodes().First();
 
                 // Adjust for doc comment marker before the node
@@ -112,13 +123,14 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private List<TXmlElementSyntax> GetParameterNodes(SyntaxNode docComment, string nodeName)
+        private List<TXmlElementSyntax> GetElementNodes(SyntaxNode docComment, string nodeName)
         {
             var nodes = docComment.ChildNodes().OfType<TXmlElementSyntax>()
                                                .Where(w => GetXmlElementLocalName(w) == nodeName)
                                                .ToList();
 
-            // Prefer to place the doc comment in the outer level, as in auto-created comments
+            // Prefer to return element nodes that are the top-level children of the DocComment.
+            // If we don't find any, then fallback to the first element node at any depth with the requested name.
             if (!nodes.Any())
             {
                 nodes = docComment.DescendantNodes(descendIntoChildren: _ => true)
@@ -137,29 +149,50 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                              .Any(nameAttributes => nameAttributes.Select(GetValueFromNameAttribute).Contains(name));
         }
 
-        protected TXmlElementSyntax GetLastParamNodeCorrespondingToParameterInList(
+        protected TXmlElementSyntax GetParamNodeForParamName(
+            IEnumerable<TXmlElementSyntax> paramNodeList,
+            string name)
+        {
+            foreach (var paramNode in paramNodeList)
+            {
+                var paramNameAttributesForNode = GetNameAttributes(paramNode);
+
+                // param node is missing `name` attribute or there are multiple `name` attributes
+                if (paramNameAttributesForNode.Count != 1)
+                {
+                    continue;
+                }
+
+                if (GetValueFromNameAttribute(paramNameAttributesForNode.Single()) == name)
+                {
+                    return paramNode;
+                }
+            }
+
+            return null;
+        }
+
+        protected TXmlElementSyntax GetFirstParamNodeCorrespondingToParameterInList(
             IEnumerable<TXmlElementSyntax> paramNodeList,
             List<string> methodParamSubset)
         {
-            TXmlElementSyntax nodeAfterNewParamNode = null;
-
             foreach (var paramNode in paramNodeList)
             {
-                var paramNameForNode = GetNameAttributes(paramNode);
+                var paramNameAttributesForNode = GetNameAttributes(paramNode);
 
                 // param node is missing `name` attribute or there are multiple `name` attributes
-                if (paramNameForNode.Count != 1)
+                if (paramNameAttributesForNode.Count != 1)
                 {
                     continue;
                 }
                 
-                if (methodParamSubset.Contains(GetValueFromNameAttribute(paramNameForNode.Single())))
+                if (methodParamSubset.Contains(GetValueFromNameAttribute(paramNameAttributesForNode.Single())))
                 {
-                    nodeAfterNewParamNode = paramNode;
+                    return paramNode;
                 }
             }
 
-            return nodeAfterNewParamNode;
+            return null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
