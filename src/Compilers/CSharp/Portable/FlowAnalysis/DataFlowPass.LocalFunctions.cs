@@ -57,38 +57,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     CSharpSyntaxNode syntax,
                                     bool isWrite)
         {
-            LocalFuncUsages usages;
-            if (_localFuncVarUsages.TryGetValue(localFunc, out usages))
-            {
-                var state = isWrite ? usages.WrittenVars : usages.ReadVars;
+            LocalFuncUsages usages = GetOrCreateLocalFuncUsages(localFunc);
+            var state = isWrite ? usages.WrittenVars : usages.ReadVars;
 
-                // Start at slot 1 (slot 0 just indicates reachability)
-                for (int slot = 1; slot < state.Capacity; slot++)
+            // Start at slot 1 (slot 0 just indicates reachability)
+            for (int slot = 1; slot < state.Capacity; slot++)
+            {
+                if (state[slot])
                 {
-                    if (state[slot])
+                    if (isWrite)
                     {
-                        if (isWrite)
-                        {
-                            SetSlotAssigned(slot);
-                        }
-                        else
-                        {
-                            var symbol = variableBySlot[slot].Symbol;
-                            CheckAssigned(symbol, syntax, slot);
-                        }
+                        SetSlotAssigned(slot);
+                    }
+                    else
+                    {
+                        var symbol = variableBySlot[slot].Symbol;
+                        CheckAssigned(symbol, syntax, slot);
                     }
                 }
+            }
 
-                usages.LocalFuncVisited = true;
-            }
-            else
-            {
-                // Nothing to replay, but we need to record that we used
-                // the vars, in case vars are later added to the used set
-                usages = new LocalFuncUsages();
-                usages.LocalFuncVisited = true;
-                _localFuncVarUsages.Add(localFunc, usages);
-            }
+            usages.LocalFuncVisited = true;
         }
 
         private int RootSlot(int slot)
