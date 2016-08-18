@@ -1955,6 +1955,7 @@ ResolutionComplete:
                 End If
 
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
+
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
 
                     leftHasMoreApplicableParameterType = True
@@ -3568,7 +3569,7 @@ Bailout:
 
                     For l As Integer = k + 1 To quickInfo.Count - 1
                         Dim info2 As QuickApplicabilityInfo = quickInfo(l)
-                        If info2.Candidate Is Nothing OrElse (info2.State = CandidateAnalysisResultState.Ambiguous) Then
+                        If info2.Candidate Is Nothing OrElse info2.State = CandidateAnalysisResultState.Ambiguous Then
                             Continue For
                         End If
 
@@ -3719,7 +3720,7 @@ Bailout:
                     Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, True, False)
                 End If
             ElseIf arguments.Length < requiredCount OrElse
-                (Not hasParamArray AndAlso arguments.Length > maxCount) Then
+               (Not hasParamArray AndAlso arguments.Length > maxCount) Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, Not hasParamArray, hasParamArray)
             End If
 
