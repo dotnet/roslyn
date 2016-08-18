@@ -1957,7 +1957,6 @@ ResolutionComplete:
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
 
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
-
                     leftHasMoreApplicableParameterType = True
 
                     If rightHasMoreApplicableParameterType Then
@@ -3569,6 +3568,7 @@ Bailout:
 
                     For l As Integer = k + 1 To quickInfo.Count - 1
                         Dim info2 As QuickApplicabilityInfo = quickInfo(l)
+
                         If info2.Candidate Is Nothing OrElse info2.State = CandidateAnalysisResultState.Ambiguous Then
                             Continue For
                         End If
