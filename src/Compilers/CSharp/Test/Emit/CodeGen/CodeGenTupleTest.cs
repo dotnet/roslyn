@@ -17578,5 +17578,59 @@ public class S
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(4, 20)
                 );
         }
+
+        [Fact, WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        public void CrashInVisitCallReceiverOnBadTupleSyntax()
+        {
+            var source1 = @"
+public static class C1
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public static class C2
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        int x = 0;
+        x.M1((1, 1));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                        references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
+                        parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                        options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
+                );
+        }
     }
 }
