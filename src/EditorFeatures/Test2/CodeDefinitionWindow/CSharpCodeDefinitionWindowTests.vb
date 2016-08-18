@@ -2,6 +2,8 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
@@ -80,8 +82,20 @@ class C
             Await VerifyContextLocationInSameFile(code, "Ex.M<T>(System.Collections.Generic.List<T>)")
         End Function
 
-        Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateCSharpAsync(code)
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function ToMetadataAsSource() As Task
+            Const code As String = "
+class C
+{
+    void M($$int i) { }
+}"
+
+            Await VerifyContextLocationInMetadataAsSource(code, "System.Int32")
+
+        End Function
+
+        Protected Overrides Function CreateWorkspaceAsync(code As String, Optional exportProvider As ExportProvider = Nothing) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateCSharpAsync(code, exportProvider:=exportProvider)
         End Function
     End Class
 End Namespace

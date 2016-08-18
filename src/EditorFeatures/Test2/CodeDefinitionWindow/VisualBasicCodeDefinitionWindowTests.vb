@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
@@ -74,8 +75,8 @@ End Module"
             Await VerifyContextLocationInSameFile(code, "Public Sub M(Of T)(list As System.Collections.Generic.List(Of T))")
         End Function
 
-        Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(code)
+        Protected Overrides Function CreateWorkspaceAsync(code As String, Optional exportProvider As ExportProvider = Nothing) As Task(Of TestWorkspace)
+            Return TestWorkspace.CreateVisualBasicAsync(code, exportProvider:=exportProvider)
         End Function
     End Class
 End Namespace

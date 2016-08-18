@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Composition
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
@@ -149,10 +150,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "Class1.M()",
                     tree.GetLocation(csHostDocument.SelectedSpans.Single()).GetLineSpan())
-
             End Using
         End Function
-        Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
+
+        Protected Overrides Function CreateWorkspaceAsync(code As String, Optional exportProvider As ExportProvider = Nothing) As Task(Of TestWorkspace)
             Assert.False(True)
             Return Nothing
         End Function
