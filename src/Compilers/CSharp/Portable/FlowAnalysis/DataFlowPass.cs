@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Every pass starts with no dirty writes
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If
