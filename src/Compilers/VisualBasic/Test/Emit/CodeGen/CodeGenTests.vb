@@ -7950,7 +7950,6 @@ Module Program
     Sub Test(b As base)
         b.f(1)
         b.f(1, 2)
-        b.f(1, "")
     End Sub
 End Module
     </file>
@@ -7990,7 +7989,6 @@ Module Program
     Sub Test(b As base)
         b.f(1)
         b.f(1, 2)
-        b.f(1, "")
     End Sub
 End Module
     </file>
@@ -8030,7 +8028,6 @@ Module Program
     Sub Test(b As base)
         b.f(1)
         b.f(1, 2)
-        b.f(1, "")
     End Sub
 End Module
     </file>
@@ -8070,7 +8067,6 @@ Module Program
     Sub Test(b As base)
         b.f(1)
         b.f(1, 2)
-        b.f(1, "")
     End Sub
 End Module
     </file>
