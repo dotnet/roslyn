@@ -14,7 +14,8 @@
                 $(Win32Manifest);
                 @(CustomAdditionalCompileInputs);
                 $(ResolvedCodeAnalysisRuleSet);
-                @(AdditionalFiles)"
+                @(AdditionalFiles);
+                @(EmbeddedFiles)"
           Outputs="@(DocFileItem);
                  @(IntermediateAssembly);
                  @(_DebugSymbolsIntermediatePath);
@@ -70,6 +71,7 @@
           DelaySign="$(DelaySign)"
           DisabledWarnings="$(NoWarn)"
           DocumentationFile="@(DocFileItem)"
+          EmbeddedFiles="@(EmbeddedFiles)"
           EmitDebugInformation="$(DebugSymbols)"
           EnvironmentVariables="$(VbcEnvironment)"
           ErrorLog="$(ErrorLog)"

@@ -5,6 +5,7 @@ Imports System.IO
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -208,10 +209,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
         End Function
 
-        Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(tree As SyntaxTree, resolver As SourceReferenceResolver, embeddedFiles As OrderedSet(Of String), diagnostics As IList(Of Diagnostic))
-            ' Embedded files not yet supported by VB and we should not get this far.
-            Debug.Assert(False)
-            Throw ExceptionUtilities.Unreachable
+        Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
+            tree As SyntaxTree,
+            resolver As SourceReferenceResolver,
+            embeddedFiles As OrderedSet(Of String),
+            diagnostics As IList(Of Diagnostic))
+
+            For Each directive As ExternalSourceDirectiveTriviaSyntax In tree.GetRoot().GetDirectives(
+                Function(d) d.Kind() = SyntaxKind.ExternalSourceDirectiveTrivia)
+
+                If directive.ExternalSource.IsMissing Then
+                    Continue For
+                End If
+
+                Dim path = CStr(directive.ExternalSource.Value)
+                If path Is Nothing Then
+                    Continue For
+                End If
+
+                Dim resolvedPath = resolver.ResolveReference(path, tree.FilePath)
+                If resolvedPath Is Nothing Then
+                    diagnostics.Add(
+                        MessageProvider.CreateDiagnostic(
+                            MessageProvider.ERR_FileNotFound,
+                            directive.ExternalSource.GetLocation(),
+                            path))
+
+                    Continue For
+                End If
+
+                embeddedFiles.Add(resolvedPath)
+            Next
         End Sub
     End Class
 End Namespace

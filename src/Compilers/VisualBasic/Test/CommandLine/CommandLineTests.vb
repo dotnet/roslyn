@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -2527,18 +2528,157 @@ End Class")
         End Sub
 
         <Fact>
-        Public Sub Embed_NotYetSupportedByVB()
-            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+        Public Sub Embed()
+            Dim parsedArgs = DefaultParse({"a.vb "}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Empty(parsedArgs.EmbeddedFiles)
 
-            parsedArgs = DefaultParse({"/embed", "/debug:portable", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/embed"))
-            Assert.Empty(parsedArgs.EmbeddedFiles)
+            parsedArgs = DefaultParse({"/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(parsedArgs.SourceFiles, parsedArgs.EmbeddedFiles)
+            AssertEx.Equal(
+                {"a.vb", "b.vb", "c.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
 
-            parsedArgs = DefaultParse({"/embed:a.vb", "/debug:portable", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/embed:a.vb"))
-            Assert.Empty(parsedArgs.EmbeddedFiles)
+            parsedArgs = DefaultParse({"/embed:a.vb", "/embed:b.vb", "/debug:embedded", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.vb;b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.txt", "a.vb", "b.vb", "c.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed:a.txt", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            ' These should fail when native PDB support is added.
+            parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+
+            parsedArgs = DefaultParse({"/embed", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+        End Sub
+
+        <Theory>
+        <InlineData("/debug:portable", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:portable", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:portable", "/embed:embed.xyz", {"embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:embedded", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:embedded", "/embed:embed.xyz", {"embed.xyz"})>
+        Public Sub Embed_EndToEnd(debugSwitch As String, embedSwitch As String, expectedEmbedded As String())
+            ' embed.vb: large enough To compress, has #line directives
+            Const embed_vb =
+"'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Class Program
+    Shared Sub Main()
+#ExternalSource(""embed.xyz"", 1)
+        System.Console.WriteLine(""Hello, World"")
+
+        System.Console.WriteLine(""Goodbye, World"")
+#End ExternalSource
+    End Sub
+End Class
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''"
+
+            ' embed2.vb: small enough to not compress, no sequence points
+            Const embed2_vb =
+"Class C
+End Class"
+
+            ' target of #ExternalSource
+            Const embed_xyz =
+"print Hello, World
+
+print Goodbye, World"
+
+            Assert.True(embed_vb.Length >= EmbeddedText.CompressionThreshold)
+            Assert.True(embed2_vb.Length < EmbeddedText.CompressionThreshold)
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("embed.vb")
+            Dim src2 = dir.CreateFile("embed2.vb")
+            Dim txt = dir.CreateFile("embed.xyz")
+
+            src.WriteAllText(embed_vb)
+            src2.WriteAllText(embed2_vb)
+            txt.WriteAllText(embed_xyz)
+
+            Dim expectedEmbeddedMap = New Dictionary(Of String, String)()
+            If expectedEmbedded.Contains("embed.vb") Then
+                expectedEmbeddedMap.Add(src.Path, embed_vb)
+            End If
+
+            If expectedEmbedded.Contains("embed2.vb") Then
+                expectedEmbeddedMap.Add(src2.Path, embed2_vb)
+            End If
+
+            If expectedEmbedded.Contains("embed.xyz") Then
+                expectedEmbeddedMap.Add(txt.Path, embed_xyz)
+            End If
+
+            Dim output = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", debugSwitch, embedSwitch, "embed.vb", "embed2.vb"})
+            Dim exitCode = vbc.Run(output)
+            Assert.Equal("", output.ToString().Trim())
+            Assert.Equal(0, exitCode)
+
+            Dim embedded = (debugSwitch = "/debug:embedded")
+            Using peReader As New PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe")))
+                Dim entry = peReader.ReadDebugDirectory().SingleOrDefault(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
+                Assert.Equal(embedded, entry.DataSize > 0)
+
+                Using mdProvider As MetadataReaderProvider = If(
+                    embedded,
+                    peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry),
+                    MetadataReaderProvider.FromPortablePdbStream(File.OpenRead(Path.Combine(dir.Path, "embed.pdb"))))
+
+                    Dim mdReader = mdProvider.GetMetadataReader()
+                    For Each handle In mdReader.Documents
+                        Dim doc = mdReader.GetDocument(handle)
+                        Dim docPath = mdReader.GetString(doc.Name)
+
+                        Dim embeddedSource = mdReader.GetEmbeddedSource(handle)
+                        If embeddedSource Is Nothing Then
+                            Continue For
+                        End If
+
+                        Assert.True(TypeOf embeddedSource.Encoding Is UTF8Encoding AndAlso embeddedSource.Encoding.GetPreamble().Length = 0)
+                        Assert.Equal(expectedEmbeddedMap(docPath), embeddedSource.ToString())
+                        Assert.True(expectedEmbeddedMap.Remove(docPath))
+                    Next
+                End Using
+            End Using
+
+            Assert.Empty(expectedEmbeddedMap)
+            CleanupAllGeneratedFiles(src.Path)
         End Sub
 
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
