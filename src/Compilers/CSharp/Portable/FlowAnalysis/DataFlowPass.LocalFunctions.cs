@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// are assigned and assigns all variables that are definitely assigned
         /// to be definitely assigned.
         /// </summary>
-        protected virtual void ReplayReadsAndWrites(LocalFunctionSymbol localFunc,
-                                                    CSharpSyntaxNode syntax,
-                                                    bool writes)
+        private void ReplayReadsAndWrites(LocalFunctionSymbol localFunc,
+                                          CSharpSyntaxNode syntax,
+                                          bool writes)
         {
             _usedLocalFunctions.Add(localFunc);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected int RootSlot(int slot)
+        private int RootSlot(int slot)
         {
             while (true)
             {
