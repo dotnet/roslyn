@@ -1,0 +1,5 @@
+Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions.AlwaysIndent = 2 -> Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions.NeverIndent = 1 -> Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions
+Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions.OnlyIndentStatements = 3 -> Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions
+static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions.IndentSwitchCaseSection.get -> Microsoft.CodeAnalysis.Options.Option<Microsoft.CodeAnalysis.CSharp.Formatting.SwitchCaseIndentOptions>

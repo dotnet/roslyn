@@ -1027,7 +1027,7 @@ class D
             changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
             changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, SwitchCaseIndentOptions.NeverIndent);
             changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
             changingOptions.Add(CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost);
             await AssertFormatAsync(@"class Class2
@@ -1057,7 +1057,7 @@ class D
             changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
             changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
             changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, SwitchCaseIndentOptions.NeverIndent);
             changingOptions.Add(CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost);
             await AssertFormatAsync(@"class Class2
     {
@@ -1134,6 +1134,132 @@ l:
         goto l;
     }
 }", false, changingOptions);
+        }
+
+        [WorkItem(12304, "https://github.com/dotnet/roslyn/issues/12304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestSwitchDefaultBehavior()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, true);
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, SwitchCaseIndentOptions.AlwaysIndent);
+
+            var code = @"class C
+{
+void M()
+{
+switch (1)
+{
+case 1:
+{
+break;
+}
+case 2:
+break;
+}
+}
+}";
+            var expected = @"class C
+{
+    void M()
+    {
+        switch (1)
+        {
+            case 1:
+                {
+                    break;
+                }
+            case 2:
+                break;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expected, code, false, changingOptions);
+        }
+
+        [WorkItem(12304, "https://github.com/dotnet/roslyn/issues/12304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestSwitchNeverIndentBehavior()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, true);
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, SwitchCaseIndentOptions.NeverIndent);
+
+            var code = @"class C
+{
+void M()
+{
+switch (1)
+{
+case 1:
+{
+break;
+}
+case 2:
+break;
+}
+}
+}";
+            var expected = @"class C
+{
+    void M()
+    {
+        switch (1)
+        {
+            case 1:
+            {
+                break;
+            }
+            case 2:
+            break;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expected, code, false, changingOptions);
+        }
+
+        [WorkItem(12304, "https://github.com/dotnet/roslyn/issues/12304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestSwitchOnlyIndentStatementsBehavior()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, true);
+            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, SwitchCaseIndentOptions.OnlyIndentStatements);
+
+            var code = @"class C
+{
+void M()
+{
+switch (1)
+{
+case 1:
+{
+break;
+}
+case 2:
+break;
+}
+}
+}";
+            var expected = @"class C
+{
+    void M()
+    {
+        switch (1)
+        {
+            case 1:
+            {
+                break;
+            }
+            case 2:
+                break;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

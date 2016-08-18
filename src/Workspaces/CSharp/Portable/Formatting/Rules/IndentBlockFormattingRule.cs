@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
             var section = node as SwitchSectionSyntax;
-            if (section == null || !optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection))
+            if (section == null || optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection) == SwitchCaseIndentOptions.NeverIndent)
             {
                 return;
             }
@@ -55,6 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // can this ever happen?
             if (section.Labels.Count == 0 &&
                 section.Statements.Count == 0)
+            {
+                return;
+            }
+
+            if (section.Statements.Count == 1 &&
+                section.Statements[0] is BlockSyntax &&
+                optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection) == SwitchCaseIndentOptions.OnlyIndentStatements)
             {
                 return;
             }
