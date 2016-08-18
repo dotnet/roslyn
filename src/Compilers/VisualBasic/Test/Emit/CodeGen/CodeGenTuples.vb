@@ -56,7 +56,7 @@ Namespace System
     End Structure
 End Namespace
 "
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeBinding()
 
             Dim verifier = CompileAndVerify(
@@ -97,7 +97,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeBindingNoTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
@@ -148,7 +148,7 @@ BC30389: '(A As Integer, B As Integer).A' is not accessible in this context beca
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub DataFlow()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -192,7 +192,7 @@ BC42104: Variable 'uninitialized2' is used before it has been assigned a value. 
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleFieldBinding()
 
             Dim verifier = CompileAndVerify(
@@ -242,7 +242,7 @@ End Namespace
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleFieldBinding01()
 
             Dim verifier = CompileAndVerify(
@@ -292,7 +292,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleFieldBindingLong()
 
             Dim verifier = CompileAndVerify(
@@ -341,7 +341,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleNamedFieldBinding()
 
             Dim verifier = CompileAndVerify(
@@ -393,7 +393,7 @@ End Namespace
         End Sub
 
 
-        <Fact()>
+        <Fact>
         Public Sub TupleDefaultFieldBinding()
 
             Dim verifier = CompileAndVerify(
@@ -447,7 +447,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleNamedFieldBindingLong()
 
             Dim verifier = CompileAndVerify(
@@ -500,7 +500,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleLiteralBinding()
 
             Dim verifier = CompileAndVerify(
@@ -534,7 +534,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleLiteralBindingNamed()
 
             Dim verifier = CompileAndVerify(
@@ -568,7 +568,7 @@ hello
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleLiteralSample()
 
             Dim verifier = CompileAndVerify(
@@ -630,7 +630,7 @@ Sum: 10, Count: 4")
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Overloading001()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -656,7 +656,7 @@ End module
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Overloading002()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -682,7 +682,7 @@ BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions wit
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped001()
 
             Dim verifier = CompileAndVerify(
@@ -732,7 +732,7 @@ End Module
             Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped001Err()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -761,7 +761,7 @@ BC30491: Expression does not produce a value.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped002()
 
             Dim verifier = CompileAndVerify(
@@ -782,7 +782,7 @@ End Module
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped002a()
 
             Dim verifier = CompileAndVerify(
@@ -803,7 +803,7 @@ End Module
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped003()
 
             Dim verifier = CompileAndVerify(
@@ -840,7 +840,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped004()
 
             Dim verifier = CompileAndVerify(
@@ -878,7 +878,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped005()
 
             Dim verifier = CompileAndVerify(
@@ -920,7 +920,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped006()
 
             Dim verifier = CompileAndVerify(
@@ -962,7 +962,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleTargetTyped007()
 
             Dim verifier = CompileAndVerify(
@@ -1004,7 +1004,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionWidening()
 
             Dim verifier = CompileAndVerify(
@@ -1062,7 +1062,7 @@ End Module
             Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNarrowing()
 
             Dim verifier = CompileAndVerify(
@@ -1122,7 +1122,7 @@ End Module
             Assert.Equal(ConversionKind.NarrowingTuple, model.GetConversion(node).Kind)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNarrowingUnchecked()
 
             Dim verifier = CompileAndVerify(
@@ -1170,7 +1170,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionObject()
 
             Dim verifier = CompileAndVerify(
@@ -1229,7 +1229,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionOverloadResolution()
 
             Dim verifier = CompileAndVerify(
@@ -1307,7 +1307,7 @@ long            ]]>)
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNullable001()
 
             Dim verifier = CompileAndVerify(
@@ -1358,7 +1358,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNullable002()
 
             Dim verifier = CompileAndVerify(
@@ -1408,7 +1408,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNullable003()
 
             Dim verifier = CompileAndVerify(
@@ -1468,7 +1468,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleConversionNullable004()
 
             Dim verifier = CompileAndVerify(
@@ -1528,7 +1528,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ImplicitConversions02()
 
             Dim verifier = CompileAndVerify(
@@ -1615,7 +1615,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ExplicitConversions02()
 
             Dim verifier = CompileAndVerify(
@@ -1702,7 +1702,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ImplicitConversions03()
 
             Dim verifier = CompileAndVerify(
@@ -1797,7 +1797,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ImplicitConversions04()
 
             Dim verifier = CompileAndVerify(
@@ -1860,7 +1860,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ExplicitConversions04()
 
             Dim verifier = CompileAndVerify(
@@ -1922,7 +1922,7 @@ End Class
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference001()
 
             Dim verifier = CompileAndVerify(
@@ -1952,7 +1952,7 @@ System.String
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference002()
 
             Dim verifier = CompileAndVerify(
@@ -2006,7 +2006,7 @@ System.Object
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference002Err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2052,7 +2052,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Function TestRe
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference003()
 
             Dim verifier = CompileAndVerify(
@@ -2079,7 +2079,7 @@ System.String
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference004()
 
             Dim verifier = CompileAndVerify(
@@ -2115,7 +2115,7 @@ System.ValueTuple`2[System.Object,System.String]
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference004Err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2153,7 +2153,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Function Test(O
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference005()
 
             Dim verifier = CompileAndVerify(
@@ -2183,7 +2183,7 @@ System.Object
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference006()
 
             Dim verifier = CompileAndVerify(
@@ -2213,7 +2213,7 @@ System.Int32
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference007()
 
             Dim verifier = CompileAndVerify(
@@ -2243,7 +2243,7 @@ System.Int32
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference008()
 
             Dim verifier = CompileAndVerify(
@@ -2274,7 +2274,7 @@ System.Int64
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MethodTypeInference008Err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2320,7 +2320,7 @@ BC36657: Data type(s) of the type parameter(s) in method 'Public Sub Test2(Of T)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Inference04()
 
             Dim verifier = CompileAndVerify(
@@ -2353,7 +2353,7 @@ second
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Inference07()
 
             Dim verifier = CompileAndVerify(
@@ -2388,7 +2388,7 @@ End Module
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InferenceChain001()
 
             Dim verifier = CompileAndVerify(
@@ -2421,7 +2421,7 @@ System.ValueTuple`2[System.ValueTuple`2[System.Int32,System.Int32],System.ValueT
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub InferenceChain002()
 
             Dim verifier = CompileAndVerify(
@@ -2454,7 +2454,7 @@ System.ValueTuple`2[System.ValueTuple`2[System.Int32,System.Object],System.Value
             ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub SimpleTupleNested()
 
             Dim verifier = CompileAndVerify(
@@ -2498,7 +2498,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleUnderlyingItemAccess()
 
             Dim verifier = CompileAndVerify(
@@ -2545,7 +2545,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleUnderlyingItemAccess01()
 
             Dim verifier = CompileAndVerify(
@@ -2592,7 +2592,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleItemAccess()
 
             Dim verifier = CompileAndVerify(
@@ -2639,7 +2639,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleItemAccess01()
 
             Dim verifier = CompileAndVerify(
@@ -2695,7 +2695,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeDeclaration()
 
             Dim verifier = CompileAndVerify(
@@ -2731,7 +2731,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeMismatch_01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoTuples">
@@ -2754,7 +2754,7 @@ BC30311: Value of type '(Integer, String, Integer)' cannot be converted to '(Int
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeMismatch_02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2778,7 +2778,7 @@ BC30491: Expression does not produce a value.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub LongTupleTypeMismatch()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2830,7 +2830,7 @@ BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTupl
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeWithLateDiscoveredName()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2868,7 +2868,7 @@ BC37258: Tuple member names must all be provided, if any one is provided.
             ' TODO Update this test to match C# once https://github.com/dotnet/roslyn/issues/12965 is fixed (support for partially named tuples)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeDeclarationWithNames()
 
             Dim verifier = CompileAndVerify(
@@ -2890,7 +2890,7 @@ hello]]>)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleDictionary01()
 
             Dim verifier = CompileAndVerify(
@@ -2950,7 +2950,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleLambdaCapture01()
 
             Dim verifier = CompileAndVerify(
@@ -2985,7 +2985,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleLambdaCapture02()
 
             Dim verifier = CompileAndVerify(
@@ -3153,7 +3153,7 @@ End Namespace
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleAsyncCapture01()
 
             Dim verifier = CompileAndVerify(
@@ -3273,7 +3273,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleAsyncCapture02()
 
             Dim verifier = CompileAndVerify(
@@ -3439,7 +3439,7 @@ End Namespace
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub LongTupleWithSubstitution()
 
             Dim verifier = CompileAndVerify(
@@ -3465,7 +3465,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleUsageWithoutTupleLibrary()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3497,7 +3497,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleUsageWithMissingTupleMembers()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3527,7 +3527,7 @@ BC35000: Requested operation is not available because the runtime library functi
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithDuplicateNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3558,7 +3558,7 @@ BC37262: Tuple member names must be unique.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithDuplicateReservedNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3593,7 +3593,7 @@ BC37261: Tuple member name 'Item2' is only allowed at position 2.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithNonReservedNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3624,7 +3624,7 @@ BC37261: Tuple member name 'Item10' is only allowed at position 10.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub DefaultValueForTuple()
 
             Dim verifier = CompileAndVerify(
@@ -3647,7 +3647,7 @@ null]]>)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithDuplicateMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3675,7 +3675,7 @@ BC37262: Tuple member names must be unique.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithReservedMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3716,7 +3716,7 @@ BC37260: Tuple membername 'Rest' is disallowed at any position.
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithExistingUnderlyingMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3827,7 +3827,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -3853,7 +3853,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()
@@ -3877,7 +3877,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub GenericTupleWithoutTupleLibrary_01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3969,7 +3969,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub GenericTupleWithoutTupleLibrary_02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4000,7 +4000,7 @@ BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTupl
             ' REMOVE AFTER REVIEW This is another duplicate diagnostic
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub GenericTuple()
 
             Dim verifier = CompileAndVerify(
@@ -4057,7 +4057,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleInLambda()
 
             Dim verifier = CompileAndVerify(
@@ -4076,7 +4076,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleWithNamesInLambda()
 
             Dim verifier = CompileAndVerify(
@@ -4095,7 +4095,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleInProperty()
 
             Dim verifier = CompileAndVerify(
@@ -4116,7 +4116,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub ExtensionMethodOnTuple()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4144,7 +4144,7 @@ BC30035: Syntax error.
             ' REMOVE AFTER REVIEW This is different than C#
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleInOptionalParam()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4164,7 +4164,7 @@ BC30059: Constant expression is required.
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleDefaultInOptionalParam()
 
             Dim verifier = CompileAndVerify(
@@ -4185,7 +4185,7 @@ End Class
             verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleAsNamedParam()
 
             Dim verifier = CompileAndVerify(
@@ -4241,7 +4241,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(
@@ -4264,7 +4264,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub DuplicateTupleMethodsNotAllowed()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4325,7 +4325,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleRef()
 
             Dim verifier = CompileAndVerify(
@@ -4351,7 +4351,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleOut()
 
             Dim verifier = CompileAndVerify(
@@ -4377,7 +4377,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTypeArgs()
 
             Dim verifier = CompileAndVerify(
@@ -4401,7 +4401,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub NullableTuple()
 
             Dim verifier = CompileAndVerify(
@@ -4423,7 +4423,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleUnsupportedInUsingStatment()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
@@ -4447,7 +4447,7 @@ Imports VT2 = (Integer, Integer)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub MissingTypeInAlias()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4539,7 +4539,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub Tuple2To8Members()
 
             Dim verifier = CompileAndVerify(
@@ -4603,7 +4603,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_BadArguments()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4620,7 +4620,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_WithValueTuple()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4644,7 +4644,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4663,7 +4663,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4682,7 +4682,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_WithBadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4699,7 +4699,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_Tuple8NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4723,7 +4723,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_Tuple8WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4747,7 +4747,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_Tuple9NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4771,7 +4771,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_Tuple9WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4795,7 +4795,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_ElementTypeIsError()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4818,7 +4818,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_BadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
@@ -4843,7 +4843,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_CSharpElements()
 
             Dim csSource = "public class C { }"
@@ -4862,7 +4862,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_BadArguments()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4882,7 +4882,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_WithValueTuple()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4905,7 +4905,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4923,7 +4923,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4941,7 +4941,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_WithBadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4957,7 +4957,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_Tuple8NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4978,7 +4978,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_Tuple8WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -4999,7 +4999,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_Tuple9NoNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -5020,7 +5020,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_Tuple9WithNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -5041,7 +5041,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_ElementTypeIsError()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5063,7 +5063,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_BadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
@@ -5080,7 +5080,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_CSharpElements()
 
             Dim csSource = "public class C { }"
@@ -5096,7 +5096,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub CreateTupleTypeSymbol_ComparingSymbols()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5146,7 +5146,7 @@ additionalRefs:=s_valueTupleRefs)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTargetTypeAndConvert01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5172,7 +5172,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleTargetTypeAndConvert02()
 
             Dim verifier = CompileAndVerify(
@@ -5210,7 +5210,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleImplicitConversionFail01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5257,7 +5257,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleExplicitConversionFail01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5304,7 +5304,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleImplicitConversionFail02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5351,7 +5351,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleImplicitConversionFail03()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5398,7 +5398,7 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleImplicitConversionFail04()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5445,7 +5445,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
 
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TupleImplicitConversionFail05()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -5485,7 +5485,7 @@ BC30311: Value of type '((Integer, Integer), Integer, Integer, Integer, Integer,
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' failed.
         x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8,
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30452: Operator '=' is not defined for types '(x0 As (Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)' and '((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
         x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5522,6 +5522,262 @@ BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' f
             ' One of the errors, line ending with "8, " is especially strange
 
         End Sub
+
+        <Fact>
+        Public Sub TupleImplicitConversionFail06()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Imports System
+Class C
+    Shared Sub Main()
+        Dim l As Func(Of String) = Function() 1
+        Dim x As (String, Func(Of String)) = (Nothing, Function() 1)
+        Dim l1 As Func(Of (String, String)) = Function() (Nothing, 1.1)
+        Dim x1 As (String, Func(Of (String, String))) = (Nothing, Function() (Nothing, 1.1))
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleExplicitConversionFail06()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Imports System
+Class C
+    Shared Sub Main()
+        Dim l As Func(Of String) = Function() 1
+        Dim x As (String, Func(Of String)) = DirectCast((Nothing, Function() 1), (String, Func(Of String)))
+        Dim l1 As Func(Of (String, String)) = DirectCast(Function() (Nothing, 1.1), Func(Of (String, String)))
+        Dim x1 As (String, Func(Of (String, String))) = DirectCast((Nothing, Function() (Nothing, 1.1)), (String, Func(Of (String, String))))
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleTargetTypeLambda()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Test(d As Func(Of Func(Of (Short, Short))))
+        Console.WriteLine("short")
+    End Sub
+    Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))
+        Console.WriteLine("byte")
+    End Sub
+    Shared Sub Main()
+        Test(Function() Function() DirectCast((1, 1), (Byte, Byte)))
+        Test(Function() Function() (1, 1))
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
+
+            verifier.VerifyDiagnostics()
+
+            ' REMOVE AFTER REVIEW This test fails with messages:
+            'a.vb(10) : Error BC30521 : Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+            'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
+            'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
+            'a.vb(11) : Error BC30521 : Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+            'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
+            'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleTargetTypeLambda1()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Test(d As Func(Of (Func(Of Short), Integer)))
+        Console.WriteLine("short")
+    End Sub
+    Shared Sub Test(d As Func(Of (Func(Of Byte), Integer)))
+        Console.WriteLine("byte")
+    End Sub
+    Shared Sub Main()
+        Test(Function() (Function() CType(1, Byte), 1))
+        Test(Function() (Function() 1, 1))
+    End Sub
+End Class
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(d As Func(Of (Func(Of Short), Integer)))': Not most specific.
+    'Public Shared Sub Test(d As Func(Of (Func(Of Byte), Integer)))': Not most specific.
+        Test(Function() (Function() CType(1, Byte), 1))
+        ~~~~
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(d As Func(Of (Func(Of Short), Integer)))': Not most specific.
+    'Public Shared Sub Test(d As Func(Of (Func(Of Byte), Integer)))': Not most specific.
+        Test(Function() (Function() 1, 1))
+        ~~~~
+</errors>)
+            ' REMOVE AFTER REVIEW The errors are different in C#
+
+        End Sub
+
+        <Fact>
+        Public Sub TargetTypingOverload01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Test((Nothing, Nothing))
+        Test((1, 1))
+        Test((Function() 7, Function() 8), 2)
+    End Sub
+    Shared Sub Test(Of T)(x As (T, T))
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test(x As (Object, Object))
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test(Of T)(x As (Func(Of T), Func(Of T)), y As T)
+        Console.WriteLine("third")
+        Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second
+first
+third
+7]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub TargetTypingOverload02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Test((Function() 7, Function() 8))
+    End Sub
+    Shared Sub Test(Of T)(x As (T, T))
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test(x As (Object, Object))
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test(Of T)(x As (Func(Of T), Func(Of T)))
+        Console.WriteLine("third")
+        Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second]]>)
+
+            verifier.VerifyDiagnostics()
+
+            ' REMOVE AFTER REVIEW The output is different in C#
+
+        End Sub
+
+        <Fact>
+        Public Sub TargetTypingNullable01()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x = M1()
+        Test(x)
+    End Sub
+    Shared Function M1() As (a As Integer, b As Double)?
+        Return (1, 2)
+    End Function
+    Shared Sub Test(Of T)(arg As T)
+        Console.WriteLine(GetType(T))
+        Console.WriteLine(arg)
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[System.Nullable`1[System.ValueTuple`2[System.Int32,System.Double]]
+(1, 2)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub TargetTypingOverload01Long()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Test((Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
+        Test((1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+        Test((Function() 11, Function() 12, Function() 13, Function() 14, Function() 15, Function() 16, Function() 17, Function() 18, Function() 19, Function() 20))
+    End Sub
+    Shared Sub Test(Of T)(x As (T, T, T, T, T, T, T, T, T, T))
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test(x As (Object, Object, Object, Object, Object, Object, Object, Object, Object, Object))
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test(Of T)(x As (Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T), Func(Of T)), y As T)
+        Console.WriteLine("third")
+        Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second
+first
+second]]>)
+
+            verifier.VerifyDiagnostics()
+
+            ' REMOVE AFTER REVIEW The output is different in C#
+
+        End Sub
+
+
+
 
 
 
