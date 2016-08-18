@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' Wrong arg count
                         Debug.Assert(Args.Count > 3)
 
-                        Dim withSeparators As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Args.GetWithSeparators(), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+                        Dim withSeparators As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Args.GetWithSeparators()
                         Const firstNotUsedIndex As Integer = 5
 
                         Debug.Assert(withSeparators.Count > firstNotUsedIndex)
@@ -829,8 +829,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' for Dev10 compat we will let it slip through.
 
                 Dim IsArrayCreationExpression = False
-                Dim arrayModifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax))
-                If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
+                Dim arrayModifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = Nothing
+                If Me.CurrentToken.Kind = Global.Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.OpenParenToken Then
                     ' Parse array modifiers
 
                     arrayModifiers = ParseArrayRankSpecifiers(ERRID.ERR_NoConstituentArraySizes)
@@ -1304,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False) As ArgumentListSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be at tkLParen.")
 
-            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax))
+            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = Nothing
             Dim openParen As PunctuationSyntax = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
 
@@ -1635,7 +1635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim genericParams As TypeParameterListSyntax = Nothing
             Dim openParen As PunctuationSyntax = Nothing
-            Dim params As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax))
+            Dim params As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ParameterSyntax) = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
 
             isMultiLine = False
@@ -1659,7 +1659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim asClause As SimpleAsClauseSyntax = Nothing
-            Dim returnTypeAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax))
+            Dim returnTypeAttributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax) = Nothing
 
             Dim asKeyword As KeywordSyntax = Nothing
 

@@ -7,8 +7,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
+using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
             CSharpSyntaxNode node,
             SyntaxList<MemberDeclarationSyntax> members,
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static string[] GetNonTypeMemberNames(
-            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EventFieldDeclaration:
                     anyNonTypeMembers = true;
-                    CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
+                    CoreInternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)

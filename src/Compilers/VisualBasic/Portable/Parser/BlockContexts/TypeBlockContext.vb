@@ -3,10 +3,6 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the DeclarationContext
 '-----------------------------------------------------------------------------
-Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax

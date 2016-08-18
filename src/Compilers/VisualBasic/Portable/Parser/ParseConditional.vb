@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Name = ParseIdentifier()
 
-            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If Name.ContainsDiagnostics Then
                 unexpected = ResyncAt({SyntaxKind.EqualsToken})
             End If

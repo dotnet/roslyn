@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
-        public SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) 
-            where TNode : CSharpSyntaxNode
+        public SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
             SyntaxListBuilder alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)

@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End Select
             Loop
 
-            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If CurrentToken.Kind <> SyntaxKind.QuestionGreaterThanToken Then
                 unexpected = ResyncAt(ScannerState.Element, {SyntaxKind.EndOfXmlToken,
                                                              SyntaxKind.QuestionGreaterThanToken,
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 name = name.AddTrailingSyntax(exp, ERRID.ERR_EmbeddedExpression)
             End If
 
-            Dim skipped As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+            Dim skipped As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If Not VerifyExpectedToken(SyntaxKind.EqualsToken, equals, ScannerState.Element) Then
                 skipped = ResyncAt(ScannerState.Element,
                                    {SyntaxKind.SingleQuoteToken,
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub ParseInternalSubSet(builder As SyntaxListBuilder(Of GreenNode))
-            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If CurrentToken.Kind <> SyntaxKind.BadToken OrElse DirectCast(CurrentToken, BadTokenSyntax).SubKind <> SyntaxSubKind.OpenBracketToken Then
                 unexpected = ResyncAt(ScannerState.DocType, {SyntaxKind.BadToken,
                                                             SyntaxKind.GreaterThanToken,
@@ -547,7 +547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         GetNextToken(enclosingState)
 
-                        Dim unexpectedSyntax = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan)),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+                        Dim unexpectedSyntax = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan))
 
                         endEmptyElementToken = AddLeadingSyntax(New PunctuationSyntax(SyntaxKind.SlashGreaterThanToken, "", Nothing, Nothing),
                                                                 unexpectedSyntax,
@@ -862,7 +862,7 @@ LessThanSlashTokenCase:
             Dim beginEndElement As PunctuationSyntax = Nothing
             Dim name As XmlNameSyntax = Nothing
             Dim greaterToken As PunctuationSyntax = Nothing
-            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
 
             If CurrentToken.Kind <> SyntaxKind.LessThanSlashToken Then
                 unexpected = ResyncAt(ScannerState.Content,
@@ -1219,7 +1219,7 @@ lFailed:
                         GetNextToken()
                     End If
 
-                    Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax) = CType(signatureTypes.ToList, CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax))
+                    Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax) = signatureTypes.ToList
                     _pool.Free(signatureTypes)
 
                     Return SyntaxFactory.CrefSignature(openParen, typeArguments, closeParen)
@@ -1607,7 +1607,7 @@ lFailed:
             ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name, 
             ' although they both may be represented by a node with kind SyntaxKind.ColonTrivia.
 
-            Dim trailingTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia()),Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+            Dim trailingTrivia = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia())
             If trailingTrivia.Count > 0 AndAlso IsAsciiColonTrivia(trailingTrivia(0)) Then
 
                 Debug.Assert(trailingTrivia.Last.Kind = SyntaxKind.ColonTrivia)
@@ -1708,7 +1708,7 @@ lFailed:
                     Debug.Assert(tempNodes.Nodes.Length = 1)
 
                     For Each node In tempNodes.Nodes
-                        content.Add(DirectCast(node, XmlNodeSyntax))
+                        content.Add(node)
                     Next
                 End If
             End If

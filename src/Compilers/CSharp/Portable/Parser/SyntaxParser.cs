@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (token.Width > 0)
                     {
                         // separate trivia from the tokens
-                        var tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
+                        SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
                         // adjust relative offsets of diagnostics attached to the token:
                         int leadingWidth = token.GetLeadingTriviaWidth();

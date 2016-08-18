@@ -74,30 +74,6 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        public void AddRange(SyntaxNodeOrTokenList list)
-        {
-            this.AddRange(list, 0, list.Count);
-        }
-
-        public void AddRange(SyntaxNodeOrTokenList list, int offset, int count)
-        {
-            if (_nodes == null || this.Count + count > _nodes.Length)
-            {
-                this.Grow(Count + count);
-            }
-
-            var dst = this.Count;
-            for (int i = offset, limit = offset + count; i < limit; i++)
-            {
-                _nodes[dst].Value = list[i].UnderlyingNode;
-                dst++;
-            }
-
-            int start = Count;
-            Count += count;
-            Validate(start, Count);
-        }
-
         public void AddRange(SyntaxList<SyntaxNode> list)
         {
             this.AddRange(list, 0, list.Count);
@@ -132,6 +108,30 @@ namespace Microsoft.CodeAnalysis.Syntax
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node), offset, count);
         }
 
+        public void AddRange(SyntaxNodeOrTokenList list)
+        {
+            this.AddRange(list, 0, list.Count);
+        }
+
+        public void AddRange(SyntaxNodeOrTokenList list, int offset, int count)
+        {
+            if (_nodes == null || this.Count + count > _nodes.Length)
+            {
+                this.Grow(Count + count);
+            }
+
+            var dst = this.Count;
+            for (int i = offset, limit = offset + count; i < limit; i++)
+            {
+                _nodes[dst].Value = list[i].UnderlyingNode;
+                dst++;
+            }
+
+            int start = Count;
+            Count += count;
+            Validate(start, Count);
+        }
+
         public void AddRange(SyntaxTokenList list)
         {
             this.AddRange(list, 0, list.Count);
@@ -142,10 +142,11 @@ namespace Microsoft.CodeAnalysis.Syntax
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
         }
 
-        internal void RemoveLast()
+        private void Grow(int size)
         {
-            this.Count -= 1;
-            this._nodes[Count] = default(ArrayElement<GreenNode>);
+            var tmp = new ArrayElement<GreenNode>[size];
+            Array.Copy(_nodes, tmp, _nodes.Length);
+            _nodes = tmp;
         }
 
         public bool Any(int kind)
@@ -159,13 +160,6 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
 
             return false;
-        }
-
-        protected void Grow(int size)
-        {
-            var tmp = new ArrayElement<GreenNode>[size];
-            Array.Copy(_nodes, tmp, _nodes.Length);
-            _nodes = tmp;
         }
 
         internal GreenNode ToListNode()
@@ -199,6 +193,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
 
             return builder.ToList();
+        }
+
+        internal void RemoveLast()
+        {
+            this.Count -= 1;
+            this._nodes[Count] = default(ArrayElement<GreenNode>);
         }
     }
 }

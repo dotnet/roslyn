@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class SyntaxToken
@@ -260,14 +255,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim leadingTrivia = GetLeadingTrivia()
             If leadingTrivia IsNot Nothing Then
-                Dim triviaList = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
             Dim trailingTrivia = GetTrailingTrivia()
             If trailingTrivia IsNot Nothing Then
-                Dim triviaList = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
@@ -393,14 +388,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia prepended to the existing preceding trivia
         ''' </summary>
-        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As T
+        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia()), Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+            Dim oldTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia())
             Dim leadingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then
@@ -419,14 +414,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia appended to the existing following trivia
         ''' </summary>
-        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As T
+        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia()), Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+            Dim oldTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
             Dim trailingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then

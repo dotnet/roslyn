@@ -7,10 +7,10 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Sub ProcessDirective(directiveTrivia As DirectiveTriviaSyntax, tList As SyntaxListBuilder)
 
-            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(Nothing, CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+            Dim disabledCode As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             Dim statement As DirectiveTriviaSyntax = directiveTrivia
 
             Dim newState = ApplyDirective(_scannerPreprocessorState,
