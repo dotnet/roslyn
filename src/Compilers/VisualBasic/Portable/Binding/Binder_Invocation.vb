@@ -3030,38 +3030,8 @@ ProduceBoundNode:
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
 
             If defaultConstantValue IsNot Nothing Then
-OtherChecks:
-                defaultConstantValue = CheckCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
 
-                ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
-                ' is a possible outcome of running an obfuscator over a valid DLL 
-                If defaultConstantValue.IsBad Then
-                    defaultConstantValue = ConstantValue.Nothing
-                End If
-
-                Dim defaultSpecialType = defaultConstantValue.SpecialType
-                Dim defaultArgumentType As TypeSymbol = Nothing
-
-                ' Constant has a type.
-                Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
-
-                If param.HasOptionCompare Then
-                    CheckOptionCompare(syntax, diagnostics, defaultConstantValue, defaultArgumentType, paramNullableUnderlyingTypeOrSelf)
-                ElseIf defaultSpecialType <> SpecialType.None Then
-                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
-                        ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
-                        ' use the parameter's enum type.
-                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                    Else
-                        'Use the primitive type.
-                        defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
-                    End If
-                Else
-                    ' No type in constant.  Constant should be nothing
-                    Debug.Assert(defaultConstantValue.IsNothing)
-                End If
-
-                defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
+                defaultArgument = AdditionalChecks(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
 
             ElseIf param.IsOptional Then
 
@@ -3071,13 +3041,51 @@ OtherChecks:
                 If param.Type.SpecialType = SpecialType.System_Object Then
                     defaultArgument = CheckSpecialTypeObject(param, syntax, diagnostics, defaultArgument)
                 Else
-                    defaultConstantValue = ConstantValue.Nothing
-                    GoTo OtherChecks
+                    defaultArgument = AdditionalChecks(param, syntax, diagnostics, callerInfoOpt, ConstantValue.Nothing)
                 End If
 
             End If
 
             Return defaultArgument
+        End Function
+
+        Private Function AdditionalChecks(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode, defaultConstantValue As ConstantValue) As BoundExpression
+
+            defaultConstantValue = CheckCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
+
+            ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
+            ' is a possible outcome of running an obfuscator over a valid DLL 
+            If defaultConstantValue.IsBad Then
+                defaultConstantValue = ConstantValue.Nothing
+            End If
+
+            Dim defaultSpecialType = defaultConstantValue.SpecialType
+            Dim defaultArgumentType As TypeSymbol = Nothing
+
+            ' Constant has a type.
+            Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
+
+            If param.HasOptionCompare Then
+
+                CheckOptionCompare(syntax, diagnostics, defaultConstantValue, defaultArgumentType, paramNullableUnderlyingTypeOrSelf)
+
+            ElseIf defaultSpecialType <> SpecialType.None Then
+
+                If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
+                    ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
+                    ' use the parameter's enum type.
+                    defaultArgumentType = paramNullableUnderlyingTypeOrSelf
+                Else
+                    'Use the primitive type.
+                    defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
+                End If
+
+            Else
+                ' No type in constant.  Constant should be nothing
+                Debug.Assert(defaultConstantValue.IsNothing)
+            End If
+
+            Return New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
         End Function
 
         Private Function CheckSpecialTypeObject(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, defaultArgument As BoundExpression) As BoundExpression
