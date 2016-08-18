@@ -2426,7 +2426,7 @@ End Class
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
-            CompileAndVerify(compilation:=compilation.WithImplicitDefaultOptionalParameter, expectedOutput:=
+            CompileAndVerify(compilation:=compilation, expectedOutput:=
             <![CDATA[
 1: 21
 0: 22

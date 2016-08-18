@@ -3029,14 +3029,8 @@ ProduceBoundNode:
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
 
-            ' Deal with Optional arguments, with no explicitly expressed default value
-            If InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _compilation.Options.ParseOptions) AndAlso
-               (defaultConstantValue Is Nothing) AndAlso (param.HasExplicitDefaultValue = False) Then
-                defaultConstantValue = ConstantValue.Nothing
-            End If
-
             If defaultConstantValue IsNot Nothing Then
-
+OtherChecks:
                 defaultConstantValue = CheckCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
 
                 ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
@@ -3077,7 +3071,8 @@ ProduceBoundNode:
                 If param.Type.SpecialType = SpecialType.System_Object Then
                     defaultArgument = CheckSpecialTypeObject(param, syntax, diagnostics, defaultArgument)
                 Else
-                    defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
+                    defaultConstantValue = ConstantValue.Nothing
+                    GoTo OtherChecks
                 End If
 
             End If
