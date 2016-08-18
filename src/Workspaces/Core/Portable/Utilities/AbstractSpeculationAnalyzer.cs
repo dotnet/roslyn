@@ -381,14 +381,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var type = methodSymbol.ContainingType;
                     var newType = newMethodSymbol.ContainingType;
                     if ((type != null && newType != null) &&
-                        (
+                        ((
                             type.IsEnumType() &&
                             type.EnumUnderlyingType != null &&
                             type.EnumUnderlyingType.SpecialType == newType.SpecialType) ||
                         (
                             newType.IsEnumType() &&
                             newType.EnumUnderlyingType != null &&
-                            newType.EnumUnderlyingType.SpecialType == type.SpecialType))
+                            newType.EnumUnderlyingType.SpecialType == type.SpecialType)))
                     {
                         return true;
                     }
