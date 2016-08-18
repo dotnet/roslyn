@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 }
                 
                 // At this point, the node has to go at the beginning of the comment
-                var nodeAfterNewParamNode = GetFirstParamNodeCorrespondingToParameterInList(paramNodes, paramsAfterCurrentParam) ??
-                                                   newDocComment.ChildNodes().First();
+                var nodeAfterNewParamNode = paramNodes.FirstOrDefault() ?? newDocComment.ChildNodes().First();
 
                 // Adjust for doc comment marker before the node
                 if (nodeAfterNewParamNode != null)
@@ -164,29 +163,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                 }
 
                 if (GetValueFromNameAttribute(paramNameAttributesForNode.Single()) == name)
-                {
-                    return paramNode;
-                }
-            }
-
-            return null;
-        }
-
-        protected TXmlElementSyntax GetFirstParamNodeCorrespondingToParameterInList(
-            IEnumerable<TXmlElementSyntax> paramNodeList,
-            List<string> methodParamSubset)
-        {
-            foreach (var paramNode in paramNodeList)
-            {
-                var paramNameAttributesForNode = GetNameAttributes(paramNode);
-
-                // param node is missing `name` attribute or there are multiple `name` attributes
-                if (paramNameAttributesForNode.Count != 1)
-                {
-                    continue;
-                }
-                
-                if (methodParamSubset.Contains(GetValueFromNameAttribute(paramNameAttributesForNode.Single())))
                 {
                     return paramNode;
                 }
