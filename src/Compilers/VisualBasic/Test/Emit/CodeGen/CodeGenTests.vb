@@ -7920,6 +7920,167 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
 ]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
         End Sub
 
+        <Fact()>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario1()
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                         "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class base
+    Public Overridable Sub f(x As Integer, Optional y As Integer)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+End Class
+
+Class derived
+    Inherits base
+    Public Overrides Sub f(x As Integer, Optional y As Integer = 0) 
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)")
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+        Test(New base)
+        Test(New derived)
+    End Sub
+    Sub Test(b As base)
+        b.f(1)
+        b.f(1, 2)
+        b.f(1, "")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
+]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+        End Sub
+
+        <Fact()>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario2()
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                         "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class base
+    Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)")
+    End Sub
+End Class
+
+Class derived
+    Inherits base
+    Public Overrides Sub f(x As Integer, Optional y As Integer) 
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+        Test(New base)
+        Test(New derived)
+    End Sub
+    Sub Test(b As base)
+        b.f(1)
+        b.f(1, 2)
+        b.f(1, "")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 0)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
+]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+        End Sub
+
+        <Fact()>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario3()
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                         "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class base
+    Public Overridable Sub f(x As Integer, Optional y As Integer)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+End Class
+
+Class derived
+    Inherits base
+    Public Overrides Sub f(x As Integer, Optional y As Integer) 
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 1)")
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+        Test(New base)
+        Test(New derived)
+    End Sub
+    Sub Test(b As base)
+        b.f(1)
+        b.f(1, 2)
+        b.f(1, "")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer = 1)
+]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+        End Sub
+
+        <Fact()>
+        Public Sub OverridingFunctionsOverloadedOnOptionalParameters_Scenario4()
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
+                         "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
+
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class base
+    Public Overridable Sub f(x As Integer, Optional y As Integer = 2)
+        Console.WriteLine("BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 2)")
+    End Sub
+End Class
+
+Class derived
+    Inherits base
+    Public Overrides Sub f(x As Integer, Optional y As Integer) 
+        Console.WriteLine("DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)")
+    End Sub
+End Class
+
+Module Program
+    Sub Main(args As String())
+        Test(New base)
+        Test(New derived)
+    End Sub
+    Sub Test(b As base)
+        b.f(1)
+        b.f(1, 2)
+        b.f(1, "")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+BASE: Public Overridable Sub f(x As Integer, Optional y As Integer = 2)
+DERIVED: Public Overridable Sub f(x As Integer, Optional y As Integer)
+]]>, parseOptions:=_VBParseOptionsWithImplicitDefaultOptionalParameter)
+        End Sub
+
+
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_A()
 
