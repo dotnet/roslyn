@@ -5776,15 +5776,101 @@ second]]>)
 
         End Sub
 
+        <Fact>
+        Public Sub TargetTypingNullable02()
 
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x = M1()
+        Test(x)
+    End Sub
+    Shared Function M1() As (a As Integer, b As String)?
+        Return (1, Nothing)
+    End Function
+    Shared Sub Test(Of T)(arg As T)
+        Console.WriteLine(GetType(T))
+        Console.WriteLine(arg)
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
+(1, )]]>)
 
+            verifier.VerifyDiagnostics()
+            ' REMOVE AFTER REVIEW Has error:
+            ' a.vb(8) : Error BC30491 : Expression does Not produce a value.
 
+        End Sub
 
+        <Fact>
+        Public Sub TargetTypingNullable02Long()
 
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        Dim x = M1()
+        Console.WriteLine(x?.a)
+        Console.WriteLine(x?.a8)
+        Test(x)
+    End Sub
+    Shared Function M1() As (a As Integer, b As String, a1 As Integer, a2 As Integer, a3 As Integer, a4 As Integer, a5 As Integer, a6 As Integer, a7 As Integer, a8 As Integer)?
+        Return (1, Nothing, 1, 2, 3, 4, 5, 6, 7, 8)
+    End Function
+    Shared Sub Test(Of T)(arg As T)
+        Console.WriteLine(arg)
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
+(1, )]]>)
 
+            verifier.VerifyDiagnostics()
+            ' REMOVE AFTER REVIEW Has error:
+            ' a.vb(10) : error BC30491: Expression does not produce a value.
 
+        End Sub
 
+        <Fact>
+        Public Sub TargetTypingNullableOverload()
 
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Class C
+    Shared Sub Main()
+        'Test((Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)) ' Overload resolution fails
+        Test(("a", "a", "a", "a", "a", "a", "a", "a", "a", "a"))
+        Test((1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
+    End Sub
+    Shared Sub Test(x As (String, String, String, String, String, String, String, String, String, String))
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test(x As (String, String, String, String, String, String, String, String, String, String)?)
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test(x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)?)
+        Console.WriteLine("third")
+    End Sub
+    Shared Sub Test(x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
+        Console.WriteLine("fourth")
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[first
+fourth]]>)
+
+            verifier.VerifyDiagnostics()
+            ' REMOVE AFTER REVIEW Has error
+
+        End Sub
 
     End Class
 
