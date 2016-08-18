@@ -3550,8 +3550,7 @@ Bailout:
                 ' Now see if any candidates are ambiguous or lose against other candidates in the quickInfo array.
                 ' This loop is destructive to the content of the quickInfo, some applicable candidates could be replaced with
                 ' a "better" candidate, even though that candidate is not applicable, "losers" are deleted, etc.
-                Dim ke As Integer = If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
-                For k As Integer = 0 To ke
+                For k As Integer = 0 To If(applicableCount > 0 OrElse Not includeEliminatedCandidates, applicableCount, quickInfo.Count) - 1
                     info = quickInfo(k)
 
                     If info.Candidate Is Nothing OrElse info.State = CandidateAnalysisResultState.Ambiguous Then

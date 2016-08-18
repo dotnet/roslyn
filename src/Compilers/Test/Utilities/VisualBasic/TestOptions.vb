@@ -55,13 +55,12 @@ Friend Module TestOptionExtensions
 
     <Extension()>
     Public Function WithIOperationFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("IOperation", "true")}))
+        Return options.WithExperimental(Feature.IOperation)
     End Function
 
     <Extension()>
     Public Function WithImplicitDefaultOptionalParameter(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Dim flag = Feature.ImplicitDefaultValueOnOptionalParameter.GetFeatureFlag
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)(flag, "true")}))
+        Return options.WithExperimental(Feature.ImplicitDefaultValueOnOptionalParameter)
     End Function
     <Extension()>
     Public Function WithImplicitDefaultOptionalParameter(compilation As VisualBasicCompilation) As Compilation
