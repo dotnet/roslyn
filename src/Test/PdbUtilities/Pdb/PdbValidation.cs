@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false);
                 var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: false);
 
-                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertEx.AssertLinesEqual(expectedXml.ToString(), actualXml.ToString(), $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, escapeQuotes: !expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true);
                 var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: true);
 
-                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertEx.AssertLinesEqual(expectedXml.ToString(), actualXml.ToString(), $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, escapeQuotes: !expectedIsXmlLiteral);
             }
         }
 
