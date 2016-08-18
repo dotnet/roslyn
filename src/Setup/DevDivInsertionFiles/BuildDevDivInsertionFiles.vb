@@ -1046,7 +1046,8 @@ Public Class BuildDevDivInsertionFiles
         ' And the produced assemblies produced loc'd UIs as expected in both JPN VS and ENU VS + JPN LP scenarios.
 
         Select Case fileName
-            Case "Microsoft.VisualStudio.LanguageServices.dll",
+            Case "Microsoft.CodeAnalysis.EditorFeatures.dll",
+                 "Microsoft.VisualStudio.LanguageServices.dll",
                  "Microsoft.VisualStudio.LanguageServices.VisualStudio.dll",
                  "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
                  "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
