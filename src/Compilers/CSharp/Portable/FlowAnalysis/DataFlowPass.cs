@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
+        protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
             if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda) return;
             if (Diagnostics != null && this.State.Reachable)
@@ -664,6 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int VariableSlot(Symbol symbol, int containingSlot = 0)
         {
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: false);
+
             int slot;
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
         }
@@ -674,6 +676,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             if (symbol is RangeVariableSymbol) return -1;
+
+            containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
+
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
 
@@ -699,6 +704,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             Normalize(ref this.State);
             return slot;
         }
+
+        /// <summary>
+        /// Descends through Rest fields of a tuple if "symbol" is an extended field
+        /// As a result the "symbol" will be adjusted to be the field of the innermost tuple
+        /// and a corresponding containingSlot is returned.
+        /// Return value -1 indicates a failure which could happen for the following reasons
+        /// a) Rest field does not exist, which could happen in rare error scenarios involving broken ValueTuple types
+        /// b) Rest is not tracked already and forceSlotsToExist is false (otherwise we create slots on demand)
+        /// </summary>
+        private int DescendThroughTupleRestFields(ref Symbol symbol, int containingSlot, bool forceContainingSlotsToExist)
+        {
+            var fieldSymbol = symbol as TupleFieldSymbol;
+            if ((object)fieldSymbol != null)
+            {
+                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+
+                // for tuple fields the variable identifier represents the underlying field
+                symbol = fieldSymbol.TupleUnderlyingField;
+
+                // descend through Rest fields
+                // force corresponding slots if do not exist
+                while (containingType != symbol.ContainingType)
+                {
+                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    if ((object)restField == null)
+                    {
+                        return -1;
+                    }
+
+                    if (forceContainingSlotsToExist)
+                    {
+                        containingSlot = GetOrCreateSlot(restField, containingSlot);
+                    }
+                    else
+                    {
+                        if (!_variableSlot.TryGetValue(new VariableIdentifier(restField, containingSlot), out containingSlot))
+                        {
+                            return -1;
+                        }
+                    }
+
+                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                }
+            }
+
+            return containingSlot;
+        }
+
 
         private void Normalize(ref LocalState state)
         {
@@ -782,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="symbol"></param>
         /// <param name="node"></param>
-        protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node)
+        protected void CheckAssigned(Symbol symbol, SyntaxNode node)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
@@ -807,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="symbol"></param>
         /// <param name="node"></param>
-        protected virtual void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             int slot = VariableSlot(symbol);
             if (slot <= 0) return;
@@ -832,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _alreadyReported[slot] = true; // mark the variable's slot so that we don't complain about the variable again
         }
 
-        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
+        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
         {
             int unassignedSlot;
             if (this.State.Reachable && !IsAssigned(expr, out unassignedSlot))
@@ -935,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.State.IsAssigned(unassignedSlot);
         }
 
-        protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             _alreadyReported.EnsureCapacity(unassignedSlot + 1);
             if (!_alreadyReported[unassignedSlot])
@@ -1272,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, CSharpSyntaxNode syntax, Location location)
+        private void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
         {
             if (!this.State.Reachable)
             {
@@ -1286,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void LeaveParameter(ParameterSymbol parameter, CSharpSyntaxNode syntax, Location location)
+        private void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         {
             if (parameter.RefKind != RefKind.None)
             {
@@ -1819,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected void CheckAssigned(BoundExpression expr, CSharpSyntaxNode node)
+        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
             if (!this.State.Reachable) return;
             int slot = MakeSlot(expr);

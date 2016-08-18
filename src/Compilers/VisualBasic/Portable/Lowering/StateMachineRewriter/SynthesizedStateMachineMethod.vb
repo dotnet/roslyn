@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(stateMachineType As StateMachineTypeSymbol,
                           name As String,
                           interfaceMethod As MethodSymbol,
-                          syntax As VisualBasicSyntaxNode,
+                          syntax As SyntaxNode,
                           declaredAccessibility As Accessibility,
                           generateDebugInfo As Boolean,
                           hasMethodBodyDependency As Boolean,
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        interfaceMethod As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
+                       syntax As SyntaxNode,
                        declaredAccessibility As Accessibility)
             MyBase.New(stateMachineType, WellKnownMemberNames.MoveNextMethodName, interfaceMethod, syntax, declaredAccessibility, generateDebugInfo:=True, hasMethodBodyDependency:=True)
         End Sub
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(stateMachineType As StateMachineTypeSymbol,
                        name As String,
                        interfaceMethod As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
+                       syntax As SyntaxNode,
                        declaredAccessibility As Accessibility,
                        hasMethodBodyDependency As Boolean,
                        Optional associatedProperty As PropertySymbol = Nothing)

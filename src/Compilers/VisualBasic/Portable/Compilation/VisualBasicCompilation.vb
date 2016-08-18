@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' The My template regularly makes use of more recent language features.  Care is
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
-                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Latest)
+                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
                             tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
 
                             If tree.GetDiagnostics().Any() Then
@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return If(result, VisualBasicParseOptions.Default.LanguageVersion)
+            Return If(result, LanguageVersion.Default.MapSpecifiedToEffectiveVersion)
         End Function
 
         ''' <summary>
@@ -2117,10 +2117,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
-            If embeddedTexts?.Any() Then
-                Throw New ArgumentException(VBResources.EmbeddedTextsNotSupported, NameOf(embeddedTexts))
-            End If
-
             Return CreateModuleBuilder(
                 emitOptions,
                 debugEntryPoint,
@@ -2181,6 +2177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream
+
+            If embeddedTexts IsNot Nothing Then
+                moduleBeingBuilt.EmbeddedTexts = embeddedTexts
+            End If
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)

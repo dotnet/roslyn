@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBodyFactory = methodBodyFactory;
 
             // The first point indicates entry into the method and has the span of the method definition.
-            CSharpSyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
+            SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
             if (!method.IsImplicitlyDeclared)
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return statementFactory.StatementList(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten);
         }
 
-        private Cci.DebugSourceDocument GetSourceDocument(CSharpSyntaxNode syntax)
+        private Cci.DebugSourceDocument GetSourceDocument(SyntaxNode syntax)
         {
             return GetSourceDocument(syntax, syntax.GetLocation().GetMappedLineSpan());
         }
 
-        private Cci.DebugSourceDocument GetSourceDocument(CSharpSyntaxNode syntax, FileLinePositionSpan span)
+        private Cci.DebugSourceDocument GetSourceDocument(SyntaxNode syntax, FileLinePositionSpan span)
         {
             string path = span.Path;
             // If the path for the syntax node is empty, try the path for the entire syntax tree.
@@ -268,17 +268,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _debugDocumentProvider.Invoke(path, basePath: "");
         }
 
-        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
+        private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
         {
             return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory);
         }
 
-        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
+        private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
         {
             return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory);
         }
 
-        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
+        private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
         {
             // Add an entry in the spans array.
             int spansIndex = _spansBuilder.Count;
@@ -289,9 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
         }
 
-        private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
+        private static SyntaxNode SyntaxForSpan(BoundStatement statement)
         {
-            CSharpSyntaxNode syntaxForSpan;
+            SyntaxNode syntaxForSpan;
 
             switch (statement.Kind)
             {
@@ -344,14 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);
         }
 
-        private static CSharpSyntaxNode MethodDeclarationIfAvailable(CSharpSyntaxNode body)
+        private static SyntaxNode MethodDeclarationIfAvailable(SyntaxNode body)
         {
-            CSharpSyntaxNode parent = body.Parent;
+            SyntaxNode parent = body.Parent;
 
             if (parent != null)
             {
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
-        private static Text.TextSpan SkipAttributes(CSharpSyntaxNode syntax)
+        private static Text.TextSpan SkipAttributes(SyntaxNode syntax)
         {
             switch (syntax.Kind())
             {

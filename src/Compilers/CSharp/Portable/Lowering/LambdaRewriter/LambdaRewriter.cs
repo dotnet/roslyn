@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we need to associate this with some syntax.
                     // unfortunately either containing method or containing class could be synthetic
                     // therefore could have no syntax.
-                    CSharpSyntaxNode syntax = lambda.Syntax;
+                    SyntaxNode syntax = lambda.Syntax;
 
                     // add cctor
                     // Frame.inst = new Frame()
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntax">The syntax to attach to the bound nodes produced</param>
         /// <param name="frameType">The type of frame to be returned</param>
         /// <returns>A bound node that computes the pointer to the required frame</returns>
-        private BoundExpression FrameOfType(CSharpSyntaxNode syntax, NamedTypeSymbol frameType)
+        private BoundExpression FrameOfType(SyntaxNode syntax, NamedTypeSymbol frameType)
         {
             BoundExpression result = FramePointer(syntax, frameType.OriginalDefinition);
             Debug.Assert(result.Type == frameType);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntax">The syntax to attach to the bound nodes produced</param>
         /// <param name="frameClass">The class type of frame to be returned</param>
         /// <returns>A bound node that computes the pointer to the required frame</returns>
-        protected override BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass)
+        protected override BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass)
         {
             Debug.Assert(frameClass.IsDefinition);
 
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frame.ScopeSyntaxOpt != null);
             LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // assign new frame to the frame variable
 
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void InitVariableProxy(CSharpSyntaxNode syntax, Symbol symbol, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
+        private void InitVariableProxy(SyntaxNode syntax, Symbol symbol, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
         {
             CapturedSymbolReplacement proxy;
             if (proxies.TryGetValue(symbol, out proxy))
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void RemapLambdaOrLocalFunction(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol originalMethod,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             ClosureKind closureKind,
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void RemapLocalFunction(
-            CSharpSyntaxNode syntax, MethodSymbol symbol,
+            SyntaxNode syntax, MethodSymbol symbol,
             out BoundExpression receiver, out MethodSymbol method,
             ref ImmutableArray<BoundExpression> parameters,
             ImmutableArray<TypeSymbol> typeArguments = default(ImmutableArray<TypeSymbol>))

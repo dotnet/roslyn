@@ -1095,9 +1095,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the MemberSemanticModel that contains the node.
         /// </summary>
-        internal abstract MemberSemanticModel GetMemberModel(CSharpSyntaxNode node);
+        internal abstract MemberSemanticModel GetMemberModel(SyntaxNode node);
 
-        internal bool IsInTree(CSharpSyntaxNode node)
+        internal bool IsInTree(SyntaxNode node)
         {
             return node.SyntaxTree == this.SyntaxTree;
         }
@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A convenience method that determines a position from a node.  If the node is missing,
         /// then its position will be adjusted using CheckAndAdjustPosition.
         /// </summary>
-        protected int GetAdjustedNodePosition(CSharpSyntaxNode node)
+        protected int GetAdjustedNodePosition(SyntaxNode node)
         {
             Debug.Assert(IsInTree(node));
 
@@ -3478,7 +3478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor = null;
 
             // Check if boundNode.Syntax is the type-name child of an Attribute.
-            CSharpSyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
+            SyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
             if (parentSyntax != null &&
                 parentSyntax == boundNode.Syntax.Parent &&
                 parentSyntax.Kind() == SyntaxKind.Attribute && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)

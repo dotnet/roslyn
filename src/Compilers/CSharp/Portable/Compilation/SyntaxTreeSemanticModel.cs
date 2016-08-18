@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Try to get a member semantic model that encloses "node". If there is not an enclosing
         // member semantic model, return null.
-        internal override MemberSemanticModel GetMemberModel(CSharpSyntaxNode node)
+        internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
             // Documentation comments can never legally appear within members, so there's no point
             // in building out the MemberSemanticModel to handle them.  Instead, just say have
@@ -817,9 +817,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static bool IsInDocumentationComment(CSharpSyntaxNode node)
+        private static bool IsInDocumentationComment(SyntaxNode node)
         {
-            for (CSharpSyntaxNode curr = node; curr != null; curr = curr.Parent)
+            for (SyntaxNode curr = node; curr != null; curr = curr.Parent)
             {
                 if (SyntaxFacts.IsDocumentationCommentTrivia(curr.Kind()))
                 {
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static CSharpSyntaxNode GetMemberDeclaration(CSharpSyntaxNode node)
+        private static CSharpSyntaxNode GetMemberDeclaration(SyntaxNode node)
         {
             return node.FirstAncestorOrSelf(s_isMemberDeclarationFunction);
         }

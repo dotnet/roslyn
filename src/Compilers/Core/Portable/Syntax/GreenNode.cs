@@ -120,9 +120,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract string KindText { get; }
-        public virtual bool IsStructuredTrivia { get { return false; } }
-        public virtual bool IsDirective { get { return false; } }
-        public virtual bool IsToken { get { return false; } }
+
+        public virtual bool IsStructuredTrivia => false;
+        public virtual bool IsDirective => false;
+        public virtual bool IsToken => false;
+        public virtual bool IsSkippedTokensTrivia => false;
+        public virtual bool IsDocumentationCommentTrivia => false;
 
         #endregion
 
@@ -598,12 +601,12 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Tokens 
+
         public virtual int RawContextualKind { get { return this.RawKind; } }
         public virtual object GetValue() { return null; }
         public virtual string GetValueText() { return string.Empty; }
         public virtual GreenNode GetLeadingTriviaCore() { return null; }
         public virtual GreenNode GetTrailingTriviaCore() { return null; }
-        public abstract AbstractSyntaxNavigator Navigator { get; }
 
         public virtual GreenNode WithLeadingTrivia(GreenNode trivia)
         {

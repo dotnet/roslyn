@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A map from SyntaxNode to corresponding visited BoundStatement.
         ''' Used to ensure correct generation of resumable code for Unstructured Exception Handling.
         ''' </summary>
-        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
+        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of SyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
 
         Private ReadOnly _leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
 #End If
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteReceiverArgumentsAndGenerateAccessorCall(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             methodSymbol As MethodSymbol,
             receiverOpt As BoundExpression,
             arguments As ImmutableArray(Of BoundExpression),

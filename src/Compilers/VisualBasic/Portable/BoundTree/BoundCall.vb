@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundCall
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             method As MethodSymbol,
             methodGroupOpt As BoundMethodGroup,
             receiverOpt As BoundExpression,

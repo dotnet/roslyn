@@ -240,9 +240,6 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
-  <data name="IDS_FeatureReplace" xml:space="preserve">
-    <value>replaced members</value>
-  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -1648,6 +1645,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+  </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
     <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
@@ -4449,7 +4449,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, or Default
+                               4, 5, 6, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 

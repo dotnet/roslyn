@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return Not Me._module.SourceModule.ContainingSourceAssembly.IsVbRuntime
         End Function
 
-        Private Sub EmitSetProjectError(syntaxNode As VisualBasicSyntaxNode, errorLineNumberOpt As BoundExpression)
+        Private Sub EmitSetProjectError(syntaxNode As SyntaxNode, errorLineNumberOpt As BoundExpression)
             Dim setProjectErrorMethod As MethodSymbol
 
             If errorLineNumberOpt Is Nothing Then
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(setProjectErrorMethod, syntaxNode)
         End Sub
 
-        Private Sub EmitClearProjectError(syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitClearProjectError(syntaxNode As SyntaxNode)
             Const clearProjectError As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError
             Dim clearProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
 
@@ -1083,7 +1083,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
             Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
@@ -1240,7 +1240,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Function DefineLocal(local As LocalSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
+        Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
             Dim specType = local.Type.SpecialType
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
@@ -1374,7 +1374,7 @@ OtherExpressions:
         ''' <summary>
         ''' Allocates a temp without identity.
         ''' </summary>
-        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
+        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As SyntaxNode) As LocalDefinition
             Return _builder.LocalSlotManager.AllocateSlot(
                 Me._module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
                 LocalSlotConstraints.None)

@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitStaticFieldAddress(FieldSymbol field, CSharpSyntaxNode syntaxNode)
+        private void EmitStaticFieldAddress(FieldSymbol field, SyntaxNode syntaxNode)
         {
             _builder.EmitOpCode(ILOpCode.Ldsflda);
             EmitSymbolToken(field, syntaxNode);

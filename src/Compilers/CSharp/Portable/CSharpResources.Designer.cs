@@ -3707,6 +3707,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
+        /// </summary>
+        internal static string ERR_EncUpdateFailedMissingAttribute {
+            get {
+                return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #endif directive expected.
         /// </summary>
         internal static string ERR_EndifDirectiveExpected {
@@ -9941,15 +9950,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureRefLocalsReturns {
             get {
                 return ResourceManager.GetString("IDS_FeatureRefLocalsReturns", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to replaced members.
-        /// </summary>
-        internal static string IDS_FeatureReplace {
-            get {
-                return ResourceManager.GetString("IDS_FeatureReplace", resourceCulture);
             }
         }
         

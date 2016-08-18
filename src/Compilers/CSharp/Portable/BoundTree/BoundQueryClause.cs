@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression UnoptimizedForm { get; }
 
         public BoundQueryClause(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression value,
             RangeVariableSymbol definedSymbol,
             BoundExpression queryInvocation,

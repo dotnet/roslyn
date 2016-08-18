@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _constructor As SynthesizedLambdaConstructor
         Friend ReadOnly TypeMap As TypeSubstitution
 
-        Private ReadOnly _scopeSyntaxOpt As VisualBasicSyntaxNode
+        Private ReadOnly _scopeSyntaxOpt As SyntaxNode
 
         Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
             Function(container)
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         GeneratedNames.MakeDisplayClassGenericParameterName(typeParameter.Ordinal),
                                                                                         s_typeSubstitutionFactory)
         Friend Sub New(topLevelMethod As MethodSymbol,
-                       scopeSyntaxOpt As VisualBasicSyntaxNode,
+                       scopeSyntaxOpt As SyntaxNode,
                        methodId As DebugId,
                        closureId As DebugId,
                        copyConstructor As Boolean,
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsClosureScopeSyntax(syntaxOpt As VisualBasicSyntaxNode)
+        Private Shared Sub AssertIsClosureScopeSyntax(syntaxOpt As SyntaxNode)
             ' static lambdas technically have the class scope so the scope syntax is nothing
             If syntaxOpt Is Nothing Then
                 Return
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind())
         End Sub
 
-        Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode
+        Public ReadOnly Property ScopeSyntax As SyntaxNode
             Get
                 Return _constructor.Syntax
             End Get

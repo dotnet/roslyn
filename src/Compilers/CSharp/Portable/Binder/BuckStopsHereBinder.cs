@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Binder GetBinder(CSharpSyntaxNode node)
+        internal override Binder GetBinder(SyntaxNode node)
         {
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }

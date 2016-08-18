@@ -192,7 +192,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SyntaxKind.ExpressionStatement:
-                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
+                    case SyntaxKind.IfStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.SwitchStatement:
+                        var switchStatement = (SwitchStatementSyntax)innerStatement;
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(switchStatement.Expression) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement));
                         break;
 
                     default:
