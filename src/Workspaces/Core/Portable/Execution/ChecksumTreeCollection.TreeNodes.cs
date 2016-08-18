@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class SubTreeNode : IChecksumTreeNode
         {
+            private static readonly Func<object, ChecksumObjectCache> s_cacheCreator = _ => new ChecksumObjectCache();
+
             private readonly ChecksumTreeCollection _owner;
 
             // some of data (checksum) in this cache can be moved into object itself if we decide to do so.
@@ -74,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Execution
             //
             // key is green node such as DoucmentState and value is cache of checksome objects 
             // associated with the green node
-            private readonly GreenNodeChecksumCache _cache;
+            private readonly ConcurrentDictionary<object, ChecksumObjectCache> _cache;
 
             public SubTreeNode(ChecksumTreeCollection owner, Serializer serializer)
             {
                 _owner = owner;
-                _cache = new GreenNodeChecksumCache();
+                _cache = new ConcurrentDictionary<object, ChecksumObjectCache>(concurrencyLevel: 2, capacity: 1);
 
                 Serializer = serializer;
             }
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // search needed to be improved.
                 ChecksumObject checksumObject;
-                foreach (var entry in _cache.Caches)
+                foreach (var entry in _cache.Values)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     return self;
                 }
 
-                foreach (var entry in _cache.Caches)
+                foreach (var entry in _cache.Values)
                 {
                     var tree = entry.TryGetSubTreeNode();
                     if (tree == null)
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
             {
-                var entry = _cache.GetOrAdd(key);
+                var entry = _cache.GetOrAdd(key, s_cacheCreator);
                 return entry.GetOrCreateSubTreeNode(_owner, Serializer);
             }
 
@@ -217,7 +219,16 @@ namespace Microsoft.CodeAnalysis.Execution
             private ChecksumObject SaveAndReturn(object key, ChecksumObject checksumObject, ChecksumObjectCache entry = null)
             {
                 // create new entry if it is not already given
-                entry = entry ?? _cache.GetOrAdd(key);
+                ChecksumObjectCache self;
+                if (_cache.TryGetValue(key, out self))
+                {
+                    // we already have entry
+                    return self.Add(checksumObject);
+                }
+
+                // either create new entry or re-use given one. this will let us share
+                // whole sub checksum tree that is associated with given green node (key)
+                entry = _cache.GetOrAdd(key, _ => entry ?? new ChecksumObjectCache());
                 return entry.Add(checksumObject);
             }
 

@@ -363,7 +363,6 @@
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="Execution\ChecksumTreeBuilder.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.ChecksumObjectCache.cs" />
-    <Compile Include="Execution\ChecksumTreeCollection.GreenNodeChecksumCache.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.TreeNodes.cs" />
     <Compile Include="Execution\IChecksumTreeNodes.cs" />
     <Compile Include="Execution\Extensions.cs" />

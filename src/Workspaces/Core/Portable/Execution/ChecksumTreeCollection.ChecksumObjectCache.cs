@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class ChecksumObjectCache
         {
-            private ChecksumObject _checksumObject1;
-            private ChecksumObject _checksumObject2;
+            // this cache is basically one or many map and this field is used to cache the very first element.
+            private ChecksumObject _singleElementChecksumObject;
 
             private SubTreeNode _lazyChecksumTree;
 
@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
             }
 
-            private ChecksumObject ChecksumObject1 => Volatile.Read(ref _checksumObject1);
-            private ChecksumObject ChecksumObject2 => Volatile.Read(ref _checksumObject2);
+            private ChecksumObject SingleElementChecksumObject => Volatile.Read(ref _singleElementChecksumObject);
 
             private SubTreeNode LazyChecksumTree => Volatile.Read(ref _lazyChecksumTree);
 
@@ -45,20 +44,12 @@ namespace Microsoft.CodeAnalysis.Execution
                 // optimization to not create map. in whole solution level, there is
                 // many case where green node is unique per checksum object such as metadata reference
                 // or p2p reference.
-                Interlocked.CompareExchange(ref _checksumObject1, checksumObject, null);
-                if (_checksumObject1.Kind == checksumObject.Kind)
+                Interlocked.CompareExchange(ref _singleElementChecksumObject, checksumObject, null);
+                if (_singleElementChecksumObject.Kind == checksumObject.Kind)
                 {
                     // we already have one
-                    Contract.Requires(_checksumObject1.Checksum.Equals(checksumObject.Checksum));
-                    return _checksumObject1;
-                }
-
-                Interlocked.CompareExchange(ref _checksumObject2, checksumObject, null);
-                if (_checksumObject2.Kind == checksumObject.Kind)
-                {
-                    // we already have one
-                    Contract.Requires(_checksumObject2.Checksum.Equals(checksumObject.Checksum));
-                    return _checksumObject2;
+                    Contract.Requires(_singleElementChecksumObject.Checksum.Equals(checksumObject.Checksum));
+                    return _singleElementChecksumObject;
                 }
 
                 // more expansive case. create map to save checksum object per kind
@@ -77,15 +68,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public bool TryGetValue(string kind, out ChecksumObject checksumObject)
             {
-                if (ChecksumObject1?.Kind == kind)
+                if (SingleElementChecksumObject?.Kind == kind)
                 {
-                    checksumObject = ChecksumObject1;
-                    return true;
-                }
-
-                if (ChecksumObject2?.Kind == kind)
-                {
-                    checksumObject = ChecksumObject2;
+                    checksumObject = SingleElementChecksumObject;
                     return true;
                 }
 
@@ -100,15 +85,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public bool TryGetValue(Checksum checksum, out ChecksumObject checksumObject)
             {
-                if (ChecksumObject1?.Checksum == checksum)
+                if (SingleElementChecksumObject?.Checksum == checksum)
                 {
-                    checksumObject = ChecksumObject1;
-                    return true;
-                }
-
-                if (ChecksumObject2?.Checksum == checksum)
-                {
-                    checksumObject = ChecksumObject2;
+                    checksumObject = SingleElementChecksumObject;
                     return true;
                 }
 
