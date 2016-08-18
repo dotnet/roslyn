@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         const string commonSource =
 @"public class Pair<T1, T2>
 {
@@ -80,29 +82,37 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       40 (0x28)
+  // Code size       48 (0x30)
   .maxstack  3
-  .locals init (string V_0, //y
-                int V_1,
-                string V_2)
+  .locals init (long V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3,
+                string V_4)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_1
-  IL_0007:  ldloca.s   V_2
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
   IL_0009:  call       ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ldloc.1
+  IL_000e:  ldloc.2
   IL_000f:  conv.i8
-  IL_0010:  ldloc.2
-  IL_0011:  stloc.0
-  IL_0012:  box        ""long""
-  IL_0017:  ldstr      "" ""
-  IL_001c:  ldloc.0
-  IL_001d:  call       ""string string.Concat(object, object, object)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ret
+  IL_0010:  ldloc.3
+  IL_0011:  stloc.s    V_4
+  IL_0013:  dup
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  stloc.1
+  IL_0018:  pop
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""long""
+  IL_001f:  ldstr      "" ""
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""string string.Concat(object, object, object)""
+  IL_002a:  call       ""void System.Console.WriteLine(string)""
+  IL_002f:  ret
 }");
         }
 
@@ -132,7 +142,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -160,12 +170,12 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void VerifyExecutionOrder()
+        public void VerifyExecutionOrder_Deconstruct()
         {
             string source = @"
 using System;
@@ -201,11 +211,56 @@ getHolderforY
 getDeconstructReceiver
 Deconstruct
 Conversion1
-setX
 Conversion2
+setX
 setY
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyExecutionOrder_TupleLiteral()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        (c.getHolderForX().x, c.getHolderForY().y) = (new D1(), new D2());
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+Constructor1
+Conversion1
+Constructor2
+Conversion2
+setX
+setY
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -238,7 +293,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -266,7 +321,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -305,7 +360,7 @@ struct C : IDeconstructable
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -338,7 +393,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -371,7 +426,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -403,7 +458,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -434,7 +489,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -474,9 +529,8 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -517,7 +571,7 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -565,7 +619,7 @@ Deconstruct
 conversion
 conversion";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -621,9 +675,8 @@ Deconstruct
 indexSet (with value 101)
 Final array values[2] 101
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -693,71 +746,82 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      141 (0x8d)
+  // Code size      152 (0x98)
   .maxstack  10
-  .locals init (long V_0, //x
-                int V_1) //y
+  .locals init (int V_0, //y
+                long V_1,
+                long V_2,
+                long V_3,
+                long V_4,
+                long V_5,
+                long V_6,
+                long V_7,
+                long V_8,
+                long V_9,
+                int V_10)
   IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.1
+  IL_0001:  conv.i8
   IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.1
+  IL_0003:  conv.i8
   IL_0004:  ldc.i4.1
-  IL_0005:  ldc.i4.1
+  IL_0005:  conv.i8
   IL_0006:  ldc.i4.1
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.4
-  IL_0009:  ldc.i4.2
-  IL_000a:  newobj     ""System.ValueTuple<int, int, int>..ctor(int, int, int)""
-  IL_000f:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>..ctor(int, int, int, int, int, int, int, (int, int, int))""
-  IL_0014:  dup
-  IL_0015:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item1""
-  IL_001a:  conv.i8
-  IL_001b:  stloc.0
-  IL_001c:  dup
-  IL_001d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item2""
-  IL_0022:  conv.i8
-  IL_0023:  stloc.0
+  IL_0007:  conv.i8
+  IL_0008:  ldc.i4.1
+  IL_0009:  conv.i8
+  IL_000a:  ldc.i4.1
+  IL_000b:  conv.i8
+  IL_000c:  ldc.i4.1
+  IL_000d:  conv.i8
+  IL_000e:  ldc.i4.1
+  IL_000f:  conv.i8
+  IL_0010:  ldc.i4.4
+  IL_0011:  conv.i8
+  IL_0012:  ldc.i4.2
+  IL_0013:  newobj     ""System.ValueTuple<long, long, int>..ctor(long, long, int)""
+  IL_0018:  newobj     ""System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>..ctor(long, long, long, long, long, long, long, (long, long, int))""
+  IL_001d:  dup
+  IL_001e:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item1""
+  IL_0023:  stloc.1
   IL_0024:  dup
-  IL_0025:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item3""
-  IL_002a:  conv.i8
-  IL_002b:  stloc.0
-  IL_002c:  dup
-  IL_002d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item4""
-  IL_0032:  conv.i8
-  IL_0033:  stloc.0
-  IL_0034:  dup
-  IL_0035:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item5""
-  IL_003a:  conv.i8
-  IL_003b:  stloc.0
-  IL_003c:  dup
-  IL_003d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item6""
-  IL_0042:  conv.i8
-  IL_0043:  stloc.0
-  IL_0044:  dup
-  IL_0045:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item7""
-  IL_004a:  conv.i8
-  IL_004b:  stloc.0
-  IL_004c:  dup
-  IL_004d:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_0052:  ldfld      ""int System.ValueTuple<int, int, int>.Item1""
-  IL_0057:  conv.i8
-  IL_0058:  stloc.0
-  IL_0059:  dup
-  IL_005a:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_005f:  ldfld      ""int System.ValueTuple<int, int, int>.Item2""
-  IL_0064:  conv.i8
-  IL_0065:  stloc.0
-  IL_0066:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_006b:  ldfld      ""int System.ValueTuple<int, int, int>.Item3""
-  IL_0070:  stloc.1
-  IL_0071:  ldloc.0
-  IL_0072:  box        ""long""
-  IL_0077:  ldstr      "" ""
-  IL_007c:  ldloc.1
-  IL_007d:  box        ""int""
-  IL_0082:  call       ""string string.Concat(object, object, object)""
-  IL_0087:  call       ""void System.Console.WriteLine(string)""
-  IL_008c:  ret
+  IL_0025:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item2""
+  IL_002a:  stloc.2
+  IL_002b:  dup
+  IL_002c:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item3""
+  IL_0031:  stloc.3
+  IL_0032:  dup
+  IL_0033:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item4""
+  IL_0038:  stloc.s    V_4
+  IL_003a:  dup
+  IL_003b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item5""
+  IL_0040:  stloc.s    V_5
+  IL_0042:  dup
+  IL_0043:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item6""
+  IL_0048:  stloc.s    V_6
+  IL_004a:  dup
+  IL_004b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item7""
+  IL_0050:  stloc.s    V_7
+  IL_0052:  dup
+  IL_0053:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0058:  ldfld      ""long System.ValueTuple<long, long, int>.Item1""
+  IL_005d:  stloc.s    V_8
+  IL_005f:  dup
+  IL_0060:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0065:  ldfld      ""long System.ValueTuple<long, long, int>.Item2""
+  IL_006a:  stloc.s    V_9
+  IL_006c:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0071:  ldfld      ""int System.ValueTuple<long, long, int>.Item3""
+  IL_0076:  stloc.s    V_10
+  IL_0078:  ldloc.s    V_9
+  IL_007a:  ldloc.s    V_10
+  IL_007c:  stloc.0
+  IL_007d:  box        ""long""
+  IL_0082:  ldstr      "" ""
+  IL_0087:  ldloc.0
+  IL_0088:  box        ""int""
+  IL_008d:  call       ""string string.Concat(object, object, object)""
+  IL_0092:  call       ""void System.Console.WriteLine(string)""
+  IL_0097:  ret
 }
 ");
         }
@@ -780,7 +844,38 @@ class C
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "9 10", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,43): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a").WithLocation(9, 43),
+                // (9,49): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b").WithLocation(9, 49),
+                // (9,55): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c").WithLocation(9, 55),
+                // (9,61): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 4").WithArguments("d").WithLocation(9, 61),
+                // (9,67): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 5").WithArguments("e").WithLocation(9, 67),
+                // (9,73): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f: 6").WithArguments("f").WithLocation(9, 73),
+                // (9,79): warning CS8123: The tuple element name 'g' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "g: 7").WithArguments("g").WithLocation(9, 79),
+                // (9,85): warning CS8123: The tuple element name 'h' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "h: 8").WithArguments("h").WithLocation(9, 85),
+                // (9,91): warning CS8123: The tuple element name 'i' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "i: 9").WithArguments("i").WithLocation(9, 91),
+                // (9,97): warning CS8123: The tuple element name 'j' is ignored because a different name is specified by the assignment target.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "j: 10").WithArguments("j").WithLocation(9, 97)
+                );
         }
 
         [Fact]
@@ -825,10 +920,12 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       48 (0x30)
+  // Code size       52 (0x34)
   .maxstack  3
   .locals init (string V_0, //x
-                string V_1) //y
+                string V_1, //y
+                string V_2,
+                string V_3)
   IL_0000:  ldstr      ""goodbye""
   IL_0005:  stloc.0
   IL_0006:  ldnull
@@ -836,17 +933,128 @@ class C
   IL_000c:  newobj     ""System.ValueTuple<string, string>..ctor(string, string)""
   IL_0011:  dup
   IL_0012:  ldfld      ""string System.ValueTuple<string, string>.Item1""
-  IL_0017:  stloc.0
+  IL_0017:  stloc.2
   IL_0018:  ldfld      ""string System.ValueTuple<string, string>.Item2""
-  IL_001d:  stloc.1
-  IL_001e:  ldstr      ""{0}{1}""
-  IL_0023:  ldloc.0
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""string string.Format(string, object, object)""
-  IL_002a:  call       ""void System.Console.WriteLine(string)""
-  IL_002f:  ret
+  IL_001d:  stloc.3
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.3
+  IL_0021:  stloc.1
+  IL_0022:  ldstr      ""{0}{1}""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  call       ""string string.Format(string, object, object)""
+  IL_002e:  call       ""void System.Console.WriteLine(string)""
+  IL_0033:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsNotEmittedIfUnused()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  stloc.2
+  IL_0011:  pop
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        var z = ((x, y) = new C());
+        z.ToString();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //z
+                int V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  stloc.3
+  IL_0011:  ldloc.3
+  IL_0012:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.ValueTuple<int, int>""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  pop
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsedInLambda()
+        {
+            string source = @"
+class C
+{
+    static void F(System.Action a) { }
+    static void F<T>(System.Func<T> f) { System.Console.Write(f().ToString()); }
+    static void Main()
+    {
+        int x, y;
+        F(() => (x, y) = (1, 2));
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -927,18 +1135,25 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Swap", @"
 {
-  // Code size       37 (0x25)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  ldsfld     ""int C.y""
   IL_0005:  ldsfld     ""int C.x""
   IL_000a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_000f:  dup
   IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0015:  stsfld     ""int C.x""
-  IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001f:  stsfld     ""int C.y""
-  IL_0024:  ret
+  IL_0015:  stloc.0
+  IL_0016:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  stsfld     ""int C.x""
+  IL_0022:  ldloc.1
+  IL_0023:  stsfld     ""int C.y""
+  IL_0028:  ret
 }
+
 ");
         }
 
@@ -1135,7 +1350,7 @@ static class D
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1167,7 +1382,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1350,13 +1565,13 @@ getDeconstructReceiver
 Deconstruct1
 Deconstruct2
 Conversion1
-setX
 Conversion2
-setY
 Conversion3
+setX
+setY
 setZ
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1391,20 +1606,20 @@ Deconstructing ((4, 5), (6, 7))
 Deconstructing (4, 5)
 Deconstructing (6, 7)
 Converting 1
-setX1 1
 Converting 2
-setX2 2
 Converting 3
-setX3 3
 Converting 4
-setX4 4
 Converting 5
-setX5 5
 Converting 6
-setX6 6
 Converting 7
+setX1 1
+setX2 2
+setX3 3
+setX4 4
+setX5 5
+setX6 6
 setX7 7";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1433,7 +1648,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1663,10 +1878,10 @@ class C
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
 
-                var nestedLiteral = literal.Arguments[1];
+                var nestedLiteral = literal.Arguments[1].Expression;
                 Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
-                Assert.Null(model.GetTypeInfo(nestedLiteral).Type);
-                Assert.Null(model.GetTypeInfo(nestedLiteral).ConvertedType);
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -2144,43 +2359,46 @@ class C
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
                 int V_1, //x1
-                int V_2) //x2
+                int V_2, //x2
+                int V_3)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0031
+    IL_000b:  br.s       IL_0033
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
     IL_0013:  dup
     IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-    IL_0019:  stloc.1
+    IL_0019:  stloc.3
     IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_001f:  stloc.2
-    IL_0020:  ldloc.1
-    IL_0021:  box        ""int""
-    IL_0026:  ldloc.2
-    IL_0027:  box        ""int""
-    IL_002c:  call       ""void C.Print(object, object)""
-    IL_0031:  ldloc.0
-    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0037:  brtrue.s   IL_000d
-    IL_0039:  leave.s    IL_0045
+    IL_001f:  ldloc.3
+    IL_0020:  stloc.1
+    IL_0021:  stloc.2
+    IL_0022:  ldloc.1
+    IL_0023:  box        ""int""
+    IL_0028:  ldloc.2
+    IL_0029:  box        ""int""
+    IL_002e:  call       ""void C.Print(object, object)""
+    IL_0033:  ldloc.0
+    IL_0034:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0039:  brtrue.s   IL_000d
+    IL_003b:  leave.s    IL_0047
   }
   finally
   {
-    IL_003b:  ldloc.0
-    IL_003c:  brfalse.s  IL_0044
-    IL_003e:  ldloc.0
-    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0044:  endfinally
+    IL_003d:  ldloc.0
+    IL_003e:  brfalse.s  IL_0046
+    IL_0040:  ldloc.0
+    IL_0041:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0046:  endfinally
   }
-  IL_0045:  ret
+  IL_0047:  ret
 }
 ");
         }
@@ -2229,57 +2447,60 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       91 (0x5b)
+  // Code size       95 (0x5f)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
                 int V_2, //x1
-                int V_3) //x2
+                int V_3, //x2
+                int V_4)
   IL_0000:  call       ""(int, int)[] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0054
+  IL_0008:  br.s       IL_0058
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
   IL_0011:  dup
   IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0017:  stloc.2
-  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001d:  stloc.3
-  IL_001e:  ldc.i4.4
-  IL_001f:  newarr     ""object""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""int""
-  IL_002c:  stelem.ref
-  IL_002d:  dup
-  IL_002e:  ldc.i4.1
-  IL_002f:  ldstr      "" ""
-  IL_0034:  stelem.ref
-  IL_0035:  dup
-  IL_0036:  ldc.i4.2
-  IL_0037:  ldloc.3
-  IL_0038:  box        ""int""
-  IL_003d:  stelem.ref
-  IL_003e:  dup
-  IL_003f:  ldc.i4.3
-  IL_0040:  ldstr      "" - ""
-  IL_0045:  stelem.ref
-  IL_0046:  call       ""string string.Concat(params object[])""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ldloc.1
-  IL_0051:  ldc.i4.1
-  IL_0052:  add
-  IL_0053:  stloc.1
+  IL_0017:  stloc.s    V_4
+  IL_0019:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001e:  ldloc.s    V_4
+  IL_0020:  stloc.2
+  IL_0021:  stloc.3
+  IL_0022:  ldc.i4.4
+  IL_0023:  newarr     ""object""
+  IL_0028:  dup
+  IL_0029:  ldc.i4.0
+  IL_002a:  ldloc.2
+  IL_002b:  box        ""int""
+  IL_0030:  stelem.ref
+  IL_0031:  dup
+  IL_0032:  ldc.i4.1
+  IL_0033:  ldstr      "" ""
+  IL_0038:  stelem.ref
+  IL_0039:  dup
+  IL_003a:  ldc.i4.2
+  IL_003b:  ldloc.3
+  IL_003c:  box        ""int""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.3
+  IL_0044:  ldstr      "" - ""
+  IL_0049:  stelem.ref
+  IL_004a:  call       ""string string.Concat(params object[])""
+  IL_004f:  call       ""void System.Console.Write(string)""
   IL_0054:  ldloc.1
-  IL_0055:  ldloc.0
-  IL_0056:  ldlen
-  IL_0057:  conv.i4
-  IL_0058:  blt.s      IL_000a
-  IL_005a:  ret
+  IL_0055:  ldc.i4.1
+  IL_0056:  add
+  IL_0057:  stloc.1
+  IL_0058:  ldloc.1
+  IL_0059:  ldloc.0
+  IL_005a:  ldlen
+  IL_005b:  conv.i4
+  IL_005c:  blt.s      IL_000a
+  IL_005e:  ret
 }");
         }
 
@@ -2326,7 +2547,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      106 (0x6a)
+  // Code size      110 (0x6e)
   .maxstack  3
   .locals init ((int, int)[,] V_0,
                 int V_1,
@@ -2334,7 +2555,8 @@ class C
                 int V_3,
                 int V_4,
                 int V_5, //x1
-                int V_6) //x2
+                int V_6, //x2
+                int V_7)
   IL_0000:  call       ""(int, int)[,] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2349,41 +2571,43 @@ class C
   IL_0017:  ldc.i4.0
   IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_001d:  stloc.3
-  IL_001e:  br.s       IL_0065
+  IL_001e:  br.s       IL_0069
   IL_0020:  ldloc.0
   IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0027:  stloc.s    V_4
-  IL_0029:  br.s       IL_005c
+  IL_0029:  br.s       IL_0060
   IL_002b:  ldloc.0
   IL_002c:  ldloc.3
   IL_002d:  ldloc.s    V_4
   IL_002f:  call       ""(int, int)[*,*].Get""
   IL_0034:  dup
   IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_003a:  stloc.s    V_5
+  IL_003a:  stloc.s    V_7
   IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0041:  stloc.s    V_6
-  IL_0043:  ldloc.s    V_5
-  IL_0045:  box        ""int""
-  IL_004a:  ldloc.s    V_6
-  IL_004c:  box        ""int""
-  IL_0051:  call       ""void C.Print(object, object)""
-  IL_0056:  ldloc.s    V_4
-  IL_0058:  ldc.i4.1
-  IL_0059:  add
-  IL_005a:  stloc.s    V_4
-  IL_005c:  ldloc.s    V_4
-  IL_005e:  ldloc.2
-  IL_005f:  ble.s      IL_002b
-  IL_0061:  ldloc.3
-  IL_0062:  ldc.i4.1
-  IL_0063:  add
-  IL_0064:  stloc.3
+  IL_0041:  ldloc.s    V_7
+  IL_0043:  stloc.s    V_5
+  IL_0045:  stloc.s    V_6
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  box        ""int""
+  IL_004e:  ldloc.s    V_6
+  IL_0050:  box        ""int""
+  IL_0055:  call       ""void C.Print(object, object)""
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ldc.i4.1
+  IL_005d:  add
+  IL_005e:  stloc.s    V_4
+  IL_0060:  ldloc.s    V_4
+  IL_0062:  ldloc.2
+  IL_0063:  ble.s      IL_002b
   IL_0065:  ldloc.3
-  IL_0066:  ldloc.1
-  IL_0067:  ble.s      IL_0020
-  IL_0069:  ret
+  IL_0066:  ldc.i4.1
+  IL_0067:  add
+  IL_0068:  stloc.3
+  IL_0069:  ldloc.3
+  IL_006a:  ldloc.1
+  IL_006b:  ble.s      IL_0020
+  IL_006d:  ret
 }");
         }
 
@@ -2437,18 +2661,19 @@ static class Extension
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       60 (0x3c)
+  // Code size       64 (0x40)
   .maxstack  3
   .locals init (string V_0,
                 int V_1,
                 int V_2, //x2
                 int V_3,
-                int V_4)
+                int V_4,
+                int V_5)
   IL_0000:  call       ""string C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0032
+  IL_0008:  br.s       IL_0036
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  callvirt   ""char string.this[int].get""
@@ -2457,20 +2682,22 @@ static class Extension
   IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
   IL_001a:  ldloc.3
   IL_001b:  ldloc.s    V_4
-  IL_001d:  stloc.2
-  IL_001e:  box        ""int""
-  IL_0023:  ldloc.2
-  IL_0024:  box        ""int""
-  IL_0029:  call       ""void C.Print(object, object)""
-  IL_002e:  ldloc.1
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  stloc.1
+  IL_001d:  stloc.s    V_5
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  stloc.2
+  IL_0022:  box        ""int""
+  IL_0027:  ldloc.2
+  IL_0028:  box        ""int""
+  IL_002d:  call       ""void C.Print(object, object)""
   IL_0032:  ldloc.1
-  IL_0033:  ldloc.0
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  blt.s      IL_000a
-  IL_003b:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  ldloc.0
+  IL_0038:  callvirt   ""int string.Length.get""
+  IL_003d:  blt.s      IL_000a
+  IL_003f:  ret
 }");
         }
 
@@ -2657,7 +2884,7 @@ Deconstructing (5, 6)
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       90 (0x5a)
+  // Code size       98 (0x62)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
                 int V_1, //x2
@@ -2665,13 +2892,15 @@ Deconstructing (5, 6)
                 int V_3,
                 Pair<int, int> V_4,
                 int V_5,
-                int V_6)
+                int V_6,
+                int V_7,
+                int V_8)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0045
+    IL_000b:  br.s       IL_004d
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
     IL_0013:  ldloca.s   V_3
@@ -2684,29 +2913,33 @@ Deconstructing (5, 6)
     IL_0027:  ldloc.3
     IL_0028:  conv.i8
     IL_0029:  ldloc.s    V_5
-    IL_002b:  stloc.1
-    IL_002c:  ldloc.s    V_6
-    IL_002e:  stloc.2
-    IL_002f:  box        ""long""
-    IL_0034:  ldloc.1
-    IL_0035:  box        ""int""
-    IL_003a:  ldloc.2
-    IL_003b:  box        ""int""
-    IL_0040:  call       ""void C.Print(object, object, object)""
-    IL_0045:  ldloc.0
-    IL_0046:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_004b:  brtrue.s   IL_000d
-    IL_004d:  leave.s    IL_0059
+    IL_002b:  stloc.s    V_7
+    IL_002d:  ldloc.s    V_6
+    IL_002f:  stloc.s    V_8
+    IL_0031:  ldloc.s    V_7
+    IL_0033:  stloc.1
+    IL_0034:  ldloc.s    V_8
+    IL_0036:  stloc.2
+    IL_0037:  box        ""long""
+    IL_003c:  ldloc.1
+    IL_003d:  box        ""int""
+    IL_0042:  ldloc.2
+    IL_0043:  box        ""int""
+    IL_0048:  call       ""void C.Print(object, object, object)""
+    IL_004d:  ldloc.0
+    IL_004e:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0053:  brtrue.s   IL_000d
+    IL_0055:  leave.s    IL_0061
   }
   finally
   {
-    IL_004f:  ldloc.0
-    IL_0050:  brfalse.s  IL_0058
-    IL_0052:  ldloc.0
-    IL_0053:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0058:  endfinally
+    IL_0057:  ldloc.0
+    IL_0058:  brfalse.s  IL_0060
+    IL_005a:  ldloc.0
+    IL_005b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0060:  endfinally
   }
-  IL_0059:  ret
+  IL_0061:  ret
 }
 ");
         }
