@@ -28,7 +28,34 @@ Namespace System
     End Structure
 End Namespace
 "
+        ReadOnly s_trivialRemainingTuples As String = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2, T3, T4)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4)
+        End Sub
+    End Structure
 
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+        End Sub
+    End Structure
+End Namespace
+"
         <Fact()>
         Public Sub TupleTypeBinding()
 
@@ -4291,7 +4318,7 @@ End Class
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
 
-            ' REMOVE AFTER REVIEW 
+            ' REMOVE AFTER REVIEW
             ' Getting error: a.vb(6) : error BC30149: Class 'C' must implement 'Function M(a As (Integer, Integer)()) As (Integer, Integer)()' for interface 'I'.
 
             verifier.VerifyDiagnostics()
@@ -5068,6 +5095,434 @@ End Class
             Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(ImmutableArray.Create(stringType, csType), Nothing))
 
         End Sub
+
+        <Fact()>
+        Public Sub CreateTupleTypeSymbol_ComparingSymbols()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb">
+Class C
+    Dim F As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (a As String, b As String))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            Dim tuple1 = comp.GlobalNamespace.GetMember(Of SourceMemberFieldSymbol)("C.F").Type
+
+            Dim intType = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim twoStrings = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(stringType, stringType)
+            Dim twoStringsWithNames = DirectCast(comp.CreateTupleTypeSymbol(twoStrings, ImmutableArray.Create("a", "b")), TypeSymbol)
+            Dim tuple2Underlying = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest).Construct(intType, intType, intType, intType, intType, intType, intType, twoStringsWithNames)
+            Dim tuple2 = DirectCast(comp.CreateTupleTypeSymbol(tuple2Underlying), TypeSymbol)
+
+            Dim tuple3 = DirectCast(comp.CreateTupleTypeSymbol(ImmutableArray.Create(Of ITypeSymbol)(intType, intType, intType, intType, intType, intType, intType, stringType, stringType),
+                                      ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b")), TypeSymbol)
+
+            Dim tuple4 = DirectCast(comp.CreateTupleTypeSymbol(CType(tuple1.TupleUnderlyingType, INamedTypeSymbol),
+                                      ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "a", "b")), TypeSymbol)
+
+            Assert.True(tuple1.Equals(tuple2))
+            'Assert.True(tuple1.Equals(tuple2, TypeCompareKind.IgnoreDynamicAndTupleNames))
+            Assert.False(tuple1.Equals(tuple3))
+            'Assert.True(tuple1.Equals(tuple3, TypeCompareKind.IgnoreDynamicAndTupleNames))
+            Assert.False(tuple1.Equals(tuple4))
+            'Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamicAndTupleNames))
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleMethodsOnNonTupleType()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+            Dim intType As INamedTypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Assert.False(intType.IsTupleType)
+            Assert.True(intType.TupleElementNames.IsDefault)
+            Assert.True(intType.TupleElementTypes.IsDefault)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTargetTypeAndConvert01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+       ' This works
+       Dim x1 As (Short, String) = (1, "hello")
+
+       Dim x2 As (Short, String) = DirectCast((1, "hello"), (Long, String))
+
+       Dim x3 As (a As Short, b As String) = DirectCast((1, "hello"), (c As Long, d As String))
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+            ' REMOVE AFTER REVIEW Those would give errors in C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleTargetTypeAndConvert02()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class C
+    Shared Sub Main()
+        Dim x2 As (Short, String) = DirectCast((1, "hello"), (Byte, String))
+        System.Console.WriteLine(x2)
+    End Sub
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(1, hello)]]>)
+
+            verifier.VerifyDiagnostics()
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (System.ValueTuple(Of Byte, String) V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldstr      "hello"
+  IL_0008:  call       "Sub System.ValueTuple(Of Byte, String)..ctor(Byte, String)"
+  IL_000d:  ldloc.0
+  IL_000e:  ldfld      "System.ValueTuple(Of Byte, String).Item1 As Byte"
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      "System.ValueTuple(Of Byte, String).Item2 As String"
+  IL_0019:  newobj     "Sub System.ValueTuple(Of Short, String)..ctor(Short, String)"
+  IL_001e:  box        "System.ValueTuple(Of Short, String)"
+  IL_0023:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0028:  ret
+}
+]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleImplicitConversionFail01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, Integer)
+
+        x = (Nothing, Nothing, Nothing)
+        x = (1, 2, 3)
+        x = (1, "string") ' ok
+        x = (1, 1, garbage)
+        x = (1, 1, )
+        x = (Nothing, Nothing) ' ok
+        x = (1, Nothing) ' ok
+        x = (1, Function(t) t)
+        x = Nothing ' ok
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        x = (Nothing, Nothing, Nothing)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
+        x = (1, 2, 3)
+            ~~~~~~~~~
+BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
+        x = (1, 1, garbage)
+                   ~~~~~~~
+BC30201: Expression expected.
+        x = (1, 1, )
+                   ~
+BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        x = (1, Function(t) t)
+                ~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleExplicitConversionFail01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As (Integer, Integer)
+
+        x = DirectCast((Nothing, Nothing, Nothing), (Integer, Integer))
+        x = DirectCast((1, 2, 3), (Integer, Integer))
+        x = DirectCast((1, "string"), (Integer, Integer)) ' ok
+        x = DirectCast((1, 1, garbage), (Integer, Integer))
+        x = DirectCast((1, 1, ), (Integer, Integer))
+        x = DirectCast((Nothing, Nothing), (Integer, Integer)) ' ok
+        x = DirectCast((1, Nothing), (Integer, Integer)) ' ok
+        x = DirectCast((1, Function(t) t), (Integer, Integer))
+        x = DirectCast(Nothing, (Integer, Integer)) ' ok
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        x = DirectCast((Nothing, Nothing, Nothing), (Integer, Integer))
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
+        x = DirectCast((1, 2, 3), (Integer, Integer))
+                       ~~~~~~~~~
+BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
+        x = DirectCast((1, 1, garbage), (Integer, Integer))
+                              ~~~~~~~
+BC30201: Expression expected.
+        x = DirectCast((1, 1, ), (Integer, Integer))
+                              ~
+BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        x = DirectCast((1, Function(t) t), (Integer, Integer))
+                           ~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleImplicitConversionFail02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As System.ValueTuple(Of Integer, Integer)
+
+        x = (Nothing, Nothing, Nothing)
+        x = (1, 2, 3)
+        x = (1, "string") ' ok
+        x = (1, 1, garbage)
+        x = (1, 1, )
+        x = (Nothing, Nothing) ' ok
+        x = (1, Nothing) ' ok
+        x = (1, Function(t) t)
+        x = Nothing ' ok
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        x = (Nothing, Nothing, Nothing)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
+        x = (1, 2, 3)
+            ~~~~~~~~~
+BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
+        x = (1, 1, garbage)
+                   ~~~~~~~
+BC30201: Expression expected.
+        x = (1, 1, )
+                   ~
+BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        x = (1, Function(t) t)
+                ~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleImplicitConversionFail03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As (String, String)
+
+        x = (Nothing, Nothing, Nothing)
+        x = (1, 2, 3)
+        x = (1, "string") ' ok
+        x = (1, 1, garbage)
+        x = (1, 1, )
+        x = (Nothing, Nothing) ' ok
+        x = (1, Nothing) ' ok
+        x = (1, Function(t) t)
+        x = Nothing ' ok
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        x = (Nothing, Nothing, Nothing)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(String, String)'.
+        x = (1, 2, 3)
+            ~~~~~~~~~
+BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
+        x = (1, 1, garbage)
+                   ~~~~~~~
+BC30201: Expression expected.
+        x = (1, 1, )
+                   ~
+BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
+        x = (1, Function(t) t)
+                ~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleImplicitConversionFail04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As ((Integer, Integer), Integer)
+
+        x = ((Nothing, Nothing, Nothing), 1)
+        x = ((1, 2, 3), 1)
+        x = ((1, "string"), 1) ' ok
+        x = ((1, 1, garbage), 1)
+        x = ((1, 1, ), 1)
+        x = ((Nothing, Nothing), 1) ' ok
+        x = ((1, Nothing), 1) ' ok
+        x = ((1, Function(t) t), 1)
+        x = (Nothing, 1) ' ok
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        x = ((Nothing, Nothing, Nothing), 1)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
+        x = ((1, 2, 3), 1)
+             ~~~~~~~~~
+BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
+        x = ((1, 1, garbage), 1)
+                    ~~~~~~~
+BC30201: Expression expected.
+        x = ((1, 1, ), 1)
+                    ~
+BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+        x = ((1, Function(t) t), 1)
+                 ~~~~~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleImplicitConversionFail05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub Main()
+        Dim x As (x0 As System.ValueTuple(Of Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)
+
+        x = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        x = ((0, 0.0), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8 )
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9.1, 10)
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8,
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
+        x = ((0, 0), 1, 2, 3, 4, oops, 6, 7, oopsss, 9, 10)
+
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, (1, 1, 1), 10)
+    End Sub
+End Class
+]]><%= s_trivial2uple %><%= s_trivialRemainingTuples %></file>
+</compilation>)
+            ' Intentionally not including 3-tuple for use-site errors
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30311: Value of type 'Integer' cannot be converted to '(Integer, Integer)'.
+        x = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+             ~
+BC30311: Value of type '((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)' cannot be converted to '(x0 As (Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)'.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)' cannot be converted to '(x0 As (Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)'.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8 )
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' failed.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8,
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30452: Operator '=' is not defined for types '(x0 As (Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)' and '((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' failed.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30198: ')' expected.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
+                                              ~
+BC30198: ')' expected.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9
+                                              ~
+BC30451: 'oops' is not declared. It may be inaccessible due to its protection level.
+        x = ((0, 0), 1, 2, 3, 4, oops, 6, 7, oopsss, 9, 10)
+                                 ~~~~
+BC30451: 'oopsss' is not declared. It may be inaccessible due to its protection level.
+        x = ((0, 0), 1, 2, 3, 4, oops, 6, 7, oopsss, 9, 10)
+                                             ~~~~~~
+BC30311: Value of type '((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)' cannot be converted to '(x0 As (Integer, Integer), x1 As Integer, x2 As Integer, x3 As Integer, x4 As Integer, x5 As Integer, x6 As Integer, x7 As Integer, x8 As Integer, x9 As Integer, x10 As Integer)'.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' failed.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, 9)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to 'Integer'.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, (1, 1, 1), 10)
+                                             ~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' failed.
+        x = ((0, 0), 1, 2, 3, 4, 5, 6, 7, 8, (1, 1, 1), 10)
+                                             ~~~~~~~~~
+</errors>)
+
+            ' REMOVE AFTER REVIEW I think those are expected differences with C#
+            ' One of the errors, line ending with "8, " is especially strange
+
+        End Sub
+
 
 
 

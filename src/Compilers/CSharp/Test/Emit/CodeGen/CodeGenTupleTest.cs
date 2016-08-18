@@ -5494,7 +5494,7 @@ class C
     static void Main()
     {
         // this works
-        // (short, string) x1 = (1, ""hello"");
+        (short, string) x1 = (1, ""hello"");
 
         // this does not
         (short, string) x2 = ((long, string))(1, ""hello"");
