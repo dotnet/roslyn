@@ -204,8 +204,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _optionCompareText = optionCompareText
             _embedVbCoreRuntime = embedVbCoreRuntime
             _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
-            '_parseOptions = parseOptions
-            _parseOptions = If(parseOptions, VisualBasicParseOptions.Default) ' Required to correctly check for the presence of feature flags.
+            _parseOptions = parseOptions
+            ' _parseOptions = If(parseOptions, VisualBasicParseOptions.Default) ' Required to correctly check for the presence of feature flags.
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
@@ -968,7 +968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
                    Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
-                   Me.ParseOptions.Equals(other.ParseOptions)
+                   If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
         End Function
 
         ''' <summary>

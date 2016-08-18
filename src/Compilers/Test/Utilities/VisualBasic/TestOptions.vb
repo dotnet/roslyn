@@ -62,9 +62,5 @@ Friend Module TestOptionExtensions
     Public Function WithImplicitDefaultOptionalParameter(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithExperimental(Feature.ImplicitDefaultValueOnOptionalParameter)
     End Function
-    <Extension()>
-    Public Function WithImplicitDefaultOptionalParameter(compilation As VisualBasicCompilation) As Compilation
-        Return compilation.WithOptions(compilation.Options.WithParseOptions(compilation.Options.ParseOptions.WithImplicitDefaultOptionalParameter))
-    End Function
 
 End Module
