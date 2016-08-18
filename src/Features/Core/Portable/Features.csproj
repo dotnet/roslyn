@@ -231,6 +231,7 @@
     <Compile Include="Completion\SnippetsRule.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\Analyzers\NamingStyles\WellKnownSymbolSpecifications.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />

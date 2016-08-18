@@ -714,4 +714,7 @@ Additional information: {1}</value>
   <data name="Unknown_parameters" xml:space="preserve">
     <value>&lt;Unknown Parameters&gt;</value>
   </data>
+  <data name="Some_naming_rules_are_incomplete" xml:space="preserve">
+    <value>Some naming rules are incomplete. Please complete or remove them.</value>
+  </data>
 </root>

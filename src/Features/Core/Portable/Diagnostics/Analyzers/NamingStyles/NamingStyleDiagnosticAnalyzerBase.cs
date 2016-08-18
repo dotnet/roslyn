@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
+                         string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);
