@@ -727,10 +727,7 @@ class C
     {
         int x;
         goto live;
-        void L1()
-        {
-            x = 0;
-        }
+        void L1() => x = 0;
         live:
         L1();
         var z = x;
@@ -752,15 +749,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,9): warning CS0162: Unreachable code detected
-                //         void L1()
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "void").WithLocation(8, 9),
-                // (20,9): warning CS0162: Unreachable code detected
-                //         void L1()
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "void").WithLocation(20, 9),
-                // (29,17): error CS0165: Use of unassigned local variable 'x'
+                // (26,17): error CS0165: Use of unassigned local variable 'x'
                 //         var z = x;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(29, 17));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(26, 17));
         }
 
         [Fact]
