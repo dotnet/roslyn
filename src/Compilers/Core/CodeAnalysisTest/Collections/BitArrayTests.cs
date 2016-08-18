@@ -122,15 +122,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 b1[i] = a1[i] = r.NextBool();
                 b2[i] = a2[i] = r.NextBool();
             }
-            b1.UnionWith(b2);
+
+            bool changed = b1.UnionWith(b2);
+            bool changed2 = false;
+
             for (int i = 0; i < capacity; i++)
             {
+                bool a = a1[i];
                 a1[i] |= a2[i];
+                changed2 |= (a != a1[i]);
             }
             for (int i = 0; i < capacity; i++)
             {
                 Assert.Equal(a1[i], b1[i]);
             }
+            Assert.Equal(changed2, changed);
         }
 
         [Fact]
