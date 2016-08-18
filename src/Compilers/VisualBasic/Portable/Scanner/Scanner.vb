@@ -1973,10 +1973,10 @@ FullWidthRepeat2:
             End If
 
             If UnderscoreUsed Then
-                result = CheckFeatureAvailability(result, Feature.DigitSeparators)
+                result = FeatureCheck.CheckFeatureAvailability(result, Feature.DigitSeparators, Me.Options)
             End If
             If Base = LiteralBase.Binary Then
-                result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
+                result = FeatureCheck.CheckFeatureAvailability(result, Feature.BinaryLiterals, Me.Options)
             End If
 
             Return result
@@ -2328,7 +2328,7 @@ FullWidthRepeat2:
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
                 If yearIsFirst Then
-                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                    result = FeatureCheck.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
                 End If
 
                 Return result
@@ -2429,7 +2429,7 @@ baddate:
                     Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
                     If haveNewLine Then
-                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                        result = FeatureCheck.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
                     End If
 
                     Return result
@@ -2530,27 +2530,6 @@ baddate:
             Return (_isScanningForExpressionCompiler AndAlso c = "$"c) OrElse SyntaxFacts.IsIdentifierStartCharacter(c)
         End Function
 
-        Private Function CheckFeatureAvailability(token As SyntaxToken, feature As Feature) As SyntaxToken
-            If CheckFeatureAvailability(feature) Then
-                Return token
-            End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
-            Return DirectCast(token.AddError(errorInfo), SyntaxToken)
-        End Function
-
-        Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(Me.Options, feature)
-        End Function
-
-        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
-            Dim required = feature.GetLanguageVersion()
-            Dim actual = parseOptions.LanguageVersion
-            Return CInt(required) <= CInt(actual)
-        End Function
     End Class
+
 End Namespace

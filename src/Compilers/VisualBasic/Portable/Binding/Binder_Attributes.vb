@@ -785,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
 
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
-                                            InternalSyntax.Parser.CheckFeatureAvailability(diagBag,
+                                            InternalSyntax.FeatureCheck.CheckFeatureAvailability(diagBag,
                                                                                            cast.Keyword.GetLocation(),
                                                                                            DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
                                                                                            InternalSyntax.Feature.CObjInAttributeArguments)

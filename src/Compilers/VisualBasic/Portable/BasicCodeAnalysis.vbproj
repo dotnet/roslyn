@@ -397,6 +397,7 @@
     <Compile Include="Errors\LocalizableErrorArgument.vb" />
     <Compile Include="Errors\MessageProvider.vb" />
     <Compile Include="Errors\VBDiagnostic.vb" />
+    <Compile Include="FeatureCheck.vb" />
     <Compile Include="GlobalImport.ImportDiagnosticInfo.vb" />
     <Compile Include="GlobalImport.vb" />
     <Compile Include="LanguageVersion.vb" />

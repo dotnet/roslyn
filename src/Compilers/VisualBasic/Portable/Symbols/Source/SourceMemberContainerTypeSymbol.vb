@@ -3684,10 +3684,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
                     Next
                 End If
+                'diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_MatchingOperatorExpected2,
+                '                                       SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(nameOfThePair)),
+                '                                       method), method.Locations(0))
 
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_MatchingOperatorExpected2,
                                                        SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(nameOfThePair)),
-                                                       method), method.Locations(0))
+                                                       method).GetInstanceWithSeverity(DiagnosticSeverity.Warning), method.Locations(0))
             End If
 
             Return True

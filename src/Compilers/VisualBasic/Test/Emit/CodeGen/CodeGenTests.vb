@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureCheck
 Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class CodeGenTests
@@ -7705,7 +7705,7 @@ End Class
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB_A()
-            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+            Assert.False(CheckFeatureAvailability(_VBParseOptionsWithoutImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
 
             Dim vbCompilationA = CreateVisualBasicCompilation("VBDllA",
@@ -7740,7 +7740,7 @@ End Class
         <WorkItem(543751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543751")>
         <Fact>
         Public Sub StructConstructorWithOptionalParametersVBVB_B()
-            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
 
@@ -7811,7 +7811,7 @@ End Class
 
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_A()
-            Assert.False(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+            Assert.False(CheckFeatureAvailability(_VBParseOptionsWithoutImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
             CompileAndVerify(
 <compilation>
@@ -7866,7 +7866,7 @@ DERIVED: Public Overridable Sub f(x As Integer, Optional y As String = "")
 
         <Fact()>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters_B()
-            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             CompileAndVerify(
@@ -7980,7 +7980,7 @@ DERIVED: f(x As Integer, Optional y As String = "")
 
         <Fact>
         Public Sub OverridingFunctionsOverloadedOnOptionalParameters2_B()
-            Assert.True(Syntax.InternalSyntax.Parser.CheckFeatures(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             CompileAndVerify(

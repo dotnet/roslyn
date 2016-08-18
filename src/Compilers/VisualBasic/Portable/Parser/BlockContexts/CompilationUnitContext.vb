@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureCheck
+
 '-----------------------------------------------------------------------------
 ' Contains the definition of the DeclarationContext
 '-----------------------------------------------------------------------------
@@ -114,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                        declarations,
                                                        optionalTerminator)
 
-            Dim regionsAreAllowedEverywhere = Not haveRegionDirectives OrElse Parser.CheckFeatureAvailability(Feature.RegionsEverywhere)
+            Dim regionsAreAllowedEverywhere = Not haveRegionDirectives OrElse FeatureCheck.CheckFeatureAvailability(Feature.RegionsEverywhere, _parser._scanner.Options)
 
             If notClosedIfDirectives IsNot Nothing OrElse notClosedRegionDirectives IsNot Nothing OrElse notClosedExternalSourceDirective IsNot Nothing OrElse
                Not regionsAreAllowedEverywhere Then
@@ -419,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If Me._notClosedRegionDirectives IsNot Nothing AndAlso Me._notClosedRegionDirectives.Contains(node) Then
                     rewritten = Parser.ReportSyntaxError(rewritten, ERRID.ERR_ExpectedEndRegion)
 
-                ElseIf Not _regionsAreAllowedEverywhere
+                ElseIf Not _regionsAreAllowedEverywhere Then
                     rewritten = VerifyRegionPlacement(node, rewritten)
                 End If
 
@@ -468,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If reportAnError Then
-                    rewritten = _parser.ReportFeatureUnavailable(Feature.RegionsEverywhere, rewritten)
+                    rewritten = ReportFeatureUnavailable(Feature.RegionsEverywhere, rewritten, _parser._scanner.Options)
                 End If
 
                 Return rewritten

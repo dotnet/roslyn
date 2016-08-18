@@ -9,7 +9,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         '
         '============ Methods for parsing specific executable statements
@@ -1844,7 +1844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(yieldKeyword IsNot Nothing AndAlso yieldKeyword.Kind = SyntaxKind.YieldKeyword)
 
-            yieldKeyword = CheckFeatureAvailability(Feature.Iterators, yieldKeyword)
+            yieldKeyword = FeatureCheck.CheckFeatureAvailability(Feature.Iterators, yieldKeyword, _scanner.Options)
             GetNextToken()
 
             Dim expression As ExpressionSyntax = ParseExpressionCore()

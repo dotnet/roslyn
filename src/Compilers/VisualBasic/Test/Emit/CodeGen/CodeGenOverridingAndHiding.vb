@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureCheck
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenOverridingAndHiding
@@ -481,7 +482,7 @@ BC30308: 'Public Overrides Sub Format(i As Integer, j As Integer)' cannot overri
 
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_A()
-            Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+            Assert.False(CheckFeatureAvailability(_VBParseOptionsWithoutImplicitDefaultOptionalParameter, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is present.")
             ' NOTE: this matches Dev11 implementation, not Dev10
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -561,7 +562,7 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
         End Sub
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters_B()
-            Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+            Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
             ' NOTE: this matches Dev11 implementation, not Dev10

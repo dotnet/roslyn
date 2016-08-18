@@ -6,6 +6,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureCheck
+
 Imports Roslyn.Test.Utilities
 
 <CLSCompliant(False)>
@@ -2536,7 +2538,7 @@ End Module
 
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
-        Assert.False(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithoutImplicitDefaultOptionalParameter),
+        Assert.False(CheckFeatureAvailability(_VBParseOptionsWithoutImplicitDefaultOptionalParameter, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
         Dim code = <![CDATA[
@@ -2553,7 +2555,7 @@ End Module
 
     <Fact()>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
-        Assert.True(InternalSyntax.Parser.CheckFeatures(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, _VBParseOptionsWithImplicitDefaultOptionalParameter),
+        Assert.True(CheckFeatureAvailability(_VBParseOptionsWithImplicitDefaultOptionalParameter, InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter),
                          "Feature " & NameOf(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter) & " is not present.")
 
         Dim code = <![CDATA[
