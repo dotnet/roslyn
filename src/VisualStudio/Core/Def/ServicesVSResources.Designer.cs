@@ -373,9 +373,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to Copy to Clipboard.
         /// </summary>
-        internal static string Copy_to_clipboard {
+        internal static string Copy_to_Clipboard {
             get {
-                return ResourceManager.GetString("Copy_to_clipboard", resourceCulture);
+                return ResourceManager.GetString("Copy_to_Clipboard", resourceCulture);
             }
         }
         

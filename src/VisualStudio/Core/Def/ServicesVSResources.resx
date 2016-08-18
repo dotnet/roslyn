@@ -699,19 +699,19 @@ Additional information: {1}</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
-  <data name="Copy_to_clipboard" xml:space="preserve">
+  <data name="Copy_to_Clipboard" xml:space="preserve">
     <value>Copy to Clipboard</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
-  </data>
-  <data name="End_of_inner_exception_stack" xml:space="preserve">
-    <value>--- End of inner exception stack trace ---</value>
   </data>
   <data name="in_0_line_1" xml:space="preserve">
     <value>in {0}:line {1}</value>
   </data>
   <data name="Unknown_parameters" xml:space="preserve">
     <value>&lt;Unknown Parameters&gt;</value>
+  </data>
+  <data name="End_of_inner_exception_stack" xml:space="preserve">
+    <value>--- End of inner exception stack trace ---</value>
   </data>
 </root>
