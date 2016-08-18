@@ -1957,7 +1957,6 @@ ResolutionComplete:
                 Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
 
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
-
                     leftHasMoreApplicableParameterType = True
 
                     If rightHasMoreApplicableParameterType Then
