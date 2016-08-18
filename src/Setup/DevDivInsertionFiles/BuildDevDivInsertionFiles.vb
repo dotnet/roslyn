@@ -486,7 +486,7 @@ Public Class BuildDevDivInsertionFiles
         ' TODO: remove
         Public ReadOnly Property IsInteractiveWindow As Boolean
             Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow" OrElse PackageName = "Microsoft.VisualStudio.VsInteractiveWindow"
+                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
             End Get
         End Property
 
@@ -557,7 +557,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' TODO: remove once we have a proper package
         result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.VsInteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
 
         Return result
     End Function
@@ -646,7 +646,7 @@ Public Class BuildDevDivInsertionFiles
 
             ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
             ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-            If dependency.IsCoreXTCompatible Then
+            If Not dependency.IsCoreXTCompatible Then
                 Continue For
             End If
 
@@ -1049,6 +1049,7 @@ Public Class BuildDevDivInsertionFiles
             Case "Microsoft.VisualStudio.LanguageServices.dll",
                  "Microsoft.VisualStudio.LanguageServices.VisualStudio.dll",
                  "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+                 "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
                  "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
                  "Microsoft.VisualStudio.LanguageServices.Xaml.dll"
                 Return <SettingsFile xmlns="http://schemas.microsoft.com/developer/msbuild/2003">$(Sources)\Tools\Devdiv\Loc\Current\MCP_excludeBaml.lss</SettingsFile>
