@@ -26,6 +26,26 @@ class C
             End Using
         End Function
 
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestParamsInAttributeWithProperty() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+[Foo(0,"a"$$)]
+class FooAttribute : System.Attribute
+{
+    public FooAttribute(int someInteger, params string[] someStringArray) { }
+    public int SomeProperty { get; set; }
+}
+                              </Document>)
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem(selectedParameter:="params string[] someStringArray")
+                state.SendTypeChars("""b"",")
+                Await state.AssertSelectedSignatureHelpItem(selectedParameter:="params string[] someStringArray")
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TypingUpdatesParameters() As Task
             Using state = TestState.CreateCSharpTestState(
