@@ -111,7 +111,8 @@ namespace Runner
                 int iterations;
                 if (isRunningUnderCI)
                 {
-                    if (RuntimeSettings.IsVerbose) {
+                    if (RuntimeSettings.IsVerbose)
+                    {
                         Log("Running one iteration per test because we are under CI");
                     }
                     iterations = 1;
@@ -119,13 +120,15 @@ namespace Runner
                 else if (traceManager.HasWarmUpIteration)
                 {
                     iterations = test.Iterations + 1;
-                    if (RuntimeSettings.IsVerbose) {
+                    if (RuntimeSettings.IsVerbose)
+                    {
                         Log("With warmup iteration");
                     }
                 }
                 else
                 {
-                    if (RuntimeSettings.IsVerbose) {
+                    if (RuntimeSettings.IsVerbose)
+                    {
                         Log("No warmup iteration");
                     }
                     iterations = test.Iterations;
