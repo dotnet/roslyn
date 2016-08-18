@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _optionStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax))
+                        _optionStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node)
                         _state = SyntaxKind.ImportsStatement
 
                     Case SyntaxKind.ImportsStatement
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _importsStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax))
+                        _importsStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node)
                         _state = SyntaxKind.AttributesStatement
 
                     Case SyntaxKind.AttributesStatement
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _attributeStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax))
+                        _attributeStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node)
                         _state = SyntaxKind.None
 
                     Case Else
@@ -96,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If _state <> SyntaxKind.None Then
                 Select Case _state
                     Case SyntaxKind.OptionStatement
-                        _optionStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax))
+                        _optionStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of OptionStatementSyntax)(Body.Node)
 
                     Case SyntaxKind.ImportsStatement
-                        _importsStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax))
+                        _importsStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node)
 
                     Case SyntaxKind.AttributesStatement
-                        _attributeStmts = CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax))
+                        _attributeStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributesStatementSyntax)(Body.Node)
                 End Select
                 _state = SyntaxKind.None
             End If

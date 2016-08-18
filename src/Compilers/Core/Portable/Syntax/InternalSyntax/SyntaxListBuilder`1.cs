@@ -86,11 +86,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _builder.ToList();
         }
 
-        public SyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
-        {
-            return new SyntaxList<TDerived>(ToListNode());
-        }
-
         public GreenNode ToListNode()
         {
             return _builder.ToListNode();
@@ -109,6 +104,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
 
             return default(SyntaxList<TNode>);
+        }
+
+        public SyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
+        {
+            return new SyntaxList<TDerived>(ToListNode());
         }
     }
 }

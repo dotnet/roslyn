@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim text = GetText(length)
 
-            Dim trailingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CType(If(scanTrailingTrivia, ScanSingleLineTrivia(), Nothing), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
+            Dim trailingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = If(scanTrailingTrivia, ScanSingleLineTrivia(), Nothing)
 
             Return MakePunctuationToken(kind, text, leadingTrivia, trailingTrivia.Node)
 
