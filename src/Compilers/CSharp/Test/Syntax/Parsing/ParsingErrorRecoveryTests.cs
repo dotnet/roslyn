@@ -43,7 +43,7 @@ class C
     // brace on previous method. Parsing currently assumes the former,
     // assuming the tokens are parseable as a local func.
     {accessibility} void M4() {{}}
-}}", LocalFunctionParsingTests.LocalFuncOptions);
+}}");
 
             Assert.NotNull(file);
             file.GetDiagnostics().Verify(

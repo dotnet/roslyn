@@ -12,7 +12,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
-        internal static readonly CSharpParseOptions LocalFuncOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        [Fact]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
+        public void LocalFuncWithWhitespace()
+        {
+            var file = ParseFile(@"
+class C
+{
+    void Main()
+    {
+        int
+            foo() => 5;
+
+        int
+            foo() { return 5; }
+
+        int
+            foo<T>() => 5;
+
+        int
+            foo<T>() { return 5; }
+
+        int
+            foo<T>() where T : IFace => 5;
+
+        int
+            foo<T>() where T : IFace { return 5; }
+    }
+}");
+            Assert.NotNull(file);
+            file.SyntaxTree.GetDiagnostics().Verify();
+
+            file = ParseFile(@"
+class C
+{
+    void M()
+    {
+        int
+            foo() where T : IFace => 5;
+        int
+            foo() where T : IFace { return 5; }
+        int
+            foo<T>) { }
+    }
+}");
+            file.SyntaxTree.GetDiagnostics().Verify(
+                // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             foo() where T : IFace => 5;
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
+                // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             foo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
+                // (11,19): error CS1003: Syntax error, '(' expected
+                //             foo<T>) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19));
+
+            var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
+                .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
+                .Single());
+            Assert.All(m.Body.Statements,
+                s => Assert.Equal(SyntaxKind.LocalFunctionStatement, s.Kind()));
+        }
 
         [Fact]
         public void NeverEndingTest()
