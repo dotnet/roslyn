@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -421,6 +422,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
             return new SymbolTreeInfo(version, sortedNodes, inheritanceMap, createSpellCheckerTask);
+        }
+
+        public ImmutableArray<string> GetDerivedMetadataTypeNames(string baseTypeName)
+        {
+            return _inheritanceMap[baseTypeName];
         }
     }
 }
