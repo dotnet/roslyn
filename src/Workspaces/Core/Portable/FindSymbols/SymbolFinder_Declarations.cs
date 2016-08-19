@@ -268,18 +268,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
+        //internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+        //    Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
+        //{
+        //    if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+        //    {
+        //        return SpecializedCollections.EmptyEnumerable<ISymbol>();
+        //    }
 
-            var result = new List<ISymbol>();
-            await AddDeclarationsAsync(solution, assembly, reference, query, filter, result, cancellationToken).ConfigureAwait(false);
-            return result;
-        }
+        //    var result = new List<ISymbol>();
+        //    await AddDeclarationsAsync(solution, assembly, reference, query, filter, result, cancellationToken).ConfigureAwait(false);
+        //    return result;
+        //}
 
         private static async Task AddDeclarationsAsync(
             Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 

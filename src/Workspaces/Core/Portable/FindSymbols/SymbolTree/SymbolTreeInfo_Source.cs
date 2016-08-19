@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
-            return CreateSymbolTreeInfo(solution, version, filePath, unsortedNodes);
+            var inheritanceMap = new OrderPreservingMultiDictionary<string, string>();
+            return CreateSymbolTreeInfo(solution, version, filePath, unsortedNodes, inheritanceMap);
         }
 
         // generate nodes for the global namespace an all descendants

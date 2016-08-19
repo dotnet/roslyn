@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "10";
+        private const string SerializationFormat = "12";
 
         /// <summary>
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
@@ -180,6 +181,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteString(node.Name);
                 writer.WriteInt32(node.ParentIndex);
             }
+
+            writer.WriteInt32(_inheritanceMap.Keys.Count);
+            foreach (var kvp in _inheritanceMap)
+            {
+                writer.WriteString(kvp.Key);
+                writer.WriteInt32(kvp.Value.Count);
+
+                foreach (var v in kvp.Value)
+                {
+                    writer.WriteString(v);
+                }
+            }
         }
 
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
@@ -198,15 +211,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var version = VersionStamp.ReadFrom(reader);
 
-                    var count = reader.ReadInt32();
-                    if (count == 0)
-                    {
-                        return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty,
-                            Task.FromResult(new SpellChecker(version, BKTree.Empty)));
-                    }
-
-                    var nodes = new Node[count];
-                    for (var i = 0; i < count; i++)
+                    var nodeCount = reader.ReadInt32();
+                    var nodes = new Node[nodeCount];
+                    for (var i = 0; i < nodeCount; i++)
                     {
                         var name = reader.ReadString();
                         var parentIndex = reader.ReadInt32();
@@ -214,8 +221,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         nodes[i] = new Node(name, parentIndex);
                     }
 
+                    var inheritanceMap = new OrderPreservingMultiDictionary<string, string>();
+                    var inheritanceMapKeyCount = reader.ReadInt32();
+                    for (var i = 0; i < inheritanceMapKeyCount; i++)
+                    {
+                        var key = reader.ReadString();
+                        var valueCount = reader.ReadInt32();
+
+                        for (var j = 0; j < valueCount; j++)
+                        {
+                            var value = reader.ReadString();
+                            inheritanceMap.Add(key, value);
+                        }
+                    }
+
                     var spellCheckerTask = createSpellCheckerTask(version, nodes);
-                    return new SymbolTreeInfo(version, nodes, spellCheckerTask);
+                    return new SymbolTreeInfo(version, nodes, inheritanceMap, spellCheckerTask);
                 }
             }
             catch

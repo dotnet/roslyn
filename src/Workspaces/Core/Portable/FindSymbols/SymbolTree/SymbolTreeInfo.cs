@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -21,6 +22,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// around that equivalence class for one that matches.
         /// </summary>
         private readonly IReadOnlyList<Node> _nodes;
+
+        /// <summary>
+        /// Inheritance information for the types in this assembly.  The mapping is between
+        /// a type's simple name (like 'IDictionary') and the metadata names of types that 
+        /// implement it or derive from it (like 'System.Collections.Generic.IDictionary`2).
+        /// 
+        /// This mapping is only produced for metadata assemblies.
+        /// </summary>
+        private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
@@ -52,10 +62,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Task<SpellChecker> spellCheckerTask)
+        private SymbolTreeInfo(
+            VersionStamp version,
+            IReadOnlyList<Node> orderedNodes,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
             _nodes = orderedNodes;
+            _inheritanceMap = inheritanceMap;
             _spellCheckerTask = spellCheckerTask;
         }
 
@@ -400,11 +415,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, VersionStamp version, string filePath, List<Node> unsortedNodes)
+            Solution solution, VersionStamp version, string filePath, List<Node> unsortedNodes,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
             var sortedNodes = SortNodes(unsortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
-            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
+            return new SymbolTreeInfo(version, sortedNodes, inheritanceMap, createSpellCheckerTask);
         }
     }
 }
