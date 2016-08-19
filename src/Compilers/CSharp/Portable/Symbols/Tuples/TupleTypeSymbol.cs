@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.IsValueType;
+                return _underlyingType.IsErrorType() || _underlyingType.IsValueType;
             }
         }
 

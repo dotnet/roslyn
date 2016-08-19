@@ -1506,7 +1506,7 @@ public class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,12): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+              // (8,12): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //     public (int, int) TestTuple()
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 12),
                 // (4,19): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
@@ -1514,7 +1514,10 @@ public class C
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "ValueTuple<string, string>").WithArguments("System.ValueTuple<T1, T2>").WithLocation(4, 19),
                 // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         return (1, 2);
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16)
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
+                // (19,9): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y) = new C()").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
             };
 
             var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
