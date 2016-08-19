@@ -1999,7 +1999,11 @@ partial class C
             CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,32): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         fixed (int* ptr = arg) object o = null;
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;"));
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = null;").WithLocation(7, 32),
+                // (7,39): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         fixed (int* ptr = arg) object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(7, 39)
+                );
         }
 
         [WorkItem(1040171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040171")]

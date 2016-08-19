@@ -2058,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
             if (isVar)
