@@ -243,6 +243,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var typeSpecificationHandle = (TypeSpecificationHandle)baseTypeOrInterfaceHandle;
                 if (!typeSpecificationHandle.IsNil)
                 {
+                    // TypeSpecifications are complicated as they can encode a whole
+                    // signature.  However, we only really need to get the base name
+                    // for the type this specification refers to.  To that end we have
+                    // a very simple BaseNameProvider that works in conjunction with the
+                    // System.Reflection.Metadata.Ecma335.SignatureDecoder to just give
+                    // us that simple name. 
                     var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(typeSpecificationHandle).Signature);
                     var baseName = new SignatureDecoder<string>(
                         BaseNameProvider.Instance, reader).DecodeType(ref sigReader);
@@ -401,7 +407,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// Used to determine a simple name for a type that is referenced through
-        /// a TypeSpecificationHandle.
+        /// a TypeSpecificationHandle.  BEcause we only care about hte base name
+        /// (i.e. "IList", not IList`1 or S.C.G.IList or IList&lt;Int32&gt; or 
+        /// IList[] or Foo(IList), etc.) we provide simple dummy implementations
+        /// for most methods. 
         /// </summary>
         private class BaseNameProvider : ISignatureTypeProvider<string>
         {
@@ -409,20 +418,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
             {
-                return GetMetadataNameWithoutBackticks(reader, reader.GetTypeDefinition(handle).Name);
+                // Just get the simple name of the type definition.
+                return GetMetadataNameWithoutBackticks(
+                    reader, reader.GetTypeDefinition(handle).Name);
             }
 
             public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
             {
-                return GetMetadataNameWithoutBackticks(reader, reader.GetTypeReference(handle).Name);
+                // Just get the simple name of the type definition.
+                return GetMetadataNameWithoutBackticks(
+                    reader, reader.GetTypeReference(handle).Name);
             }
 
             public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
             {
+                // Create a new decoded to process the embedded type specification.
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
                 return new SignatureDecoder<string>(this, reader).DecodeType(ref sigReader);
             }
 
+            // We want the bare name as is, without any generic brackets, or backticks.
+            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments) => genericType;
+
+            // All the signature elements that would normally augment the passed in type will
+            // just pass it along unchanged.
             public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType) => unmodifiedType;
             public string GetPinnedType(string elementType) => elementType;
             public string GetArrayType(string elementType, ArrayShape shape) => elementType;
@@ -430,14 +449,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public string GetPointerType(string elementType) => elementType;
             public string GetSZArrayType(string elementType) => elementType;
 
+            // We'll never get function pointer types in any types we care about, so we can
+            // just return the empty string.  Similarly, as we never construct generics,
+            // there is no need to provide anything for the generic parameter names.
             public string GetFunctionPointerType(MethodSignature<string> signature) => "";
             public string GetGenericMethodParameter(int index) => "";
             public string GetGenericTypeParameter(int index) => "";
 
             public string GetPrimitiveType(PrimitiveTypeCode typeCode) => typeCode.ToString();
-
-            // We want the bare name as is, without any generic brackets, or backticks.
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments) => genericType;
         }
 
         private enum MetadataDefinitionKind
