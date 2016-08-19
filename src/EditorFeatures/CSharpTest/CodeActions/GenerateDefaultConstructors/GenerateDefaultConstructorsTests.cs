@@ -105,6 +105,15 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestFixAll_WithTuples()
+        {
+            await TestAsync(
+@"class C : [||]B { public C((bool, bool) x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
+@"class C : B { public C((bool, bool) x) { } protected C((string, string) x) : base(x) { } internal C((int, int) x) : base(x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestMissing1()
         {
             await TestMissingAsync(
