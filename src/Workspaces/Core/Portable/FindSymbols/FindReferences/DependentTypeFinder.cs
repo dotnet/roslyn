@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var metadataName in derivedMetadataTypeNames)
                 {
                     var derivedType = compilation.GetTypeByMetadataName(metadataName);
-                    if (derivedType != null)
+                    if (derivedType != null && derivedType.Locations.Any(s_isInMetadata))
                     {
                         if (metadataTypeMatches(metadataTypes, derivedType))
                         {
