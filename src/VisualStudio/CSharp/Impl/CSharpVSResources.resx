@@ -153,9 +153,6 @@
   <data name="Indent_open_and_close_braces" xml:space="preserve">
     <value>Indent open and close braces</value>
   </data>
-  <data name="Indent_case_contents" xml:space="preserve">
-    <value>Indent case contents</value>
-  </data>
   <data name="Indent_case_labels" xml:space="preserve">
     <value>Indent case labels</value>
   </data>
@@ -488,5 +485,17 @@
   </data>
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
+  </data>
+  <data name="Always_indent_switch_case" xml:space="preserve">
+    <value>Always indent switch case sections</value>
+  </data>
+  <data name="Never_indent_switch_case" xml:space="preserve">
+    <value>Never indent switch case sections</value>
+  </data>
+  <data name="Only_indent_statement_switch_case" xml:space="preserve">
+    <value>Only indent statements inside switch case sections</value>
+  </data>
+  <data name="Switch_Case_Indentation" xml:space="preserve">
+    <value>Switch Case Statement Indentation</value>
   </data>
 </root>

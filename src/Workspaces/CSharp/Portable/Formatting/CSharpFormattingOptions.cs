@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
     public enum SwitchCaseIndentOptions
     {
-        /// Never Indent
-        NeverIndent = 1,
-
         /// Always Indent
-        AlwaysIndent = 2,
+        AlwaysIndent = 1,
+
+        /// Never Indent
+        NeverIndent = 0,
 
         /// Only Indent Statements
-        OnlyIndentStatements = 3,
+        OnlyIndentStatements = 2,
     }
 }

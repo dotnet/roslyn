@@ -79,6 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Always indent switch case sections.
+        /// </summary>
+        internal static string Always_indent_switch_case {
+            get {
+                return ResourceManager.GetString("Always_indent_switch_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string Automatically_format_block_on {
@@ -300,15 +309,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Indent_block_contents {
             get {
                 return ResourceManager.GetString("Indent_block_contents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent case contents.
-        /// </summary>
-        internal static string Indent_case_contents {
-            get {
-                return ResourceManager.GetString("Indent_case_contents", resourceCulture);
             }
         }
         
@@ -628,6 +628,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Never indent switch case sections.
+        /// </summary>
+        internal static string Never_indent_switch_case {
+            get {
+                return ResourceManager.GetString("Never_indent_switch_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New line options for braces.
         /// </summary>
         internal static string New_line_options_for_braces {
@@ -660,6 +669,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Only_add_new_line_on_enter_after_end_of_fully_typed_word {
             get {
                 return ResourceManager.GetString("Only_add_new_line_on_enter_after_end_of_fully_typed_word", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only indent statements inside switch case sections.
+        /// </summary>
+        internal static string Only_indent_statement_switch_case {
+            get {
+                return ResourceManager.GetString("Only_indent_statement_switch_case", resourceCulture);
             }
         }
         
@@ -1119,6 +1137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Surround_With {
             get {
                 return ResourceManager.GetString("Surround_With", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Switch Case Statement Indentation.
+        /// </summary>
+        internal static string Switch_Case_Indentation {
+            get {
+                return ResourceManager.GetString("Switch_Case_Indentation", resourceCulture);
             }
         }
         

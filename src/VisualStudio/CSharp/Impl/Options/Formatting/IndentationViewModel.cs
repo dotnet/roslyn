@@ -41,6 +41,10 @@ class MyClass
         switch (foo){
         case 2:
             break;
+        case 3:
+        {
+            break;
+        }
         }
 //]
     }
@@ -62,8 +66,13 @@ class MyClass
         {
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBlock, CSharpVSResources.Indent_block_contents, BlockContentPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBraces, CSharpVSResources.Indent_open_and_close_braces, IndentBracePreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, SwitchCasePreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchSection, CSharpVSResources.Indent_case_labels, SwitchCasePreview, this, options));
+
+            Items.Add(new TextBlock() { Text = CSharpVSResources.Switch_Case_Indentation });
+
+            Items.Add(new RadioButtonViewModel<SwitchCaseIndentOptions>(CSharpVSResources.Never_indent_switch_case, SwitchCasePreview, "switch", SwitchCaseIndentOptions.NeverIndent, CSharpFormattingOptions.IndentSwitchCaseSection, this, options));
+            Items.Add(new RadioButtonViewModel<SwitchCaseIndentOptions>(CSharpVSResources.Only_indent_statement_switch_case, SwitchCasePreview, "switch", SwitchCaseIndentOptions.OnlyIndentStatements, CSharpFormattingOptions.IndentSwitchCaseSection, this, options));
+            Items.Add(new RadioButtonViewModel<SwitchCaseIndentOptions>(CSharpVSResources.Always_indent_switch_case, SwitchCasePreview, "switch", SwitchCaseIndentOptions.AlwaysIndent, CSharpFormattingOptions.IndentSwitchCaseSection, this, options));
 
             Items.Add(new TextBlock() { Text = CSharpVSResources.Label_Indentation });
 

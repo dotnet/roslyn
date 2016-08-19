@@ -159,8 +159,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Indent_CaseContents
         {
-            get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection); }
-            set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection, value); }
+            get
+            {
+                return (int)_workspace.Options.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
+            }
+
+            set
+            {
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.IndentSwitchCaseSection, value);
+            }
         }
 
         public int Indent_CaseLabels
