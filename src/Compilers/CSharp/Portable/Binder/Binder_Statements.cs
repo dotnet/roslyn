@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
+            Binder binder;
+
             switch (node.Kind())
             {
                 case SyntaxKind.ExpressionStatement:
@@ -281,10 +283,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.LabeledStatement:
-                    Binder binder = this.GetBinder(node);
+                    binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
+
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.LocalFunctionStatement:
+                    binder = this.GetBinder(node);
+                    Debug.Assert(binder != null);
+                    return binder.WrapWithVariablesAndLocalFunctionsIfAny(node, binder.BindStatement(node, diagnostics));
 
                 case SyntaxKind.SwitchStatement:
                     var switchStatement = (SwitchStatementSyntax)node;
