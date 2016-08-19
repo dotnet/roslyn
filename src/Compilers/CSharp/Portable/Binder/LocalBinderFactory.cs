@@ -670,9 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
         }
 
@@ -760,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.ReturnStatement:
                     Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                     embeddedScopeDesignator = statement;
                     return new EmbeddedStatementBinder(enclosing, statement);

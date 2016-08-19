@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.ReturnStatement:
                     binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
@@ -3189,18 +3190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
-        {
-            if (syntax.Expression == null)
-            {
-                return BindReturnParts(syntax, diagnostics);
-            }
-
-            var binder = GetBinder(syntax);
-            Debug.Assert(binder != null);
-            return binder.WrapWithVariablesIfAny(syntax, binder.BindReturnParts(syntax, diagnostics));
-        }
-
-        private BoundReturnStatement BindReturnParts(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
             var refKind = RefKind.None;
             var expressionSyntax = syntax.Expression?.SkipRef(out refKind);
