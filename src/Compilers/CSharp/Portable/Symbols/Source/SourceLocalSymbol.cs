@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public ForEachLocalSymbol(
                 Symbol containingSymbol,
-                Binder binder,
+                ForEachLoopBinder binder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
@@ -658,15 +658,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     base(containingSymbol, binder, false, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
-                Debug.Assert(binder is ForEachLoopBinder);
                 _collection = collection;
             }
 
+            /// <summary>
+            /// We initialize the base's binder with a ForEachLoopBinder, so it is safe
+            /// to cast it to that type here.
+            /// </summary>
+            private ForEachLoopBinder ForEachLoopBinder => (ForEachLoopBinder)base.binder;
+
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                // Normally, it would not be safe to cast to a specific binder type.  However, we verified the type
-                // in the factory method call for this symbol.
-                return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, _collection);
+                return ForEachLoopBinder.InferCollectionElementType(diagnostics, _collection);
             }
 
             internal override SyntaxNode ForbiddenZone => _collection;
