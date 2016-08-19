@@ -114,11 +114,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return CreateSymbolTreeInfo(
-                solution, 
-                version, 
-                reference.FilePath, 
-                unsortedNodes,
-                inheritanceMap);
+                solution, version, reference.FilePath, 
+                unsortedNodes, inheritanceMap);
         }
 
         private static void GenerateMetadataNodes(
