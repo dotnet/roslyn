@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; } // Scope binder should be good enough for this.
         }
 
-
         public static SourceLocalSymbol MakeForeachLocal(
             MethodSymbol containingMethod,
             ForEachLoopBinder binder,

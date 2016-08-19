@@ -281,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.LabeledStatement:
                     Binder binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
