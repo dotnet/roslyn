@@ -115,7 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
+            _localsBuilder.Add(SourceLocalSymbol.MakePatternLocalSymbol(
+                _scopeBinder.ContainingMemberOrLambda, _scopeBinder, node));
+
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
@@ -180,11 +182,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ElementAccessExpression:
+                    {
+                        var local = SourceLocalSymbol.MakeVariableDeclaredInExpression(
+                            _scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(),
+                            node.Identifier(), LocalDeclarationKind.RegularVariable, (ExpressionSyntax)context);
+                        _localsBuilder.Add(local);
+                        break;
+                    }
+
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.BaseConstructorInitializer:
-                    var local = SourceLocalSymbol.MakeOutVariable(_scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(), node.Identifier(), context);
-                    _localsBuilder.Add(local);
-                    break;
+                    {
+                        Debug.Assert(_enclosingBinderOpt == null || _enclosingBinderOpt == _scopeBinder);
+                        var local = SourceLocalSymbol.MakeOutVariableInCtorInitializer(
+                            _scopeBinder.ContainingMemberOrLambda, _scopeBinder, node.Type(), node.Identifier(),
+                            (ConstructorInitializerSyntax)context);
+                        _localsBuilder.Add(local);
+                        break;
+                    }
+
                 default:
 
                     // It looks like we are deling with a syntax tree that has a shape that could never be

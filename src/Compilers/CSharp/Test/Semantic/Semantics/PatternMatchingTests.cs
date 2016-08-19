@@ -11842,5 +11842,50 @@ public static class StaticType
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
+
+        [Fact, WorkItem(12996, "https://github.com/dotnet/roslyn/issues/12996")]
+        public void TypeOfAVarPatternVariable()
+        {
+            var source =
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+    }
+
+    public static void Test(int val)
+    {
+        if (val is var o1) 
+        {
+            System.Console.WriteLine(o1);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+
+            var model1 = compilation.GetSemanticModel(tree);
+
+            var declaration = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            var o1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "o1").Single();
+
+            var typeInfo1 = model1.GetTypeInfo(declaration);
+            Assert.Equal(SymbolKind.NamedType, typeInfo1.Type.Kind);
+            Assert.Equal("System.Boolean", typeInfo1.Type.ToTestDisplayString());
+
+            typeInfo1 = model1.GetTypeInfo(o1);
+            Assert.Equal(SymbolKind.NamedType, typeInfo1.Type.Kind);
+            Assert.Equal("System.Int32", typeInfo1.Type.ToTestDisplayString());
+
+            var model2 = compilation.GetSemanticModel(tree);
+
+            var typeInfo2 = model2.GetTypeInfo(o1);
+            Assert.Equal(SymbolKind.NamedType, typeInfo2.Type.Kind);
+            Assert.Equal("System.Int32", typeInfo2.Type.ToTestDisplayString());
+        }
     }
 }

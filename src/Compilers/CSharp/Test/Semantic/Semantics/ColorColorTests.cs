@@ -2058,12 +2058,9 @@ class C
             Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
 
             compilation.VerifyDiagnostics(
-    // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
-    //         var E = E.A;
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17),
-    // (11,17): error CS0165: Use of unassigned local variable 'E'
-    //         var E = E.A;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "E").WithArguments("E").WithLocation(11, 17)
+                // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
+                //         var E = E.A;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17)
                 );
         }
     }

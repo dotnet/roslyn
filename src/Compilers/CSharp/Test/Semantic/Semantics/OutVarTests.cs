@@ -13276,10 +13276,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (6,37): error CS0149: Method name expected
                 //         Test2(new System.Action(out var x1), 
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37),
-                // (6,37): error CS0165: Use of unassigned local variable 'x1'
-                //         Test2(new System.Action(out var x1), 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(6, 37)
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -13879,22 +13876,16 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS1003: Syntax error, ',' expected
+                // (7,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out var x1], x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(7, 25),
-                // (7,21): error CS0103: The name 'var' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(7, 21),
+                // (7,25): error CS8197: Cannot infer the type of implicitly-typed out variable.
                 //         Test2(x[out var x1], x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 21),
-                // (7,25): error CS0103: The name 'x1' does not exist in the current context
-                //         Test2(x[out var x1], x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 25),
-                // (7,30): error CS0103: The name 'x1' does not exist in the current context
-                //         Test2(x[out var x1], x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithLocation(7, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            Assert.False(GetOutVarDeclarations(tree, "x1").Any());
+            Assert.Equal(1, GetOutVarDeclarations(tree, "x1").Count());
         }
 
         [Fact]
@@ -13917,24 +13908,17 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
-
             compilation.VerifyDiagnostics(
-                // (7,21): error CS1525: Invalid expression term 'int'
+                // (7,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out int x1], x1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 21),
-                // (7,25): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "int x1").WithArguments("1", "out").WithLocation(7, 21),
+                // (7,21): error CS0165: Use of unassigned local variable 'x1'
                 //         Test2(x[out int x1], x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(7, 25),
-                // (7,25): error CS0103: The name 'x1' does not exist in the current context
-                //         Test2(x[out int x1], x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 25),
-                // (7,30): error CS0103: The name 'x1' does not exist in the current context
-                //         Test2(x[out int x1], x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(7, 21)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            Assert.False(GetOutVarDeclarations(tree, "x1").Any());
+            Assert.Equal(1, GetOutVarDeclarations(tree, "x1").Count());
         }
 
         [Fact]
@@ -14101,7 +14085,7 @@ public class Cls
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
-        
+
         [Fact]
         [WorkItem(12266, "https://github.com/dotnet/roslyn/issues/12266")]
         public void LocalVariableTypeInferenceAndOutVar_05()
@@ -14135,6 +14119,200 @@ public class Cls
             var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        public void IndexingDynamic()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        dynamic d = null;
+        var x = d[out int z];
+    }
+}";
+            // the C# dynamic binder does not support ref or out indexers, so we don't run this
+            var compilation = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+@"{
+  // Code size       87 (0x57)
+  .maxstack  7
+  .locals init (object V_0, //d
+                int V_1) //z
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0007:  brtrue.s   IL_003e
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldtoken    ""Cls""
+  IL_000f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0014:  ldc.i4.2
+  IL_0015:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001a:  dup
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldnull
+  IL_001e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0023:  stelem.ref
+  IL_0024:  dup
+  IL_0025:  ldc.i4.1
+  IL_0026:  ldc.i4.s   17
+  IL_0028:  ldnull
+  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002e:  stelem.ref
+  IL_002f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0039:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_003e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_0043:  ldfld      ""<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic> System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>>.Target""
+  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>> Cls.<>o__0.<>p__0""
+  IL_004d:  ldloc.0
+  IL_004e:  ldloca.s   V_1
+  IL_0050:  callvirt   ""dynamic <>F{00000004}<System.Runtime.CompilerServices.CallSite, dynamic, int, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref int)""
+  IL_0055:  pop
+  IL_0056:  ret
+}");
+        }
+
+        [ClrOnlyFact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        public void OutVariableDeclarationInIndex()
+        {
+            var source1 =
+@".class interface public abstract import IA
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 ) // ...Item..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.CoClassAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 01 41 00 00 )
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 31 36 35 46 37 35 32 44 2D 45 39 43 34 2D 34 46 37 45 2D 42 30 44 30 2D 43 44 46 44 37 41 33 36 45 32 31 31 00 00 )
+  .method public abstract virtual instance int32 get_Item([out] int32& i) { }
+  .method public abstract virtual instance void set_Item([out] int32& i, int32 v) { }
+  .property instance int32 Item([out] int32&)
+  {
+    .get instance int32 IA::get_Item([out] int32&)
+    .set instance void IA::set_Item([out] int32&, int32)
+  }
+  .method public abstract virtual instance int32 get_P([out] int32& i) { }
+  .method public abstract virtual instance void set_P([out] int32& i, int32 v) { }
+  .property instance int32 P([out] int32&)
+  {
+    .get instance int32 IA::get_P([out] int32&)
+    .set instance void IA::set_P([out] int32&, int32)
+  }
+}
+.class public A implements IA
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 ) // ...Item..
+  .method public hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ret
+  }
+  // i = 1; return 2;
+  .method public virtual instance int32 get_P([out] int32& i)
+  {
+    ldarg.1
+    ldc.i4.1
+    stind.i4
+    ldc.i4.2
+    ret
+  }
+  // i = 3; return;
+  .method public virtual instance void set_P([out] int32& i, int32 v)
+  {
+    ldarg.1
+    ldc.i4.3
+    stind.i4
+    ret
+  }
+  .property instance int32 P([out] int32&)
+  {
+    .get instance int32 A::get_P([out] int32&)
+    .set instance void A::set_P([out] int32&, int32)
+  }
+  // i = 4; return 5;
+  .method public virtual instance int32 get_Item([out] int32& i)
+  {
+    ldarg.1
+    ldc.i4.4
+    stind.i4
+    ldc.i4.5
+    ret
+  }
+  // i = 6; return;
+  .method public virtual instance void set_Item([out] int32& i, int32 v)
+  {
+    ldarg.1
+    ldc.i4.6
+    stind.i4
+    ret
+  }
+  .property instance int32 Item([out] int32&)
+  {
+    .get instance int32 A::get_Item([out] int32&)
+    .set instance void A::set_Item([out] int32&, int32)
+  }
+}";
+            var reference1 = CompileIL(source1);
+            var source2 =
+@"using System;
+class B
+{
+    public static void Main()
+    {
+        A a = new A();
+        IA ia = a;
+        Console.WriteLine(ia.P[out int i1] + "" "" + i1);
+        ia.P[out int i2] = 4;
+        Console.WriteLine(i2);
+        Console.WriteLine(ia[out int i3] + "" "" + i3);
+        ia[out int i4] = 4;
+        Console.WriteLine(i4);
+    }
+}";
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+@"2 1
+3
+5 4
+6");
+            compilation2.VerifyIL("B.Main()",
+@"{
+  // Code size      103 (0x67)
+  .maxstack  4
+  .locals init (int V_0, //i1
+                int V_1, //i2
+                int V_2, //i3
+                int V_3) //i4
+  IL_0000:  newobj     ""A..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  callvirt   ""int IA.P[out int].get""
+  IL_000d:  box        ""int""
+  IL_0012:  ldstr      "" ""
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""int""
+  IL_001d:  call       ""string string.Concat(object, object, object)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  dup
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  ldc.i4.4
+  IL_002b:  callvirt   ""void IA.P[out int].set""
+  IL_0030:  ldloc.1
+  IL_0031:  call       ""void System.Console.WriteLine(int)""
+  IL_0036:  dup
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  callvirt   ""int IA.this[out int].get""
+  IL_003e:  box        ""int""
+  IL_0043:  ldstr      "" ""
+  IL_0048:  ldloc.2
+  IL_0049:  box        ""int""
+  IL_004e:  call       ""string string.Concat(object, object, object)""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ldloca.s   V_3
+  IL_005a:  ldc.i4.4
+  IL_005b:  callvirt   ""void IA.this[out int].set""
+  IL_0060:  ldloc.3
+  IL_0061:  call       ""void System.Console.WriteLine(int)""
+  IL_0066:  ret
+}");
         }
     }
 }

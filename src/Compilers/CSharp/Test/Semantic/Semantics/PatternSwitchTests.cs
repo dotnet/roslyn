@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1219,6 +1221,33 @@ public enum EnumA
 EnumA.ValueA
 Default";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
+        public void InferenceInSwitch()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        object o = 1;
+        switch (o)
+        {
+            case var i:
+                var s = i.ToString();
+                Console.WriteLine(s);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(sRef).Type.ToTestDisplayString());
         }
     }
 }
