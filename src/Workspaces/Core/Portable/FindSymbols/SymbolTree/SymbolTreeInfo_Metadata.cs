@@ -182,13 +182,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return;
             }
-
-            var typeDefinitionFullName = typeDefinition.Namespace.IsNil
-                ? reader.GetString(typeDefinition.Name)
-                : $"{reader.GetString(typeDefinition.Namespace)}.{reader.GetString(typeDefinition.Name)}";
+            string typeDefinitionFullName = GetTypeDefinitionFullName(reader, typeDefinition);
 
             PopulateInheritance(
-                reader, typeDefinitionFullName, 
+                reader, typeDefinitionFullName,
                 typeDefinition.BaseType, inheritanceMap);
 
             foreach (var interfaceImplHandle in interfaceImplHandles)
@@ -197,9 +194,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var interfaceImpl = reader.GetInterfaceImplementation(interfaceImplHandle);
                     PopulateInheritance(
-                        reader, typeDefinitionFullName, 
+                        reader, typeDefinitionFullName,
                         interfaceImpl.Interface, inheritanceMap);
                 }
+            }
+        }
+
+        private static string GetTypeDefinitionFullName(
+            MetadataReader reader, TypeDefinition typeDefinition)
+        {
+            var typeDefinitionName = reader.GetString(typeDefinition.Name);
+
+            var declaringTypeHandle = typeDefinition.GetDeclaringType();
+            if (declaringTypeHandle.IsNil)
+            {
+                return typeDefinition.Namespace.IsNil
+                    ? typeDefinitionName
+                    : reader.GetString(typeDefinition.Namespace) + "." + typeDefinitionName;
+            }
+            else
+            {
+                var declaringType = reader.GetTypeDefinition(declaringTypeHandle);
+                return GetTypeDefinitionFullName(reader, declaringType) + "+" + typeDefinitionName;
             }
         }
 
