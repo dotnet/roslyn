@@ -46,8 +46,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
-            var inheritanceMap = new OrderPreservingMultiDictionary<string, string>();
-            return CreateSymbolTreeInfo(solution, version, filePath, unsortedNodes, inheritanceMap);
+            return CreateSymbolTreeInfo(
+                solution, version, filePath, unsortedNodes, 
+                inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 
         // generate nodes for the global namespace an all descendants
