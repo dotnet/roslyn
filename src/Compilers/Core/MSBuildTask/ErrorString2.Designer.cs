@@ -7,13 +7,12 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
-
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.BuildTasks {
-    using System;
-    
-    
+namespace Microsoft.CodeAnalysis.BuildTasks
+{
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

@@ -5,7 +5,8 @@
         "System.Reflection.Metadata": "1.0.21",
         "System.Collections.Immutable": "1.1.36",
         "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25604-Preview4" ],
-        "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25604-Preview4" ]
+        "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.Build.Tasks.Core": [ "0.1.0-preview-00028-160627", "14.0.0-preview01" ]
     },
 
     "toolsetPackages": [
