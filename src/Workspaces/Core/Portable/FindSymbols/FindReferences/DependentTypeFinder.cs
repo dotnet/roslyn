@@ -270,15 +270,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static void GetTypes(Compilation compilation)
-        {
-            var allTypes = compilation.GlobalNamespace.GetAllTypes(CancellationToken.None);
-            var matchingTypes =
-                allTypes.Where(t => t.Locations.All(s_isInMetadata) &&
-                t.DeclaredAccessibility != Accessibility.Private &&
-                t.IsAccessibleWithin(compilation.Assembly)).ToList();
-        }
-
         private static async Task<ISet<ProjectId>> GetProjectsThatCouldReferenceTypeAsync(
             INamedTypeSymbol type, 
             Solution solution, 
