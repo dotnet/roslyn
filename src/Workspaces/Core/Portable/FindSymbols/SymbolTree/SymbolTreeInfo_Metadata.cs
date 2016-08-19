@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -214,50 +212,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             EntityHandle baseTypeOrInterfaceHandle,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
+            if (baseTypeOrInterfaceHandle.IsNil)
+            {
+                return;
+            }
+
+            var name = GetBaseName(reader, baseTypeOrInterfaceHandle);
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                inheritanceMap.Add(name, typeDefinitionFullName);
+            }
+        }
+
+        private static string GetBaseName(
+            MetadataReader reader, EntityHandle baseTypeOrInterfaceHandle)
+        {
             if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeDefinition)
             {
-                var baseDefinitionHandle = (TypeDefinitionHandle)baseTypeOrInterfaceHandle;
-                if (!baseDefinitionHandle.IsNil)
-                {
-                    var baseDefinition = reader.GetTypeDefinition(baseDefinitionHandle);
-                    var baseName = GetMetadataNameWithoutBackticks(
-                        reader, baseDefinition.Name);
-
-                    inheritanceMap.Add(baseName, typeDefinitionFullName);
-                }
+                return BaseNameProvider.Instance.GetTypeFromDefinition(
+                    reader, (TypeDefinitionHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
             }
             else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeReference)
             {
-                var baseReferenceHandle = (TypeReferenceHandle)baseTypeOrInterfaceHandle;
-                if (!baseReferenceHandle.IsNil)
-                {
-                    var baseReference = reader.GetTypeReference(baseReferenceHandle);
-                    var baseName = GetMetadataNameWithoutBackticks(
-                        reader, baseReference.Name);
-
-                    inheritanceMap.Add(baseName, typeDefinitionFullName);
-                }
+                return BaseNameProvider.Instance.GetTypeFromReference(
+                    reader, (TypeReferenceHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
             }
             else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeSpecification)
             {
-                var typeSpecificationHandle = (TypeSpecificationHandle)baseTypeOrInterfaceHandle;
-                if (!typeSpecificationHandle.IsNil)
-                {
-                    // TypeSpecifications are complicated as they can encode a whole
-                    // signature.  However, we only really need to get the base name
-                    // for the type this specification refers to.  To that end we have
-                    // a very simple BaseNameProvider that works in conjunction with the
-                    // System.Reflection.Metadata.Ecma335.SignatureDecoder to just give
-                    // us that simple name. 
-                    var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(typeSpecificationHandle).Signature);
-                    var baseName = new SignatureDecoder<string>(
-                        BaseNameProvider.Instance, reader).DecodeType(ref sigReader);
-
-                    if (baseName != "")
-                    {
-                        inheritanceMap.Add(baseName, typeDefinitionFullName);
-                    }
-                }
+                return BaseNameProvider.Instance.GetTypeFromSpecification(
+                    reader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -403,60 +390,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return SpecializedCollections.EmptyEnumerable<ModuleMetadata>();
             }
-        }
-
-        /// <summary>
-        /// Used to determine a simple name for a type that is referenced through
-        /// a TypeSpecificationHandle.  BEcause we only care about hte base name
-        /// (i.e. "IList", not IList`1 or S.C.G.IList or IList&lt;Int32&gt; or 
-        /// IList[] or Foo(IList), etc.) we provide simple dummy implementations
-        /// for most methods. 
-        /// </summary>
-        private class BaseNameProvider : ISignatureTypeProvider<string>
-        {
-            public static readonly BaseNameProvider Instance = new BaseNameProvider();
-
-            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
-            {
-                // Just get the simple name of the type definition.
-                return GetMetadataNameWithoutBackticks(
-                    reader, reader.GetTypeDefinition(handle).Name);
-            }
-
-            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
-            {
-                // Just get the simple name of the type definition.
-                return GetMetadataNameWithoutBackticks(
-                    reader, reader.GetTypeReference(handle).Name);
-            }
-
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
-            {
-                // Create a new decoded to process the embedded type specification.
-                var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<string>(this, reader).DecodeType(ref sigReader);
-            }
-
-            // We want the bare name as is, without any generic brackets, or backticks.
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments) => genericType;
-
-            // All the signature elements that would normally augment the passed in type will
-            // just pass it along unchanged.
-            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType) => unmodifiedType;
-            public string GetPinnedType(string elementType) => elementType;
-            public string GetArrayType(string elementType, ArrayShape shape) => elementType;
-            public string GetByReferenceType(string elementType) => elementType;
-            public string GetPointerType(string elementType) => elementType;
-            public string GetSZArrayType(string elementType) => elementType;
-
-            // We'll never get function pointer types in any types we care about, so we can
-            // just return the empty string.  Similarly, as we never construct generics,
-            // there is no need to provide anything for the generic parameter names.
-            public string GetFunctionPointerType(MethodSignature<string> signature) => "";
-            public string GetGenericMethodParameter(int index) => "";
-            public string GetGenericTypeParameter(int index) => "";
-
-            public string GetPrimitiveType(PrimitiveTypeCode typeCode) => typeCode.ToString();
         }
 
         private enum MetadataDefinitionKind
