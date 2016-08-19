@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Inheritance information for the types in this assembly.  The mapping is between
         /// a type's simple name (like 'IDictionary') and the metadata names of types that 
-        /// implement it or derive from it (like 'System.Collections.Generic.IDictionary`2).
+        /// implement it or derive from it (like 'System.Collections.Generic.Dictionary`2).
         /// 
         /// This mapping is only produced for metadata assemblies.
         /// </summary>
