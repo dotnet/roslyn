@@ -16164,6 +16164,76 @@ public class C3 : I0<int>, I0<int> { }
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var c1 = nodes.OfType<ClassDeclarationSyntax>().First();
+            Assert.Equal(2, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[1].ToTestDisplayString());
+
+            var c2 = nodes.OfType<ClassDeclarationSyntax>().Skip(1).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c2).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c2).AllInterfaces[0].ToTestDisplayString());
+
+            var c3 = nodes.OfType<ClassDeclarationSyntax>().Skip(2).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c3).AllInterfaces.Count());
+            Assert.Equal("I0<System.Int32>", model.GetDeclaredSymbol(c3).AllInterfaces[0].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AccessCheckLooksInsideTuples()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    (C2.C3, int) M() { throw new System.Exception(); }
+}
+public class C2
+{
+    private class C3 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0122: 'C2.C3' is inaccessible due to its protection level
+                //     (C2.C3, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadAccess, "C3").WithArguments("C2.C3").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void AccessCheckLooksInsideTuples2()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    public (C2, int) M() { throw new System.Exception(); }
+    private class C2 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,22): error CS0050: Inconsistent accessibility: return type '(C.C2, int)' is less accessible than method 'C.M()'
+                //     public (C2, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M").WithArguments("C.M()", "(C.C2, int)").WithLocation(11, 22)
+                );
         }
 
         [Fact]
@@ -16391,6 +16461,18 @@ public class Derived : Base<(int a, int b)>
                 //     public static explicit operator Base<(int, int)>(Derived x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
                 );
+        }
+
+        [Fact]
+        public void InterfaceUnification2()
+        {
+            var source = @"
+public interface I0<T1> { }
+public class Derived<T> : I0<Derived<(T, T)>>, I0<T> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            // Didn't run out of memory in trying to substitute T with Derived<(T, T)> in a loop
         }
 
         [Fact]
@@ -17423,6 +17505,132 @@ class C
   IL_00c8:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void StructInStruct()
+        {
+            var source = @"
+public struct S
+{
+    public (S, S) field;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0523: Struct member 'S.field' of type '(S, S)' causes a cycle in the struct layout
+                //     public (S, S) field;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("S.field", "(S, S)").WithLocation(4, 19)
+                );
+        }
+
+        [Fact]
+        public void RetargetTupleErrorType()
+        {
+            var lib_cs = @"
+public class A
+{
+    public static (int, int) M() { return (1, 2); }
+}
+";
+            var source = @"
+public class B
+{
+    void M2() { return A.M(); }
+}
+";
+            var lib = CreateCompilationWithMscorlib(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { lib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                );
+
+            var methodM = comp.GetMember<MethodSymbol>("A.M");
+
+            Assert.Equal("(System.Int32, System.Int32)", methodM.ReturnType.ToTestDisplayString());
+            Assert.True(methodM.ReturnType.IsTupleType);
+            Assert.False(methodM.ReturnType.IsErrorType());
+            Assert.True(methodM.ReturnType.TupleUnderlyingType.IsErrorType());
+        }
+
+        [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
+        public void AssignNullWithMissingValueTuple()
+        {
+            var source = @"
+public class S
+{
+    (int, int) t = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 5),
+                // (4,20): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(4, 20)
+                );
+        }
+
+        [Fact, WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        public void CrashInVisitCallReceiverOnBadTupleSyntax()
+        {
+            var source1 = @"
+public static class C1
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public static class C2
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        int x = 0;
+        x.M1((1, 1));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                        references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
+                        parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                        options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
+                );
         }
     }
 }

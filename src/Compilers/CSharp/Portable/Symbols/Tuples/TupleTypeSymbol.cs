@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
+            if (((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
+            {
+                // Complain about unembeddable types from linked assemblies.
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
+            }
+
             return Create(underlyingType, elementNames, locationOpt, elementLocations);
         }
 
@@ -662,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.IsValueType;
+                return _underlyingType.IsErrorType() || _underlyingType.IsValueType;
             }
         }
 

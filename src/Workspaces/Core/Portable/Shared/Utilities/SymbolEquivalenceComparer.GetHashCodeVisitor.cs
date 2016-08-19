@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineNamedTypeHashCode(INamedTypeSymbol x, int currentHash)
             {
+                if (x.IsTupleType)
+                {
+                    return CombineHashCodes(x.TupleElementTypes, currentHash, _symbolAggregator);
+                }
+
                 // If we want object and dynamic to be the same, and this is 'object', then return
                 // the same hash we do for 'dynamic'.
                 currentHash =

@@ -181,18 +181,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case SyntaxKind.LocalDeclarationStatement:
                         {
+                            enclosingBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
                             LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
+                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, enclosingBinder);
                                 locals.Add(localSymbol);
+
+                                var value = vdecl.Initializer?.Value;
+                                if (value != null)
+                                {
+                                    ExpressionVariableFinder.FindExpressionVariables(this, locals, value, enclosingBinder); 
+                                }
                             }
                         }
                         break;
 
                     case SyntaxKind.ExpressionStatement:
                     case SyntaxKind.IfStatement:
+                    case SyntaxKind.YieldReturnStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
                         break;
 
@@ -204,7 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.DoStatement:
                     case SyntaxKind.LockStatement:
-                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement));
+                        enclosingBinder = enclosingBinder.GetBinder(innerStatement);
+                        Debug.Assert(enclosingBinder != null); // Do and while loops always have binders.
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
                         break;
 
                     default:
@@ -315,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, Binder initializerBinderOpt = null)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
@@ -324,7 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declaration.Type,
                 declarator.Identifier,
                 kind,
-                declarator.Initializer);
+                declarator.Initializer,
+                initializerBinderOpt);
         }
 
         protected LocalFunctionSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)

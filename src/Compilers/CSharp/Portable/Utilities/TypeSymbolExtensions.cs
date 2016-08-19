@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
+                        if (type.IsTupleType)
+                        {
+                            return type.TupleUnderlyingType.CustomModifierCount();
+                        }
+
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)

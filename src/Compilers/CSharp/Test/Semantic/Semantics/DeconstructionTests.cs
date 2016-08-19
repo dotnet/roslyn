@@ -2303,5 +2303,34 @@ class C
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 42)
                 );
         }
+
+        [Fact, WorkItem(13081, "https://github.com/dotnet/roslyn/issues/13081")]
+        public void GettingDiagnosticsWhenValueTupleIsMissing()
+        {
+            var source = @"
+class C1
+{
+    static void Test(int arg1, (byte, byte) arg2)
+    {
+        foreach ((int, int) e in new (int, int)[10])
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     static void Test(int arg1, (byte, byte) arg2)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                // (6,38): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         foreach ((int, int) e in new (int, int)[10])
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                // (6,18): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         foreach ((int, int) e in new (int, int)[10])
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                );
+            // no crash
+        }
     }
 }
