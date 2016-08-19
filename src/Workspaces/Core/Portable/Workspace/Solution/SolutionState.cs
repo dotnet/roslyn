@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
+        public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
+
         public int WorkspaceVersion => _workspaceVersion;
 
         public SolutionServices Services => _solutionServices;

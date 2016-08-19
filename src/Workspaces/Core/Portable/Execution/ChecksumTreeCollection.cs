@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             _globalAssets = new ConcurrentDictionary<object, Asset>(concurrencyLevel: 2, capacity: 10);
             _rootTreeNodes = new ConcurrentDictionary<ChecksumScope, RootTreeNode>(concurrencyLevel: 2, capacity: 10);
-
-            // TODO: currently only red node we are holding in this cache is Solution. create SolutionState so
-            //       that we don't hold onto any red nodes (such as Document/Project)
         }
 
         public void AddGlobalAsset(object value, Asset asset, CancellationToken cancellationToken)
@@ -66,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Execution
             _globalAssets.TryRemove(value, out asset);
         }
 
-        public IRootChecksumTreeNode CreateRootTreeNode(Solution solution)
+        public IRootChecksumTreeNode CreateRootTreeNode(SolutionState solutionState)
         {
-            return new RootTreeNode(this, solution);
+            return new RootTreeNode(this, solutionState);
         }
 
         public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
