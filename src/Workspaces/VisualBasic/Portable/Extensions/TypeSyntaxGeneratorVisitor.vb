@@ -102,6 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("DateTime"))
             End Select
 
+            If symbol.IsTupleType Then
+                Return CreateTupleTypeSyntax(symbol)
+            End If
+
             If symbol.Name = String.Empty OrElse symbol.IsAnonymousType Then
                 Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))
             End If
@@ -117,6 +121,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SyntaxFactory.GenericName(
                 symbol.Name.ToIdentifierToken,
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
+        End Function
+
+        Private Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            Dim list = New SeparatedSyntaxList(Of TupleElementSyntax)()
+            Dim types = symbol.TupleElementTypes
+            Dim names = symbol.TupleElementNames
+            Dim hasNames = Not (names.IsDefault)
+
+            For pos As Integer = 1 To types.Length
+                Dim name = If(hasNames, SyntaxFactory.IdentifierName(names(pos - 1)), Nothing)
+                list = list.Add(SyntaxFactory.TupleElement(name, GenerateTypeSyntax(types(pos - 1))))
+            Next
+
+            Return SyntaxFactory.TupleType(list)
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax

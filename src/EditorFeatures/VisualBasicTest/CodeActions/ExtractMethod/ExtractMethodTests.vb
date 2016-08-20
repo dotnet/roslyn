@@ -293,5 +293,46 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 compareTokens:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        Public Async Function TestTuples() As Task
+
+            Await TestAsync(
+<Text>Class Program
+    Sub Main(args As String())
+        [|Dim x = (1, 2)|]
+        M(x)
+    End Sub
+
+    Private Sub M(x As (Integer, Integer))
+    End Sub
+End Class
+
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace
+</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>Class Program
+    Sub Main(args As String())
+        Dim x As (Integer, Integer) = {|Rename:NewMethod|}()
+        M(x)
+    End Sub
+
+    Private Shared Function NewMethod() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+
+    Private Sub M(x As (Integer, Integer))
+    End Sub
+End Class
+
+Namespace System
+    Structure ValueTuple(Of T1, T2)
+    End Structure
+End Namespace
+</Text>.Value.Replace(vbLf, vbCrLf),
+compareTokens:=False)
+        End Function
     End Class
 End Namespace

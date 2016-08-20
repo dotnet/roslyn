@@ -5896,6 +5896,19 @@ fourth]]>)
 
         End Sub
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13277"), WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.CreateErrorTypeSymbol(Nothing, "ValueTuple", 2).Construct(intType, intType)
+
+            Dim tuple = comp.CreateTupleTypeSymbol(vt2, Nothing)
+            ' Crashes in IsTupleCompatible
+
+        End Sub
+
     End Class
 
 End Namespace
