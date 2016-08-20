@@ -10,10 +10,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo : IObjectWritable
+    internal partial class SymbolTreeInfo
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
         private const string SerializationFormat = "12";
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
+                writeObject: (w, i) => i.WriteTo(w, filePath),
                 cancellationToken: cancellationToken);
         }
 
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        public void WriteTo(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer, string filePath)
         {
             writer.WriteString(SerializationFormat);
             _version.WriteTo(writer);

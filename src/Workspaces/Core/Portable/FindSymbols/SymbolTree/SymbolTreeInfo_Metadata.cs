@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
+                writeObject: (w, i) => i.WriteTo(w, filePath),
                 cancellationToken: cancellationToken);
         }
 
@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         GenerateMetadataNodes(
                             reader, definitionName, 0 /*index of root node*/,
                             kvp.Value, unsortedNodes, inheritanceMap);
-                    }
 
-                    PopulateInheritanceMap(reader, inheritanceMap, kvp);
+                        PopulateInheritanceMap(reader, inheritanceMap, kvp);
+                    }
                 }
             }
             finally
@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         GenerateMetadataNodes(reader, kvp.Key, nodeIndex,
                             kvp.Value, unsortedNodes, inheritanceMap);
-                    }
 
-                    PopulateInheritanceMap(reader, inheritanceMap, kvp);
+                        PopulateInheritanceMap(reader, inheritanceMap, kvp);
+                    }
                 }
             }
             finally
