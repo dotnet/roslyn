@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -26,12 +27,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// Inheritance information for the types in this assembly.  The mapping is between
-        /// a type's simple name (like 'IDictionary') and the metadata names of types that 
-        /// implement it or derive from it (like 'System.Collections.Generic.Dictionary`2).
+        /// a type's simple name (like 'IDictionary') and the simple metadata names of types 
+        /// that implement it or derive from it (like 'Dictionary').
+        /// 
+        /// Note: to save space, all names in this map are stored with simple ints.  These
+        /// ints are the indices into _nodes that contain the nodes with the appropriate name.
         /// 
         /// This mapping is only produced for metadata assemblies.
         /// </summary>
-        private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
+        private readonly OrderPreservingMultiDictionary<int, int> _inheritanceMap;
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             VersionStamp version,
             IReadOnlyList<Node> orderedNodes,
-            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            OrderPreservingMultiDictionary<int, int> inheritanceMap,
             Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = new List<ISymbol>();
             IAssemblySymbol assemblySymbol = null;
 
-            foreach (var node in FindNodes(name, comparer))
+            foreach (var node in FindNodeIndices(_nodes, name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -188,34 +192,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Gets all the node indices with matching names per the <paramref name="comparer" />.
         /// </summary>
-        private IEnumerable<int> FindNodes(string name, StringComparer comparer)
+        private static IEnumerable<int> FindNodeIndices(IReadOnlyList<Node> nodes, string name, StringComparer comparer)
         {
             // find any node that matches case-insensitively
-            var startingPosition = BinarySearch(name);
+            var startingPosition = BinarySearch(nodes, name);
 
             if (startingPosition != -1)
             {
                 // yield if this matches by the actual given comparer
-                if (comparer.Equals(name, _nodes[startingPosition].Name))
+                if (comparer.Equals(name, nodes[startingPosition].Name))
                 {
                     yield return startingPosition;
                 }
 
                 int position = startingPosition;
-                while (position > 0 && s_caseInsensitiveComparer.Equals(_nodes[position - 1].Name, name))
+                while (position > 0 && s_caseInsensitiveComparer.Equals(nodes[position - 1].Name, name))
                 {
                     position--;
-                    if (comparer.Equals(_nodes[position].Name, name))
+                    if (comparer.Equals(nodes[position].Name, name))
                     {
                         yield return position;
                     }
                 }
 
                 position = startingPosition;
-                while (position + 1 < _nodes.Count && s_caseInsensitiveComparer.Equals(_nodes[position + 1].Name, name))
+                while (position + 1 < nodes.Count && s_caseInsensitiveComparer.Equals(nodes[position + 1].Name, name))
                 {
                     position++;
-                    if (comparer.Equals(_nodes[position].Name, name))
+                    if (comparer.Equals(nodes[position].Name, name))
                     {
                         yield return position;
                     }
@@ -226,16 +230,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Searches for a name in the ordered list that matches per the <see cref="s_caseInsensitiveComparer" />.
         /// </summary>
-        private int BinarySearch(string name)
+        private static int BinarySearch(IReadOnlyList<Node> nodes, string name)
         {
-            int max = _nodes.Count - 1;
+            int max = nodes.Count - 1;
             int min = 0;
 
             while (max >= min)
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -421,12 +425,54 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var sortedNodes = SortNodes(unsortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
-            return new SymbolTreeInfo(version, sortedNodes, inheritanceMap, createSpellCheckerTask);
+
+            var indexBasedInheritanceMap = CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap);
+            return new SymbolTreeInfo(version, sortedNodes, indexBasedInheritanceMap, createSpellCheckerTask);
         }
 
-        public ImmutableArray<string> GetDerivedMetadataTypeNames(string baseTypeName)
+        private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(
+            Node[] sortedNodes,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
-            return _inheritanceMap[baseTypeName];
+            // All names in metadata will be case sensitive.  
+            var comparer = GetComparer(ignoreCase: false);
+            var result = new OrderPreservingMultiDictionary<int, int>();
+
+            foreach (var kvp in inheritanceMap)
+            {
+                var baseName = kvp.Key;
+                var baseNameIndex = BinarySearch(sortedNodes, baseName);
+                Debug.Assert(baseNameIndex >= 0);
+
+                foreach (var derivedName in kvp.Value)
+                {
+                    foreach (var derivedNameIndex in FindNodeIndices(sortedNodes, derivedName, comparer))
+                    {
+                        result.Add(baseNameIndex, derivedNameIndex);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public IEnumerable<INamedTypeSymbol> GetDerivedMetadataTypes(
+            string baseTypeName, Compilation compilation, CancellationToken cancellationToken)
+        {
+            var baseTypeNameIndex = BinarySearch(_nodes, baseTypeName);
+            var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
+
+            foreach (var derivedTypeIndex in derivedTypeIndices)
+            {
+                foreach (var symbol in Bind(derivedTypeIndex, compilation.GlobalNamespace, cancellationToken))
+                {
+                    var namedType = symbol as INamedTypeSymbol;
+                    if (namedType != null)
+                    {
+                        yield return namedType;
+                    }
+                }
+            }
         }
     }
 }

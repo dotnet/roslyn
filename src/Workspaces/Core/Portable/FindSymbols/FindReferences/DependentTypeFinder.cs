@@ -449,14 +449,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var metadataType in metadataTypes)
             {
                 var baseTypeName = metadataType.Name;
-                var derivedMetadataTypeNames = symbolTreeInfo.GetDerivedMetadataTypeNames(baseTypeName);
 
                 // For each derived type we find, see if we can map that back 
                 // to an actual symbol.  Then check if that symbol actually fits
                 // our criteria.
-                foreach (var metadataName in derivedMetadataTypeNames)
+                foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
                 {
-                    var derivedType = compilation.GetTypeByMetadataName(metadataName);
                     if (derivedType != null && derivedType.Locations.Any(s_isInMetadata))
                     {
                         if (metadataTypeMatches(metadataTypes, derivedType))

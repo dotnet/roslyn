@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -88,68 +90,159 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
-                writeObject: (w, i) => i.WriteTo(w, filePath),
+                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
+        }
+
+        private class MetadataNode
+        {
+            public string Name { get; private set; }
+
+            private MetadataNode()
+            {
+            }
+
+            private static readonly ObjectPool<MetadataNode> s_pool = new ObjectPool<MetadataNode>(() => new MetadataNode());
+
+            public static MetadataNode Allocate(string name)
+            {
+                var node = s_pool.Allocate();
+                Debug.Assert(node.Name == null);
+                node.Name = name;
+                return node;
+            }
+
+            public static void Free(MetadataNode node)
+            {
+                Debug.Assert(node.Name != null);
+                node.Name = null;
+                s_pool.Free(node);
+            }
         }
 
         private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
             Solution solution, VersionStamp version, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var unsortedNodes = new List<Node> { new Node("", Node.RootNodeParentIndex) };
-            var inheritanceMap = new OrderPreservingMultiDictionary<string, string>();
+            var inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
+            var parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
+            var rootNode = MetadataNode.Allocate(name: "");
 
-            foreach (var moduleMetadata in GetModuleMetadata(GetMetadataNoThrow(reference)))
+            try
             {
-                MetadataReader reader;
-                try
+                foreach (var moduleMetadata in GetModuleMetadata(GetMetadataNoThrow(reference)))
                 {
-                    reader = moduleMetadata.GetMetadataReader();
-                }
-                catch (BadImageFormatException)
-                {
-                    continue;
+                    MetadataReader reader;
+                    try
+                    {
+                        reader = moduleMetadata.GetMetadataReader();
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        continue;
+                    }
+
+                    var allTypeDefinitions = new List<MetadataDefinition>();
+
+                    // First, walk all the symbols from metadata, populating the parentToChilren
+                    // map accordingly.
+                    GenerateMetadataNodes(reader,
+                        rootNode, parentToChildren,
+                        inheritanceMap, allTypeDefinitions);
+
+                    // Now, once we populated the inital map, go and get all the inheritance 
+                    // information for all the types in the metadata.  This may refer to 
+                    // types that we haven't seen yet.  We'll add those types to the parentToChildren
+                    // map accordingly.
+                    PopulateInheritanceMap(reader, rootNode, 
+                        parentToChildren, inheritanceMap, 
+                        allTypeDefinitions);
                 }
 
-                GenerateMetadataNodes(reader, unsortedNodes, inheritanceMap);
+                var unsortedNodes = GenerateUnsortedNodes(rootNode, parentToChildren);
+                
+                return CreateSymbolTreeInfo(
+                    solution, version, reference.FilePath,
+                    unsortedNodes, inheritanceMap);
             }
+            finally
+            {
+                // Return all the metadata nodes back to the pool so that they can be
+                // used for the next PEReference we read.
+                foreach (var kvp in parentToChildren)
+                {
+                    foreach (var child in kvp.Value)
+                    {
+                        MetadataNode.Free(child);
+                    }
+                }
 
-            return CreateSymbolTreeInfo(
-                solution, version, reference.FilePath, 
-                unsortedNodes, inheritanceMap);
+                MetadataNode.Free(rootNode);
+
+                parentToChildren.Free();
+                inheritanceMap.Free();
+            }
+        }
+
+        private static List<Node> GenerateUnsortedNodes(
+            MetadataNode rootMetadataNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren)
+        {
+            var unsortedNodes = new List<Node>
+            {
+                new Node(name: "", parentIndex: Node.RootNodeParentIndex)
+            };
+
+            AddUnsortedNodes(rootMetadataNode, 0, parentToChildren, unsortedNodes);
+
+            return unsortedNodes;
+        }
+
+        private static void AddUnsortedNodes(
+            MetadataNode parentNode, int parentIndex,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren,
+            List<Node> unsortedNodes)
+        {
+            foreach (var child in parentToChildren[parentNode])
+            {
+                var childNode = new Node(child.Name, parentIndex);
+                var childIndex = unsortedNodes.Count;
+                unsortedNodes.Add(childNode);
+
+                AddUnsortedNodes(child, childIndex, parentToChildren, unsortedNodes);
+            }
         }
 
         private static void GenerateMetadataNodes(
-            MetadataReader metadataReader, 
-            List<Node> unsortedNodes,
-            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            MetadataReader metadataReader,
+            MetadataNode rootNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
             GenerateMetadataNodes(
                 metadataReader, metadataReader.GetNamespaceDefinitionRoot(),
-                unsortedNodes, inheritanceMap);
+                rootNode, parentToChildren, inheritanceMap, allTypeDefinitions);
         }
 
         private static void GenerateMetadataNodes(
             MetadataReader reader, 
-            NamespaceDefinition globalNamespace, 
-            List<Node> unsortedNodes,
-            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            NamespaceDefinition globalNamespace,
+            MetadataNode rootNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChilren,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
             var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();
             try
             {
-                LookupMetadataDefinitions(reader, globalNamespace, definitionMap);
+                LookupMetadataDefinitions(reader, globalNamespace, definitionMap, allTypeDefinitions);
 
                 foreach (var kvp in definitionMap)
                 {
-                    var definitionName = kvp.Key;
-                    if (UnicodeCharacterUtilities.IsValidIdentifier(definitionName))
-                    {
-                        GenerateMetadataNodes(
-                            reader, definitionName, 0 /*index of root node*/,
-                            kvp.Value, unsortedNodes, inheritanceMap);
-
-                        PopulateInheritanceMap(reader, inheritanceMap, kvp);
-                    }
+                    GenerateMetadataNodes(
+                        reader, kvp.Key, kvp.Value, 
+                        rootNode, parentToChilren, 
+                        inheritanceMap, allTypeDefinitions);
                 }
             }
             finally
@@ -158,35 +251,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static void PopulateInheritanceMap(MetadataReader reader, OrderPreservingMultiDictionary<string, string> inheritanceMap, KeyValuePair<string, OrderPreservingMultiDictionary<string, MetadataDefinition>.ValueSet> kvp)
+        private static void PopulateInheritanceMap(
+            MetadataReader reader, 
+            MetadataNode rootNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildMap,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap, 
+            List<MetadataDefinition> allTypeDefinitions)
         {
-            foreach (var symbolDefinition in kvp.Value)
+            foreach (var typeDefinition in allTypeDefinitions)
             {
-                if (symbolDefinition.Kind == MetadataDefinitionKind.Type)
-                {
-                    PopulateInheritance(
-                        reader, symbolDefinition.Type, inheritanceMap);
-                }
+                Debug.Assert(typeDefinition.Kind == MetadataDefinitionKind.Type);
+                PopulateInheritance(
+                    reader, rootNode, parentToChildMap, inheritanceMap, typeDefinition);
             }
         }
 
         private static void PopulateInheritance(
             MetadataReader reader,
-            TypeDefinition typeDefinition, 
-            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            MetadataNode rootNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildMap,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            MetadataDefinition metadataTypeDefinition)
         {
-            var interfaceImplHandles = typeDefinition.GetInterfaceImplementations();
+            var derivedTypeDefinition = metadataTypeDefinition.Type;
+            var interfaceImplHandles = derivedTypeDefinition.GetInterfaceImplementations();
 
-            if (typeDefinition.BaseType.IsNil &&
+            if (derivedTypeDefinition.BaseType.IsNil &&
                 interfaceImplHandles.Count == 0)
             {
                 return;
             }
-            string typeDefinitionFullName = GetTypeDefinitionFullName(reader, typeDefinition);
+
+            var derivedTypeSimpleName = metadataTypeDefinition.Name;
 
             PopulateInheritance(
-                reader, typeDefinitionFullName,
-                typeDefinition.BaseType, inheritanceMap);
+                reader, rootNode, parentToChildMap,
+                inheritanceMap, derivedTypeSimpleName, 
+                derivedTypeDefinition.BaseType);
 
             foreach (var interfaceImplHandle in interfaceImplHandles)
             {
@@ -194,84 +295,136 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var interfaceImpl = reader.GetInterfaceImplementation(interfaceImplHandle);
                     PopulateInheritance(
-                        reader, typeDefinitionFullName,
-                        interfaceImpl.Interface, inheritanceMap);
+                        reader, rootNode, parentToChildMap,
+                        inheritanceMap, derivedTypeSimpleName, 
+                        interfaceImpl.Interface);
                 }
             }
         }
 
-        private static string GetTypeDefinitionFullName(
-            MetadataReader reader, TypeDefinition typeDefinition)
-        {
-            var typeDefinitionName = reader.GetString(typeDefinition.Name);
-
-            var declaringTypeHandle = typeDefinition.GetDeclaringType();
-            if (declaringTypeHandle.IsNil)
-            {
-                return typeDefinition.Namespace.IsNil
-                    ? typeDefinitionName
-                    : reader.GetString(typeDefinition.Namespace) + "." + typeDefinitionName;
-            }
-            else
-            {
-                var declaringType = reader.GetTypeDefinition(declaringTypeHandle);
-                return GetTypeDefinitionFullName(reader, declaringType) + "+" + typeDefinitionName;
-            }
-        }
-
         private static void PopulateInheritance(
-            MetadataReader reader, 
-            string typeDefinitionFullName,
-            EntityHandle baseTypeOrInterfaceHandle,
-            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            MetadataReader reader,
+            MetadataNode rootNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            string derivedTypeSimpleName,
+            EntityHandle baseTypeOrInterfaceHandle)
         {
             if (baseTypeOrInterfaceHandle.IsNil)
             {
                 return;
             }
 
-            var name = GetBaseName(reader, baseTypeOrInterfaceHandle);
-            if (!string.IsNullOrWhiteSpace(name))
+            var baseTypeNameParts = s_stringListPool.Allocate();
+            try
             {
-                inheritanceMap.Add(name, typeDefinitionFullName);
+                AddBaseTypeNameParts(reader, baseTypeOrInterfaceHandle, baseTypeNameParts);
+                if (baseTypeNameParts.Count > 0 &&
+                    baseTypeNameParts.TrueForAll(s_isNotNullOrEmpty))
+                {
+                    var lastPart = baseTypeNameParts.Last();
+                    if (!inheritanceMap.Contains(lastPart, derivedTypeSimpleName))
+                    {
+                        inheritanceMap.Add(baseTypeNameParts.Last(), derivedTypeSimpleName);
+                    }
+
+                    // The parent/child map may not know about this base-type yet (for example,
+                    // if the base type is a reference to a type outside of this assembly).
+                    // Add the base type to our map so we'll be able ot resolve it later if 
+                    // requested. 
+                    EnsureParentsAndChildren(rootNode, parentToChildren, baseTypeNameParts);
+                }
+            }
+            finally
+            {
+                s_stringListPool.ClearAndFree(baseTypeNameParts);
             }
         }
 
-        private static string GetBaseName(
-            MetadataReader reader, EntityHandle baseTypeOrInterfaceHandle)
+        private static void EnsureParentsAndChildren(
+            MetadataNode rootNode, 
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren, 
+            List<string> simpleNames)
         {
-            if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeDefinition)
+            var currentNode = rootNode;
+
+            foreach (var simpleName in simpleNames)
             {
-                return BaseNameProvider.Instance.GetTypeFromDefinition(
-                    reader, (TypeDefinitionHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                var childNode = GetOrCreateChildNode(parentToChildren, currentNode, simpleName);
+                currentNode = childNode;
             }
-            else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeReference)
+        }
+
+        private static MetadataNode GetOrCreateChildNode(
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren,
+            MetadataNode currentNode,
+            string simpleName)
+        {
+            foreach (var childNode in parentToChildren[currentNode])
             {
-                return BaseNameProvider.Instance.GetTypeFromReference(
-                    reader, (TypeReferenceHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                if (childNode.Name == simpleName)
+                {
+                    // Found an existing child node.  Just return that and all 
+                    // future parts off of it.
+                    return childNode;
+                }
             }
-            else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeSpecification)
+
+            // Couldn't find a child node with this name.  Make a new node for
+            // it and return that for all future parts to be added to.
+            var newChildNode = MetadataNode.Allocate(simpleName);
+            parentToChildren.Add(currentNode, newChildNode);
+            return newChildNode;
+        }
+
+        private static Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
+        private static ObjectPool<List<string>> s_stringListPool = new ObjectPool<List<string>>(() => new List<string>());
+
+        private static void AddBaseTypeNameParts(
+            MetadataReader reader, EntityHandle baseTypeOrInterfaceHandle,
+            List<string> simpleNames)
+        {
+            var provider = BaseNameProvider.Allocate(simpleNames);
+            try
             {
-                return BaseNameProvider.Instance.GetTypeFromSpecification(
-                    reader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeDefinition)
+                {
+                    provider.GetTypeFromDefinition(
+                        reader, (TypeDefinitionHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                }
+                else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeReference)
+                {
+                    provider.GetTypeFromReference(
+                        reader, (TypeReferenceHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                }
+                else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeSpecification)
+                {
+                    provider.GetTypeFromSpecification(
+                        reader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                }
             }
-            else
+            finally
             {
-                return null;
+                BaseNameProvider.Free(provider);
             }
         }
 
         private static void GenerateMetadataNodes(
             MetadataReader reader,
-            string name,
-            int parentIndex,
+            string nodeName,
             OrderPreservingMultiDictionary<string, MetadataDefinition>.ValueSet definitionsWithSameName,
-            List<Node> unsortedNodes,
-            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            MetadataNode parentNode,
+            OrderPreservingMultiDictionary<MetadataNode, MetadataNode> parentToChildren,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
-            var node = new Node(name, parentIndex);
-            var nodeIndex = unsortedNodes.Count;
-            unsortedNodes.Add(node);
+            if (!UnicodeCharacterUtilities.IsValidIdentifier(nodeName))
+            {
+                return;
+            }
+
+            var childNode = MetadataNode.Allocate(nodeName);
+            parentToChildren.Add(parentNode, childNode);
 
             // Add all child members
             var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();
@@ -279,18 +432,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var definition in definitionsWithSameName)
                 {
-                    LookupMetadataDefinitions(reader, definition, definitionMap);
+                    LookupMetadataDefinitions(reader, definition, definitionMap, allTypeDefinitions);
                 }
 
                 foreach (var kvp in definitionMap)
                 {
-                    if (UnicodeCharacterUtilities.IsValidIdentifier(kvp.Key))
-                    {
-                        GenerateMetadataNodes(reader, kvp.Key, nodeIndex,
-                            kvp.Value, unsortedNodes, inheritanceMap);
-
-                        PopulateInheritanceMap(reader, inheritanceMap, kvp);
-                    }
+                    GenerateMetadataNodes(
+                        reader, kvp.Key, kvp.Value,
+                        childNode, parentToChildren,
+                        inheritanceMap, allTypeDefinitions);
                 }
             }
             finally
@@ -301,22 +451,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, MetadataDefinition definition,
-            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
             switch (definition.Kind)
             {
                 case MetadataDefinitionKind.Namespace:
-                    LookupMetadataDefinitions(reader, definition.Namespace, definitionMap);
+                    LookupMetadataDefinitions(reader, definition.Namespace, definitionMap, allTypeDefinitions);
                     break;
                 case MetadataDefinitionKind.Type:
-                    LookupMetadataDefinitions(reader, definition.Type, definitionMap);
+                    LookupMetadataDefinitions(reader, definition.Type, definitionMap, allTypeDefinitions);
                     break;
             }
         }
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, TypeDefinition typeDefinition,
-            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
             // Only bother looking for extension methods in static types.
             if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
@@ -358,13 +510,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var definition = MetadataDefinition.Create(reader, type);
                     definitionMap.Add(definition.Name, definition);
+                    allTypeDefinitions.Add(definition);
                 }
             }
         }
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, NamespaceDefinition namespaceDefinition,
-            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap,
+            List<MetadataDefinition> allTypeDefinitions)
         {
             foreach (var child in namespaceDefinition.NamespaceDefinitions)
             {
@@ -379,6 +533,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var definition = MetadataDefinition.Create(reader, typeDefinition);
                     definitionMap.Add(definition.Name, definition);
+                    allTypeDefinitions.Add(definition);
                 }
             }
         }

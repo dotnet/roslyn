@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "12";
+        private const string SerializationFormat = "13";
 
         /// <summary>
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
-                writeObject: (w, i) => i.WriteTo(w, filePath),
+                writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        public void WriteTo(ObjectWriter writer, string filePath)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
             _version.WriteTo(writer);
@@ -186,12 +186,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteInt32(_inheritanceMap.Keys.Count);
             foreach (var kvp in _inheritanceMap)
             {
-                writer.WriteString(kvp.Key);
+                writer.WriteInt32(kvp.Key);
                 writer.WriteInt32(kvp.Value.Count);
 
                 foreach (var v in kvp.Value)
                 {
-                    writer.WriteString(v);
+                    writer.WriteInt32(v);
                 }
             }
         }
@@ -222,16 +222,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         nodes[i] = new Node(name, parentIndex);
                     }
 
-                    var inheritanceMap = new OrderPreservingMultiDictionary<string, string>();
+                    var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
                     var inheritanceMapKeyCount = reader.ReadInt32();
                     for (var i = 0; i < inheritanceMapKeyCount; i++)
                     {
-                        var key = reader.ReadString();
+                        var key = reader.ReadInt32();
                         var valueCount = reader.ReadInt32();
 
                         for (var j = 0; j < valueCount; j++)
                         {
-                            var value = reader.ReadString();
+                            var value = reader.ReadInt32();
                             inheritanceMap.Add(key, value);
                         }
                     }
