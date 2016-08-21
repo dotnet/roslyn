@@ -5,12 +5,21 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// <summary>
     /// Holds information required to display and navigate to individual references
     /// </summary>
-    internal sealed class ReferenceLocationDescriptor
+    public sealed class ReferenceLocationDescriptor
     {
+        /// <summary>
+        /// The line number of the reference.
+        /// </summary>
         public int LineNumber { get; }
 
+        /// <summary>
+        /// The column number of the reference.
+        /// </summary>
         public int ColumnNumber { get; }
 
+        /// <summary>
+        /// The document the reference is in.
+        /// </summary>
         public DocumentId DocumentId { get; }
 
         /// <summary>

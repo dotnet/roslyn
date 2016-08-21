@@ -1,4 +1,26 @@
 *REMOVED*static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, Microsoft.CodeAnalysis.Text.TextSpan span = default(Microsoft.CodeAnalysis.Text.TextSpan), System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.CodeLens.ICodeLensReferencesService
+Microsoft.CodeAnalysis.CodeLens.ICodeLensReferencesService.FindReferenceLocationsAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor>>
+Microsoft.CodeAnalysis.CodeLens.ICodeLensReferencesService.GetReferenceCountAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, int maxSearchResults, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeLens.ReferenceCount?>
+Microsoft.CodeAnalysis.CodeLens.ReferenceCount
+Microsoft.CodeAnalysis.CodeLens.ReferenceCount.Count.get -> int
+Microsoft.CodeAnalysis.CodeLens.ReferenceCount.IsCapped.get -> bool
+Microsoft.CodeAnalysis.CodeLens.ReferenceCount.ReferenceCount(int count, bool isCapped) -> void
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.AfterReferenceText1.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.AfterReferenceText2.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.BeforeReferenceText1.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.BeforeReferenceText2.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.ColumnNumber.get -> int
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.Glyph.get -> Microsoft.CodeAnalysis.Glyph?
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.Language.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.LineNumber.get -> int
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.LongDescription.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.ReferenceLength.get -> int
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.ReferenceLineText.get -> string
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.ReferenceLocationDescriptor(string longDescription, string language, Microsoft.CodeAnalysis.Glyph? glyph, Microsoft.CodeAnalysis.Location location, Microsoft.CodeAnalysis.DocumentId documentId, string referenceLineText, int referenceStart, int referenceLength, string beforeReferenceText1, string beforeReferenceText2, string afterReferenceText1, string afterReferenceText2) -> void
+Microsoft.CodeAnalysis.CodeLens.ReferenceLocationDescriptor.ReferenceStart.get -> int
 Microsoft.CodeAnalysis.Completion.CompletionChange.TextChange.get -> Microsoft.CodeAnalysis.Text.TextChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChange(Microsoft.CodeAnalysis.Text.TextChange textChange) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
@@ -18,6 +40,78 @@ Microsoft.CodeAnalysis.Completion.SnippetsRule.AlwaysInclude = 2 -> Microsoft.Co
 Microsoft.CodeAnalysis.Completion.SnippetsRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.IncludeAfterTypingIdentifierQuestionTab = 3 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.NeverInclude = 1 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.AddReference = 69 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Assembly = 0 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.BasicFile = 1 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.BasicProject = 2 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CSharpFile = 7 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CSharpProject = 8 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassInternal = 6 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassPrivate = 5 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassProtected = 4 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassPublic = 3 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CompletionWarning = 68 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantInternal = 12 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantPrivate = 11 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantProtected = 10 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantPublic = 9 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegateInternal = 16 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegatePrivate = 15 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegateProtected = 14 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegatePublic = 13 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumInternal = 20 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumMember = 21 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumPrivate = 19 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumProtected = 18 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumPublic = 17 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Error = 22 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventInternal = 27 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventPrivate = 26 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventProtected = 25 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventPublic = 24 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodInternal = 31 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodPrivate = 30 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodProtected = 29 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodPublic = 28 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldInternal = 35 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldPrivate = 34 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldProtected = 33 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldPublic = 32 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfaceInternal = 39 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfacePrivate = 38 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfaceProtected = 37 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfacePublic = 36 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Intrinsic = 40 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Keyword = 41 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Label = 42 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Local = 43 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodInternal = 48 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodPrivate = 47 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodProtected = 46 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodPublic = 45 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModuleInternal = 52 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModulePrivate = 51 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModuleProtected = 50 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModulePublic = 49 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Namespace = 44 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.NuGet = 70 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.OpenFolder = 53 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Operator = 54 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Parameter = 55 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyInternal = 59 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyPrivate = 58 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyProtected = 57 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyPublic = 56 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.RangeVariable = 60 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Reference = 61 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Snippet = 67 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StatusInformation = 23 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructureInternal = 65 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructurePrivate = 64 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructureProtected = 63 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructurePublic = 62 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.TypeParameter = 66 -> Microsoft.CodeAnalysis.Glyph
 static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
