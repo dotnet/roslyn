@@ -128,6 +128,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Completion Lists.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_CompletionLists() As String
+            Get
+                Return ResourceManager.GetString("Option_CompletionLists", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Show procedure line separators.
         '''</summary>
         Friend Shared ReadOnly Property Option_DisplayLineSeparators() As String
@@ -223,6 +232,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Option_GoToDefinition() As String
             Get
                 Return ResourceManager.GetString("Option_GoToDefinition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to _Highlight matching portions of completion list items.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Highlight_matching_portions_of_completion_list_items() As String
+            Get
+                Return ResourceManager.GetString("Option_Highlight_matching_portions_of_completion_list_items", resourceCulture)
             End Get
         End Property
         
@@ -326,6 +344,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Show completion item _filters.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_item_filters() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Suggest imports for types in _NuGet packages.
         '''</summary>
         Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages() As String
@@ -342,7 +369,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Option_Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to predefined type preferences:.
         '''</summary>

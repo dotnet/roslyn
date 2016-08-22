@@ -1254,17 +1254,32 @@ namespace Microsoft.Cci
         {
             Debug.Assert(value != null);
 
+            int encodedLength;
+
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
             // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+
             if (!MetadataHelpers.IsValidUnicodeString(value))
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(value);
+                encodedLength = bytes.Length;
                 value = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
             }
+            else
+            {
+                encodedLength = Encoding.UTF8.GetByteCount(value);
+            }
 
-            // EDMAURER If defining a string constant and it is too long (length limit is undocumented), this method throws
-            // an ArgumentException.
-            // (see EMITTER::EmitDebugLocalConst)
+            // +1 for terminating NUL character
+            encodedLength++;
+
+            // If defining a string constant and it is too long (length limit is not documented by the API), DefineConstant2 throws an ArgumentException.
+            // However, diasymreader doesn't calculate the length correctly in presence of NUL characters in the string.
+            // Until that's fixed we need to check the limit ourselves. See http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988
+            if (encodedLength > 2032)
+            {
+                return;
+            }
 
             try
             {

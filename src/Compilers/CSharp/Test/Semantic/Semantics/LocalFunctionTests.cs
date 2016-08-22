@@ -108,6 +108,43 @@ class C
         }
 
         [Fact]
+        public void VarLocalFunction()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        var local() => 0;
+        int x = local();
+   } 
+}";
+            VerifyDiagnostics(src,
+                // (6,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var local() => 0;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void VarLocalFunction2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    private class var
+    {
+    }
+
+    void M()
+    {
+        var local() => new var();
+        var x = local();
+   } 
+}", parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void EndToEnd()
         {
             var source = @"

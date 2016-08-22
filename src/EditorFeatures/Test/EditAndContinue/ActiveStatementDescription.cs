@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly TextSpan[] NewSpans;
         public readonly ImmutableArray<TextSpan>[] OldRegions;
         public readonly ImmutableArray<TextSpan>[] NewRegions;
-        public readonly TextSpan?[] TrackingSpans;
+        public readonly TextSpan?[] OldTrackingSpans;
 
         private ActiveStatementsDescription()
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             NewSpans = Array.Empty<TextSpan>();
             OldRegions = Array.Empty<ImmutableArray<TextSpan>>();
             NewRegions = Array.Empty<ImmutableArray<TextSpan>>();
-            TrackingSpans = null;
+            OldTrackingSpans = null;
         }
 
         public ActiveStatementsDescription(string oldSource, string newSource)
@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Tracking spans are marked in the new source since the editor moves them around as the user 
             // edits the source and we get their positions when analyzing the new source.
-            TrackingSpans = GetTrackingSpans(newSource, OldSpans.Length);
+            // The EnC analyzer uses old trackign spans as hints to find matching nodes.
+            // After an edit the tracking spans are updated to match new active statements.
+            OldTrackingSpans = GetTrackingSpans(newSource, OldSpans.Length);
         }
 
         internal static readonly ActiveStatementsDescription Empty = new ActiveStatementsDescription();

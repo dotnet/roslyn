@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             #endregion
 
+            public override void LogAnalyzerCountSummary()
+            {
+                Analyzer.LogAnalyzerCountSummary();
+            }
+
             public void TurnOff(bool useV2)
             {
                 var turnedOffAnalyzer = GetAnalyzer(!useV2);

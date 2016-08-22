@@ -58,8 +58,8 @@
 
   <!-- NuGet version -->
   <PropertyGroup>
-    <BuildNumberSuffix Condition="('$(TF_BUILD_BUILDNUMBER)' != '')
-                     and ($(TF_BUILD_BUILDNUMBER.Split('_').Length) == 2)">$(TF_BUILD_BUILDNUMBER.Split('_')[1])</BuildNumberSuffix>
+    <BuildNumberSuffix Condition="('$(BUILD_BUILDNUMBER)' != '')
+                     and ($(BUILD_BUILDNUMBER.Split('_').Length) == 2)">$(BUILD_BUILDNUMBER.Split('_')[1])</BuildNumberSuffix>
     <BuildNumberPart1 Condition="'$(BuildNumberSuffix)' != ''">
       $(BuildNumberSuffix.Split('.')[0])
     </BuildNumberPart1>
