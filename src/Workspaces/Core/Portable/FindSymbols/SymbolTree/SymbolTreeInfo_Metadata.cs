@@ -181,7 +181,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _allTypeDefinitions.Clear();
                 }
 
-                return CreateSymbolTreeInfo(GenerateUnsortedNodes());
+                var unsortedNodes = GenerateUnsortedNodes();
+                return SymbolTreeInfo.CreateSymbolTreeInfo(
+                    _solution, _version, _reference.FilePath, unsortedNodes, _inheritanceMap);
             }
 
             public void Dispose()
@@ -498,12 +500,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     AddUnsortedNodes(unsortedNodes, child, childIndex);
                 }
-            }
-
-            private SymbolTreeInfo CreateSymbolTreeInfo(List<Node> unsortedNodes)
-            {
-                return SymbolTreeInfo.CreateSymbolTreeInfo(
-                    _solution, _version, _reference.FilePath, unsortedNodes, _inheritanceMap);
             }
         }
 
