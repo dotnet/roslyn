@@ -5911,6 +5911,7 @@ fourth]]>)
         End Sub
 
         <Fact>
+        <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Sub GetSymbolInfoOnTupleType()
             Dim verifier = CompileAndVerify(
  <compilation>

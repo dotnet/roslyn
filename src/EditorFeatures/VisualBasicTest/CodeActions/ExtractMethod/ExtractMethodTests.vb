@@ -295,44 +295,19 @@ compareTokens:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Async Function TestTuples() As Task
 
             Await TestAsync(
-<Text>Class Program
-    Sub Main(args As String())
-        [|Dim x = (1, 2)|]
-        M(x)
-    End Sub
+NewLines("Class Program \n Sub Main(args As String()) \n [|Dim x = (1, 2)|] \n M(x) \n End Sub
+Private Sub M(x As (Integer, Integer)) \n End Sub \n End Class
+Namespace System \n Structure ValueTuple(Of T1, T2) \n End Structure \n End Namespace"),
+NewLines("Class Program \n Sub Main(args As String()) \n Dim x As (Integer, Integer) = {|Rename:NewMethod|}() \n M(x) \n End Sub
+Private Shared Function NewMethod() As (Integer, Integer) \n Return (1, 2) \n End Function
+Private Sub M(x As (Integer, Integer)) \n End Sub \n End Class
+Namespace System \n Structure ValueTuple(Of T1, T2) \n End Structure \n End Namespace"))
 
-    Private Sub M(x As (Integer, Integer))
-    End Sub
-End Class
-
-Namespace System
-    Structure ValueTuple(Of T1, T2)
-    End Structure
-End Namespace
-</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Class Program
-    Sub Main(args As String())
-        Dim x As (Integer, Integer) = {|Rename:NewMethod|}()
-        M(x)
-    End Sub
-
-    Private Shared Function NewMethod() As (Integer, Integer)
-        Return (1, 2)
-    End Function
-
-    Private Sub M(x As (Integer, Integer))
-    End Sub
-End Class
-
-Namespace System
-    Structure ValueTuple(Of T1, T2)
-    End Structure
-End Namespace
-</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
         End Function
+
     End Class
 End Namespace

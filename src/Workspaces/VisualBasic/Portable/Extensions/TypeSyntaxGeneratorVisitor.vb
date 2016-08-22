@@ -127,14 +127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim list = New SeparatedSyntaxList(Of TupleElementSyntax)()
             Dim types = symbol.TupleElementTypes
             Dim names = symbol.TupleElementNames
-            Dim hasNames = Not (names.IsDefault)
+            Dim hasNames = Not names.IsDefault
 
-            For pos As Integer = 1 To types.Length
-                Dim name = If(hasNames, SyntaxFactory.IdentifierName(names(pos - 1)), Nothing)
-                list = list.Add(SyntaxFactory.TupleElement(name, GenerateTypeSyntax(types(pos - 1))))
-            Next
+            Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
+               types.Select(Function(t, i) SyntaxFactory.TupleElement(If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), GenerateTypeSyntax(t)))))
 
-            Return SyntaxFactory.TupleType(list)
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax
