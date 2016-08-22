@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            localSymbol.SetType(declType);
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
     }

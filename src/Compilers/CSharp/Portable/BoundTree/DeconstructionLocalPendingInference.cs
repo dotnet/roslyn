@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLocal SetInferredType(TypeSymbol type, bool success)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(this.Syntax is SingleVariableDesignationSyntax);
+            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation);
 
             this.LocalSymbol.SetType(type);
             return new BoundLocal(this.Syntax, this.LocalSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || !success);

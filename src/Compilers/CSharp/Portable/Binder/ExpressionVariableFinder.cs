@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
 
-                    // It looks like we are deling with a syntax tree that has a shape that could never be
-                    // produced by the LanguageParser, including all error conditions. 
+                    // It looks like we are dealing with a syntax tree that has a shape that could never be
+                    // produced by the LanguageParser, including all error conditions.
                     // Out Variable declarations can only appear in an argument list of the syntax nodes mentioned above.
                     throw ExceptionUtilities.UnexpectedValue(context?.Kind());
             }
