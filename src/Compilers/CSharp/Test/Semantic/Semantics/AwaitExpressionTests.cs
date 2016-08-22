@@ -143,5 +143,29 @@ class C
                 //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(0)").WithArguments("System.TypedReference").WithLocation(8, 55));
         }
+
+        [Fact]
+        [WorkItem(2953, "https://github.com/dotnet/roslyn/issues/2953")]
+        public void Bug2953()
+        {
+            var text =
+@"
+using System.Threading.Tasks;
+
+public class Worker
+{
+    private static int foo;
+    private static async void DoWork()
+    {
+        DoNothing(ref foo, await Task.FromResult(0));
+    }
+    private static void DoNothing(ref int item, int other)
+    {
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(text);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
