@@ -4925,7 +4925,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_WithValueTuple()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -4934,6 +4934,7 @@ class C
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
@@ -4951,6 +4952,7 @@ class C
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>));
 
             Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
@@ -5492,7 +5494,7 @@ class C
     static void Main()
     {
         // this works
-        // (short, string) x1 = (1, ""hello"");
+        (short, string) x1 = (1, ""hello"");
 
         // this does not
         (short, string) x2 = ((long, string))(1, ""hello"");
