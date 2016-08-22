@@ -16,11 +16,17 @@ namespace Microsoft.CodeAnalysis.CodeLens
         ///     if <paramref name="maxSearchResults"/> is greater than 0.
         /// </para>
         /// </summary>
-        Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
+        Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations where the located node is referenced.
         /// </summary>
         Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
+        /// </summary>
+        Task<IEnumerable<ReferenceMethodDescriptor>> FindMethodReferenceLocationsAsync(Solution solution,
+            DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken);
     }
 }
