@@ -2019,5 +2019,18 @@ index: 1);
 @"class A { public B<int> b = new B<int>(); public class B<T>{ public B(){}}}",
 index: 2);
         }
+
+        [WorkItem(5990, "https://github.com/dotnet/roslyn/issues/5990")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestNestedClassNotOfferedWhenNameConflicts()
+        {
+            await TestExactActionSetOfferedAsync("class X { [|Point|] Point; }",
+                new[]
+                {
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Point", FeaturesResources.GlobalNamespace),
+                    string.Format(FeaturesResources.Generate_0_1, "class", "Point"),
+                    FeaturesResources.GenerateNewType
+                });
+        }
     }
 }
