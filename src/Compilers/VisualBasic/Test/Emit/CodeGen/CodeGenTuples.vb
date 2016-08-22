@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -3020,10 +3021,10 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13298")>
         Public Sub TupleLambdaCapture03()
 
-            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
+            ' This test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3063,10 +3064,10 @@ End Namespace
 ]]>)
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/13209")>
         Public Sub TupleLambdaCapture04()
 
-            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
+            ' this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3107,10 +3108,10 @@ End Namespace
 
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/13209")>
         Public Sub TupleLambdaCapture05()
 
-            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
+            ' this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3393,10 +3394,10 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/13209")>
         Public Sub TupleAsyncCapture03()
 
-            ' REMOVE AFTER REVIEW: this test crashes in TypeSubstitution
+            ' this test crashes in TypeSubstitution
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3878,6 +3879,7 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(13302, "https://github.com/dotnet/roslyn/issues/13302")>
         Public Sub GenericTupleWithoutTupleLibrary_01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3913,9 +3915,6 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
         return (Nothing, Nothing)
                ~~~~~~~~~~~~~~~~~~
 </errors>)
-
-            ' REMOVE AFTER REVIEW those errors are different than in C# and there seems to be a duplicate
-            ' REMOVE AFTER REVIEW There are commented-out checks below
 
             Dim mTuple = DirectCast(comp.GetMember(Of MethodSymbol)("C.M").ReturnType, NamedTypeSymbol)
 
@@ -3970,6 +3969,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
         End Sub
 
         <Fact>
+        <WorkItem(13300, "https://github.com/dotnet/roslyn/issues/13300")>
         Public Sub GenericTupleWithoutTupleLibrary_02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3997,7 +3997,6 @@ BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTupl
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
 
-            ' REMOVE AFTER REVIEW This is another duplicate diagnostic
         End Sub
 
         <Fact>
@@ -4119,7 +4118,7 @@ End Class
         <Fact>
         Public Sub ExtensionMethodOnTuple()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Module M
@@ -4130,18 +4129,12 @@ Module M
 End Module
 Class C
     Shared Sub Main()
-        (42, "Alice").Extension()
+        Call (42, "Alice").Extension()
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46})
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="42 Alice")
 
-            comp.AssertTheseDiagnostics(<![CDATA[
-BC30035: Syntax error.
-        (42, "Alice").Extension()
-        ~
-]]>)
-            ' REMOVE AFTER REVIEW This is different than C#
         End Sub
 
         <Fact>
@@ -4291,7 +4284,7 @@ BC30269: 'Public Function M(a As (String, String)) As (Integer, Integer)' has mu
 
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13303")>
         Public Sub TupleArrays()
 
             Dim verifier = CompileAndVerify(
@@ -4317,9 +4310,6 @@ End Class
 
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
-
-            ' REMOVE AFTER REVIEW
-            ' Getting error: a.vb(6) : error BC30149: Class 'C' must implement 'Function M(a As (Integer, Integer)()) As (Integer, Integer)()' for interface 'I'.
 
             verifier.VerifyDiagnostics()
 
@@ -4480,7 +4470,7 @@ End Namespace
 
         End Sub
 
-        <Fact(Skip:="REMOVE")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13305")>
         Public Sub MultipleDefinitionsOfValueTuple()
 
             Dim source1 =
@@ -4532,7 +4522,6 @@ End Class
 <errors>
 </errors>)
             ' Crashes in SubstituteNamedType.MakeDeclaredBase
-            ' REMOVE AND UPDATE AFTER REVIEW
 
             Dim verifier = CompileAndVerify(source, additionalRefs:={comp1.ToMetadataReference()}, expectedOutput:=<![CDATA[M1.Extension]]>)
             verifier.VerifyDiagnostics()
@@ -5152,6 +5141,7 @@ additionalRefs:=s_valueTupleRefs)
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
        ' This works
@@ -5167,8 +5157,13 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC30512: Option Strict On disallows implicit conversions from '(Long, String)' to '(Short, String)'.
+       Dim x2 As (Short, String) = DirectCast((1, "hello"), (Long, String))
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from '(c As Long, d As String)' to '(a As Short, b As String)'.
+       Dim x3 As (a As Short, b As String) = DirectCast((1, "hello"), (c As Long, d As String))
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
-            ' REMOVE AFTER REVIEW Those would give errors in C#
 
         End Sub
 
@@ -5216,13 +5211,14 @@ End Class
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
         Dim x As (Integer, Integer)
 
         x = (Nothing, Nothing, Nothing)
         x = (1, 2, 3)
-        x = (1, "string") ' ok
+        x = (1, "string")
         x = (1, 1, garbage)
         x = (1, 1, )
         x = (Nothing, Nothing) ' ok
@@ -5242,6 +5238,9 @@ BC30491: Expression does not produce a value.
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
         x = (1, 2, 3)
             ~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from 'String' to 'Integer'.
+        x = (1, "string")
+                ~~~~~~~~
 BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
         x = (1, 1, garbage)
                    ~~~~~~~
@@ -5253,8 +5252,6 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
                 ~~~~~~~~~~~~~
 </errors>)
 
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
-
         End Sub
 
         <Fact>
@@ -5263,6 +5260,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
         Dim x As (Integer, Integer)
@@ -5300,8 +5298,6 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
                            ~~~~~~~~~~~~~
 </errors>)
 
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
-
         End Sub
 
         <Fact>
@@ -5310,13 +5306,14 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
         Dim x As System.ValueTuple(Of Integer, Integer)
 
         x = (Nothing, Nothing, Nothing)
         x = (1, 2, 3)
-        x = (1, "string") ' ok
+        x = (1, "string")
         x = (1, 1, garbage)
         x = (1, 1, )
         x = (Nothing, Nothing) ' ok
@@ -5336,6 +5333,9 @@ BC30491: Expression does not produce a value.
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
         x = (1, 2, 3)
             ~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from 'String' to 'Integer'.
+        x = (1, "string")
+                ~~~~~~~~
 BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
         x = (1, 1, garbage)
                    ~~~~~~~
@@ -5347,8 +5347,6 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
                 ~~~~~~~~~~~~~
 </errors>)
 
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
-
         End Sub
 
         <Fact>
@@ -5357,13 +5355,14 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
         Dim x As (String, String)
 
         x = (Nothing, Nothing, Nothing)
         x = (1, 2, 3)
-        x = (1, "string") ' ok
+        x = (1, "string")
         x = (1, 1, garbage)
         x = (1, 1, )
         x = (Nothing, Nothing) ' ok
@@ -5383,18 +5382,25 @@ BC30491: Expression does not produce a value.
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(String, String)'.
         x = (1, 2, 3)
             ~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        x = (1, "string")
+             ~
 BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
         x = (1, 1, garbage)
                    ~~~~~~~
 BC30201: Expression expected.
         x = (1, 1, )
                    ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        x = (1, Nothing) ' ok
+             ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        x = (1, Function(t) t)
+             ~
 BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
 </errors>)
-
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
 
         End Sub
 
@@ -5404,13 +5410,14 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Class C
     Shared Sub Main()
         Dim x As ((Integer, Integer), Integer)
 
         x = ((Nothing, Nothing, Nothing), 1)
         x = ((1, 2, 3), 1)
-        x = ((1, "string"), 1) ' ok
+        x = ((1, "string"), 1)
         x = ((1, 1, garbage), 1)
         x = ((1, 1, ), 1)
         x = ((Nothing, Nothing), 1) ' ok
@@ -5430,6 +5437,9 @@ BC30491: Expression does not produce a value.
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
         x = ((1, 2, 3), 1)
              ~~~~~~~~~
+BC30512: Option Strict On disallows implicit conversions from 'String' to 'Integer'.
+        x = ((1, "string"), 1)
+                 ~~~~~~~~
 BC30451: 'garbage' is not declared. It may be inaccessible due to its protection level.
         x = ((1, 1, garbage), 1)
                     ~~~~~~~
@@ -5440,8 +5450,6 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         x = ((1, Function(t) t), 1)
                  ~~~~~~~~~~~~~
 </errors>)
-
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
 
         End Sub
 
@@ -5518,9 +5526,6 @@ BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' f
                                              ~~~~~~~~~
 </errors>)
 
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
-            ' One of the errors, line ending with "8, " is especially strange
-
         End Sub
 
         <Fact>
@@ -5528,6 +5533,7 @@ BC31091: Import of type 'ValueTuple(Of ,,)' from assembly or module 'comp.dll' f
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Imports System
 Class C
     Shared Sub Main()
@@ -5542,9 +5548,19 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        Dim l As Func(Of String) = Function() 1
+                                              ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        Dim x As (String, Func(Of String)) = (Nothing, Function() 1)
+                                                                  ~
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'String'.
+        Dim l1 As Func(Of (String, String)) = Function() (Nothing, 1.1)
+                                                                   ~~~
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'String'.
+        Dim x1 As (String, Func(Of (String, String))) = (Nothing, Function() (Nothing, 1.1))
+                                                                                       ~~~
 </errors>)
-
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
 
         End Sub
 
@@ -5553,6 +5569,7 @@ End Class
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="comp">
     <file name="a.vb"><![CDATA[
+Option Strict On
 Imports System
 Class C
     Shared Sub Main()
@@ -5567,18 +5584,29 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        Dim l As Func(Of String) = Function() 1
+                                              ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
+        Dim x As (String, Func(Of String)) = DirectCast((Nothing, Function() 1), (String, Func(Of String)))
+                                                                             ~
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'String'.
+        Dim l1 As Func(Of (String, String)) = DirectCast(Function() (Nothing, 1.1), Func(Of (String, String)))
+                                                                              ~~~
+BC30512: Option Strict On disallows implicit conversions from 'Double' to 'String'.
+        Dim x1 As (String, Func(Of (String, String))) = DirectCast((Nothing, Function() (Nothing, 1.1)), (String, Func(Of (String, String))))
+                                                                                                  ~~~
 </errors>)
-
-            ' REMOVE AFTER REVIEW I think those are expected differences with C#
 
         End Sub
 
         <Fact>
         Public Sub TupleTargetTypeLambda()
 
-            Dim verifier = CompileAndVerify(
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
+Option Strict On
 Imports System
 Class C
     Shared Sub Test(d As Func(Of Func(Of (Short, Short))))
@@ -5594,17 +5622,21 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
-            verifier.VerifyDiagnostics()
-
-            ' REMOVE AFTER REVIEW This test fails with messages:
-            'a.vb(10) : Error BC30521 : Overload resolution failed because no accessible 'Test' is most specific for these arguments:
-            'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
-            'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
-            'a.vb(11) : Error BC30521 : Overload resolution failed because no accessible 'Test' is most specific for these arguments:
-            'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
-            'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
+    'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
+        Test(Function() Function() DirectCast((1, 1), (Byte, Byte)))
+        ~~~~
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(d As Func(Of Func(Of (Short, Short))))': Not most specific.
+    'Public Shared Sub Test(d As Func(Of Func(Of (Byte, Byte))))': Not most specific.
+        Test(Function() Function() (1, 1))
+        ~~~~
+</errors>)
 
         End Sub
 
@@ -5614,6 +5646,7 @@ End Class
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
+Option Strict On
 Imports System
 Class C
     Shared Sub Test(d As Func(Of (Func(Of Short), Integer)))
@@ -5644,7 +5677,6 @@ BC30521: Overload resolution failed because no accessible 'Test' is most specifi
         Test(Function() (Function() 1, 1))
         ~~~~
 </errors>)
-            ' REMOVE AFTER REVIEW The errors are different in C#
 
         End Sub
 
@@ -5688,6 +5720,7 @@ third
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Option Strict On
 Imports System
 Class C
     Shared Sub Main()
@@ -5708,8 +5741,6 @@ End Class
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second]]>)
 
             verifier.VerifyDiagnostics()
-
-            ' REMOVE AFTER REVIEW The output is different in C#
 
         End Sub
 
@@ -5772,11 +5803,9 @@ second]]>)
 
             verifier.VerifyDiagnostics()
 
-            ' REMOVE AFTER REVIEW The output is different in C#
-
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/12961")>
         Public Sub TargetTypingNullable02()
 
             Dim verifier = CompileAndVerify(
@@ -5801,12 +5830,10 @@ End Class
 (1, )]]>)
 
             verifier.VerifyDiagnostics()
-            ' REMOVE AFTER REVIEW Has error:
-            ' a.vb(8) : Error BC30491 : Expression does Not produce a value.
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/12961")>
         Public Sub TargetTypingNullable02Long()
 
             Dim verifier = CompileAndVerify(
@@ -5832,12 +5859,10 @@ End Class
 (1, )]]>)
 
             verifier.VerifyDiagnostics()
-            ' REMOVE AFTER REVIEW Has error:
-            ' a.vb(10) : error BC30491: Expression does not produce a value.
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/12961")>
         Public Sub TargetTypingNullableOverload()
 
             Dim verifier = CompileAndVerify(
@@ -5846,7 +5871,7 @@ End Class
 Imports System
 Class C
     Shared Sub Main()
-        'Test((Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)) ' Overload resolution fails
+        Test((Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)) ' Overload resolution fails
         Test(("a", "a", "a", "a", "a", "a", "a", "a", "a", "a"))
         Test((1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
     End Sub
@@ -5868,7 +5893,6 @@ End Class
 fourth]]>)
 
             verifier.VerifyDiagnostics()
-            ' REMOVE AFTER REVIEW Has error
 
         End Sub
 
