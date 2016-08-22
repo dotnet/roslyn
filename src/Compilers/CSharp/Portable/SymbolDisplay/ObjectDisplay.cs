@@ -183,6 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case '\v':
                     replaceWith = "\\v";
                     break;
+                case '\u2028':
+                    // U+2028 "LINE SEPARATOR" should be classified by CharUnicodeInfo.GetUnicodeCategory as
+                    // UnicodeCategory.LineSeparator but due to a bug is incorrectly categorized as
+                    // UnicodeCategory.Format. See https://github.com/dotnet/coreclr/issues/3542
+                    replaceWith = "\\u2028";
+                    break;
             }
 
             if (replaceWith != null)
