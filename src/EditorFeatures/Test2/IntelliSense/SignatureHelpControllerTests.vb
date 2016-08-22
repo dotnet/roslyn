@@ -354,7 +354,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             Return New SignatureHelpItem(
                                 isVariadic:=False,
                                 documentationFactory:=Nothing,
-                                prefixParts:={}New List(Of TaggedText)s:={},
+                                prefixParts:=New List(Of TaggedText),
+                                separatorParts:={},
                                 suffixParts:={},
                                 parameters:={},
                                 descriptionParts:={})
