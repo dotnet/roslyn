@@ -1010,6 +1010,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node, out SyntaxNode initializedInstance)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

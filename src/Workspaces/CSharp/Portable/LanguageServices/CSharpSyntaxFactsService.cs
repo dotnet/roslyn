@@ -672,11 +672,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {
+            SyntaxNode unused;
+            return IsObjectInitializerNamedAssignmentIdentifier(node, out unused);
+        }
+
+        public bool IsObjectInitializerNamedAssignmentIdentifier(
+            SyntaxNode node, out SyntaxNode initializedInstance)
+        {
+            initializedInstance = null;
             var identifier = node as IdentifierNameSyntax;
-            return
-                identifier != null &&
+            if (identifier != null &&
                 identifier.IsLeftSideOfAssignExpression() &&
-                identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression);
+                identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
+            {
+                var objectInitializer = identifier.Parent.Parent;
+                if (objectInitializer.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                {
+                    initializedInstance = objectInitializer.Parent;
+                    return true;
+                }
+                else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    initializedInstance = ((AssignmentExpressionSyntax)objectInitializer.Parent).Left;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool IsElementAccessExpression(SyntaxNode node)
