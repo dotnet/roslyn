@@ -408,12 +408,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
                     await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
-                        currentTypes,
-                        project,
-                        metadataTypeMatches,
-                        compilation,
-                        reference,
-                        immediateDerivedTypes,
+                        currentTypes, project, metadataTypeMatches,
+                        compilation, reference, immediateDerivedTypes,
                         cancellationToken).ConfigureAwait(false);
                 }
 

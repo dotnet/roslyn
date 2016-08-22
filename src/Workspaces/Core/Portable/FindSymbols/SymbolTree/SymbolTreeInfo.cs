@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -462,17 +461,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var baseTypeNameIndex = BinarySearch(_nodes, baseTypeName);
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
-            foreach (var derivedTypeIndex in derivedTypeIndices)
-            {
-                foreach (var symbol in Bind(derivedTypeIndex, compilation.GlobalNamespace, cancellationToken))
-                {
-                    var namedType = symbol as INamedTypeSymbol;
-                    if (namedType != null)
-                    {
-                        yield return namedType;
-                    }
-                }
-            }
+            return from derivedTypeIndex in derivedTypeIndices
+                   from symbol in Bind(derivedTypeIndex, compilation.GlobalNamespace, cancellationToken)
+                   let namedType = symbol as INamedTypeSymbol
+                   select namedType;
         }
     }
 }
