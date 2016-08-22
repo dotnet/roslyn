@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// matches can be found by binary searching for something that matches insensitively, and then searching
         /// around that equivalence class for one that matches.
         /// </summary>
-        private readonly IReadOnlyList<Node> _nodes;
+        private readonly ImmutableArray<Node> _nodes;
 
         /// <summary>
         /// Inheritance information for the types in this assembly.  The mapping is between
@@ -68,12 +69,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private SymbolTreeInfo(
             VersionStamp version,
-            IReadOnlyList<Node> orderedNodes,
+            ImmutableArray<Node> sortedNodes,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
-            _nodes = orderedNodes;
+            _nodes = sortedNodes;
             _inheritanceMap = inheritanceMap;
             _spellCheckerTask = spellCheckerTask;
         }
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var result = new List<ISymbol>();
             IAssemblySymbol assembly = null;
-            for (int i = 0, n = _nodes.Count; i < n; i++)
+            for (int i = 0, n = _nodes.Length; i < n; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var node = _nodes[i];
@@ -191,7 +192,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Gets all the node indices with matching names per the <paramref name="comparer" />.
         /// </summary>
-        private static IEnumerable<int> FindNodeIndices(IReadOnlyList<Node> nodes, string name, StringComparer comparer)
+        private static IEnumerable<int> FindNodeIndices(
+            ImmutableArray<Node> nodes, string name, StringComparer comparer)
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(nodes, name);
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 position = startingPosition;
-                while (position + 1 < nodes.Count && s_caseInsensitiveComparer.Equals(nodes[position + 1].Name, name))
+                while (position + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(nodes[position + 1].Name, name))
                 {
                     position++;
                     if (comparer.Equals(nodes[position].Name, name))
@@ -229,9 +231,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Searches for a name in the ordered list that matches per the <see cref="s_caseInsensitiveComparer" />.
         /// </summary>
-        private static int BinarySearch(IReadOnlyList<Node> nodes, string name)
+        private static int BinarySearch(ImmutableArray<Node> nodes, string name)
         {
-            int max = nodes.Count - 1;
+            int max = nodes.Length - 1;
             int min = 0;
 
             while (max >= min)
@@ -275,32 +277,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new SemaphoreSlim(1);
 
         private static Task<SpellChecker> GetSpellCheckerTask(
-            Solution solution, VersionStamp version, string filePath, Node[] nodes)
+            Solution solution, VersionStamp version, string filePath, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
             return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
-                v => new SpellChecker(v, nodes.Select(n => n.Name))));
+                v => new SpellChecker(v, sortedNodes.Select(n => n.Name))));
         }
 
-        private static Node[] SortNodes(List<Node> nodes)
+        private static ImmutableArray<Node> SortNodes(ImmutableArray<Node> unsortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            int[] tmp = new int[nodes.Count];
+            var tmp = new int[unsortedNodes.Length];
             for (int i = 0; i < tmp.Length; i++)
             {
                 tmp[i] = i;
             }
 
             // Sort the index according to node elements
-            Array.Sort<int>(tmp, (a, b) => CompareNodes(nodes[a], nodes[b], nodes));
+            Array.Sort<int>(tmp, (a, b) => CompareNodes(unsortedNodes[a], unsortedNodes[b], unsortedNodes));
 
             // Use the sort order to build the ranking table which will
             // be used as the map from original (unsorted) location to the
             // sorted location.
-            int[] ranking = new int[nodes.Count];
+            var ranking = new int[unsortedNodes.Length];
             for (int i = 0; i < tmp.Length; i++)
             {
                 ranking[tmp[i]] = i;
@@ -309,20 +311,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // No longer need the tmp array
             tmp = null;
 
-            Node[] result = new Node[nodes.Count];
+            var result = new Node[unsortedNodes.Length];
 
             // Copy nodes into the result array in the appropriate order and fixing
             // up parent indexes as we go.
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < unsortedNodes.Length; i++)
             {
-                Node n = nodes[i];
+                Node n = unsortedNodes[i];
                 result[ranking[i]] = new Node(n.Name, n.IsRoot ? n.ParentIndex : ranking[n.ParentIndex]);
             }
 
-            return result;
+            return ImmutableArray.Create(result);
         }
 
-        private static int CompareNodes(Node x, Node y, IReadOnlyList<Node> nodeList)
+        private static int CompareNodes(Node x, Node y, ImmutableArray<Node> nodeList)
         {
             var comp = s_totalComparer(x.Name, y.Name);
             if (comp == 0)
@@ -400,26 +402,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
         #endregion
 
-        internal bool IsEquivalent(SymbolTreeInfo other)
+        internal void AssertEquivalentTo(SymbolTreeInfo other)
         {
-            if (!_version.Equals(other._version) || _nodes.Count != other._nodes.Count)
+            Debug.Assert(_version.Equals(other._version));
+            Debug.Assert(_nodes.Length == other._nodes.Length);
+
+            for (int i = 0, n = _nodes.Length; i < n; i++)
             {
-                return false;
+                _nodes[i].AssertEquivalentTo(other._nodes[i]);
             }
 
-            for (int i = 0, n = _nodes.Count; i < n; i++)
+            Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
+            var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
+            var orderedKeys2 = other._inheritanceMap.Keys.Order().ToList();
+
+            for (int i = 0; i < orderedKeys1.Count; i++)
             {
-                if (!_nodes[i].IsEquivalent(other._nodes[i]))
+                var values1 = this._inheritanceMap[i];
+                var values2 = other._inheritanceMap[i];
+
+                Debug.Assert(values1.Length == values2.Length);
+                for (int j = 0; j < values1.Length; j++)
                 {
-                    return false;
+                    Debug.Assert(values1[j] == values2[j]);
                 }
             }
-
-            return true;
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, VersionStamp version, string filePath, List<Node> unsortedNodes,
+            Solution solution, VersionStamp version, 
+            string filePath, ImmutableArray<Node> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
             var sortedNodes = SortNodes(unsortedNodes);
@@ -430,7 +442,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(
-            Node[] sortedNodes,
+            ImmutableArray<Node> sortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
             // All names in metadata will be case sensitive.  

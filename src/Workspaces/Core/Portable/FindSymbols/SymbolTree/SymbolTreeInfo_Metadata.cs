@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -477,20 +478,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private List<Node> GenerateUnsortedNodes()
+            private ImmutableArray<Node> GenerateUnsortedNodes()
             {
-                var unsortedNodes = new List<Node>
-                {
-                    new Node(name: "", parentIndex: Node.RootNodeParentIndex)
-                };
+                var unsortedNodes = ImmutableArray.CreateBuilder<Node>();
+                unsortedNodes.Add(new Node(name: "", parentIndex: Node.RootNodeParentIndex));
 
                 AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
 
-                return unsortedNodes;
+                return unsortedNodes.ToImmutable();
             }
 
             private void AddUnsortedNodes(
-                List<Node> unsortedNodes, MetadataNode parentNode, int parentIndex)
+                ImmutableArray<Node>.Builder unsortedNodes, MetadataNode parentNode, int parentIndex)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {

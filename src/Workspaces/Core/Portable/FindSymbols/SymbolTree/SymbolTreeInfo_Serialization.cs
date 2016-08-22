@@ -10,14 +10,13 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "13";
+        private const string SerializationFormat = "14";
 
         /// <summary>
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteString(SerializationFormat);
             _version.WriteTo(writer);
 
-            writer.WriteInt32(_nodes.Count);
+            writer.WriteInt32(_nodes.Length);
             foreach (var node in _nodes)
             {
                 writer.WriteString(node.Name);
@@ -203,7 +202,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
-            ObjectReader reader, Func<VersionStamp, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            ObjectReader reader,
+            Func<VersionStamp, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -213,14 +213,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var version = VersionStamp.ReadFrom(reader);
 
                     var nodeCount = reader.ReadInt32();
-                    var nodes = new Node[nodeCount];
+
+                    var nodeBuilder = ImmutableArray.CreateBuilder<Node>(nodeCount);
                     for (var i = 0; i < nodeCount; i++)
                     {
                         var name = reader.ReadString();
                         var parentIndex = reader.ReadInt32();
 
-                        nodes[i] = new Node(name, parentIndex);
+                        nodeBuilder.Add(new Node(name, parentIndex));
                     }
+
+                    var nodes = nodeBuilder.MoveToImmutable();
 
                     var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
                     var inheritanceMapKeyCount = reader.ReadInt32();
