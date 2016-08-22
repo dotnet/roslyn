@@ -278,7 +278,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-
         ' reference manager:
         Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
             Get

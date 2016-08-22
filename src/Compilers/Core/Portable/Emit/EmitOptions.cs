@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        internal bool EmitDynamicAnalysisData => !InstrumentationKinds.IsDefaultOrEmpty && InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
+        internal bool EmitDynamicAnalysisData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
 
         internal static bool IsValidFileAlignment(int value)
         {
