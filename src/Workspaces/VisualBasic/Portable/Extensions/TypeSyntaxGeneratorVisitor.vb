@@ -132,7 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
                 types.Select(Function(t, i) SyntaxFactory.TupleElement(
                     If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), GenerateTypeSyntax(t)))))
-
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax
