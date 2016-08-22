@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             unusedDiagnostics.Free();
         }
 
-        internal bool IsSymbolAccessibleConditional(
+        internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)

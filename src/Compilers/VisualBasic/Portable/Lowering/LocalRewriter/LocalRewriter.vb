@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Concat(statement, New BoundSequencePoint(spSyntax, Nothing))
         End Function
 
-        Private Function Concat(statement As BoundStatement, additionOpt As BoundStatement) As BoundStatement
+        Private Shared Function Concat(statement As BoundStatement, additionOpt As BoundStatement) As BoundStatement
             If additionOpt Is Nothing Then
                 Return statement
             End If
@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function AppendToBlock(block As BoundBlock, additionOpt As BoundStatement) As BoundBlock
+        Private Shared Function AppendToBlock(block As BoundBlock, additionOpt As BoundStatement) As BoundBlock
             If additionOpt Is Nothing Then
                 Return block
             End If
@@ -558,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Generate a unique label with the given base name
-        Private Function GenerateLabel(baseName As String) As LabelSymbol
+        Private Shared Function GenerateLabel(baseName As String) As LabelSymbol
             Return New GeneratedLabelSymbol(baseName)
         End Function
 

@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerBinder != null);
 
             BindValueKind valueKind;
-            initializerBinder.IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
             var initializer = initializerBinder.BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
             initializer = initializerBinder.GenerateConversionForAssignment(varType, initializer, diagnostics);
 
@@ -3610,7 +3610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        private bool CheckNestedObjectInitializerPropertySymbol(
+        private static bool CheckNestedObjectInitializerPropertySymbol(
             PropertySymbol propertySymbol,
             ExpressionSyntax memberNameSyntax,
             DiagnosticBag diagnostics,
@@ -4015,7 +4015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert((object)this.Compilation.Assembly != null);
-                return this.IsSymbolAccessibleConditional(constructor, this.Compilation.Assembly, ref useSiteDiagnostics);
+                return IsSymbolAccessibleConditional(constructor, this.Compilation.Assembly, ref useSiteDiagnostics);
             }
         }
 
@@ -6779,7 +6779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberAccess;
         }
 
-        private CSharpSyntaxNode GetConditionalReceiverSyntax(ConditionalAccessExpressionSyntax node)
+        private static CSharpSyntaxNode GetConditionalReceiverSyntax(ConditionalAccessExpressionSyntax node)
         {
             Debug.Assert(node != null);
             Debug.Assert(node.Expression != null);
