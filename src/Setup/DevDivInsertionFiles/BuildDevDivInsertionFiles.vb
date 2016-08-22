@@ -540,7 +540,14 @@ Public Class BuildDevDivInsertionFiles
                 For Each assemblyProperty In implementations.Properties()
                     Dim fileName = Path.GetFileName(assemblyProperty.Name)
                     If fileName <> "_._" Then
-                        If result.ContainsKey(fileName) Then
+
+                        Dim existingDependency As DependencyInfo = Nothing
+                        If result.TryGetValue(fileName, existingDependency) Then
+
+                            If existingDependency.PackageVersion <> packageVersion Then
+                                Throw New InvalidOperationException($"Found multiple versions of package '{existingDependency.PackageName}': {existingDependency.PackageVersion} and {packageVersion}")
+                            End If
+
                             Continue For
                         End If
 
@@ -651,7 +658,7 @@ Public Class BuildDevDivInsertionFiles
             End If
 
             Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
-                Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
+            Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
             Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
             Dim dstPath = Path.Combine(dstDir, nupkg)
 
