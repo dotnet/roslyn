@@ -8491,36 +8491,35 @@ tryAgain:
             }
 
             return
-                topLevel ? (CountTypesInComponent(result) > 0 ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
+                topLevel ? (ComponentHasTypes(result) ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
         }
 
-        private int CountTypesInComponent(VariableComponentSyntax node)
+        private bool ComponentHasTypes(VariableComponentSyntax node)
         {
             switch (node.Kind)
             {
                 case SyntaxKind.ParenthesizedVariableComponent:
                     {
                         var syntax = (ParenthesizedVariableComponentSyntax)node;
-                        if (syntax.Variables.Count <= 1) return 0; // don't count 1ples
-                        int count = 0;
+                        if (syntax.Variables.Count <= 1) return false; // don't count 1ples
                         for (int i = 0; i < syntax.Variables.Count; i++)
                         {
-                            count += CountTypesInComponent(syntax.Variables[i]);
+                            if (ComponentHasTypes(syntax.Variables[i])) return true;
                         }
 
-                        return count;
+                        return false;
                     }
                 case SyntaxKind.TypedVariableComponent:
                     {
                         var syntax = (TypedVariableComponentSyntax)node;
-                        if (syntax.Type.IsMissing || syntax.Designation.IsMissing) return 0;
+                        if (syntax.Type.IsMissing || syntax.Designation.IsMissing) return false;
                         if (syntax.Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation)
                         {
-                            return ((syntax.Type.Kind == SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)syntax.Type).Identifier.IsVar() ||
-                                    syntax.Type.Kind == SyntaxKind.PredefinedType) ? 1 : 0;
+                            return (syntax.Type.Kind == SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)syntax.Type).Identifier.IsVar()
+                                   || syntax.Type.Kind == SyntaxKind.PredefinedType;
                         }
 
-                        return 1;
+                        return true;
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
