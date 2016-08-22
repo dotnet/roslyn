@@ -130,7 +130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim hasNames = Not names.IsDefault
 
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
-               types.Select(Function(t, i) SyntaxFactory.TupleElement(If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), GenerateTypeSyntax(t)))))
+                types.Select(Function(t, i) SyntaxFactory.TupleElement(
+                    If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), GenerateTypeSyntax(t)))))
 
         End Function
 
