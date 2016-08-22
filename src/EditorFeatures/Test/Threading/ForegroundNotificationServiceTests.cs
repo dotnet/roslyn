@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             }
         }
 
-        [WpfFact]
+        [WpfFact, Skip("https://github.com/dotnet/roslyn/issues/6459")]
         public async Task Test_Delay()
         {
             // NOTE: Don't be tempted to use DateTime or Stopwatch to measure this
