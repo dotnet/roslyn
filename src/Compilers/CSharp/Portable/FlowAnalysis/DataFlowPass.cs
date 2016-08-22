@@ -236,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentMethodOrLambda.IsAsync &&
                 !currentMethodOrLambda.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => pending.Branch != null &&
-                                                       pending.Branch.Kind == BoundKind.AwaitExpression);
+                var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, currentMethodOrLambda.Locations[0]);
@@ -1444,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // won't have to recompute the set by doing multiple passes.
             //
             // If the local functions contain forward calls to other local
-            // functions then we will have to do another pass regardless,
+            // functions then we may have to do another pass regardless,
             // but hopefully that will be an uncommon case in real-world code.
 
             // First phase
@@ -1675,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void ReportIfUnused(LocalSymbol symbol, bool assigned)
+        private void ReportIfUnused(LocalSymbol symbol, bool assigned)
         {
             if (!_usedVariables.Contains(symbol))
             {
@@ -1694,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(LocalFunctionSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -1794,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
-            // State after the lambda/local function exits
+            // State after the lambda declaration
             LocalState stateAfterLambda = this.State;
 
             this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
@@ -1815,13 +1814,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // ensure out parameters are definitely assigned at each return
                     LeaveParameters(node.Symbol.Parameters, pending.Branch.Syntax, null);
+                    IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
                 }
                 else
                 {
                     // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
                 }
-
-                IntersectWith(ref stateAfterLambda, ref this.State); // a no-op except in region analysis
             }
 
             this.State = stateAfterLambda;

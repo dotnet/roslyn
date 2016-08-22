@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we're not inside a local function and the stateChangedAfterUse
             // variable has been set then we don't want to report anything yet.
             // The local function state may not be fully settled.
-            if (stateChangedAfterUse && InLocalFunction(currentMethodOrLambda))
+            if (stateChangedAfterUse && !InLocalFunction(currentMethodOrLambda))
             {
                 return;
             }
@@ -129,13 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // ensure out parameters are definitely assigned at each return
                     LeaveParameters(localFunc.Symbol.Parameters, pending.Branch.Syntax, null);
+                    IntersectWith(ref stateAtReturn, ref this.State);
                 }
                 else
                 {
                     // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
                 }
-
-                IntersectWith(ref stateAtReturn, ref this.State);
             }
 
             // Check for changes to the read and write sets
@@ -233,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static bool InLocalFunction(Symbol symbol) =>
-            GetNearestLocalFunctionOpt(symbol) == null;
+            GetNearestLocalFunctionOpt(symbol) != null;
 
         private static LocalFunctionSymbol GetNearestLocalFunctionOpt(Symbol symbol)
         {

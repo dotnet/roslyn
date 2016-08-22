@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Block:
                 case BoundKind.ThrowStatement:
                 case BoundKind.LabeledStatement:
+                case BoundKind.LocalFunctionStatement:
                     base.VisitStatement(statement);
                     break;
                 case BoundKind.StatementList:
@@ -235,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!this.State.Alive &&
                 !this.State.Reported &&
                 !statement.WasCompilerGenerated &&
-                statement.Kind != BoundKind.LocalFunctionStatement &&
                 statement.Syntax.Span.Length != 0)
             {
                 var firstToken = statement.Syntax.GetFirstToken();
