@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.ImplementAbstractClass
 Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
-
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ImplementAbstractClass), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic,
+        Name:=PredefinedCodeFixProviderNames.ImplementAbstractClass), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateType)>
     Friend Class ImplementAbstractClassCodeFixProvider
         Inherits CodeFixProvider
@@ -28,7 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
         End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
+            Dim cancellationToken = context.CancellationToken
+            Dim document = context.Document
+
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim token = root.FindToken(context.Span.Start)
             If Not token.Span.IntersectsWith(context.Span) Then
@@ -36,35 +39,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
             End If
 
             Dim classNode = token.GetAncestors(Of ClassBlockSyntax)() _
-                            .FirstOrDefault(Function(c) c.Span.IntersectsWith(context.Span))
+                                 .FirstOrDefault(Function(c) c.Span.IntersectsWith(context.Span))
 
             If classNode Is Nothing Then
                 Return
             End If
 
-            Dim service = context.Document.GetLanguageService(Of IImplementAbstractClassService)()
-            Dim model = Await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
-            For Each inheritsNode In classNode.Inherits
-                For Each node In inheritsNode.Types
-                    If service.CanImplementAbstractClass(
-                        context.Document,
-                        model,
-                        node,
-                        context.CancellationToken) Then
+            Dim service = document.GetLanguageService(Of IImplementAbstractClassService)()
 
-                        Dim title = VBFeaturesResources.Implement_Abstract_Class
-                        Dim abstractType = model.GetTypeInfo(node, context.CancellationToken).Type
-                        Dim typeName = abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                        Dim id = GetCodeActionId(abstractType.ContainingAssembly.Name, typeName)
-                        context.RegisterCodeFix(
-                            New MyCodeAction(title,
-                                             Function(c) ImplementAbstractClassAsync(context.Document, node, c),
-                                             id),
-                            context.Diagnostics)
-                        Return
-                    End If
-                Next
-            Next
+            If Await service.CanImplementAbstractClassAsync(
+                document, classNode, cancellationToken).ConfigureAwait(False) Then
+
+                Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim classSymbol = model.GetDeclaredSymbol(classNode)
+
+                Dim typeName = classSymbol.BaseType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                Dim id = GetCodeActionId(classSymbol.BaseType.ContainingAssembly.Name, typeName)
+                context.RegisterCodeFix(
+                    New MyCodeAction(
+                        Function(c) ImplementAbstractClassAsync(document, classNode, c),
+                        id),
+                    context.Diagnostics)
+                Return
+            End If
         End Function
 
         Friend Shared Function GetCodeActionId(assemblyName As String, abstractTypeFullyQualifiedName As String) As String
@@ -73,22 +70,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
                 abstractTypeFullyQualifiedName
         End Function
 
-        Private Async Function ImplementAbstractClassAsync(document As Document, node As TypeSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Function ImplementAbstractClassAsync(
+                document As Document, classBlock As ClassBlockSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             Dim service = document.GetLanguageService(Of IImplementAbstractClassService)()
-            Dim updatedDocument = Await service.ImplementAbstractClassAsync(
-                document,
-                Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False),
-                node,
-                cancellationToken).ConfigureAwait(False)
-
-            Return updatedDocument
+            Return service.ImplementAbstractClassAsync(document, classBlock, cancellationToken)
         End Function
 
         Private Class MyCodeAction
             Inherits CodeAction.DocumentChangeAction
 
-            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)), id As String)
-                MyBase.New(title, createChangedDocument, id)
+            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)), id As String)
+                MyBase.New(VBFeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
             End Sub
         End Class
     End Class

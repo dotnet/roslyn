@@ -19,19 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
     {
         private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Foo.bar()'
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0534); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+            ImmutableArray.Create(CS0534);
 
-        public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+        public sealed override FixAllProvider GetFixAllProvider() =>
+            WellKnownFixAllProviders.BatchFixer;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var cancellationToken = context.CancellationToken;
+            var document = context.Document;
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(context.Span.Start);
             if (!token.Span.IntersectsWith(context.Span))
@@ -45,28 +44,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
                 return;
             }
 
-            var service = context.Document.GetLanguageService<IImplementAbstractClassService>();
-            var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            foreach (var baseTypeSyntax in classNode.BaseList.Types)
-            {
-                var node = baseTypeSyntax.Type;
+            var service = document.GetLanguageService<IImplementAbstractClassService>();
 
-                if (service.CanImplementAbstractClass(
-                    context.Document,
-                    model,
-                    node,
-                    context.CancellationToken))
-                {
-                    var title = CSharpFeaturesResources.Implement_Abstract_Class;
-                    var abstractType = model.GetTypeInfo(node, context.CancellationToken).Type;
-                    var id = GetCodeActionId(abstractType.ContainingAssembly.Name, abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-                    context.RegisterCodeFix(
-                        new MyCodeAction(title,
-                            c => ImplementAbstractClassAsync(context.Document, node, c),
-                            id),
-                        context.Diagnostics);
-                    return;
-                }
+            if (await service.CanImplementAbstractClassAsync(
+                document,
+                classNode,
+                cancellationToken).ConfigureAwait(false))
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var classSymbol = semanticModel.GetDeclaredSymbol(classNode);
+                var abstractType = classSymbol.BaseType;
+                var id = GetCodeActionId(abstractType.ContainingAssembly.Name, abstractType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        c => ImplementAbstractClassAsync(document, classNode, c),
+                        id),
+                    context.Diagnostics);
             }
         }
 
@@ -78,20 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
                 abstractTypeFullyQualifiedName;
         }
 
-        private async Task<Document> ImplementAbstractClassAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        private Task<Document> ImplementAbstractClassAsync(
+            Document document, ClassDeclarationSyntax classNode, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IImplementAbstractClassService>();
-            return await service.ImplementAbstractClassAsync(
-                document,
-                await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false),
-                node,
-                cancellationToken).ConfigureAwait(false);
+            return service.ImplementAbstractClassAsync(document, classNode, cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id) :
-                base(title, createChangedDocument, id)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string id) :
+                base(CSharpFeaturesResources.Implement_Abstract_Class, createChangedDocument, id)
             {
             }
         }
