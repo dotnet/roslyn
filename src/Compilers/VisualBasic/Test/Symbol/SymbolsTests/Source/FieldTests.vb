@@ -425,6 +425,8 @@ End Class
 
                     CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors(index)
         )
+                    Dim foo As Foo
+
                     index += 1
                 Next
             Next

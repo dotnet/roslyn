@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 string sourceFileName = Path.GetFileNameWithoutExtension(sourceFile.Path);
 
-                assemblyPath = Path.Combine(
+                assemblyPath = MyPath.Combine(
                     TempRoot.Root,
                     Path.ChangeExtension(Path.GetFileName(sourceFile.Path), "dll"));
 
