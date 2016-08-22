@@ -67,6 +67,7 @@
     <Csc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
           AdditionalLibPaths="$(AdditionalLibPaths)"
           AddModules="@(AddModules)"
+          AdditionalArguments="$(CscAdditionalArguments)"
           AdditionalFiles="@(AdditionalFiles)"
           AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
           Analyzers="@(Analyzer)"

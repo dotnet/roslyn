@@ -546,6 +546,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
+            // Add "AdditionalArguments" as the penultimate step for similar reasons as below
+            base.AddAdditionalArguments(commandLine);
+
             // It's a good idea for the response file to be the very last switch passed, just 
             // from a predictability perspective.  It also solves the problem that a dogfooder
             // ran into, which is described in an email thread attached to bug VSWhidbey 146883.
