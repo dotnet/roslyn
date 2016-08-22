@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol PointedAtType { get; }
 
         /// <summary>
-        /// Custom modifiers associated with the pointer type, or an empty array if there are none.
+        /// Custom modifiers associated with the pointer's element type, or an empty array if there are none.
         /// </summary>
         /// <remarks>
         /// Some managed languages may represent special information about the pointer type
