@@ -172,14 +172,14 @@ This is an automatically generated pull request from {_options.SourceBranch} int
 
 ``` bash
 git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
+# git remote add {remoteName} ""git@github.com:{_options.SourceUser}/{_options.RepoName}.git""
 git fetch {remoteName}
 git fetch upstream
 git checkout {newBranchName}
-git reset --hard upstream/{_options.DestinationBranch}
-git merge upstream/{_options.SourceBranch}
+git merge upstream/{_options.DestinationBranch}
 # Fix merge conflicts
 git commit
-git push {remoteName} {newBranchName} --force
+git push {remoteName} {newBranchName}
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
