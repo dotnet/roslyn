@@ -1,0 +1,8 @@
+﻿{
+  "host": "desktopClr.x86",
+  "hostId": "RoslynCodeAnalysisService32",
+  "entryPoint": {
+    "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "fullClassName": "Microsoft.CodeAnalysis.TestImpact.BuildManagement.EmitService"
+  }
+}
