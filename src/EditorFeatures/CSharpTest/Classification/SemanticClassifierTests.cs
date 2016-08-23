@@ -1524,5 +1524,25 @@ class MyClass
 ",
     Class("MyClass"));
         }
+
+        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestMemberBindingThatLooksGeneric()
+        {
+            await TestAsync(@"
+using System.Diagnostics;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Debug.Assert(args?.Length < 2);
+        }
+    }
+}", Class("Debug"));
+        }
     }
 }
