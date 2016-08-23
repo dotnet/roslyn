@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         }
 
-        internal ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
+        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
@@ -235,6 +235,9 @@ namespace Microsoft.CodeAnalysis
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string Language => LanguageServices.Language;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string Name => this.ProjectInfo.Name;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -286,10 +289,10 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _additionalDocumentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        internal ImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
+        public ImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        internal ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
+        public ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {

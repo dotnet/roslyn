@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis
             _projectState = projectState;
         }
 
+        internal ProjectState State => _projectState;
+
         /// <summary>
         /// The solution this project is part of.
         /// </summary>
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The language associated with the project.
         /// </summary>
-        public string Language => _projectState.LanguageServices.Language;
+        public string Language => _projectState.Language;
 
         /// <summary>
         /// The name of the assembly this project represents.

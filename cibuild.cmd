@@ -19,6 +19,7 @@ if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
 REM the build. The Jenkins script netci.groovy passes the time limit to this script.
@@ -80,6 +81,12 @@ if defined TestDeterminism (
 if defined TestPerfCorrectness (
     msbuild %MSBuildAdditionalCommandLineArgs% Roslyn.sln /p:Configuration=%BuildConfiguration% /p:DeployExtension=false || goto :BuildFailed
     .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --ci-test || goto :BuildFailed
+    exit /b 0
+)
+
+if defined TestPerfRun (
+    msbuild %MSBuildAdditionalCommandLineArgs% Roslyn.sln /p:Configuration=%BuildConfiguration% /p:DeployExtension=false || goto :BuildFailed
+    .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --no-trace-upload || goto :BuildFailed
     exit /b 0
 )
 

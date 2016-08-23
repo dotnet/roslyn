@@ -11,8 +11,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : CompilingTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         const string commonSource =
 @"public class Pair<T1, T2>
 {
@@ -244,7 +247,7 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (10,27): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
                 //         c.Deconstruct(out x, out y); // error
@@ -432,7 +435,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (16,17): error CS0102: The type 'C' already contains a definition for 'Deconstruct'
                 //     public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
@@ -503,7 +506,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = new C();
@@ -524,6 +527,7 @@ class C
     {
         int x, y;
         var type = ((x, y) = new C()).GetType();
+        System.Console.Write(type.ToString());
     }
 
     public void Deconstruct(out int a, out int b)
@@ -533,12 +537,9 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(
-                // (7,38): error CS0023: Operator '.' cannot be applied to operand of type 'void'
-                //         var type = ((x, y) = new C()).GetType();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(7, 38)
-                );
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
 
         [Fact]
@@ -634,7 +635,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
                 //     static int i;
@@ -753,14 +754,11 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,10): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // (9,22): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "byte").WithLocation(9, 10),
-                // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "string").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(9, 22)
                 );
         }
 
@@ -1040,35 +1038,118 @@ class C
         }
 
         [Fact]
-        public void AssignmentTypeIsVoid()
+        public void AssignmentTypeIsValueTuple()
         {
             string source = @"
 class C
 {
-    static void Main()
+    public static void Main()
     {
-        int x, y;
+        long x; string y;
 
-        ((x, y) = new C()).ToString();
+        var z1 = ((x, y) = new C()).ToString();
 
-        var z = ((x, y) = new C());
+        var z2 = ((x, y) = new C());
+        var z3 = (x, y) = new C();
+
+        System.Console.Write($""{z1} {z2.ToString()} {z3.ToString()}"");
     }
 
-    public void Deconstruct(out int a, out int b)
+    public void Deconstruct(out int a, out string b)
     {
         a = 1;
-        b = 2;
+        b = ""hello"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedAssignmentTypeIsValueTuple()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1; string x2; int x3;
+
+        var y = ((x1, x2), x3) = (new C(), 3);
+
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignmentReturnsLongValueTuple()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x;
+        var y = (x, x, x, x, x, x, x, x, x) = new C();
+        System.Console.Write($""{y.ToString()}"");
+    }
+
+    public void Deconstruct(out int x1, out int x2, out int x3, out int x4, out int x5, out int x6, out int x7, out int x8, out int x9)
+    {
+        x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = 1;
+        x9 = 9;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var y = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
+
+            Assert.Equal("y = (x, x, x, x, x, x, x, x, x) = new C()", y.ToFullString());
+
+            Assert.Equal("(System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64, System.Int64) y",
+                model.GetDeclaredSymbol(y).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DeconstructWithoutValueTupleLibrary()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x;
+        var y = (x, x) = new C();
+        System.Console.Write(y.ToString());
+    }
+
+    public void Deconstruct(out int x1, out int x2)
+    {
+        x1 = x2 = 1;
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (8,27): error CS0023: Operator '.' cannot be applied to operand of type 'void'
-                //         ((x, y) = new C()).ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(8, 27),
-                // (10,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var z = ((x, y) = new C());
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = ((x, y) = new C())").WithArguments("void").WithLocation(10, 13)
+                // (7,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var y = (x, x) = new C();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
                 );
         }
 
@@ -1559,12 +1640,12 @@ class var { }
                 // (6,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
-                // (6,14): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                // (6,25): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("int", "var").WithLocation(6, 14),
-                // (6,18): error CS0029: Cannot implicitly convert type 'int' to 'var'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 25),
+                // (6,28): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("int", "var").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "var").WithLocation(6, 28)
                 );
         }
 
@@ -1594,12 +1675,12 @@ class D
                 // (7,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
-                // (7,14): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                // (7,25): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x3").WithArguments("int", "D").WithLocation(7, 14),
-                // (7,18): error CS0029: Cannot implicitly convert type 'int' to 'D'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 25),
+                // (7,28): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x4").WithArguments("int", "D").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "4").WithArguments("int", "D").WithLocation(7, 28)
                 );
         }
 
@@ -2163,7 +2244,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -2221,6 +2302,35 @@ class C
                 //         var (x1, x2) = (M(out x2), M(out x1));
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 42)
                 );
+        }
+
+        [Fact, WorkItem(13081, "https://github.com/dotnet/roslyn/issues/13081")]
+        public void GettingDiagnosticsWhenValueTupleIsMissing()
+        {
+            var source = @"
+class C1
+{
+    static void Test(int arg1, (byte, byte) arg2)
+    {
+        foreach ((int, int) e in new (int, int)[10])
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     static void Test(int arg1, (byte, byte) arg2)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                // (6,38): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         foreach ((int, int) e in new (int, int)[10])
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                // (6,18): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         foreach ((int, int) e in new (int, int)[10])
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                );
+            // no crash
         }
     }
 }

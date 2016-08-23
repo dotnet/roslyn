@@ -428,7 +428,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (type.IsTupleType)
                 {
-                    return ((TupleTypeSymbol)type).WithUnderlyingType(Retarget(type.TupleUnderlyingType, options));
+                    var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
+                    if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length))
+                    {
+                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
+                    }
+                    else
+                    {
+                        return newUnderlyingType;
+                    }
                 }
 
                 NamedTypeSymbol originalDefinition = type.OriginalDefinition;
@@ -635,6 +643,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     case SymbolKind.NamedType:
 
                         var namedType = (NamedTypeSymbol)symbol;
+                        if (namedType.IsTupleType)
+                        {
+                            namedType = namedType.TupleUnderlyingType;
+                        }
 
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
                             namedType.IsExplicitDefinitionOfNoPiaLocalType)

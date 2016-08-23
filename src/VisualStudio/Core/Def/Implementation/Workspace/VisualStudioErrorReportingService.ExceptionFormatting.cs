@@ -17,12 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return GetStackForAggregateException(exception, aggregate);
             }
 
-            return GetStackForException(exception, false);
+            return GetStackForException(exception, includeMessageOnly: false);
         }
 
         private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
         {
-            var text = GetStackForException(exception, true);
+            var text = GetStackForException(exception, includeMessageOnly: true);
             for (int i = 0; i < aggregate.InnerExceptions.Count; i++)
             {
                 text = string.Format("{0}{1}---> (Inner Exception #{2}) {3}{4}{5}", text,
@@ -56,69 +56,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                  "   " + ServicesVSResources.End_of_inner_exception_stack;
                 }
             }
-            
+
             return stackText + Environment.NewLine + GetAsyncStackTrace(exception);
         }
 
         private static string GetAsyncStackTrace(Exception exception)
         {
             var stackTrace = new StackTrace(exception);
-
             var stackFrames = stackTrace.GetFrames();
             if (stackFrames == null)
             {
                 return string.Empty;
             }
 
-            var firstFrame = true;
+            var stackFrameLines = from frame in stackFrames
+                                  let method = frame.GetMethod()
+                                  let declaringType = method?.DeclaringType
+                                  where ShouldShowFrame(declaringType)
+                                  select FormatFrame(method, declaringType);
             var stringBuilder = new StringBuilder();
+            return String.Join(Environment.NewLine, stackFrameLines);
+        }
 
-            foreach (var frame in stackFrames)
+        private static bool ShouldShowFrame(Type declaringType) =>
+            !(declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType));
+
+        private static string FormatFrame(MethodBase method, Type declaringType)
+        {
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append("   at ");
+            var isAsync = FormatMethodName(stringBuilder, declaringType);
+            if (!isAsync)
             {
-                var method = frame.GetMethod();
-                var declaringType = method?.DeclaringType;
-                if (declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType))
+                stringBuilder.Append(method?.Name);
+                var methodInfo = method as MethodInfo;
+                if (methodInfo?.IsGenericMethod == true)
                 {
-                    continue;
+                    FormatGenericArguments(stringBuilder, methodInfo.GetGenericArguments());
                 }
-
-                if (firstFrame)
-                {
-                    firstFrame = false;
-                }
-                else
-                {
-                    stringBuilder.Append(Environment.NewLine);
-                }
-
-                stringBuilder.AppendFormat("   at ");
-                var isAsync = FormatMethodName(stringBuilder, declaringType);
-                if (!isAsync)
-                {
-                    stringBuilder.Append(method?.Name);
-                    var methodInfo = method as MethodInfo;
-                    if (methodInfo?.IsGenericMethod == true)
-                    {
-                        FormatGenericArguments(stringBuilder, methodInfo.GetGenericArguments());
-                    }
-                }
-                else if (declaringType?.IsGenericType == true)
-                {
-                    FormatGenericArguments(stringBuilder, declaringType.GetGenericArguments());
-                }
-
-                stringBuilder.Append("(");
-                if (isAsync)
-                {
-                    stringBuilder.Append(ServicesVSResources.Unknown_parameters);
-                }
-                else
-                {
-                    FormatParameters(stringBuilder, method);
-                }
-
-                stringBuilder.Append(")");
             }
+            else if (declaringType?.IsGenericType == true)
+            {
+                FormatGenericArguments(stringBuilder, declaringType.GetGenericArguments());
+            }
+
+            stringBuilder.Append("(");
+            if (isAsync)
+            {
+                stringBuilder.Append(ServicesVSResources.Unknown_parameters);
+            }
+            else
+            {
+                FormatParameters(stringBuilder, method);
+            }
+
+            stringBuilder.Append(")");
 
             return stringBuilder.ToString();
         }
@@ -130,11 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var isAsync = false;
             var fullName = declaringType.FullName.Replace('+', '.');
             if (typeof(IAsyncStateMachine).GetTypeInfo().IsAssignableFrom(declaringType))
             {
-                isAsync = true;
                 stringBuilder.Append("async ");
                 var start = fullName.LastIndexOf('<');
                 var end = fullName.LastIndexOf('>');
@@ -146,14 +136,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     stringBuilder.Append(fullName);
                 }
+
+                return true;
             }
             else
             {
                 stringBuilder.Append(fullName);
                 stringBuilder.Append(".");
+                return false;
             }
-
-            return isAsync;
         }
 
         private static void FormatGenericArguments(StringBuilder stringBuilder, Type[] genericTypeArguments)

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal interface IRootChecksumTreeNode : IChecksumTreeNode
     {
-        Solution Solution { get; }
+        SolutionState SolutionState { get; }
 
         void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken);
     }

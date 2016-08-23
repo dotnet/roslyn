@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
+            var binder = this;
 
             TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics);
             BoundExpression argument = (node.Expression == null)
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            return binder.WrapWithVariablesIfAny(node, new BoundYieldReturnStatement(node, argument));
+            return new BoundYieldReturnStatement(node, argument);
         }
 
         private BoundStatement BindYieldBreakStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
@@ -280,6 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.LocalDeclarationStatement:
                     Binder binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
@@ -566,12 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
-
-            BoundStatement bound;
-            bound = binder.BindDeclarationStatementParts(node, diagnostics);
-            return binder.WrapWithVariablesIfAny(node, bound);
+            return BindDeclarationStatementParts(node, diagnostics);
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
@@ -812,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for variable declaration errors.
             // Use the binder that owns the scope for the local because this (the current) binder
             // might own nested scope.
-            bool hasErrors = localSymbol.Binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)

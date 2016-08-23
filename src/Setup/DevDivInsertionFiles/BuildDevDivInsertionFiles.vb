@@ -486,7 +486,7 @@ Public Class BuildDevDivInsertionFiles
         ' TODO: remove
         Public ReadOnly Property IsInteractiveWindow As Boolean
             Get
-                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow" OrElse PackageName = "Microsoft.VisualStudio.VsInteractiveWindow"
+                Return PackageName = "Microsoft.VisualStudio.InteractiveWindow"
             End Get
         End Property
 
@@ -540,7 +540,14 @@ Public Class BuildDevDivInsertionFiles
                 For Each assemblyProperty In implementations.Properties()
                     Dim fileName = Path.GetFileName(assemblyProperty.Name)
                     If fileName <> "_._" Then
-                        If result.ContainsKey(fileName) Then
+
+                        Dim existingDependency As DependencyInfo = Nothing
+                        If result.TryGetValue(fileName, existingDependency) Then
+
+                            If existingDependency.PackageVersion <> packageVersion Then
+                                Throw New InvalidOperationException($"Found multiple versions of package '{existingDependency.PackageName}': {existingDependency.PackageVersion} and {packageVersion}")
+                            End If
+
                             Continue For
                         End If
 
@@ -557,7 +564,7 @@ Public Class BuildDevDivInsertionFiles
 
         ' TODO: remove once we have a proper package
         result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.VsInteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
 
         Return result
     End Function
@@ -646,12 +653,12 @@ Public Class BuildDevDivInsertionFiles
 
             ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
             ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-            If dependency.IsCoreXTCompatible Then
+            If Not dependency.IsCoreXTCompatible Then
                 Continue For
             End If
 
             Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
-                Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
+            Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
             Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
             Dim dstPath = Path.Combine(dstDir, nupkg)
 
@@ -1046,9 +1053,11 @@ Public Class BuildDevDivInsertionFiles
         ' And the produced assemblies produced loc'd UIs as expected in both JPN VS and ENU VS + JPN LP scenarios.
 
         Select Case fileName
-            Case "Microsoft.VisualStudio.LanguageServices.dll",
+            Case "Microsoft.CodeAnalysis.EditorFeatures.dll",
+                 "Microsoft.VisualStudio.LanguageServices.dll",
                  "Microsoft.VisualStudio.LanguageServices.VisualStudio.dll",
                  "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+                 "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
                  "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
                  "Microsoft.VisualStudio.LanguageServices.Xaml.dll"
                 Return <SettingsFile xmlns="http://schemas.microsoft.com/developer/msbuild/2003">$(Sources)\Tools\Devdiv\Loc\Current\MCP_excludeBaml.lss</SettingsFile>

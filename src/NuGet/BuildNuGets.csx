@@ -115,6 +115,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.Net.CSharp.Interactive.netcore",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 // Create an empty directory to be used in NuGet pack

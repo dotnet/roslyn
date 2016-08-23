@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -23,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Execution
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
-            public RootTreeNode(ChecksumTreeCollection owner, Solution solution) :
-                base(owner, GetOrCreateSerializer(solution.Workspace.Services))
+            public RootTreeNode(ChecksumTreeCollection owner, SolutionState solutionState) :
+                base(owner, GetOrCreateSerializer(solutionState.Workspace.Services))
             {
-                Solution = solution;
+                SolutionState = solutionState;
             }
 
-            public Solution Solution { get; }
+            public SolutionState SolutionState { get; }
 
             public void AddAdditionalAsset(Asset asset, CancellationToken cancellationToken)
             {
@@ -68,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class SubTreeNode : IChecksumTreeNode
         {
+            private static readonly Func<object, ChecksumObjectCache> s_cacheCreator = _ => new ChecksumObjectCache();
+
             private readonly ChecksumTreeCollection _owner;
 
             // some of data (checksum) in this cache can be moved into object itself if we decide to do so.
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key)
             {
-                var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
+                var entry = _cache.GetOrAdd(key, s_cacheCreator);
                 return entry.GetOrCreateSubTreeNode(_owner, Serializer);
             }
 
@@ -218,7 +219,16 @@ namespace Microsoft.CodeAnalysis.Execution
             private ChecksumObject SaveAndReturn(object key, ChecksumObject checksumObject, ChecksumObjectCache entry = null)
             {
                 // create new entry if it is not already given
-                entry = _cache.GetOrAdd(key, _ => entry ?? new ChecksumObjectCache(checksumObject));
+                ChecksumObjectCache self;
+                if (_cache.TryGetValue(key, out self))
+                {
+                    // we already have entry
+                    return self.Add(checksumObject);
+                }
+
+                // either create new entry or re-use given one. this will let us share
+                // whole sub checksum tree that is associated with given green node (key)
+                entry = _cache.GetOrAdd(key, _ => entry ?? new ChecksumObjectCache());
                 return entry.Add(checksumObject);
             }
 
@@ -229,10 +239,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private static string GetLogInfo<T>(T key)
             {
-                var solution = key as Solution;
-                if (solution != null)
+                var solutionState = key as SolutionState;
+                if (solutionState != null)
                 {
-                    return solution.FilePath;
+                    return solutionState.FilePath;
                 }
 
                 var projectState = key as ProjectState;
