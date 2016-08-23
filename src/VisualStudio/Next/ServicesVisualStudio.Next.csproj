@@ -93,6 +93,7 @@
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
@@ -120,6 +121,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ServicesVisualStudioNextResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
