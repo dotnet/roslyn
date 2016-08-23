@@ -277,10 +277,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 // If we're renaming a named type, we'll also have to find constructors and
                 // destructors declarations that match the name
-                if (referencedSymbol.Kind == SymbolKind.NamedType)
+                if (referencedSymbol.Kind == SymbolKind.NamedType && referencedSymbol.Locations.All(l => l.IsInSource))
                 {
-                    var namedType = (INamedTypeSymbol)referencedSymbol;
+                    var syntaxFacts = solution.GetDocument(referencedSymbol.Locations[0].SourceTree).GetLanguageService<ISyntaxFactsService>();
 
+                    var namedType = (INamedTypeSymbol)referencedSymbol;
                     foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
                     {
                         if (!method.IsImplicitlyDeclared && (method.MethodKind == MethodKind.Constructor ||
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Rename
                                 if (location.IsInSource)
                                 {
                                     var token = location.FindToken(cancellationToken);
-                                    if (token.ValueText == referencedSymbol.Name)
+                                    if (!syntaxFacts.IsKeyword(token) && token.ValueText == referencedSymbol.Name)
                                     {
                                         results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id));
                                     }
