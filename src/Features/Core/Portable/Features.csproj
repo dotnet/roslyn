@@ -148,13 +148,14 @@
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeLens\CodeLenseReferenceService.cs" />
+    <Compile Include="CodeLens\CodeLensReferenceService.cs" />
     <Compile Include="CodeLens\CodeLensFindReferenceProgress.cs" />
     <Compile Include="CodeLens\ICodeLensReferencesService.cs" />
     <Compile Include="CodeLens\ICodeLensDisplayInfoService.cs" />
     <Compile Include="CodeLens\LocationComparer.cs" />
     <Compile Include="CodeLens\ReferenceCount.cs" />
     <Compile Include="CodeLens\ReferenceLocationDescriptor.cs" />
+    <Compile Include="CodeLens\ReferenceMethodDescriptor.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />

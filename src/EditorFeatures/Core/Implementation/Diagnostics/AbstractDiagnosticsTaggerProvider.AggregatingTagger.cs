@@ -174,10 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
             {
-                // First see if this is a document/project removal.  If so, clear out any state we
-                // have associated with any analyzers we have for that document/project.
-                ProcessRemovedDiagnostics(e);
-
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -187,6 +183,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
+                // First see if this is a document/project removal.  If so, clear out any state we
+                // have associated with any analyzers we have for that document/project.
+                ProcessRemovedDiagnostics(e);
 
                 // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
                 // be able to make ITagSpans for them.  If we can't, just bail out.  This happens

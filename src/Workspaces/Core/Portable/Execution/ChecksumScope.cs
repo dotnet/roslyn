@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _trees.RegisterSnapshot(this, tree);
         }
 
-        public Workspace Workspace => _tree.Solution.Workspace;
+        public Workspace Workspace => _tree.SolutionState.Workspace;
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.

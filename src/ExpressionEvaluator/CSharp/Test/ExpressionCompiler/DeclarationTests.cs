@@ -247,6 +247,74 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         [Fact]
+        public void ExpressionLocals_LocalDeclarationStatement_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static int Test(object x, out int y)
+    {
+        y = 1;
+        return 0;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       88 (0x58)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""int""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""F""
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.3
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldstr      ""z""
+  IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0046:  ldarg.0
+  IL_0047:  ldstr      ""F""
+  IL_004c:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0051:  call       ""int C.Test(object, out int)""
+  IL_0056:  stind.i4
+  IL_0057:  ret
+}");
+            });
+        }
+
+        [Fact]
         public void References()
         {
             var source =
