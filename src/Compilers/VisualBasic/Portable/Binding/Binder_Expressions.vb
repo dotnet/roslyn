@@ -352,11 +352,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundArguments.Add(boundArgument)
 
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasErrors)
-                elementTypes.Add(elementType)
-
                 If elementType Is Nothing Then
                     hasNaturalType = False
+                    elementType = ReclassifyExpression(boundArgument, diagnostics).Type
                 End If
+
+                elementTypes.Add(elementType)
             Next
 
             uniqueFieldNames.Free()
@@ -372,13 +373,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elements = elementTypes.ToImmutableAndFree()
             Dim locations = elementLocations.ToImmutableAndFree()
 
+            Dim inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics)
             If hasNaturalType Then
-                tupleTypeOpt = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics)
-            Else
-                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, Me.Compilation, diagnostics)
+                tupleTypeOpt = inferredType
             End If
 
-            Return New BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+            Return New BoundTupleLiteral(node, inferredType, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
         End Function
 
         ''' <summary>
@@ -1321,6 +1321,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.ArrayLiteral
                     Return ReclassifyArrayLiteralExpression(DirectCast(expr, BoundArrayLiteral), diagnostics)
 
+                Case BoundKind.TupleLiteral
+                    Return ReclassifyTupleLiteralExpression(DirectCast(expr, BoundTupleLiteral), diagnostics)
+
                 Case Else
                     'TODO: We need to do other expression reclassifications here.
                     '      For now, we simply report an error.
@@ -1512,6 +1515,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Return arrayInitialization
+        End Function
+
+        Private Function ReclassifyTupleLiteralExpression(
+                                                         tupleLiteral As BoundTupleLiteral,
+                                                         diagnostics As DiagnosticBag
+                                                         ) As BoundExpression
+
+            Return ApplyImplicitConversion(tupleLiteral.Syntax,
+                                           tupleLiteral.InferredType,
+                                           tupleLiteral,
+                                           diagnostics)
         End Function
 
         Private Function ReclassifyArrayLiteralExpression(
@@ -4361,6 +4375,10 @@ lElseClause:
                     expressionType = DirectCast(expression, UnboundLambda).InferredAnonymousDelegate.Key
                     typeList.AddType(expressionType, RequiredConversion.Any, expression)
 
+                ElseIf expressionKind = BoundKind.TupleLiteral Then
+                    expressionType = DirectCast(expression, BoundTupleLiteral).InferredType
+                    typeList.AddType(expressionType, RequiredConversion.Any, expression)
+
                 ElseIf expressionKind = BoundKind.ArrayLiteral Then
                     Dim arrayLiteral = DirectCast(expression, BoundArrayLiteral)
 
@@ -4375,7 +4393,7 @@ lElseClause:
                     End If
 
                 ElseIf expressionType IsNot Nothing AndAlso Not expressionType.IsVoidType() AndAlso
-                        Not (expressionType.IsArrayType() AndAlso DirectCast(expressionType, ArrayTypeSymbol).ElementType.IsVoidType()) Then
+                            Not (expressionType.IsArrayType() AndAlso DirectCast(expressionType, ArrayTypeSymbol).ElementType.IsVoidType()) Then
 
                     typeList.AddType(expressionType, RequiredConversion.Any, expression)
 

@@ -722,6 +722,7 @@
      (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="InferredType" Type="TupleTypeSymbol" Null="disallow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray(Of String)" Null="allow"/>
   </Node>
 
