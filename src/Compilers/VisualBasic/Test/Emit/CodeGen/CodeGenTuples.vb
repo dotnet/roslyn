@@ -3040,7 +3040,7 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Integer, String)'.
         Dim x As (Integer, String) = (1, Nothing, 2)
                                      ~~~~~~~~~~~~~~~
 </errors>)
@@ -5500,7 +5500,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5518,6 +5518,9 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = (1, Function(t) t)
+                         ~
 </errors>)
 
         End Sub
@@ -5549,7 +5552,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = DirectCast((Nothing, Nothing, Nothing), (Integer, Integer))
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5564,6 +5567,9 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = DirectCast((1, Function(t) t), (Integer, Integer))
                            ~~~~~~~~~~~~~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = DirectCast((1, Function(t) t), (Integer, Integer))
+                                    ~
 </errors>)
 
         End Sub
@@ -5595,7 +5601,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5613,6 +5619,9 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = (1, Function(t) t)
+                         ~
 </errors>)
 
         End Sub
@@ -5644,7 +5653,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(String, String)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(String, String)'.
@@ -5668,6 +5677,9 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Stri
 BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = (1, Function(t) t)
+                         ~
 </errors>)
 
         End Sub
@@ -5699,7 +5711,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = ((Nothing, Nothing, Nothing), 1)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5717,6 +5729,12 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = ((1, Function(t) t), 1)
                  ~~~~~~~~~~~~~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = ((1, Function(t) t), 1)
+                          ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        x = ((1, Function(t) t), 1)
+                          ~
 </errors>)
 
         End Sub
