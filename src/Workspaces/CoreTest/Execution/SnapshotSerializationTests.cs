@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var serializer = new Serializer(workspace.Services);
             var trees = new ChecksumTreeCollection();
-            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution));
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);

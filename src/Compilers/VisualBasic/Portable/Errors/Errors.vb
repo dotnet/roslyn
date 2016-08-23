@@ -1696,6 +1696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_RefReturningCallInExpressionTree = 37263
 
         ERR_SourceLinkRequiresPortablePdb = 37264
+        ERR_CannotEmbedWithoutPdb = 37265
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

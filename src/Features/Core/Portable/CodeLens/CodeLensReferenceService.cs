@@ -18,7 +18,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService)), Shared]
     internal sealed class CodeLensReferenceService : ICodeLensReferencesService
     {
-        public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        private static readonly SymbolDisplayFormat MethodDisplayFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
+        private async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+            Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
+            int searchCap, CancellationToken cancellationToken) where T: class
         {
             var document = solution.GetDocument(documentId);
             if (document == null)
@@ -40,24 +46,21 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, maxSearchResults, cancellationToken))
+            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
             {
                 try
                 {
                     await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
                         progress.CancellationToken).ConfigureAwait(false);
 
-                    return new ReferenceCount(
-                        progress.SearchCap > 0
-                            ? Math.Min(progress.ReferencesCount, progress.SearchCap)
-                            : progress.ReferencesCount, progress.SearchCapReached);
+                    return await onResults(progress).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
-                    if (progress.SearchCapReached)
+                    if (onCapped != null && progress.SearchCapReached)
                     {
                         // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return new ReferenceCount(progress.SearchCap, isCapped: true);
+                        return await onCapped(progress).ConfigureAwait(false);
                     }
 
                     // search was cancelled, but not because of cap.
@@ -65,6 +68,18 @@ namespace Microsoft.CodeAnalysis.CodeLens
                     throw;
                 }
             }
+        }
+
+        public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        {
+            return await FindAsync(solution, documentId, syntaxNode,
+                progress => Task.FromResult(new ReferenceCount(
+                    progress.SearchCap > 0
+                        ? Math.Min(progress.ReferencesCount, progress.SearchCap)
+                        : progress.ReferencesCount, progress.SearchCapReached)),
+                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true)),
+                maxSearchResults, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private static async Task<ReferenceLocationDescriptor> GetDescriptorOfEnclosingSymbolAsync(Solution solution, Location location, CancellationToken cancellationToken)
@@ -167,43 +182,85 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(documentId);
-            if (document == null)
+            return await FindAsync(solution, documentId, syntaxNode,
+                async progress =>
+                {
+                    var referenceTasks = progress.Locations
+                        .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
+                        .Distinct(LocationComparer.Instance)
+                        .Select(
+                            location =>
+                                GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
+                        .ToArray();
+
+                    await Task.WhenAll(referenceTasks).ConfigureAwait(false);
+
+                    return referenceTasks.Select(task => task.Result);
+                }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location)
+        {
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start);
+
+            for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
+            {
+                if (current.Kind != SymbolKind.Method)
+                {
+                    continue;
+                }
+
+                var method = (IMethodSymbol)current;
+                if (method.IsAccessor())
+                {
+                    return method.AssociatedSymbol;
+                }
+
+                if (method.MethodKind != MethodKind.AnonymousFunction)
+                {
+                    return method;
+                }
+            }
+
+            return null;
+        }
+
+        private static async Task<ReferenceMethodDescriptor> TryCreateMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
+        {
+            var doc = solution.GetDocument(commonLocation.SourceTree);
+            if (doc == null)
             {
                 return null;
             }
 
+            var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel == null)
             {
                 return null;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            var fullName = GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
 
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol == null)
-            {
-                return null;
-            }
+            return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
+        }
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap: 0, cancellationToken: cancellationToken))
-            {
-                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                    progress.CancellationToken).ConfigureAwait(false);
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindMethodReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        {
+            return await FindAsync(solution, documentId, syntaxNode,
+                async progress =>
+                {
+                    var descriptorTasks =
+                        progress.Locations
+                        .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
+                        .Select(location =>
+                            TryCreateMethodDescriptorAsync(location, solution, cancellationToken))
+                        .ToArray();
 
-                var referenceTasks = progress.Locations
-                    .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
-                    .Distinct(LocationComparer.Instance)
-                    .Select(
-                        location =>
-                            GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
-                    .ToArray();
+                    await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                await Task.WhenAll(referenceTasks).ConfigureAwait(false);
-
-                return referenceTasks.Select(task => task.Result);
-            }
+                    return descriptorTasks.Where(task => task.Result != null).Select(task => task.Result);
+                }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

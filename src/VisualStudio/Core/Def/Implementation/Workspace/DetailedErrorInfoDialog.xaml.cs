@@ -28,9 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             this.errorInfo = errorInfo;
             this.Title = title;
             stackTraceText.AppendText(errorInfo);
-            this.CopyButton.Content = ServicesVSResources.Copy_to_clipboard;
+            this.CopyButton.Content = ServicesVSResources.Copy_to_Clipboard;
             this.CloseButton.Content = ServicesVSResources.Close;
-
         }
 
         private void CopyMessageToClipBoard(object sender, RoutedEventArgs e)

@@ -8,7 +8,7 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60723-01</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60818-04</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
