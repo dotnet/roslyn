@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
-            ArrayBuilder<InstrumentationKind> instrument = ArrayBuilder<InstrumentationKind>.GetInstance();
+            ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             bool optionsEnded = false;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 switch (value.ToLower())
                                 {
                                     case "testcoverage":
-                                        instrument.Add(InstrumentationKind.TestCoverage);
+                                        instrumentationKinds.Add(InstrumentationKind.TestCoverage);
                                         break;
 
                                     default:
@@ -1263,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fileAlignment: fileAlignment,
                 subsystemVersion: subsystemVersion,
                 runtimeMetadataVersion: runtimeMetadataVersion,
-                instrument: instrument.ToImmutableAndFree()
+                instrumentationKinds: instrumentationKinds.ToImmutableAndFree()
             );
 
             // add option incompatibility errors if any

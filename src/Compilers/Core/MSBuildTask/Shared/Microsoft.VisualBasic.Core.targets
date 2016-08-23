@@ -81,7 +81,7 @@
           GenerateDocumentation="$(GenerateDocumentation)"
           HighEntropyVA="$(HighEntropyVA)"
           Imports="@(Import)"
-          Instrument="$(Instrument)"
+          InstrumentationKinds="$(Instrument)"
           KeyContainer="$(KeyContainerName)"
           KeyFile="$(KeyOriginatorFile)"
           LangVersion="$(LangVersion)"

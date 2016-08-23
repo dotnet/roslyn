@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void InstrumentTestNamesFlag()
         {
             var vbc = new Vbc();
-            vbc.Instrument = null;
+            vbc.InstrumentationKinds = null;
             Assert.Equal("/optionstrict:custom", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
-            vbc.Instrument = "TestCoverage";
+            vbc.InstrumentationKinds = "TestCoverage";
             Assert.Equal("/optionstrict:custom /instrument:TestCoverage", vbc.GenerateResponseFileContents());
         }
 

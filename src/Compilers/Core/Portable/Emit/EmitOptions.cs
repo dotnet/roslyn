@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Emit
                   runtimeMetadataVersion,
                   tolerateErrors,
                   includePrivateMembers,
-                  instrument: ImmutableArray<InstrumentationKind>.Empty)
+                  instrumentationKinds: ImmutableArray<InstrumentationKind>.Empty)
         {
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
             bool includePrivateMembers = false,
-            ImmutableArray<InstrumentationKind> instrument = default(ImmutableArray<InstrumentationKind>))
+            ImmutableArray<InstrumentationKind> instrumentationKinds = default(ImmutableArray<InstrumentationKind>))
         {
             this.EmitMetadataOnly = metadataOnly;
             this.DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
             this.TolerateErrors = tolerateErrors;
             this.IncludePrivateMembers = includePrivateMembers;
-            this.InstrumentationKinds = instrument.IsDefault ? ImmutableArray<InstrumentationKind>.Empty : instrument;
+            this.InstrumentationKinds = instrumentationKinds.IsDefault ? ImmutableArray<InstrumentationKind>.Empty : instrumentationKinds;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -178,14 +178,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            for (int i = 0; i < this.InstrumentationKinds.Length; i++)
-            {
-                if (this.InstrumentationKinds[i] != other.InstrumentationKinds[i])
-                {
-                    return false;
-                }
-            }
-
             return
                 this.EmitMetadataOnly == other.EmitMetadataOnly &&
                 this.BaseAddress == other.BaseAddress &&
@@ -198,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 this.TolerateErrors == other.TolerateErrors &&
                 this.IncludePrivateMembers == other.IncludePrivateMembers &&
-                this.InstrumentationKinds == other.InstrumentationKinds;
+                this.InstrumentationKinds.SequenceEqual(other.InstrumentationKinds, (a, b) => a == b);
         }
 
         public override int GetHashCode()
@@ -219,7 +211,8 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(this.OutputNameOverride,
                    Hash.Combine(this.RuntimeMetadataVersion,
                    Hash.Combine(this.TolerateErrors,
-                   Hash.Combine(this.IncludePrivateMembers, instrumentationKindHash)))))))))));
+                   Hash.Combine(this.IncludePrivateMembers,
+                   Hash.Combine(Hash.CombineValues(this.InstrumentationKinds), 0))))))))))));
         }
 
         public static bool operator ==(EmitOptions left, EmitOptions right)
@@ -267,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        internal bool EmitDynamicAnalysisData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
+        internal bool EmitTestCoverageData => InstrumentationKinds.Contains(InstrumentationKind.TestCoverage);
 
         internal static bool IsValidFileAlignment(int value)
         {
@@ -399,19 +392,14 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitOptions(this) { IncludePrivateMembers = value };
         }
 
-        public EmitOptions WithInstrument(params InstrumentationKind[] instrument)
+        public EmitOptions WithInstrumentationKinds(ImmutableArray<InstrumentationKind> instrumentationKinds)
         {
-            return WithInstrument(ImmutableArray.Create(instrument));
-        }
-
-        public EmitOptions WithInstrument(ImmutableArray<InstrumentationKind> instrument)
-        {
-            if (InstrumentationKinds == instrument)
+            if (InstrumentationKinds == instrumentationKinds)
             {
                 return this;
             }
 
-            return new EmitOptions(this) { InstrumentationKinds = instrument };
+            return new EmitOptions(this) { InstrumentationKinds = instrumentationKinds };
         }
     }
 }

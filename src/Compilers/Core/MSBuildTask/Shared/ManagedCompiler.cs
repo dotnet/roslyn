@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
         
         /// <summary>
-        /// An instrument flag that specifies instrumentation kind.
+        /// Specifies the list of instrumentation kinds to be used during compilation.
         /// </summary>
-        public string Instrument
+        public string InstrumentationKinds
         {
-            set { _store[nameof(Instrument)] = value; }
-            get { return (string)_store[nameof(Instrument)]; }
+            set { _store[nameof(InstrumentationKinds)] = value; }
+            get { return (string)_store[nameof(InstrumentationKinds)]; }
         }
 
         public string CodeAnalysisRuleSet
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
-            commandLine.AppendSwitchIfNotNull("/instrument:", Instrument);
+            commandLine.AppendSwitchIfNotNull("/instrument:", InstrumentationKinds);
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
 
             AddFeatures(commandLine, Features);

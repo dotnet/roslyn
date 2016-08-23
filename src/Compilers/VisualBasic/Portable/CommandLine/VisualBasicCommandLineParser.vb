@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
-            Dim instrument As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
+            Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
@@ -553,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Select Case value.ToLower()
                                 Case "testcoverage"
-                                    instrument.Add(InstrumentationKind.TestCoverage)
+                                    instrumentationKinds.Add(InstrumentationKind.TestCoverage)
                                 Case Else
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, value)
                             End Select
@@ -1345,7 +1345,7 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrument:=instrument.ToImmutableAndFree())
+                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)

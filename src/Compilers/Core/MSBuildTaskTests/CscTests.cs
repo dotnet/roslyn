@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void InstrumentTestNamesFlag()
         {
             var csc = new Csc();
-            csc.Instrument = null;
+            csc.InstrumentationKinds = null;
             Assert.Equal(string.Empty, csc.GenerateResponseFileContents());
 
             csc = new Csc();
-            csc.Instrument = "TestCoverage";
+            csc.InstrumentationKinds = "TestCoverage";
             Assert.Equal("/instrument:TestCoverage", csc.GenerateResponseFileContents());
         }
 

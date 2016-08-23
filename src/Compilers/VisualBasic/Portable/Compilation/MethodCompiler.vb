@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _emittingPdb = emittingPdb
             _filterOpt = filter
 
-            If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData Then
+            If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData Then
                 _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
-                                                         debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData, _debugDocumentProvider, Nothing),
+                                                         debugDocumentProvider:=If(_moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData, _debugDocumentProvider, Nothing),
                                                          diagnostics:=diagnosticsThisMethod,
                                                          emittingPdb:=False,
                                                          dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
@@ -1405,7 +1405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
             Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
-            Dim emitDynamicAnalysisData As Boolean? = _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData
+            Dim emitDynamicAnalysisData As Boolean? = _moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
@@ -1566,7 +1566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim localScopes = builder.GetAllScopes()
 
                 Dim dynamicAnalysisDataOpt As DynamicAnalysisMethodBodyData = Nothing
-                If moduleBuilder.EmitOptions.EmitDynamicAnalysisData Then
+                If moduleBuilder.EmitOptions.EmitTestCoverageData Then
                     Debug.Assert(debugDocumentProvider IsNot Nothing)
                     dynamicAnalysisDataOpt = New DynamicAnalysisMethodBodyData(dynamicAnalysisSpans)
                 End If

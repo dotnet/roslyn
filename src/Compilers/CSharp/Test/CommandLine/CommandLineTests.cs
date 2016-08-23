@@ -2995,53 +2995,53 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         public void ParseInstrumentTestNames()
         {
             var parsedArgs = DefaultParse(SpecializedCollections.EmptyEnumerable<string>(), _baseDirectory);
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { @"/instrument", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { @"/instrument:""""", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { @"/instrument:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { "/instrument:", "Test.Flag.Name", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { "/instrument:InvalidOption", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { "/instrument:None", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 Diagnostic(ErrorCode.ERR_InvalidInstrumentationKind).WithArguments("None"));
-            Assert.Equal(ImmutableHashSet<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray<InstrumentationKind>.Empty, parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { "/instrument:TestCoverage", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(ImmutableHashSet.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { @"/instrument:""TestCoverage""", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(ImmutableHashSet.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
 
             parsedArgs = DefaultParse(new[] { @"/instrument:""TESTCOVERAGE""", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(ImmutableHashSet.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
+            Assert.Equal(ImmutableArray.Create(InstrumentationKind.TestCoverage), parsedArgs.EmitOptions.InstrumentationKinds);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]

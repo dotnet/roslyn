@@ -2,9 +2,19 @@
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    /// <summary>
+    /// Specifies the type of an instrumentation that is performed and be emitted along with the binary output.
+    /// </summary>
     public enum InstrumentationKind
     {
+        /// <summary>
+        /// No instrumentation.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Instruments the binary to add....
+        /// </summary>
         TestCoverage = 1,
     }
 

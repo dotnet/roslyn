@@ -1918,7 +1918,7 @@ public class Program
 }
 ";
 
-            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrument(InstrumentationKind.TestCoverage));
+            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
@@ -1933,7 +1933,7 @@ public class Program
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrument(InstrumentationKind.TestCoverage));
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
         private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
