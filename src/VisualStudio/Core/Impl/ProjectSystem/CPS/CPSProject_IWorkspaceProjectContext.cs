@@ -59,22 +59,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 _lastDesignTimeBuildSucceeded = value;
             }
         }
+
+        string IWorkspaceProjectContext.ObjOutputPath
+        {
+            get
+            {
+                return this.TryGetObjOutputPath();
+            }
+            set
+            {
+                SetOutputPathAndRelatedData(objOutputPath: value, binOutputPath: this.TryGetBinOutputPath());
+            }
+        }
+
         #endregion
 
         #region Options
-        public void SetCommandLineArguments(string commandLineForOptions)
+        public void SetOptions(string commandLineForOptions)
         {
             var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
-            PostSetCommandLineArguments(commandLineArguments);
+            PostSetOptions(commandLineArguments);
         }
 
-        private void PostSetCommandLineArguments(CommandLineArguments commandLineArguments)
+        private void PostSetOptions(CommandLineArguments commandLineArguments)
         {
             // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project, if required.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
-                var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
-                SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
+                var binOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                var objOutputPath = this.TryGetObjOutputPath();
+                SetOutputPathAndRelatedData(objOutputPath, binOutputPath);
             }
         }
         #endregion

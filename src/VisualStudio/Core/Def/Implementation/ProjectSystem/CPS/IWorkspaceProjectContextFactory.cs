@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="projectFilePath">Full path to the project file for the project.</param>
         /// <param name="projectGuid">Project guid.</param>
         /// <param name="hierarchy"><see cref="IVsHierarchy"/> for the project.</param>
-        /// <param name="commandLineForOptions">Command line string for initializing the project options.</param>
-        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string commandLineForOptions);
+        /// <param name="binOutputPath">Initial project binary output path.</param>
+        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
     }
 }

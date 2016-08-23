@@ -1163,7 +1163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOutputPathAndRelatedData(string objOutputPath, bool hasSameBinAndObjOutputPaths = false)
+        protected void SetOutputPathAndRelatedData(string objOutputPath, string binOutputPath)
         {
             if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(_objOutputPathOpt, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -1201,22 +1201,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // refresh final output path
-            string newBinOutputPath;
-            if (hasSameBinAndObjOutputPaths)
-            {
-                newBinOutputPath = objOutputPath;
-            }
-            else if (!TryGetOutputPathFromHierarchy(out newBinOutputPath))
-            {
-                newBinOutputPath = null;
-            }
-
-            if (newBinOutputPath != null && !string.Equals(_binOutputPathOpt, newBinOutputPath, StringComparison.OrdinalIgnoreCase))
+            if (binOutputPath != null && !string.Equals(_binOutputPathOpt, binOutputPath, StringComparison.OrdinalIgnoreCase))
             {
                 string oldBinOutputPath = _binOutputPathOpt;
 
                 // set obj output path if changed
-                _binOutputPathOpt = newBinOutputPath;
+                _binOutputPathOpt = binOutputPath;
 
                 // If the project has been hooked up with the project tracker, then update the bin path with the tracker.
                 if (this.ProjectTracker.GetProject(Id) != null)
@@ -1292,8 +1282,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
-
-        protected abstract bool TryGetOutputPathFromHierarchy(out string binOutputPath);
 
 #if DEBUG
         public virtual bool Debug_VBEmbeddedCoreOptionOn
