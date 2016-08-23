@@ -684,6 +684,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
+            Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode, ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+                Throw New NotImplementedException()
+            End Function
+
             Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
                 Throw New NotImplementedException()
             End Function

@@ -564,8 +564,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+            Dim unused As SyntaxNode = Nothing
+            Return IsObjectInitializerNamedAssignmentIdentifier(node, unused)
+        End Function
+
+        Public Function IsObjectInitializerNamedAssignmentIdentifier(
+                node As SyntaxNode,
+                ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+
             Dim identifier = TryCast(node, IdentifierNameSyntax)
-            Return If(identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name), False)
+            If identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                ' .parent is the NamedField.
+                ' .parent.parent is the ObjectInitializer.
+                ' .parent.parent.parent will be the ObjectCreationExpression.
+                initializedInstance = identifier.Parent.Parent.Parent
+                Return True
+            End If
+
+            Return False
         End Function
 
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
