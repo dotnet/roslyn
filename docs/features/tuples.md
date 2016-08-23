@@ -205,7 +205,7 @@ var t = (null, 5);    						//   Error: tuple expression doesn't have a type bec
 ((1,2, null), 5).ToString();    	    	//   Error: tuple expression doesn't have a type
 
 ImmutableArray.Create((()=>1, 1));        	//   Error: tuple expression doesn't have a type because lambda does not have a type
-ImmutableArray.Create((Func<int>)()=>1, 1); //   ok
+ImmutableArray.Create((Func<ValueTuple<int,int>>)()=>1, 1); //   ok
 ```
 
 A tuple literal may include names, in which case they become part of the natural type:
