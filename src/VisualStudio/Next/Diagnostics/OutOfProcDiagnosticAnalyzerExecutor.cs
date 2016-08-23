@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             }
 
             // TODO: send telemetry on session
-            using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, cancellationToken).ConfigureAwait(false))
+            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
                 var argument = new DiagnosticArguments(
                     analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,

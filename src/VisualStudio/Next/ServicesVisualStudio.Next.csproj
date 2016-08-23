@@ -93,6 +93,7 @@
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
