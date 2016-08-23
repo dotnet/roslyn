@@ -1064,4 +1064,7 @@ This version used in: {2}</value>
   <data name="Implement_Abstract_Class" xml:space="preserve">
     <value>Implement Abstract Class</value>
   </data>
+  <data name="Use_framework_type" xml:space="preserve">
+    <value>Use framework type</value>
+  </data>
 </root>

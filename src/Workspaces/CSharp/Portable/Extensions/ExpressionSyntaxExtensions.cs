@@ -836,19 +836,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return list.Where(t => !t.IsElastic());
         }
 
-        private static bool InsideCrefReference(ExpressionSyntax expr)
+        public static bool InsideCrefReference(this ExpressionSyntax expression)
         {
-            var crefAttribute = expr.FirstAncestorOrSelf<XmlCrefAttributeSyntax>();
+            var crefAttribute = expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>();
             return crefAttribute != null;
         }
 
-        private static bool InsideNameOfExpression(ExpressionSyntax expr, SemanticModel semanticModel)
+        private static bool InsideNameOfExpression(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            var nameOfInvocationExpr = expr.FirstAncestorOrSelf<InvocationExpressionSyntax>(
+            var nameOfInvocationExpr = expression.FirstAncestorOrSelf<InvocationExpressionSyntax>(
                 invocationExpr =>
                 {
-                    var expression = invocationExpr.Expression as IdentifierNameSyntax;
-                    return (expression != null) && (expression.Identifier.Text == "nameof") &&
+                    var identifierName = invocationExpr.Expression as IdentifierNameSyntax;
+                    return (identifierName != null) && (identifierName.Identifier.Text == "nameof") &&
                         semanticModel.GetConstantValue(invocationExpr).HasValue &&
                         (semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String);
                 });
@@ -858,17 +858,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
         {
-            return (name.Parent != null) && !(name.Parent is MemberAccessExpressionSyntax) &&
-                   !InsideCrefReference(name) && !InsideNameOfExpression(name, semanticModel) &&
+            return !IsInMemberAccessContext(name) &&
+                   !InsideCrefReference(name) &&
+                   !InsideNameOfExpression(name, semanticModel) &&
                    SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, semanticModel.Language);
         }
 
-        private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax memberAccess, OptionSet optionSet, SemanticModel semanticModel)
+        private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
         {
-            return (((memberAccess.Parent != null) && (memberAccess.Parent is MemberAccessExpressionSyntax)) || InsideCrefReference(memberAccess)) &&
-                   !InsideNameOfExpression(memberAccess, semanticModel) &&
+            return (IsInMemberAccessContext(expression) || InsideCrefReference(expression)) &&
+                   !InsideNameOfExpression(expression, semanticModel) &&
                    SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language);
         }
+
+        public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>
+            (expression?.Parent is MemberAccessExpressionSyntax);
 
         public static bool IsAliasReplaceableExpression(this ExpressionSyntax expression)
         {

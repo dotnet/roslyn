@@ -1065,8 +1065,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return list.Where(Function(t) Not t.IsElastic())
         End Function
 
-        Private Function InsideCrefReference(expr As ExpressionSyntax) As Boolean
-            Dim crefAttribute = expr.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
+        <Extension>
+        Public Function InsideCrefReference(expression As ExpressionSyntax) As Boolean
+            Dim crefAttribute = expression.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
             Return crefAttribute IsNot Nothing
         End Function
 
@@ -1075,15 +1076,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return nameOfExpression IsNot Nothing
         End Function
 
-        Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
-            Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
-                    (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
-                   (Not InsideNameOfExpression(memberAccess)) AndAlso
+        Private Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, optionSet As OptionSet) As Boolean
+            ' Note: Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs 
+            ' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
+            ' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
+            Return (IsInMemberAccessContext(expression) OrElse
+                        (InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName)) AndAlso
+                   (Not InsideNameOfExpression(expression)) AndAlso
                    SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
         End Function
 
+        <Extension>
+        Public Function IsInMemberAccessContext(expression As ExpressionSyntax) As Boolean
+            Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax
+        End Function
+
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
-            Return (name.Parent IsNot Nothing) AndAlso (TypeOf name.Parent IsNot MemberAccessExpressionSyntax) AndAlso (Not InsideCrefReference(name)) AndAlso
+            Return (Not IsInMemberAccessContext(name)) AndAlso
+                   (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
                    SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
         End Function
@@ -1311,7 +1321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
                                 Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
                                 Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
-                                If token.Text = valueText OrElse inDeclarationContext OrElse inMemberAccessContext Then
+                                If token.Text = valueText OrElse (inDeclarationContext OrElse inMemberAccessContext) Then
 
                                     Dim codeStyleOptionName As String = Nothing
                                     If inDeclarationContext Then
