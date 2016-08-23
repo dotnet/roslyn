@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly ObjectPool<BaseNameProvider> s_providerPool =
                 new ObjectPool<BaseNameProvider>(() => new BaseNameProvider());
 
-            private List<string> nameParts;
+            private List<string> _nameParts;
 
             private BaseNameProvider()
             {
@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public static BaseNameProvider Allocate(List<string> nameParts)
             {
                 var provider = s_providerPool.Allocate();
-                Debug.Assert(provider.nameParts == null);
-                provider.nameParts = nameParts;
+                Debug.Assert(provider._nameParts == null);
+                provider._nameParts = nameParts;
                 return provider;
             }
 
             public static void Free(BaseNameProvider provider)
             {
-                Debug.Assert(provider.nameParts != null);
-                provider.nameParts = null;
+                Debug.Assert(provider._nameParts != null);
+                provider._nameParts = null;
                 s_providerPool.Free(provider);
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Add the namespace and name of this type definition.  But only do this
                 // for the first type we hit.  Any further types will be things like
                 // type arguments, as we do not want to add those to the list.
-                if (nameParts.Count == 0)
+                if (_nameParts.Count == 0)
                 {
                     var typeDefinition = reader.GetTypeDefinition(handle);
                     var declaringType = typeDefinition.GetDeclaringType();
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     // Now add the simple name of the type itself.
-                    nameParts.Add(GetMetadataNameWithoutBackticks(reader, typeDefinition.Name));
+                    _nameParts.Add(GetMetadataNameWithoutBackticks(reader, typeDefinition.Name));
                 }
                 return null;
             }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var namespaceDefinition = reader.GetNamespaceDefinition(namespaceHandle);
                 AddNamespaceParts(reader, namespaceDefinition.Parent);
-                nameParts.Add(reader.GetString(namespaceDefinition.Name));
+                _nameParts.Add(reader.GetString(namespaceDefinition.Name));
             }
 
             public object GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Add the namespace and name of this type reference.  But only do this
                 // for the first type we hit.  Any further types will be things like
                 // type arguments, as we do not want to add those to the list.
-                if (nameParts.Count == 0)
+                if (_nameParts.Count == 0)
                 {
                     var typeReference = reader.GetTypeReference(handle);
                     var namespaceString = reader.GetString(typeReference.Namespace);
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // NOTE(cyrusn): Unfortunately, we are forced to allocate here
                     // no matter what.  The metadata reader API gives us no way to
                     // just get the component namespace parts for a namespace reference.
-                    nameParts.AddRange(namespaceString.Split(s_dotSeparator));
-                    nameParts.Add(GetMetadataNameWithoutBackticks(reader, typeReference.Name));
+                    _nameParts.AddRange(namespaceString.Split(s_dotSeparator));
+                    _nameParts.Add(GetMetadataNameWithoutBackticks(reader, typeReference.Name));
                 }
                 return null;
             }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Create a decoder to process the type specification (which happens with
                 // instantiated generics).  It will call back into us to get the appropriate 
                 // name for the type def or type ref that the specification starts with.
-                if (nameParts.Count == 0)
+                if (_nameParts.Count == 0)
                 {
                     var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
                     new SignatureDecoder<object>(this, reader).DecodeType(ref sigReader);
