@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
+            Binder binder;
+
             switch (node.Kind())
             {
                 case SyntaxKind.ExpressionStatement:
@@ -281,9 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
-                    Binder binder = this.GetBinder(node);
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThrowStatement:
+                    binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(node, binder.BindStatement(node, diagnostics));
+
+                case SyntaxKind.LabeledStatement:
+                case SyntaxKind.LocalFunctionStatement:
+                    binder = this.GetBinder(node);
+                    Debug.Assert(binder != null);
+                    return binder.WrapWithVariablesAndLocalFunctionsIfAny(node, binder.BindStatement(node, diagnostics));
 
                 case SyntaxKind.SwitchStatement:
                     var switchStatement = (SwitchStatementSyntax)node;
@@ -326,18 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
-        {
-            if (node.Expression == null)
-            {
-                return BindThrowParts(node, diagnostics);
-            }
-
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
-            return binder.WrapWithVariablesIfAny(node, binder.BindThrowParts(node, diagnostics));
-        }
-
-        private BoundThrowStatement BindThrowParts(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression boundExpr = null;
             bool hasErrors = false;
@@ -3181,18 +3179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
-        {
-            if (syntax.Expression == null)
-            {
-                return BindReturnParts(syntax, diagnostics);
-            }
-
-            var binder = GetBinder(syntax);
-            Debug.Assert(binder != null);
-            return binder.WrapWithVariablesIfAny(syntax, binder.BindReturnParts(syntax, diagnostics));
-        }
-
-        private BoundReturnStatement BindReturnParts(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
             var refKind = RefKind.None;
             var expressionSyntax = syntax.Expression?.SkipRef(out refKind);
