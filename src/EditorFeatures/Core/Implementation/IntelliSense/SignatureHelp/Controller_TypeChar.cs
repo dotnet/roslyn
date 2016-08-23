@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             var service = GetSignatureHelpService();
+            if (service == null)
+            {
+                return;
+            }
+
             var options = GetOptions();
 
             if (IsSessionActive)
@@ -99,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var trigger = SignatureHelpTrigger.CreateInsertionTrigger(ch);
             return signatureHelpService.ShouldTriggerSignatureHelp(
-                previousPosition.Snapshot.AsText(), caretPosition, trigger, options);
+                this.SubjectBuffer.CurrentSnapshot.AsText(), caretPosition, trigger, options);
         }
     }
 }
