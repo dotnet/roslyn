@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _usedLocalFunctions.Add(localFunc);
 
-            // If we're not inside a local function and the stateChangedAfterUse
-            // variable has been set then we don't want to report anything yet.
-            // The local function state may not be fully settled.
-            if (stateChangedAfterUse && !InLocalFunction(currentMethodOrLambda))
-            {
-                return;
-            }
-
             // First process the reads
             ReplayVarUsage(localFunc,
                            syntax,
@@ -230,9 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return usages;
         }
-
-        private static bool InLocalFunction(Symbol symbol) =>
-            GetNearestLocalFunctionOpt(symbol) != null;
 
         private static LocalFunctionSymbol GetNearestLocalFunctionOpt(Symbol symbol)
         {
