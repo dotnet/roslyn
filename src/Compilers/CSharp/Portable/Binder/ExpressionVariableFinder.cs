@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
             _localsBuilder.Add(SourceLocalSymbol.MakePatternLocalSymbol(
-                _scopeBinder.ContainingMemberOrLambda, _scopeBinder, node));
+                _scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt ?? _scopeBinder, node));
 
             base.VisitDeclarationPattern(node);
         }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var context = node?.Parent  // ArgumentSyntax
                               ?.Parent  // ArgumentListSyntax
-                              ?.Parent; // invocation/constructor initializer
+                              ?.Parent; // invocation/constructor initializer/index access, etc.
             switch (context?.Kind())
             {
                 case SyntaxKind.InvocationExpression:
@@ -198,6 +198,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var local = SourceLocalSymbol.MakeOutVariableInCtorInitializer(
                             _scopeBinder.ContainingMemberOrLambda, _scopeBinder, node.Type(), node.Identifier(),
                             (ConstructorInitializerSyntax)context);
+                        _localsBuilder.Add(local);
+                        break;
+                    }
+
+                case SyntaxKind.ElementBindingExpression:
+                    {
+                        context = context.Parent;
+                        Debug.Assert(context.Kind() == SyntaxKind.ConditionalAccessExpression);
+                        var local = SourceLocalSymbol.MakeVariableDeclaredInExpression(
+                            _scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(),
+                            node.Identifier(), LocalDeclarationKind.RegularVariable, (ExpressionSyntax)context);
+                        _localsBuilder.Add(local);
+                        break;
+                    }
+
+                case SyntaxKind.ImplicitElementAccess:
+                    {
+                        context = context.Parent;
+                        Debug.Assert(context.Kind() == SyntaxKind.SimpleAssignmentExpression);
+                        context = context.Parent;
+                        Debug.Assert(context.Kind() == SyntaxKind.ObjectInitializerExpression);
+                        context = context.Parent;
+                        Debug.Assert(context.Kind() == SyntaxKind.ObjectCreationExpression);
+                        var local = SourceLocalSymbol.MakeVariableDeclaredInExpression(
+                            _scopeBinder.ContainingMemberOrLambda, _scopeBinder, _enclosingBinderOpt, node.Type(),
+                            node.Identifier(), LocalDeclarationKind.RegularVariable, (ExpressionSyntax)context);
                         _localsBuilder.Add(local);
                         break;
                     }

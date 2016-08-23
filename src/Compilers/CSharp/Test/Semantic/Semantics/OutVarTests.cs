@@ -131,17 +131,29 @@ public class Cls
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
 
+        private static void VerifyModelForOutVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutVar(model, decl, false, true, false, false, references);
+        }
+
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, true, false, references);
+            VerifyModelForOutVar(model, decl, false, true, false, true, references);
         }
 
         private static void VerifyModelForOutVarInNotExecutableCode(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, false, false, references);
+            VerifyModelForOutVar(model, decl, false, false, false, true, references);
         }
 
-        private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, bool isShadowed, params IdentifierNameSyntax[] references)
+        private static void VerifyModelForOutVar(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            bool isDelegateCreation,
+            bool isExecutableCode,
+            bool isShadowed,
+            bool verifyDataFlow = true,
+            params IdentifierNameSyntax[] references)
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
@@ -183,7 +195,10 @@ public class Cls
                 Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
 
-            VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
+            if (verifyDataFlow)
+            {
+                VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
+            }
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -13739,7 +13754,7 @@ public class Cls
 
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVar(model, x1Decl, true, true, false, x1Ref);
+            VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
@@ -14028,6 +14043,44 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+        }
+
+        [Fact]
+        public void SimpleVar_17()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(new System.Action(out var x1), 
+              x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,37): error CS0149: Method name expected
+                //         Test2(new System.Action(out var x1), 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
         [Fact]
@@ -14330,6 +14383,13 @@ public class Cls
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
             compilation.VerifyDiagnostics(
                 // (7,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out var x1], x1);
@@ -14338,9 +14398,6 @@ public class Cls
                 //         Test2(x[out var x1], x1);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithLocation(7, 25)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            Assert.Equal(1, GetOutVarDeclarations(tree, "x1").Count());
         }
 
         [Fact]
@@ -14363,6 +14420,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text,
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
             compilation.VerifyDiagnostics(
                 // (7,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out int x1], x1);
@@ -14371,9 +14435,6 @@ public class Cls
                 //         Test2(x[out int x1], x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(7, 21)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            Assert.Equal(1, GetOutVarDeclarations(tree, "x1").Count());
         }
 
         [Fact]
@@ -14589,7 +14650,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var compilation = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -14628,6 +14689,57 @@ public class Cls
   IL_0055:  pop
   IL_0056:  ret
 }");
+        }
+
+        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        public void IndexingDynamicWithOutVar()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        dynamic d = null;
+        var x = d[out var x1] + x1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
+            Assert.True(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (7,27): error CS8197: Cannot infer the type of implicitly-typed out variable.
+                //         var x = d[out var x1] + x1;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithLocation(7, 27)
+                );
+        }
+
+        [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
+        public void IndexingDynamicWithOutInt()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        dynamic d = null;
+        var x = d[out int x1] + x1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
+            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            compilation.VerifyDiagnostics();
         }
 
         [ClrOnlyFact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
@@ -14707,35 +14819,67 @@ public class Cls
   }
 }";
             var reference1 = CompileIL(source1);
-            var source2 =
+            var source2Template =
 @"using System;
 class B
-{
+{{
     public static void Main()
-    {
+    {{
         A a = new A();
         IA ia = a;
-        Console.WriteLine(ia.P[out int i1] + "" "" + i1);
-        ia.P[out int i2] = 4;
-        Console.WriteLine(i2);
-        Console.WriteLine(ia[out int i3] + "" "" + i3);
-        ia[out int i4] = 4;
-        Console.WriteLine(i4);
-    }
-}";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
-@"2 1
+        Console.WriteLine(ia.P[out {0} x1] + "" "" + x1);
+        ia.P[out {0} x2] = 4;
+        Console.WriteLine(x2);
+        Console.WriteLine(ia[out {0} x3] + "" "" + x3);
+        ia[out {0} x4] = 4;
+        Console.WriteLine(x4);
+    }}
+}}";
+            string[] fillIns = new[] { "int", "var" };
+            foreach (var fillIn in fillIns)
+            {
+                var source2 = string.Format(source2Template, fillIn);
+                var compilation = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+                var x1Ref = GetReferences(tree, "x1").ToArray();
+                Assert.Equal(1, x1Ref.Length);
+                VerifyModelForOutVar(model, x1Decl, x1Ref);
+                Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+
+                var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+                var x2Ref = GetReferences(tree, "x2").ToArray();
+                Assert.Equal(1, x2Ref.Length);
+                VerifyModelForOutVar(model, x2Decl, x2Ref);
+                Assert.Equal("System.Int32", model.GetTypeInfo(x2Ref[0]).Type.ToTestDisplayString());
+
+                var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+                var x3Ref = GetReferences(tree, "x3").ToArray();
+                Assert.Equal(1, x3Ref.Length);
+                VerifyModelForOutVar(model, x3Decl, x3Ref);
+                Assert.Equal("System.Int32", model.GetTypeInfo(x3Ref[0]).Type.ToTestDisplayString());
+
+                var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+                var x4Ref = GetReferences(tree, "x4").ToArray();
+                Assert.Equal(1, x4Ref.Length);
+                VerifyModelForOutVar(model, x4Decl, x4Ref);
+                Assert.Equal("System.Int32", model.GetTypeInfo(x4Ref[0]).Type.ToTestDisplayString());
+
+                CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+    @"2 1
 3
 5 4
-6");
-            compilation2.VerifyIL("B.Main()",
-@"{
+6")
+                .VerifyIL("B.Main()",
+    @"{
   // Code size      103 (0x67)
   .maxstack  4
-  .locals init (int V_0, //i1
-                int V_1, //i2
-                int V_2, //i3
-                int V_3) //i4
+  .locals init (int V_0, //x1
+                int V_1, //x2
+                int V_2, //x3
+                int V_3) //x4
   IL_0000:  newobj     ""A..ctor()""
   IL_0005:  dup
   IL_0006:  ldloca.s   V_0
@@ -14768,6 +14912,147 @@ class B
   IL_0061:  call       ""void System.Console.WriteLine(int)""
   IL_0066:  ret
 }");
+            }
+        }
+
+        [Fact]
+        public void ElementAccess_04()
+        {
+            var text = @"
+using System.Collections.Generic;
+public class Cls
+{
+    public static void Main()
+    {
+        var list = new Dictionary<int, long> { [out var x1] = 3 };
+        System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            compilation.VerifyDiagnostics(
+                // (7,53): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         var list = new Dictionary<int, long> { [out var x1] = 3 };
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(7, 53),
+                // (7,53): error CS0165: Use of unassigned local variable 'x1'
+                //         var list = new Dictionary<int, long> { [out var x1] = 3 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(7, 53)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+        int b(out var x2) = null; // parsed as a local function with syntax error
+        int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+    }
+}";
+            var compilation2 = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,13): error CS1003: Syntax error, ',' expected
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(6, 13),
+                // (6,17): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "var").WithLocation(6, 17),
+                // (6,21): error CS1003: Syntax error, ',' expected
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 21),
+                // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "x1").WithLocation(6, 21),
+                // (7,27): error CS1002: ; expected
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(7, 27),
+                // (7,27): error CS1525: Invalid expression term '='
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(7, 27),
+                // (8,14): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[out var x3]").WithLocation(8, 14),
+                // (8,15): error CS1003: Syntax error, ',' expected
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 15),
+                // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "var").WithLocation(8, 19),
+                // (8,23): error CS1003: Syntax error, ',' expected
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(8, 23),
+                // (8,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "x3").WithLocation(8, 23),
+                // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
+                // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 19),
+                // (8,29): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 29),
+                // (8,19): error CS0103: The name 'var' does not exist in the current context
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 19),
+                // (8,23): error CS0103: The name 'x3' does not exist in the current context
+                //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 23),
+                // (7,9): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "int b(out var x2) ").WithArguments("x2").WithLocation(7, 9),
+                // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
+                // (7,13): warning CS0168: The variable 'b' is declared but never used
+                //         int b(out var x2) = null; // parsed as a local function with syntax error
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void ElementAccess_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int[] e = null;
+        var z = e?[out var x1];
+        x1 = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            compilation.VerifyDiagnostics(
+                // (7,24): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         var z = e?[out var x1];
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(7, 24),
+                // (7,28): error CS8197: Cannot infer the type of implicitly-typed out variable.
+                //         var z = e?[out var x1];
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithLocation(7, 28)
+                );
         }
     }
 }

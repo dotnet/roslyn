@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static LocalSymbol MakePatternLocalSymbol(
             Symbol containingSymbol,
             Binder scopeBinder,
+            Binder expressionBinder,
             DeclarationPatternSyntax node)
         {
             Debug.Assert(node.Type.Kind() != SyntaxKind.RefType);
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (kind == SyntaxKind.IsPatternExpression)
                 {
                     var expr = (IsPatternExpressionSyntax)n;
-                    return new VariableDeclaredInExpression(containingSymbol, scopeBinder, scopeBinder, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable, expr);
+                    return new VariableDeclaredInExpression(containingSymbol, scopeBinder, expressionBinder, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable, expr);
                 }
                 else if (kind == SyntaxKind.CasePatternSwitchLabel)
                 {
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Make a local variable for an out variable declaration whose type is inferred as a side-effect of binding the enclosing expression.
+        /// Make a local variable for a variable declaration whose type is inferred as a side-effect of binding the enclosing expression.
         /// </summary>
         /// <param name="containingSymbol"></param>
         /// <param name="scopeBinder">The binder for the scope of the local</param>
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Make a local variable for an out variable declaration that can be inferred by binding a constructor initializer.
+        /// Make a local variable for a variable declaration that can be inferred by binding a constructor initializer.
         /// </summary>
         /// <param name="containingSymbol"></param>
         /// <param name="scopeBinder">The binder for the scope of the local</param>

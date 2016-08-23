@@ -1235,9 +1235,12 @@ public class X
         object o = 1;
         switch (o)
         {
-            case var i:
-                var s = i.ToString();
+            case var i when i.ToString() is var s:
                 Console.WriteLine(s);
+                break;
+            case var i2:
+                var s2 =  i2.ToString();
+                Console.WriteLine(s2);
                 break;
         }
     }
@@ -1248,6 +1251,12 @@ public class X
             var model = compilation.GetSemanticModel(tree);
             var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
             Assert.Equal("System.String", model.GetTypeInfo(sRef).Type.ToTestDisplayString());
+            var iRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(iRef).Type.ToTestDisplayString());
+            var s2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s2").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(s2Ref).Type.ToTestDisplayString());
+            var i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
         }
     }
 }
