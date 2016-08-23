@@ -365,9 +365,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected static bool IsCaptured(Symbol variable,
+        private static bool IsCaptured(Symbol variable,
                                          MethodSymbol containingMethodOrLambda,
-                                         ParameterSymbol rangeVariableUnderlyingParameter = null)
+                                         ParameterSymbol rangeVariableUnderlyingParameter)
         {
             switch (variable.Kind)
             {
@@ -835,7 +835,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (this.State.Reachable)
                 {
-                    if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
+                    if (slot >= this.State.Assigned.Capacity)
+                    {
+                        Normalize(ref this.State);
+                    }
+
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
                         ReportUnassigned(symbol, node, slot);

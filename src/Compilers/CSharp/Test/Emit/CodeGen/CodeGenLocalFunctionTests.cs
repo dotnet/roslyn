@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
     }
 
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]

@@ -289,10 +289,9 @@ namespace Microsoft.CodeAnalysis
         public bool UnionWith(BitVector other)
         {
             bool anyChanged = false;
-            int l = other._bits.Length;
 
-            if (l > _bits.Length)
-                Array.Resize(ref _bits, l + 1);
+            if (other._capacity > _capacity)
+                EnsureCapacity(other._capacity);
 
             Word oldbits = _bits0;
             _bits0 |= other._bits0;
@@ -300,7 +299,7 @@ namespace Microsoft.CodeAnalysis
             if (oldbits != _bits0)
                 anyChanged = true;
 
-            for (int i = 0; i < l; i++)
+            for (int i = 0; i < other._bits.Length; i++)
             {
                 oldbits = _bits[i];
                 _bits[i] |= other._bits[i];
@@ -308,9 +307,6 @@ namespace Microsoft.CodeAnalysis
                 if (_bits[i] != oldbits)
                     anyChanged = true;
             }
-
-            if (other._capacity > _capacity)
-                EnsureCapacity(other._capacity);
 
             Check();
 

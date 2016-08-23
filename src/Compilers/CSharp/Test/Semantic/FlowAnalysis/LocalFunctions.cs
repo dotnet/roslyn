@@ -1,7 +1,9 @@
-﻿using Xunit;
+﻿using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
