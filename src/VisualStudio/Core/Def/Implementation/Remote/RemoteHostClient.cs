@@ -25,26 +25,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public event EventHandler<bool> ConnectionChanged;
 
-        public Task<Session> CreateCodeAnalysisServiceSessionAsync(Solution solution, CancellationToken cancellationToken)
+        public Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
-            return CreateCodeAnalysisServiceSessionAsync(solution, callbackTarget: null, cancellationToken: cancellationToken);
+            return CreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
         }
 
-        public async Task<Session> CreateCodeAnalysisServiceSessionAsync(Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public async Task<Session> CreateServiceSessionAsync(string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
 
             var service = _workspace.Services.GetService<ISolutionChecksumService>();
             var snapshot = await service.CreateChecksumAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await CreateCodeAnalysisServiceSessionAsync(snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await CreateServiceSessionAsync(serviceName, snapshot, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract void OnConnected();
 
         protected abstract void OnDisconnected();
 
-        protected abstract Task<Session> CreateCodeAnalysisServiceSessionAsync(ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken);
+        protected abstract Task<Session> CreateServiceSessionAsync(string serviceName, ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken);
 
         internal void Shutdown()
         {
