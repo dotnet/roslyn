@@ -1083,6 +1083,7 @@ Foo();
             Assert.True(foo.IsStatic);
             Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
             Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.False(foo.Parameters[0].Type.IsAbstract);
         }
 
         [Fact]
