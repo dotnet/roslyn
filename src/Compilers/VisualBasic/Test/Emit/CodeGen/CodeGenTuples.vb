@@ -5932,8 +5932,8 @@ End Module
 
             Dim type = nodes.OfType(Of QualifiedNameSyntax)().First()
             Assert.Equal("System.Int32", type.ToString())
-            Assert.NotNull(model.GetSymbolInfo(type))
             Assert.NotNull(model.GetSymbolInfo(type).Symbol)
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString())
 
         End Sub
 

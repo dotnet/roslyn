@@ -5154,7 +5154,7 @@ class C
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt2 = comp.CreateErrorTypeSymbol(null, "ValueTuple", 2).Construct(intType, intType);
 
-            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>)));
+            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType: vt2));
         }
 
         [Fact]

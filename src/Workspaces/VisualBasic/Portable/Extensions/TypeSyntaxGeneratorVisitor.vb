@@ -123,15 +123,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
         End Function
 
-        Private Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
-            Dim list = New SeparatedSyntaxList(Of TupleElementSyntax)()
+        Private Shared Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             Dim types = symbol.TupleElementTypes
             Dim names = symbol.TupleElementNames
             Dim hasNames = Not names.IsDefault
 
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
                 types.Select(Function(t, i) SyntaxFactory.TupleElement(
-                    If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), GenerateTypeSyntax(t)))))
+                    If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), t.GenerateTypeSyntax()))))
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax
