@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return
             End If
 
-            Dim id = GetCodeActionId(diagnosticId, node.ToString())
+            Dim id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString())
             Dim title = id
             context.RegisterCodeFix(
                 New SimplifyTypeNameCodeAction(

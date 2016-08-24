@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 return;
             }
 
-            var id = GetCodeActionId(diagnosticId, node.ToString());
+            var id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString());
             var title = id;
             var codeAction = new SimplifyTypeNameCodeAction(title,
                     (c) => SimplifyTypeNameAsync(document, node, c),
