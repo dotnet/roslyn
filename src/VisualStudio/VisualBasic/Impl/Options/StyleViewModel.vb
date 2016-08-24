@@ -165,7 +165,7 @@ End Class
                 New CodeStylePreference(BasicVSResources.Do_not_prefer_Me, isChecked:=False)
             }
 
-            Dim predefinedTypesGroupTitle = BasicVSResources.predefined_type_preferences_colon
+            Dim predefinedTypesGroupTitle = BasicVSResources.Predefined_type_preferences_colon
             Dim predefinedTypesPreferences = New List(Of CodeStylePreference) From
             {
                 New CodeStylePreference(ServicesVSResources.Prefer_predefined_type, isChecked:=True),

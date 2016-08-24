@@ -228,8 +228,8 @@
   <data name="Me_preferences_colon" xml:space="preserve">
     <value>'Me.' preferences:</value>
   </data>
-  <data name="predefined_type_preferences_colon" xml:space="preserve">
-    <value>predefined type preferences:</value>
+  <data name="Predefined_type_preferences_colon" xml:space="preserve">
+    <value>Predefined type preferences:</value>
   </data>
   <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
     <value>_Highlight matching portions of completion list items</value>

@@ -369,13 +369,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Place_System_directives_first_when_sorting_imports", resourceCulture)
             End Get
         End Property
-        
+
         '''<summary>
-        '''  Looks up a localized string similar to predefined type preferences:.
+        '''  Looks up a localized string similar to Predefined type preferences:.
         '''</summary>
-        Friend Shared ReadOnly Property predefined_type_preferences_colon() As String
+        Friend Shared ReadOnly Property Predefined_type_preferences_colon() As String
             Get
-                Return ResourceManager.GetString("predefined_type_preferences_colon", resourceCulture)
+                Return ResourceManager.GetString("Predefined_type_preferences_colon", resourceCulture)
             End Get
         End Property
         
