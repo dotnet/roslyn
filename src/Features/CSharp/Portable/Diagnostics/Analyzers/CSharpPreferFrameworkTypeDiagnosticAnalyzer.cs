@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                    SyntaxFacts.IsPredefinedType(syntaxKind.Value);
         }
 
-        protected override bool IsInMemberAccessContext(SyntaxNode node, SemanticModel semanticModel)
+        protected override bool IsInMemberAccessOrCrefReferenceContext(SyntaxNode node, SemanticModel semanticModel)
         {
             var expression = (node as ExpressionSyntax);
             if (expression == null)

@@ -469,7 +469,7 @@ namespace Root
 {
     [|System.Int32|] i;
 }";
-            var featureOptions = PreferIntrinsicTypeEverywhere();
+            var featureOptions = PreferIntrinsicTypeEverywhere;
             await TestAsync(source,
 @"
 class A
@@ -1132,7 +1132,7 @@ class Program
 
         }
     }
-}", index: 0, options: PreferIntrinsicTypeEverywhere());
+}", index: 0, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -2792,7 +2792,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere());
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2816,7 +2816,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeInMemberAccess());
+}", compareTokens: false, options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2838,7 +2838,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere());
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2862,7 +2862,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false, options: PreferIntrinsicTypeEverywhere());
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2905,7 +2905,7 @@ class C
     public void z()
     {
     }
-}", options: PreferIntrinsicTypeInMemberAccess());
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2948,7 +2948,7 @@ class C
     {
     }
 }",
-options: PreferIntrinsicTypeInMemberAccess());
+options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -2987,7 +2987,7 @@ class C
     {
     }
 }",
-options: PreferIntrinsicTypeInMemberAccess());
+options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3060,7 +3060,7 @@ class C
     {
         var sss = int.MaxValue;
     }
-}", options: PreferIntrinsicTypeInMemberAccess());
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3084,7 +3084,7 @@ class C
     {
         var sss = int.MaxValue;
     }
-}", options: PreferIntrinsicTypeInMemberAccess());
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
@@ -3175,7 +3175,7 @@ class C
 }";
             using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
-                workspace.ApplyOptions(PreferIntrinsicTypeEverywhere());
+                workspace.ApplyOptions(PreferIntrinsicTypeEverywhere);
                 var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
@@ -3301,32 +3301,20 @@ class Program
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
-            await TestAsync(code, expected, index, options: PreferIntrinsicTypeEverywhere());
+            await TestAsync(code, expected, index, options: PreferIntrinsicTypeEverywhere);
         }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere()
-        {
-            var language = GetLanguage();
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage());
 
-            return Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, language);
-        }
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, GetLanguage());
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration()
-        {
-            var language = GetLanguage();
-
-            return Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, language);
-        }
-
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess()
-        {
-            var language = GetLanguage();
-
-            return Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, language);
-        }
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage());
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);

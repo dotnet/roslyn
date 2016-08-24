@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             End Get
         End Property
 
-        Protected Overrides Function IsInMemberAccessContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
+        Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
             Dim expression = TryCast(node, ExpressionSyntax)
             If expression Is Nothing Then
                 Return False

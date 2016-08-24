@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
         protected abstract bool IsPredefinedTypeAndReplaceableWithFrameworkType(SyntaxNode node);
-        protected abstract bool IsInMemberAccessContext(SyntaxNode node, SemanticModel semanticModel);
+        protected abstract bool IsInMemberAccessOrCrefReferenceContext(SyntaxNode node, SemanticModel semanticModel);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             }
 
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
-            if (IsInMemberAccessContext(predefinedTypeNode, semanticModel))
+            if (IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode, semanticModel))
             {
                 applicableOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                 applicableDiagnosticId = IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId;

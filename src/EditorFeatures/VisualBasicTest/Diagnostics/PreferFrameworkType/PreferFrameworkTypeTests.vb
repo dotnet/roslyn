@@ -21,25 +21,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(), New VisualBasicPreferFrameworkTypeCodeFixProvider())
         End Function
 
-        Private Function NoFrameworkType() As IDictionary(Of OptionKey, Object)
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Suggestion).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage())
-        End Function
+        Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Suggestion).With(
+                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage())
+            End Get
+        End Property
 
-        Private Function FrameworkTypeEverywhere() As IDictionary(Of OptionKey, Object)
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo, GetLanguage())
-        End Function
+        Private ReadOnly Property FrameworkTypeEverywhere As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion).With(
+                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo, GetLanguage())
+            End Get
+        End Property
 
-        Private Function FrameworkTypeInDeclaration() As IDictionary(Of OptionKey, Object)
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage())
-        End Function
+        Private ReadOnly Property FrameworkTypeInDeclaration As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion).With(
+                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage())
+            End Get
+        End Property
 
-        Private Function FrameworkTypeInMemberAccess() As IDictionary(Of OptionKey, Object)
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Suggestion).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo, GetLanguage())
-        End Function
+        Private ReadOnly Property FrameworkTypeInMemberAccess As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Suggestion).With(
+                 CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo, GetLanguage())
+            End Get
+        End Property
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         Public Async Function NotWhenOptionsAreNotSet() As Task
@@ -47,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
 Class C
     Protected i As [|Integer|]
 End Class
-", options:=NoFrameworkType())
+", options:=NoFrameworkType)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -56,7 +64,7 @@ End Class
 Class C
     Protected i As [|C|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -66,7 +74,7 @@ Imports System
 Class C
     Protected i As [|Int32|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -75,7 +83,7 @@ End Class
 Class C
     Protected i As [|System.Int32|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -84,7 +92,7 @@ End Class
 Class C
     Protected i As [|List|](Of Integer)
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -93,7 +101,7 @@ End Class
 Class C
     Protected [|i|] As Integer
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -102,7 +110,7 @@ End Class
 Class C
     Protected x As [|Boolean|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -111,7 +119,7 @@ End Class
 Class C
     Protected x As [|Byte|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -120,7 +128,7 @@ End Class
 Class C
     Protected x As [|Char|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -129,7 +137,7 @@ End Class
 Class C
     Protected x As [|Object|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -138,7 +146,7 @@ End Class
 Class C
     Protected x As [|SByte|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -147,7 +155,7 @@ End Class
 Class C
     Protected x As [|String|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -156,7 +164,7 @@ End Class
 Class C
     Protected x As [|Single|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -165,7 +173,7 @@ End Class
 Class C
     Protected x As [|Decimal|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -174,7 +182,7 @@ End Class
 Class C
     Protected x As [|Double|]
 End Class
-", options:=FrameworkTypeEverywhere())
+", options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -188,7 +196,7 @@ End Class
 "Imports System
 Class C
     Protected i As Int32
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -202,7 +210,7 @@ End Class
 "Imports System
 Class C
     Protected i As Int32 = 5
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -216,7 +224,7 @@ End Class
 "Imports System
 Class C
     Public Delegate Function PerformCalculation(x As Integer, y As Integer) As Int32
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -230,7 +238,7 @@ End Class
 "Imports System
 Class C
     Public Property X As Int64
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -246,7 +254,7 @@ End Class
 Imports System.Collections.Generic
 Class C
     Public Property X As List(Of Int64)
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -262,7 +270,7 @@ End Class
 Class C
     Public Function F() As Int32
     End Function
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -278,7 +286,7 @@ End Class
 Class C
     Public Sub F(x As Int32)
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -300,7 +308,7 @@ Class C
     Public Sub Test()
         Method(Of Int32)()
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -318,7 +326,7 @@ Class C
     Public Sub Test()
         Dim x As Int32 = 5
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -336,7 +344,7 @@ Class C
     Public Sub Test()
         Dim x = Int32.MaxValue
     End Sub
-End Class", options:=FrameworkTypeInMemberAccess())
+End Class", options:=FrameworkTypeInMemberAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -354,7 +362,7 @@ Class C
     Public Sub Test()
         Dim x = Int32.Parse(""1"")
     End Sub
-End Class", options:=FrameworkTypeInMemberAccess())
+End Class", options:=FrameworkTypeInMemberAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -372,7 +380,7 @@ Class C
     ''' <see cref=""Int32.MaxValue""/>
     Public Sub Test()
     End Sub
-End Class", options:=FrameworkTypeInMemberAccess())
+End Class", options:=FrameworkTypeInMemberAccess)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -390,7 +398,7 @@ Class C
     Public Sub Test()
          Dim x = GetType(Int32)
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -408,7 +416,7 @@ Class C
     Public Sub Test()
         Dim func3 As Func(Of Integer, Integer) = Function(z As Int32) z + 1
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -426,7 +434,7 @@ Class C
     Public Sub Test()
         Dim z = New DateTime(2016, 8, 23)
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -444,7 +452,7 @@ Class C
     Public Sub Test()
         Dim k As Int32() = New Integer(3) {}
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -462,7 +470,7 @@ Class C
     Public Sub Test()
         Dim k As Integer() = New Int32(3) {0, 1, 2, 3}
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -482,7 +490,7 @@ Class C
     Public Sub Test()
         Dim a As List(Of Int32()(,)(,,,))
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -502,7 +510,7 @@ Class C
         For j As Int32 = 0 To 3
         Next
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
@@ -522,7 +530,7 @@ Class C
         For Each item As Int32 In New Integer() {1, 2, 3}
         Next
     End Sub
-End Class", options:=FrameworkTypeInDeclaration())
+End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
     End Class
