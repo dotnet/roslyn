@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledDictionary<LabelSymbol, LocalState> _labels;
 
         /// <summary>
-        /// Set to true after an analysis scan if the analysis was incomplete due to a backward
-        /// "goto" branch changing some analysis result.  In this case the caller scans again (until
+        /// Set to true after an analysis scan if the analysis was incomplete due to state changing
+        /// after it was used by another analysis component.  In this case the caller scans again (until
         /// this is false). Since the analysis proceeds by monotonically changing the state computed
         /// at each label, this must terminate.
         /// </summary>
-        internal bool backwardBranchChanged;
+        protected bool stateChangedAfterUse;
 
         /// <summary>
         /// See property PendingBranches
@@ -376,11 +376,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.State = ReachableState();
                 _pendingBranches.Clear();
                 if (_trackExceptions) _pendingBranches.Add(new PendingBranch(null, ReachableState()));
-                this.backwardBranchChanged = false;
+                this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
                 returns = this.Scan(ref badRegion);
             }
-            while (this.backwardBranchChanged);
+            while (this.stateChangedAfterUse);
 
             return returns;
         }
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IntersectWith(ref oldState, ref this.State))
             {
                 _loopHeadState[node] = oldState;
-                this.backwardBranchChanged = true;
+                this.stateChangedAfterUse = true;
             }
         }
 
@@ -848,13 +848,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.LabeledStatement:
                         {
                             var label = (BoundLabeledStatement)node;
-                            backwardBranchChanged |= ResolveBranches(label.Label, label);
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
                         }
                         break;
                     case BoundKind.LabelStatement:
                         {
                             var label = (BoundLabelStatement)node;
-                            backwardBranchChanged |= ResolveBranches(label.Label, label);
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
                         }
                         break;
                     case BoundKind.SwitchSection:
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var sec = (BoundSwitchSection)node;
                             foreach (var label in sec.SwitchLabels)
                             {
-                                backwardBranchChanged |= ResolveBranches(label.Label, sec);
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
                             }
                         }
                         break;
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var sec = (BoundPatternSwitchSection)node;
                             foreach (var label in sec.SwitchLabels)
                             {
-                                backwardBranchChanged |= ResolveBranches(label.Label, sec);
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
                             }
                         }
                         break;
