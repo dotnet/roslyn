@@ -7425,6 +7425,7 @@ tryAgain:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
             }

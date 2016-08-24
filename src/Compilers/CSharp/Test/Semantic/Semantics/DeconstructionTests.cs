@@ -2356,5 +2356,26 @@ class C1
                 );
             // no crash
         }
+
+        [Fact]
+        public void DeclarationCannotBeEmbedded()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        if (true)
+            var (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                );
+        }
     }
 }
