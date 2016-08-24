@@ -77,42 +77,53 @@ namespace Microsoft.CodeAnalysis
         /// <param name="parent">The parent of this rule set include</param>
         private string GetIncludePath(RuleSet parent)
         {
-            List<string> found = new List<string>();
-            string expandedPath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
+            string expandedIncludePath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
+            var parentRulesetPath = parent?.FilePath;
 
-            if (PathUtilities.IsUnixLikePlatform)
+            var resolvedIncludePath = ResolveIncludePath(expandedIncludePath, parentRulesetPath);
+            if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
             {
-                expandedPath = expandedPath.Replace('\\', PortableShim.Path.DirectorySeparatorChar);
-            }
-
-            // If a full path is specified then use it
-            if (Path.IsPathRooted(expandedPath))
-            {
-                if (PortableShim.File.Exists(expandedPath))
-                {
-                    found.Add(expandedPath);
-                }
-            }
-
-            // If the current rule set is backed by a file then try to find the include file relative to it
-            if (parent != null && !string.IsNullOrEmpty(parent.FilePath))
-            {
-                string local = Path.Combine(Path.GetDirectoryName(parent.FilePath), expandedPath);
-                if (PortableShim.File.Exists(local))
-                {
-                    found.Add(local);
-                }
+                // Attempt to resolve legacy ruleset includes by replacing Windows style directory separator char with current plaform's directory separator char.
+                resolvedIncludePath = ResolveIncludePath(expandedIncludePath, parentRulesetPath, replaceDirectorySeparatorChar: true);
             }
 
             // If we still couldn't find it then throw an exception;
-            if (found.Count == 0)
+            if (resolvedIncludePath == null)
             {
                 throw new FileNotFoundException(string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, _includePath), _includePath);
             }
 
             // Return the canonical full path
-            Debug.Assert(found.Count > 0);
-            return PortableShim.Path.GetFullPath(found[0]);
+            return PortableShim.Path.GetFullPath(resolvedIncludePath);
+        }
+
+        private static string ResolveIncludePath(string includePath, string parentRulesetPath, bool replaceDirectorySeparatorChar = false)
+        {
+            if (replaceDirectorySeparatorChar)
+            {
+                Debug.Assert(PathUtilities.IsUnixLikePlatform);
+                includePath = includePath.Replace('\\', PortableShim.Path.DirectorySeparatorChar);
+            }
+
+            // If a full path is specified then use it
+            if (Path.IsPathRooted(includePath))
+            {
+                if (PortableShim.File.Exists(includePath))
+                {
+                    return includePath;
+                }
+            }
+            else if (!string.IsNullOrEmpty(parentRulesetPath))
+            {
+                // Otherwise, try to find the include file relative to the parent ruleset.
+                includePath = PathUtilities.CombinePathsUnchecked(Path.GetDirectoryName(parentRulesetPath), includePath);
+                if (PortableShim.File.Exists(includePath))
+                {
+                    return includePath;
+                }
+            }
+
+            return null;
         }
     }
 }
