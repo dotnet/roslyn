@@ -17645,5 +17645,34 @@ class C3
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
                 );
         }
+
+        [Fact, WorkItem(12952, "https://github.com/dotnet/roslyn/issues/12952")]
+        public void DropTupleNamesFromArray()
+        {
+            var source = @"
+public class C
+{
+    public (int c, int d)[] M()
+    {
+        return new[] { (d: 1, 2) };
+    }
+    public (int c, int d)[] M2()
+    {
+        return new[] { (d: 1, 2), (d: 1, e: 3), TupleDE() };
+    }
+    public (int d, int e) TupleDE()
+    {
+        return (1, 3);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,42): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
+                //         return new[] { (d: 1, 2), (d: 1, e: 3) };
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 3").WithArguments("e").WithLocation(10, 42)
+                );
+        }
     }
 }
