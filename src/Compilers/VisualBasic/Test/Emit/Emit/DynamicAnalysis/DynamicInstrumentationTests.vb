@@ -142,7 +142,7 @@ True
   IL_0038:  ret
 }
                 ]]>.Value)
-
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -197,7 +197,8 @@ True
             Dim preprocessorSymbols = ImmutableArray.Create(New KeyValuePair(Of String, Object)("_MyType", "Console"))
             Dim parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
 
-            CompileAndVerify(source, expectedOutput, TestOptions.ReleaseExe.WithParseOptions(parseOptions))
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput, TestOptions.ReleaseExe.WithParseOptions(parseOptions))
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -278,7 +279,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -417,6 +419,7 @@ True
   IL_0063:  ret
 }
                 ]]>.Value)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -491,7 +494,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -593,7 +597,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -747,7 +752,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -825,7 +831,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -911,7 +918,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -975,7 +983,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1070,7 +1079,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1140,7 +1150,15 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithLocation(3, 16),
+                Diagnostic(ERRID.WRN_UnusedLocal, "o1").WithArguments("o1").WithLocation(14, 13),
+                Diagnostic(ERRID.WRN_UnusedLocal, "aa").WithArguments("aa").WithLocation(6, 17),
+                Diagnostic(ERRID.WRN_UnusedLocal, "o4").WithArguments("o4").WithLocation(14, 67),
+                Diagnostic(ERRID.WRN_UnusedLocal, "bb").WithArguments("bb").WithLocation(6, 21),
+                Diagnostic(ERRID.WRN_UnusedLocal, "cc").WithArguments("cc").WithLocation(7, 17),
+                Diagnostic(ERRID.WRN_UnusedLocal, "dd").WithArguments("dd").WithLocation(7, 32))
         End Sub
 
         <Fact>
@@ -1224,7 +1242,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1334,7 +1353,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1422,7 +1442,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1553,7 +1574,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
