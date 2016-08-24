@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "Microsoft.Build": "14.0.0-preview01",
     "Microsoft.Build.Tasks.Core": "14.0.0-preview01",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
