@@ -14157,44 +14157,6 @@ public class Cls
         }
 
         [Fact]
-        public void SimpleVar_17()
-        {
-            var text = @"
-public class Cls
-{
-    public static void Main()
-    {
-        Test2(new System.Action(out var x1), 
-              x1);
-    }
-
-    static void Test2(object x, object y)
-    {
-        System.Console.WriteLine(y);
-    }
-}";
-            var compilation = CreateCompilationWithMscorlib(text,
-                                                            options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
-
-            compilation.VerifyDiagnostics(
-                // (6,37): error CS0149: Method name expected
-                //         Test2(new System.Action(out var x1), 
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "var x1").WithLocation(6, 37)
-                );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var x1Decl = GetOutVarDeclaration(tree, "x1");
-            var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
-
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
-            Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
-        }
-
-        [Fact]
         public void VarAndBetterness_01()
         {
             var text = @"
