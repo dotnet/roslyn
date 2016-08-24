@@ -763,6 +763,30 @@ class C
         }
 
         [Fact]
+        public void NotAssignable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (1, P) = (1, 2);
+    }
+    static int P { get { return 1; } }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 10),
+                // (6,13): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TupleWithUseSiteError()
         {
             string source = @"
