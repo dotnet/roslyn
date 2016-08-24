@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.TestImpact.BuildManagement
                         runtimeMetadataVersion: null,
                         tolerateErrors: false,
                         includePrivateMembers: true,
-                        instrument: options.Instrument);
+                        instrumentationKinds: ImmutableArray.Create(options.InstrumentationKinds));
         }
 
         private static IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> GetResourceDescriptions(ImmutableArray<ResourceDescription> resources)
