@@ -5146,6 +5146,17 @@ class C
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
         }
 
+        [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
+        public void CreateTupleTypeSymbol_UnderlyingTypeIsError()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var vt2 = comp.CreateErrorTypeSymbol(null, "ValueTuple", 2).Construct(intType, intType);
+
+            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType: vt2));
+        }
+
         [Fact]
         public void CreateTupleTypeSymbol_BadNames()
         {
