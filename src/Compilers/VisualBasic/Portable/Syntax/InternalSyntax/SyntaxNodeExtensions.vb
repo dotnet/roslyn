@@ -608,7 +608,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 tokenListBuilder.Add(DirectCast(this, SyntaxToken))
                 Return
             End If
-            ' This implementation is overridden for tokens; this is the implementation for non-token nodes.
 
             ' Add diagnostics.
             Dim diagnostics As DiagnosticInfo() = this.GetDiagnostics()
