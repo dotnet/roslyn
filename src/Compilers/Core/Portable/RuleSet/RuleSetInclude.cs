@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis
             List<string> found = new List<string>();
             string expandedPath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
 
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                expandedPath = expandedPath.Replace('\\', PortableShim.Path.DirectorySeparatorChar);
+            }
+
             // If a full path is specified then use it
             if (Path.IsPathRooted(expandedPath))
             {
