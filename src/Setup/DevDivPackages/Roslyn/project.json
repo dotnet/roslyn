@@ -13,7 +13,7 @@
     "System.IO.FileSystem.Primitives": "4.0.1"
   },
   "frameworks": {
-    "net461": {}
+    "net46": {}
   },
   "runtimes": {
     "win": {}
