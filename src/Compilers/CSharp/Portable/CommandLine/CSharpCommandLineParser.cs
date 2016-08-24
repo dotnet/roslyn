@@ -313,16 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                switch (value.ToLower())
-                                {
-                                    case "testcoverage":
-                                        instrumentationKinds.Add(InstrumentationKind.TestCoverage);
-                                        break;
-
-                                    default:
-                                        AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidInstrumentationKind, value);
-                                        break;
-                                }
+                                instrumentationKinds.AddRange(ParseInstrumentationKinds(value, diagnostics));
                             }
 
                             continue;
@@ -1663,6 +1654,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (outputKind.IsNetModule() && win32ManifestFile != null)
             {
                 AddDiagnostic(diagnostics, ErrorCode.WRN_CantHaveManifestForModule);
+            }
+        }
+
+        internal static IEnumerable<InstrumentationKind> ParseInstrumentationKinds(string value, IList<Diagnostic> diagnostics)
+        {
+            string[] kinds = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var kind in kinds)
+            {
+                switch (kind.ToLower())
+                {
+                    case "testcoverage":
+                        yield return InstrumentationKind.TestCoverage;
+                        break;
+
+                    default:
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidInstrumentationKind, kind);
+                        break;
+                }
             }
         }
 

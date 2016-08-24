@@ -551,12 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            Select Case value.ToLower()
-                                Case "testcoverage"
-                                    instrumentationKinds.Add(InstrumentationKind.TestCoverage)
-                                Case Else
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, value)
-                            End Select
+                            instrumentationKinds.AddRange(ParseInstrumentationKinds(value, diagnostics))
 
                             Continue For
 
@@ -1973,6 +1968,18 @@ lVbRuntimePlus:
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using
+        End Function
+
+        Private Shared Iterator Function ParseInstrumentationKinds(value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of InstrumentationKind)
+            Dim instrumentationKindStrs = value.Split({","c}, StringSplitOptions.RemoveEmptyEntries)
+            For Each instrumentationKindStr In instrumentationKindStrs
+                Select Case instrumentationKindStr.ToLower()
+                    Case "testcoverage"
+                        Yield InstrumentationKind.TestCoverage
+                    Case Else
+                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, instrumentationKindStr)
+                End Select
+            Next
         End Function
 
         Private Shared Function IsSeparatorOrEndOfFile(token As SyntaxToken) As Boolean

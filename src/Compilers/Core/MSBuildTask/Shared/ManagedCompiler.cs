@@ -71,15 +71,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             set { _store[nameof(ChecksumAlgorithm)] = value; }
             get { return (string)_store[nameof(ChecksumAlgorithm)]; }
         }
-        
-        /// <summary>
-        /// Specifies the list of instrumentation kinds to be used during compilation.
-        /// </summary>
-        public string InstrumentationKinds
-        {
-            set { _store[nameof(InstrumentationKinds)] = value; }
-            get { return (string)_store[nameof(InstrumentationKinds)]; }
-        }
 
         public string CodeAnalysisRuleSet
         {
@@ -164,6 +155,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(HighEntropyVA)] = value; }
             get { return _store.GetOrDefault(nameof(HighEntropyVA), false); }
+        }
+
+        /// <summary>
+        /// Specifies the list of instrumentation kinds to be used during compilation.
+        /// </summary>
+        public string InstrumentationKinds
+        {
+            set { _store[nameof(InstrumentationKinds)] = value; }
+            get { return (string)_store[nameof(InstrumentationKinds)]; }
         }
 
         public string KeyContainer
