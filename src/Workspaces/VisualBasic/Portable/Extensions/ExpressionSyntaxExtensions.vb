@@ -1077,13 +1077,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, optionSet As OptionSet) As Boolean
-            ' Note: Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs 
-            ' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
-            ' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
-            Return (IsInMemberAccessContext(expression) OrElse
-                        (InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName)) AndAlso
+            Return (IsInMemberAccessContext(expression) OrElse IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression)) AndAlso
                    (Not InsideNameOfExpression(expression)) AndAlso
                    SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
+        End Function
+
+        ''' <Remarks>
+        ''' Note: This helper exists solely to work around Bug 1012713. Once it is fixed, this helper must be
+        ''' deleted in favor of <see cref="InsideCrefReference(ExpressionSyntax)"/>.
+        ''' Context: Bug 1012713 makes it so that the compiler doesn't support `PredefinedType.Member` inside crefs 
+        ''' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
+        ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
+        ''' </Remarks>
+        Private Function IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression As ExpressionSyntax) As Boolean
+            Return (InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName)
         End Function
 
         <Extension>
