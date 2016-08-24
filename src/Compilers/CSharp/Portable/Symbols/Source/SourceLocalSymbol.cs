@@ -120,43 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Make a pattern local variable symbol which can be inferred (if necessary) by binding the enclosing pattern-matching operation.
+        /// Make a local variable symbol whose type can be inferred (if necessary) by binding and enclosing construct.
         /// </summary>
-        internal static LocalSymbol MakePatternLocalSymbol(
+        internal static LocalSymbol MakeLocalSymbolWithEnclosingContext(
             Symbol containingSymbol,
             Binder scopeBinder,
-            Binder expressionBinder,
-            DeclarationPatternSyntax node)
+            Binder nodeBinder,
+            TypeSyntax typeSyntax,
+            SyntaxToken identifierToken,
+            LocalDeclarationKind kind,
+            SyntaxNode nodeToBind,
+            SyntaxNode forbiddenZone)
         {
-            Debug.Assert(node.Type.Kind() != SyntaxKind.RefType);
-            if (!node.Type.IsVar)
-            {
-                return new SourceLocalSymbol(containingSymbol, scopeBinder, false, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable);
-            }
-
-            //
-            // A pattern variable's type can be inferred from context.
-            //
-            // The syntax allows a pattern either (1) on the right-hand-side of an "is-pattern" expression, or
-            // (2) in the pattern of a switch case. These have their type inferred using different mechanisms,
-            // so we need to find that context. These are the only cases the parser will produce, so we can be
-            // confident that we will find one of them by scanning up node's .Parent chain. We allow
-            // a NullReferenceException at n.Parent to occur when we are fed bad trees.
-            //
-            for (SyntaxNode n = node; ; n = n.Parent)
-            {
-                var kind = n.Kind();
-                if (kind == SyntaxKind.IsPatternExpression)
-                {
-                    var expr = (IsPatternExpressionSyntax)n;
-                    return new VariableDeclaredInExpression(containingSymbol, scopeBinder, expressionBinder, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable, expr);
-                }
-                else if (kind == SyntaxKind.CasePatternSwitchLabel)
-                {
-                    var label = (CasePatternSwitchLabelSyntax)n;
-                    return new SwitchPatternLocalSymbol(containingSymbol, scopeBinder, node.Type, node.Identifier, label);
-                }
-            }
+            Debug.Assert(nodeToBind.Kind() != SyntaxKind.BracketedArgumentList);
+            return new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone);
         }
 
         /// <summary>
@@ -192,54 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind);
-        }
-
-        /// <summary>
-        /// Make a local variable for a variable declaration whose type is inferred as a side-effect of binding the enclosing expression.
-        /// </summary>
-        /// <param name="containingSymbol"></param>
-        /// <param name="scopeBinder">The binder for the scope of the local</param>
-        /// <param name="invocationBinderOpt">The binder for the invocation, if different from scopeBinder</param>
-        /// <param name="typeSyntax">The type syntax</param>
-        /// <param name="identifierToken"></param>
-        /// <param name="declarationKind"></param>
-        /// <param name="context">The expression to be bound, which will result in the variable receiving a type</param>
-        /// <returns></returns>
-        public static SourceLocalSymbol MakeVariableDeclaredInExpression(
-            Symbol containingSymbol,
-            Binder scopeBinder,
-            Binder invocationBinderOpt,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            LocalDeclarationKind declarationKind,
-            ExpressionSyntax context)
-        {
-            Debug.Assert(typeSyntax.Kind() != SyntaxKind.RefType);
-            return typeSyntax.IsVar
-                ? new VariableDeclaredInExpression(containingSymbol, scopeBinder, invocationBinderOpt ?? scopeBinder, typeSyntax, identifierToken, declarationKind, context)
-                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind);
-        }
-
-        /// <summary>
-        /// Make a local variable for a variable declaration that can be inferred by binding a constructor initializer.
-        /// </summary>
-        /// <param name="containingSymbol"></param>
-        /// <param name="scopeBinder">The binder for the scope of the local</param>
-        /// <param name="typeSyntax"></param>
-        /// <param name="identifierToken"></param>
-        /// <param name="context">The expression to be bound, which will result in the variable receiving a type</param>
-        /// <returns></returns>
-        public static SourceLocalSymbol MakeOutVariableInCtorInitializer(
-            Symbol containingSymbol,
-            Binder scopeBinder,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            ConstructorInitializerSyntax context)
-        {
-            Debug.Assert(typeSyntax.Kind() != SyntaxKind.RefType);
-            return typeSyntax.IsVar
-                ? new OutVariableInCtorInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, context)
-                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable);
         }
 
         internal override bool IsImportedFromMetadata
@@ -666,105 +595,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Symbol for a variable that can be inferred by binding an expression.
-        /// </summary>
-        private class VariableDeclaredInExpression : SourceLocalSymbol
-        {
-            private readonly ExpressionSyntax _expression;
-            private readonly Binder _expressionBinder;
-
-            public VariableDeclaredInExpression(
-                Symbol containingSymbol,
-                Binder scopeBinder,
-                Binder expressionBinder,
-                TypeSyntax typeSyntax,
-                SyntaxToken identifierToken,
-                LocalDeclarationKind declarationKind,
-                ExpressionSyntax expression)
-            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
-            {
-                Debug.Assert(expression != null && expressionBinder != null);
-                _expression = expression;
-                _expressionBinder = expressionBinder;
-            }
-
-            internal override SyntaxNode ForbiddenZone => _expression;
-
-            //
-            // The forbidden zone for this type can only come into play for out variables, since they have a forbidden
-            // zone that extends beyond the declaration point. For pattern variables, which are the other
-            // kind of variable that can be typed based on an expression, we only need to bind the
-            // immediately enclosing expression, which due to the shape of the syntax has the variable
-            // declaration following any expression from which its value is inferred.
-            //
-            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
-
-            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
-            {
-                // Bind the invocation to force inference.
-                _expressionBinder.BindExpression(_expression, diagnostics);
-                Debug.Assert((object)this._type != null);
-                return this._type;
-            }
-        }
-
-        /// <summary>
-        /// Symbol for a variable that can be inferred by binding a pattern switch section label.
-        /// </summary>
-        private class SwitchPatternLocalSymbol : SourceLocalSymbol
-        {
-            private readonly CasePatternSwitchLabelSyntax _labelSyntax;
-
-            public SwitchPatternLocalSymbol(
-                Symbol containingSymbol, Binder scopeBinder, TypeSyntax type, SyntaxToken identifier, CasePatternSwitchLabelSyntax labelSyntax)
-                : base(containingSymbol, scopeBinder, false, type, identifier, LocalDeclarationKind.PatternVariable)
-            {
-                this._labelSyntax = labelSyntax;
-            }
-
-            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
-            {
-                // bind the switch label to cause inference of its pattern variables
-                ScopeBinder.BindPatternSwitchLabelForInference(_labelSyntax, diagnostics);
-                Debug.Assert((object)this._type != null);
-                return this._type;
-            }
-        }
-
-
-        /// <summary>
-        /// Symbol for an out variable that can be inferred by binding a ctor-initializer.
-        /// </summary>
-        private class OutVariableInCtorInitializer : SourceLocalSymbol
-        {
-            private readonly ConstructorInitializerSyntax _invocation;
-
-            public OutVariableInCtorInitializer(
-                Symbol containingSymbol,
-                Binder scopeBinder,
-                TypeSyntax typeSyntax,
-                SyntaxToken identifierToken,
-                ConstructorInitializerSyntax invocation)
-            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, LocalDeclarationKind.RegularVariable)
-            {
-                Debug.Assert(invocation != null);
-                _invocation = invocation;
-            }
-
-            internal override SyntaxNode ForbiddenZone => _invocation;
-
-            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
-
-            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
-            {
-                // Bind the ctor-initializer to force inference.
-                this.ScopeBinder.BindConstructorInitializer(_invocation.ArgumentList, (MethodSymbol)this.ScopeBinder.ContainingMember(), diagnostics);
-                Debug.Assert((object)this._type != null);
-                return this._type;
-            }
-        }
-
-        /// <summary>
         /// Symbol for a deconstruction local that might require type inference.
         /// For instance, local `x` in `var (x, y) = ...` or `(var x, int y) = ...`.
         /// </summary>
@@ -838,6 +668,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                     }
                 }
+            }
+        }
+
+        private class LocalSymbolWithEnclosingContext : SourceLocalSymbol
+        {
+            private readonly SyntaxNode _forbiddenZone;
+            private readonly Binder _nodeBinder;
+            private readonly SyntaxNode _nodeToBind;
+
+            public LocalSymbolWithEnclosingContext(
+                Symbol containingSymbol,
+                Binder scopeBinder,
+                Binder nodeBinder,
+                TypeSyntax typeSyntax,
+                SyntaxToken identifierToken,
+                LocalDeclarationKind declarationKind,
+                SyntaxNode nodeToBind,
+                SyntaxNode forbiddenZone)
+                : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
+            {
+                Debug.Assert(
+                    nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                    nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind is ExpressionSyntax);
+                this._nodeBinder = nodeBinder;
+                this._nodeToBind = nodeToBind;
+                this._forbiddenZone = forbiddenZone;
+            }
+
+            internal override SyntaxNode ForbiddenZone => _forbiddenZone;
+
+            // This type is currently used for out variables and pattern variables.
+            // Pattern variables do not have a forbidden zone, so we only need to produce
+            // the diagnostic for out variables here.
+            internal override ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList;
+
+            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
+            {
+                switch (_nodeToBind.Kind())
+                {
+                    case SyntaxKind.ArgumentList:
+                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
+                        ScopeBinder.BindConstructorInitializer(invocation.ArgumentList, (MethodSymbol)ContainingSymbol, diagnostics);
+                        break;
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        ScopeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);
+                        break;
+                    default:
+                        _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);
+                        break;
+                }
+
+                Debug.Assert((object)this._type != null);
+                return this._type;
             }
         }
     }

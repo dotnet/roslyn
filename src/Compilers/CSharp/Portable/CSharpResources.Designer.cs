@@ -8846,7 +8846,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {

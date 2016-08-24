@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits OverrideHidingHelper
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        Private Shared ReadOnly s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()

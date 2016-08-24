@@ -72,11 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
         {
-            // node should a label of this switch statement.
+            // node should be a label of this switch statement.
             Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
 
             // This simulates enough of the normal binding path of a switch statement to cause
             // the label's pattern variables to have their types inferred, if necessary.
+            // It also binds the when clause, and therefore any pattern and out variables there.
             BoundPatternSwitchLabel defaultLabel = null;
             BindPatternSwitchSectionLabel(
                 sectionBinder: GetBinder(node.Parent),
