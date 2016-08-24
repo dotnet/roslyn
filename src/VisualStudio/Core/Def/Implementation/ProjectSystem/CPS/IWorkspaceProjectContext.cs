@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         string ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         bool LastDesignTimeBuildSucceeded { get; set; }
-        string ObjOutputPath { get; set; }
+        string BinOutputPath { get; set; }
 
         // Options.
         void SetOptions(string commandLineForOptions);
