@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     textTokens.Add(token);
                 }
 
-                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToTokenList());
+                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToList());
 
                 XmlParseErrorCode code = endTag ? XmlParseErrorCode.XML_EndTagNotExpected : XmlParseErrorCode.XML_ExpectedEndOfXml;
                 allRemainderText = WithAdditionalDiagnostics(allRemainderText, new XmlSyntaxDiagnosticInfo(0, 1, code));

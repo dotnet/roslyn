@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             if (_expectedSeparator)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.ElementIsExpected);
+                throw new InvalidOperationException(CodeAnalysisResources.SeparatorIsExpected);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             if (!_expectedSeparator)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.SeparatorIsExpected);
+                throw new InvalidOperationException(CodeAnalysisResources.ElementIsExpected);
             }
         }
 
