@@ -6,25 +6,37 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 {
-    internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind> : DiagnosticAnalyzer, IBuiltInAnalyzer where TSyntaxKind : struct
+    internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind, TExpressionSyntax, TPredefinedTypeSyntax> :
+        DiagnosticAnalyzer, IBuiltInAnalyzer
+        where TSyntaxKind : struct
+        where TExpressionSyntax : SyntaxNode
+        where TPredefinedTypeSyntax : TExpressionSyntax
     {
-        private static readonly LocalizableString s_preferFrameworkTypeMessage = new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_preferFrameworkTypeMessage =
+            new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type),
+                                          FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        private static readonly LocalizableString s_preferFrameworkTypeTitle = new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_preferFrameworkTypeTitle =
+            new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type),
+                                          FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferFrameworkTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
-                                                                    s_preferFrameworkTypeTitle,
-                                                                    s_preferFrameworkTypeMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_descriptorPreferFrameworkTypeInDeclarations =
+            new DiagnosticDescriptor(
+                IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
+                s_preferFrameworkTypeTitle,
+                s_preferFrameworkTypeMessage,
+                DiagnosticCategory.Style,
+                DiagnosticSeverity.Hidden,
+                isEnabledByDefault: true);
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferFrameworkTypeInMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId,
-                                                                    s_preferFrameworkTypeTitle,
-                                                                    s_preferFrameworkTypeMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true);
+        private static readonly DiagnosticDescriptor s_descriptorPreferFrameworkTypeInMemberAccess =
+            new DiagnosticDescriptor(
+                IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId,
+                s_preferFrameworkTypeTitle,
+                s_preferFrameworkTypeMessage,
+                DiagnosticCategory.Style,
+                DiagnosticSeverity.Hidden,
+                isEnabledByDefault: true);
 
         public bool RunInProcess => true;
 
@@ -34,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             s_descriptorPreferFrameworkTypeInDeclarations, s_descriptorPreferFrameworkTypeInMemberAccess);
 
         protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
-        protected abstract bool IsPredefinedTypeAndReplaceableWithFrameworkType(SyntaxNode node);
-        protected abstract bool IsInMemberAccessOrCrefReferenceContext(SyntaxNode node, SemanticModel semanticModel);
+        protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
+        protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -44,9 +56,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var predefinedTypeNode = context.Node;
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
+            var predefinedTypeNode = context.Node as TPredefinedTypeSyntax;
+            if (predefinedTypeNode == null)
+            {
+                return;
+            }
 
             var optionSet = context.Options.GetOptionSet();
             if (optionSet == null)
@@ -54,17 +68,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
                 return;
             }
 
-            string applicableDiagnosticId = null;
-            PerLanguageOption<CodeStyleOption<bool>> applicableOption = null;
-
             // check if the predefined type is replaceable with an equivalent framework type.
-            if (!IsPredefinedTypeAndReplaceableWithFrameworkType(predefinedTypeNode))
+            if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedTypeNode))
             {
                 return;
             }
 
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+
+            // check we have a symbol so that the fixer can generate the right type syntax from it.
+            var typeSymbol = semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol as ITypeSymbol;
+            if (typeSymbol == null)
+            {
+                return;
+            }
+
+            string applicableDiagnosticId;
+            PerLanguageOption<CodeStyleOption<bool>> applicableOption;
+
             // we have a predefined type syntax that is either in a member access context or a declaration context. 
-            if (IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode, semanticModel))
+            if (IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode))
             {
                 applicableOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                 applicableDiagnosticId = IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId;

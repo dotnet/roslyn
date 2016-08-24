@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicPreferFrameworkTypeDiagnosticAnalyzer
-        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind)
+        Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
             Get
@@ -16,22 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             End Get
         End Property
 
-        Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
-            Dim expression = TryCast(node, ExpressionSyntax)
-            If expression Is Nothing Then
-                Return False
-            End If
-
-            Return expression.IsInMemberAccessContext() OrElse expression.InsideCrefReference()
+        Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
+            Return node.IsInMemberAccessContext() OrElse node.InsideCrefReference()
         End Function
 
-        Protected Overrides Function IsPredefinedTypeAndReplaceableWithFrameworkType(node As SyntaxNode) As Boolean
-            Dim keywordKind = TryCast(node, PredefinedTypeSyntax)?.Keyword.Kind()
+        Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean
+            Dim keywordKind = node.Keyword.Kind()
 
             ' There is nothing to replace if keyword matches type name.
-            Return Not (keywordKind Is Nothing) AndAlso
-                   SyntaxFacts.IsPredefinedType(keywordKind.Value) AndAlso
-                   Not KeywordMatchesTypeName(keywordKind.Value)
+            Return SyntaxFacts.IsPredefinedType(keywordKind) AndAlso
+                   Not KeywordMatchesTypeName(keywordKind)
         End Function
 
         ''' <summary>
