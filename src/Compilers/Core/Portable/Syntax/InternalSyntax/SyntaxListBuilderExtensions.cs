@@ -4,16 +4,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal static class SyntaxListBuilderExtensions
     {
-        public static SyntaxList<GreenNode> ToTokenList(this SyntaxListBuilder builder)
-        {
-            if (builder == null)
-            {
-                return default(SyntaxList<GreenNode>);
-            }
-
-            return new SyntaxList<GreenNode>(builder.ToListNode());
-        }
-
         public static SyntaxList<GreenNode> ToList(this SyntaxListBuilder builder)
         {
             return ToList<GreenNode>(builder);
