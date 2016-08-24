@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var closeQuoteIndex = closeQuoteMissing ? originalText.Length : originalText.Length - 1;
             Debug.Assert(closeQuoteMissing || originalText[closeQuoteIndex] == '"');
             var closeQuote = closeQuoteMissing
-                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).WithTrailingTrivia(originalToken.GetTrailingTrivia())
+                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
                 : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, originalToken.GetTrailingTrivia());
             var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var extraTrivia = tempParser.CurrentToken.GetLeadingTrivia();
                     if (interpolation.HasColon)
                     {
-                        var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).WithLeadingTrivia(extraTrivia);
+                        var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
                         var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
                         var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
                         format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         // Move the leading trivia from the insertion's EOF token to the following token.
-                        closeBraceToken = closeBraceToken.WithLeadingTrivia(extraTrivia);
+                        closeBraceToken = closeBraceToken.TokenWithLeadingTrivia(extraTrivia);
                     }
                 }
             }

@@ -397,6 +397,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to element is expected.
+        /// </summary>
+        internal static string ElementIsExpected {
+            get {
+                return ResourceManager.GetString("ElementIsExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Embedded texts are only supported when emitting Portable PDB..
         /// </summary>
         internal static string EmbeddedTextsRequirePortablePdb {
@@ -1100,6 +1109,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to separator is expected.
+        /// </summary>
+        internal static string SeparatorIsExpected {
+            get {
+                return ResourceManager.GetString("SeparatorIsExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value for argument &apos;/shared:&apos; must not be empty.
         /// </summary>
         internal static string SharedArgumentMissing {
@@ -1222,6 +1240,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string SymWriterNotDeterministic {
             get {
                 return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be written to..
+        /// </summary>
+        internal static string TheStreamCannotBeWrittenTo {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeWrittenTo", resourceCulture);
             }
         }
         

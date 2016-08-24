@@ -1,3 +1,8 @@
+*REMOVED*NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
+*REMOVED*NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
+*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.WriteTo(writer As System.IO.TextWriter) -> Void
+*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ChildThatContainsPosition(position As Integer) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
+*REMOVED*Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SerializeTo(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Void
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion

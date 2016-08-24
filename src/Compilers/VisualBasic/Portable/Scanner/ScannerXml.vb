@@ -7,14 +7,13 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
 
-        Private Function ScanXmlTrivia(c As Char) As SyntaxList(Of VisualBasicSyntaxNode)
+        Private Function ScanXmlTrivia(c As Char) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Debug.Assert(Not IsScanningXmlDoc)
             Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
@@ -67,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' //  =
             ' //  Whitespace
 
-            Dim leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim leadingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
             While CanGet()
                 Dim c As Char = Peek()
@@ -128,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     Return XmlMakeBeginCDataToken(leadingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If Nextare(3, "OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(leadingTrivia)
                                                 End If
                                         End Select
@@ -330,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return ScanXmlReference(Nothing)
 
                     Case "<"c
-                        Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+                        Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
                         If Here <> 0 Then
                             If Not IsAllWhitespace Then
                                 Return XmlMakeTextLiteralToken(Nothing, Here, scratch)
@@ -482,7 +481,7 @@ ScanChars:
         Friend Function ScanXmlComment() As SyntaxToken
             ' // [15]    Comment    ::=    '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             If IsScanningXmlDoc AndAlso IsAtNewLine() Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
@@ -572,7 +571,7 @@ ScanChars:
             ' // [20]    CData    ::=    (Char* - (Char* ']]>' Char*))
             ' // [21]    CDEnd    ::=    ']]>'
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             If IsScanningXmlDoc AndAlso IsAtNewLine() Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
@@ -719,7 +718,7 @@ CleanUp:
 
             ' // Misc    ::=    Comment | PI | S
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             While CanGet()
                 Dim c As Char = Peek()
 
@@ -752,31 +751,31 @@ CleanUp:
 
                         Return XmlMakeLessToken(precedingTrivia)
 
-                    ' TODO: review 
+                        ' TODO: review 
 
-                    '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
-                    '        ' // Remove tEOL from token ring if any exists
+                        '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
+                        '        ' // Remove tEOL from token ring if any exists
 
-                    '        If tEOL IsNot Nothing Then
-                    '            m_FirstFreeToken = tEOL
-                    '        End If
+                        '        If tEOL IsNot Nothing Then
+                        '            m_FirstFreeToken = tEOL
+                        '        End If
 
-                    '        m_State.m_LexicalState = LexicalState.XmlMarkup
-                    '        MakeToken(tokens.tkLT, 1)
-                    '        m_InputStreamPosition += 1
-                    '        Return
-                    '    End If
-                    'End If
+                        '        m_State.m_LexicalState = LexicalState.XmlMarkup
+                        '        MakeToken(tokens.tkLT, 1)
+                        '        m_InputStreamPosition += 1
+                        '        Return
+                        '    End If
+                        'End If
 
-                    'm_State.EndXmlState()
+                        'm_State.EndXmlState()
 
-                    'If tEOL IsNot Nothing Then
-                    '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
-                    'Else
-                    '    MakeToken(tokens.tkLT, 1)
-                    '    m_InputStreamPosition += 1
-                    'End If
-                    'Return
+                        'If tEOL IsNot Nothing Then
+                        '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
+                        'Else
+                        '    MakeToken(tokens.tkLT, 1)
+                        '    m_InputStreamPosition += 1
+                        'End If
+                        'Return
                     Case Else
                         Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
 
@@ -1048,7 +1047,7 @@ CleanUp:
             Return ScanSurrogatePair(c, Here)
         End Function
 
-        Private Function ScanXmlNcName(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
+        Private Function ScanXmlNcName(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             ' // Scan a non qualified name per Xml Namespace 1.0
             ' // [4]  NCName ::=  (Letter | '_') (NCNameChar)* /*  An XML Name, minus the ":" */
 
@@ -1129,7 +1128,7 @@ CreateNCNameToken:
             Return MakeMissingToken(precedingTrivia, SyntaxKind.XmlNameToken)
         End Function
 
-        Private Function ScanXmlReference(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
+        Private Function ScanXmlReference(precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As XmlTextTokenSyntax
             Debug.Assert(CanGet)
             Debug.Assert(Peek() = "&"c)
 

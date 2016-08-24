@@ -206,7 +206,7 @@ Public Class ParseExpressionTest
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
         Assert.Equal("?", unexp(0).ToString())
-        Assert.Equal(36637, unexp(0).Errors(0).Code)
+        Assert.Equal(36637, unexp(0).Errors.First().Code)
     End Sub
 
     <Fact>
