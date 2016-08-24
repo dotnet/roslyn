@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
         Private ReadOnly offWithInfo = New CodeStyleOption(Of Boolean)(False, NotificationOption.Suggestion)
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(), New VisualBasicPreferFrameworkTypeCodeFixProvider())
+            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(), New PreferFrameworkTypeCodeFixProvider())
         End Function
 
         Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey, Object)
