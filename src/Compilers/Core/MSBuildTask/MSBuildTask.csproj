@@ -49,7 +49,7 @@
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
     <Compile Include="Csi.cs" />
-    <Compile Include="ErrorString2.Designer.cs">
+    <Compile Include="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
@@ -67,7 +67,7 @@
   <ItemGroup>
     <EmbeddedResource Include="ErrorString.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ErrorString2.Designer.cs</LastGenOutput>
+      <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
