@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public override string Language
+        public sealed override string Language
         {
             get
             {
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public override string KindText
+        public sealed override string KindText
         {
             get
             {
@@ -161,17 +159,17 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public override SyntaxNode GetStructure(SyntaxTrivia parentTrivia)
+        public sealed override SyntaxNode GetStructure(SyntaxTrivia parentTrivia)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool IsTriviaWithEndOfLine()
+        public sealed override bool IsTriviaWithEndOfLine()
         {
             return false;
         }
