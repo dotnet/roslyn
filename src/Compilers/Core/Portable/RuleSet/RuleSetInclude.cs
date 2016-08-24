@@ -77,15 +77,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="parent">The parent of this rule set include</param>
         private string GetIncludePath(RuleSet parent)
         {
-            string expandedIncludePath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
-            var parentRulesetPath = parent?.FilePath;
-
-            var resolvedIncludePath = ResolveIncludePath(expandedIncludePath, parentRulesetPath);
-            if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
-            {
-                // Attempt to resolve legacy ruleset includes by replacing Windows style directory separator char with current plaform's directory separator char.
-                resolvedIncludePath = ResolveIncludePath(expandedIncludePath, parentRulesetPath, replaceDirectorySeparatorChar: true);
-            }
+            var resolvedIncludePath = ResolveIncludePath(_includePath, parent?.FilePath);
 
             // If we still couldn't find it then throw an exception;
             if (resolvedIncludePath == null)
@@ -97,14 +89,23 @@ namespace Microsoft.CodeAnalysis
             return PortableShim.Path.GetFullPath(resolvedIncludePath);
         }
 
-        private static string ResolveIncludePath(string includePath, string parentRulesetPath, bool replaceDirectorySeparatorChar = false)
+        private static string ResolveIncludePath(string includePath, string parentRulesetPath)
         {
-            if (replaceDirectorySeparatorChar)
+            var resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
+            if (resolvedIncludePath == null && PathUtilities.IsUnixLikePlatform)
             {
-                Debug.Assert(PathUtilities.IsUnixLikePlatform);
+                // Attempt to resolve legacy ruleset includes after replacing Windows style directory separator char with current plaform's directory separator char.
                 includePath = includePath.Replace('\\', PortableShim.Path.DirectorySeparatorChar);
+                resolvedIncludePath = ResolveIncludePathCore(includePath, parentRulesetPath);
             }
 
+            return resolvedIncludePath;
+        }
+
+        private static string ResolveIncludePathCore(string includePath, string parentRulesetPath)
+        {
+            includePath = PortableShim.Environment.ExpandEnvironmentVariables(includePath);
+            
             // If a full path is specified then use it
             if (Path.IsPathRooted(includePath))
             {
