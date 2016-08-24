@@ -1171,7 +1171,7 @@ d.cs
         [Fact]
         public void LangVersion()
         {
-            LanguageVersion defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
+            LanguageVersion defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
 
             var parsedArgs = DefaultParse(new[] { "/langversion:1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1215,13 +1215,12 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1617: Invalid option 'latest' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("latest").WithLocation(1, 1)
-                );
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso-1", "a.cs" }, _baseDirectory);

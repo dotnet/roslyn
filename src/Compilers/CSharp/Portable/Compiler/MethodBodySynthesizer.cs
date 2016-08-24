@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the base class had a constructor that initializes its state a global variable would access partially initialized object. 
             // For this reason Script class must always derive directly from a class that has no state (System.Object).
 
-            CSharpSyntaxNode syntax = loweredBody.Syntax;
+            SyntaxNode syntax = loweredBody.Syntax;
 
             // base constructor call:
             Debug.Assert((object)constructor.ContainingType.BaseTypeNoUseSiteDiagnostics == null || constructor.ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static void MakeSubmissionInitialization(
             ArrayBuilder<BoundStatement> statements,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol submissionConstructor,
             SynthesizedSubmissionFields synthesizedFields,
             CSharpCompilation compilation)

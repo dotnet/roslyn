@@ -122,8 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+            Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = syntax
                 Dim result = Me.F.Me()
                 Debug.Assert(frameClass = result.Type)
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node
                 End If
 
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = node.Syntax
                 Dim result As BoundNode = MyBase.Visit(node)
                 Me.F.Syntax = oldSyntax

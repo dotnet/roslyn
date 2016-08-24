@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_CreateChecksumAsync, cancellationToken))
                 {
-                    var rootTreeNode = _treeCollection.CreateRootTreeNode(solution);
+                    var rootTreeNode = _treeCollection.CreateRootTreeNode(solution.State);
 
                     var builder = new ChecksumTreeBuilder(rootTreeNode);
-                    var snapshot = new ChecksumScope(_treeCollection, rootTreeNode, await builder.BuildAsync(solution, cancellationToken).ConfigureAwait(false));
+                    var snapshot = new ChecksumScope(_treeCollection, rootTreeNode, await builder.BuildAsync(solution.State, cancellationToken).ConfigureAwait(false));
 
                     return snapshot;
                 }

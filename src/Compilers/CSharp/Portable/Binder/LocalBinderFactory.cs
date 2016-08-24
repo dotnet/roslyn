@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LocalBinderFactory : CSharpSyntaxWalker
     {
-        private readonly SmallDictionary<CSharpSyntaxNode, Binder> _map;
+        private readonly SmallDictionary<SyntaxNode, Binder> _map;
         private bool _sawYield;
-        private readonly ArrayBuilder<CSharpSyntaxNode> _methodsWithYields;
+        private readonly ArrayBuilder<SyntaxNode> _methodsWithYields;
         private Symbol _containingMemberOrLambda;
         private Binder _enclosing;
-        private readonly CSharpSyntaxNode _root;
+        private readonly SyntaxNode _root;
 
         private void Visit(CSharpSyntaxNode syntax, Binder enclosing)
         {
@@ -50,17 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
-        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(
+        public static SmallDictionary<SyntaxNode, Binder> BuildMap(
             Symbol containingMemberOrLambda, 
-            CSharpSyntaxNode syntax, 
+            SyntaxNode syntax, 
             Binder enclosing, 
-            ArrayBuilder<CSharpSyntaxNode> methodsWithYields,
-            Func<Binder, CSharpSyntaxNode, Binder> rootBinderAdjusterOpt = null)
+            ArrayBuilder<SyntaxNode> methodsWithYields,
+            Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
             StatementSyntax statement;
-            if (syntax is ExpressionSyntax)
+            var expressionSyntax = syntax as ExpressionSyntax;
+            if (expressionSyntax != null)
             {
                 enclosing = new ExpressionVariableBinder(syntax, enclosing);
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 builder.AddToMap(syntax, enclosing);
-                builder.Visit(syntax, enclosing);
+                builder.Visit(expressionSyntax, enclosing);
             }
             else if (syntax.Kind() != SyntaxKind.Block && (statement = syntax as StatementSyntax) != null)
             {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enclosing = rootBinderAdjusterOpt(enclosing, null);
                 }
 
-                builder.Visit(syntax, enclosing);
+                builder.Visit((CSharpSyntaxNode)syntax, enclosing);
             }
 
             // the other place this is possible is in a local function
@@ -116,12 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LocalBinderFactory(Symbol containingMemberOrLambda, CSharpSyntaxNode root, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
+        private LocalBinderFactory(Symbol containingMemberOrLambda, SyntaxNode root, Binder enclosing, ArrayBuilder<SyntaxNode> methodsWithYields)
         {
             Debug.Assert((object)containingMemberOrLambda != null);
             Debug.Assert(containingMemberOrLambda.Kind != SymbolKind.Local && containingMemberOrLambda.Kind != SymbolKind.RangeVariable && containingMemberOrLambda.Kind != SymbolKind.Parameter);
 
-            _map = new SmallDictionary<CSharpSyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
+            _map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
             _containingMemberOrLambda = containingMemberOrLambda;
             _enclosing = enclosing;
             _methodsWithYields = methodsWithYields;
@@ -635,9 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
 
             _sawYield = true;
@@ -645,19 +644,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
         {
+            Visit(node.Expression, _enclosing);
         }
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, patternBinder);
-
             foreach (var decl in node.Declaration.Variables)
             {
                 var value = decl.Initializer?.Value;
                 if (value != null)
                 {
-                    Visit(value, patternBinder);
+                    Visit(value, _enclosing);
                 }
             }
         }
@@ -673,9 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
         }
 
@@ -683,9 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
         }
 
@@ -719,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.DefaultVisit(node);
         }
 
-        private void AddToMap(CSharpSyntaxNode node, Binder binder)
+        private void AddToMap(SyntaxNode node, Binder binder)
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.
@@ -740,6 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             _map[node] = binder;
         }
 
+        /// <summary>
+        /// Some statements by default do not introduce its own scope for locals. 
+        /// For example: Expression Statement, Return Statement, etc. However, 
+        /// when a statement like that is an embedded statement (like IfStatementSyntax.Statement), 
+        /// then it should introduce a scope for locals declared within it. 
+        /// Here we are detecting such statements and creating a binder that should own the scope.
+        /// </summary>
         private Binder GetBinderForPossibleEmbeddedStatement(StatementSyntax statement, Binder enclosing, out CSharpSyntaxNode embeddedScopeDesignator)
         {
             switch (statement.Kind())
@@ -755,6 +755,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThrowStatement:
                     Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                     embeddedScopeDesignator = statement;
                     return new EmbeddedStatementBinder(enclosing, statement);
@@ -776,6 +779,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (statement != null)
             {
                 CSharpSyntaxNode embeddedScopeDesignator;
+                // Some statements by default do not introduce its own scope for locals. 
+                // For example: Expression Statement, Return Statement, etc. However, 
+                // when a statement like that is an embedded statement (like IfStatementSyntax.Statement), 
+                // then it should introduce a scope for locals declared within it. Here we are detecting 
+                // such statements and creating a binder that should own the scope.
                 enclosing = GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
                 if (embeddedScopeDesignator != null)

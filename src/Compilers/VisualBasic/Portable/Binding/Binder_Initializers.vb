@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
             fieldSymbols As ImmutableArray(Of FieldSymbol),
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag,
             Optional bindingForSemanticModel As Boolean = False
@@ -322,12 +322,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub BindPropertyInitializer(
             propertySymbols As ImmutableArray(Of PropertySymbol),
-            initValueOrAsNewNode As VisualBasicSyntaxNode,
+            initValueOrAsNewNode As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
         )
             Dim propertySymbol = DirectCast(propertySymbols.First, PropertySymbol)
-            Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
+            Dim syntaxNode As SyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
 
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindFieldOrPropertyInitializerExpression(
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             targetType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
             diagnostics As DiagnosticBag

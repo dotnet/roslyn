@@ -10,15 +10,14 @@ namespace Roslyn.Test.Performance.Utilities
         public static ITraceManager GetBestTraceManager()
         {
             var cpcFullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "CPC.exe");
-            var scenarioPath = TestUtilities.GetCPCDirectoryPath();
             if (File.Exists(cpcFullPath))
             {
-                return new TraceManager(
-                    cpcFullPath,
-                    scenarioPath);
+                Log("Found CPC, using it for trace collection");
+                return new TraceManager(cpcFullPath);
             }
             else
             {
+                Log($"WARNING: Could not find CPC at {cpcFullPath} (no traces will be collected)");
                 return new NoOpTraceManager();
             }
         }
@@ -31,67 +30,40 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class TraceManager : ITraceManager
     {
-        private readonly ScenarioGenerator _scenarioGenerator;
+        private ScenarioGenerator _scenarioGenerator;
         private readonly string _cpcPath;
 
         private int _startEventAbsoluteInstance = 1;
         private int _stopEventAbsoluteInstance = 1;
 
-        public TraceManager(
-            string cpcPath,
-            string scenarioPath) : base()
+        public TraceManager(string cpcPath) : base()
         {
             _cpcPath = cpcPath;
-            _scenarioGenerator = new ScenarioGenerator(scenarioPath);
+            _scenarioGenerator = new ScenarioGenerator();
         }
 
-        public bool HasWarmUpIteration
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        // Cleanup the results directory and files before every run
-        public void Initialize()
-        {
-            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            if (File.Exists(consumptionTempResultsPath))
-            {
-                File.Delete(consumptionTempResultsPath);
-            }
-
-            if (Directory.Exists(GetCPCDirectoryPath()))
-            {
-                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
-                foreach (var databackDirectory in databackDirectories)
-                {
-                    Directory.Delete(databackDirectory, true);
-                }
-            }
-        }
+        public bool HasWarmUpIteration => true;
 
         public void Setup()
         {
-            ShellOutVital(_cpcPath, "/Setup /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Setup /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Start()
         {
-            ShellOutVital(_cpcPath, "/Start /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Start /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
             var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: "");
+            ShellOutVital(_cpcPath, $"/Stop /SkipClean /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Cleanup()
         {
-            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Cleanup /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void StartScenarios()
@@ -141,7 +113,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void ResetScenarioGenerator()
         {
-            _scenarioGenerator.Initialize();
+            _scenarioGenerator = new ScenarioGenerator();
             _startEventAbsoluteInstance = 1;
             _stopEventAbsoluteInstance = 1;
         }
@@ -153,13 +125,7 @@ namespace Roslyn.Test.Performance.Utilities
         {
         }
 
-        public bool HasWarmUpIteration
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool HasWarmUpIteration => false;
 
         public void Initialize()
         {

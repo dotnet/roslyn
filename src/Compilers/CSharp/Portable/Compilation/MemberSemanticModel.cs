@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
         private readonly ReaderWriterLockSlim _nodeMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
-        private readonly Dictionary<CSharpSyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<CSharpSyntaxNode, ImmutableArray<BoundNode>>();
+        private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
 
         internal readonly Binder RootBinder;
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override MemberSemanticModel GetMemberModel(CSharpSyntaxNode node)
+        internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
             return IsInTree(node) ? this : null;
         }
@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   b) May want to search from an indirect container (e.g. node containing node
         ///      containing position).
         /// </summary>
-        private Binder GetEnclosingBinder(CSharpSyntaxNode node, int position)
+        private Binder GetEnclosingBinder(SyntaxNode node, int position)
         {
             AssertPositionAdjusted(position);
             return GetEnclosingBinder(node, position, RootBinder, _root).WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
-        private static Binder GetEnclosingBinder(CSharpSyntaxNode node, int position, Binder rootBinder, CSharpSyntaxNode root)
+        private static Binder GetEnclosingBinder(SyntaxNode node, int position, Binder rootBinder, SyntaxNode root)
         {
             if (node == root)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root.Contains(node));
 
             ExpressionSyntax typeOfArgument = null;
-            CSharpSyntaxNode unexpectedAnonymousFunction = null;
+            SyntaxNode unexpectedAnonymousFunction = null;
 
             // Keep track of which fix-up should be applied first.  If we see a typeof expression inside an unexpected
             // anonymous function, that the typeof binder should be innermost (i.e. should have the unexpected
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
-        internal void UnguardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
+        internal void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
         {
             using (_nodeMapLock.DisposableWrite())
             {
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected void GuardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
+        protected void GuardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld);
             bool alreadyInTree = false;
@@ -1466,9 +1466,9 @@ done:
                                       position, queryClause.Binder, queryClause.Syntax);
         }
 
-        private static CSharpSyntaxNode AdjustStartingNodeAccordingToNewRoot(CSharpSyntaxNode startingNode, CSharpSyntaxNode root)
+        private static SyntaxNode AdjustStartingNodeAccordingToNewRoot(SyntaxNode startingNode, SyntaxNode root)
         {
-            CSharpSyntaxNode result = startingNode.Contains(root) ? root : startingNode;
+            SyntaxNode result = startingNode.Contains(root) ? root : startingNode;
             if (result != root && !root.Contains(result))
             {
                 result = root;
@@ -1772,7 +1772,7 @@ done:
             /// We override GetBinder so that the BindStatement override is still
             /// in effect on nested binders.
             /// </summary>
-            internal override Binder GetBinder(CSharpSyntaxNode node)
+            internal override Binder GetBinder(SyntaxNode node)
             {
                 Binder binder = this.Next.GetBinder(node);
 

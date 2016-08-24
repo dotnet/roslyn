@@ -98,10 +98,10 @@ In all scenarios tuple types behave exactly like underlying types with only addi
 ```C#
 var t = (sum: 0, count: 1);	
 t.sum   = 1;				// sum   is the name for the field #1 
-t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also avaialable
+t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also available
 
 var t1 = (0, 1);			// tuple omits the field names.
-t.Item1 = 1;				// underlying field name is still avaialable 
+t.Item1 = 1;				// underlying field name is still available 
 
 t.ToString()				// ToString on the underlying tuple type is called.
 

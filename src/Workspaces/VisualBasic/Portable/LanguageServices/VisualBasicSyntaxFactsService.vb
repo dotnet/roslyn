@@ -564,8 +564,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+            Dim unused As SyntaxNode = Nothing
+            Return IsObjectInitializerNamedAssignmentIdentifier(node, unused)
+        End Function
+
+        Public Function IsObjectInitializerNamedAssignmentIdentifier(
+                node As SyntaxNode,
+                ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+
             Dim identifier = TryCast(node, IdentifierNameSyntax)
-            Return If(identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name), False)
+            If identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                ' .parent is the NamedField.
+                ' .parent.parent is the ObjectInitializer.
+                ' .parent.parent.parent will be the ObjectCreationExpression.
+                initializedInstance = identifier.Parent.Parent.Parent
+                Return True
+            End If
+
+            Return False
         End Function
 
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
@@ -1404,37 +1420,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                     Return False
 
-                Case SyntaxKind.NamespaceStatement
-                Case SyntaxKind.NamespaceBlock
-                Case SyntaxKind.ModuleStatement
-                Case SyntaxKind.ModuleBlock
-                Case SyntaxKind.EnumStatement
-                Case SyntaxKind.EnumBlock
-                Case SyntaxKind.StructureStatement
-                Case SyntaxKind.StructureBlock
-                Case SyntaxKind.InterfaceStatement
-                Case SyntaxKind.InterfaceBlock
-                Case SyntaxKind.ClassStatement
-                Case SyntaxKind.ClassBlock
-                Case SyntaxKind.DelegateFunctionStatement
-                Case SyntaxKind.DelegateSubStatement
-                Case SyntaxKind.EventStatement
-                Case SyntaxKind.EventBlock
-                Case SyntaxKind.AddHandlerAccessorBlock
-                Case SyntaxKind.RemoveHandlerAccessorBlock
-                Case SyntaxKind.FieldDeclaration
-                Case SyntaxKind.SubStatement
-                Case SyntaxKind.SubBlock
-                Case SyntaxKind.FunctionStatement
-                Case SyntaxKind.FunctionBlock
-                Case SyntaxKind.PropertyStatement
-                Case SyntaxKind.PropertyBlock
-                Case SyntaxKind.GetAccessorBlock
-                Case SyntaxKind.SetAccessorBlock
-                Case SyntaxKind.SubNewStatement
-                Case SyntaxKind.ConstructorBlock
-                Case SyntaxKind.OperatorStatement
-                Case SyntaxKind.OperatorBlock
+                Case SyntaxKind.NamespaceStatement,
+                     SyntaxKind.NamespaceBlock,
+                     SyntaxKind.ModuleStatement,
+                     SyntaxKind.ModuleBlock,
+                     SyntaxKind.EnumStatement,
+                     SyntaxKind.EnumBlock,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.StructureBlock,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.InterfaceBlock,
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.ClassBlock,
+                     SyntaxKind.DelegateFunctionStatement,
+                     SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.EventStatement,
+                     SyntaxKind.EventBlock,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.FieldDeclaration,
+                     SyntaxKind.SubStatement,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.PropertyStatement,
+                     SyntaxKind.PropertyBlock,
+                     SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.SubNewStatement,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.OperatorStatement,
+                     SyntaxKind.OperatorBlock
                     Return True
             End Select
 

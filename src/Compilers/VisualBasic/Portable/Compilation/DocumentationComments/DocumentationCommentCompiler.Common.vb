@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As VisualBasicSyntaxNode) As DocumentationCommentTriviaSyntax
+            Private Function TryGetDocCommentTriviaAndGenerateDiagnostics(syntaxNode As SyntaxNode) As DocumentationCommentTriviaSyntax
                 Dim theOnlyDocCommentTrivia As DocumentationCommentTriviaSyntax = Nothing
                 Dim lastCommentTrivia As Boolean = False
 
