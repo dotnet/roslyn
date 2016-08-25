@@ -364,31 +364,48 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return new TaggedTextAndHighlightSpan(ImmutableArray<TaggedText>.Empty, new TextSpan());
                 }
 
+                // Call out to the individual language to classify the chunk of text around the
+                // reference. We'll get both the syntactic and semantic spans for this region.
+                // Because the semantic tags may override the semantic ones (for example, 
+                // "DateTime" might be syntactically an identifier, but semantically a struct
+                // name), we'll do a later merging step to get the final correct list of 
+                // classifications.  For tagging, normally the editor handles this.  But as
+                // we're producing the list of Inlines ourselves, we have to handles this here.
                 var syntaxSpans = new List<ClassifiedSpan>();
                 var semanticSpans = new List<ClassifiedSpan>();
+
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 await classificationService.AddSyntacticClassificationsAsync(
                     document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
                 await classificationService.AddSemanticClassificationsAsync(
                     document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
 
+                var allParts = MergeClassifiedSpans(
+                    syntaxSpans, semanticSpans, widenedSpan, sourceText);
+                var taggedText = allParts.ToTaggedText();
+
+                var highlightSpan = new TextSpan(
+                    start: referenceSpan.Start - widenedSpan.Start,
+                    length: referenceSpan.Length);
+
+                return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
+            }
+
+            private List<SymbolDisplayPart> MergeClassifiedSpans(
+                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
+                TextSpan widenedSpan, SourceText sourceText)
+            {
                 syntaxSpans = Order(syntaxSpans);
                 semanticSpans = Order(semanticSpans);
 
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxParts = Classifier.ConvertClassifications(
                     sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
                 var semanticParts = Classifier.ConvertClassifications(
                     sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
 
                 var allParts = CreateAllParts(syntaxParts, semanticParts);
-                var taggedText = allParts.ToTaggedText();
-
-                var highlightSpan = new TextSpan(
-                    start: referenceSpan.Start - widenedSpan.Start, 
-                    length: referenceSpan.Length);
-
-                return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
+                return allParts;
             }
 
             private List<ClassifiedSpan> Order(List<ClassifiedSpan> syntaxSpans)
