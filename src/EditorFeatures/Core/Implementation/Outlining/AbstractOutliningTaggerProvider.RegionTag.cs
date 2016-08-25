@@ -23,14 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             private const int MaxPreviewText = 1000;
 
             private readonly AbstractOutliningTaggerProvider<TRegionTag> _provider;
-            private readonly OutliningSpan _outliningSpan;
 
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITrackingSpan _hintSpan;
 
-            public bool IsDefaultCollapsed => _outliningSpan.IsDefaultCollapsed;
-            public bool IsImplementation => _outliningSpan.AutoCollapse;
-            public object CollapsedForm => _outliningSpan.BannerText;
+            public bool IsDefaultCollapsed => OutliningSpan.IsDefaultCollapsed;
+            public bool IsImplementation => OutliningSpan.AutoCollapse;
+            public object CollapsedForm => OutliningSpan.BannerText;
+
+            protected readonly OutliningSpan OutliningSpan;
 
             public RegionTag(
                 AbstractOutliningTaggerProvider<TRegionTag> provider,
@@ -39,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             {
                 _provider = provider;
                 _subjectBuffer = snapshot.TextBuffer;
-                _outliningSpan = outliningSpan;
+                OutliningSpan = outliningSpan;
                 
-                _hintSpan = snapshot.CreateTrackingSpan(_outliningSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
+                _hintSpan = snapshot.CreateTrackingSpan(OutliningSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
             }
 
             public object CollapsedHintForm =>

@@ -72,7 +72,6 @@
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
     <Compile Include="Outlining\BlockTag2.cs" />
     <Compile Include="Outlining\IBlockTag2.cs" />
-    <Compile Include="Outlining\PredefinedStructureTypes2.cs" />
     <Compile Include="Outlining\VisualStudio15OutliningTaggerProvider.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -3,12 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -16,19 +10,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    /// <summary>
-    /// Shared implementation of the outliner tagger provider.
-    /// 
-    /// Note: the outliner tagger is a normal buffer tagger provider and not a view tagger provider.
-    /// This is important for two reasons.  The first is that if it were view-based then we would lose
-    /// the state of the collapsed/open regions when they scrolled in and out of view.  Also, if the
-    /// editor doesn't know about all the regions in the file, then it wouldn't be able to
-    /// persist them to the SUO file to persist this data across sessions.
-    /// </summary>
     [Export(typeof(ITaggerProvider))]
     [Export(typeof(VisualStudio15OutliningTaggerProvider))]
     [TagType(typeof(IBlockTag2))]
@@ -62,34 +46,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         protected override IBlockTag2 CreateTag(
             IBlockTag2 parentTag, ITextSnapshot snapshot, OutliningSpan region)
         {
-            return new RoslynRegionTag(
-                snapshot.TextBuffer,
-                region.BannerText,
-                new SnapshotSpan(snapshot, region.HintSpan.ToSpan()),
-                region.AutoCollapse,
-                region.IsDefaultCollapsed,
-                TextEditorFactoryService,
-                ProjectionBufferFactoryService, 
-                EditorOptionsFactoryService);               
+            return new RoslynRegionTag(this, parentTag, snapshot, region);
         }
 
         private class RoslynRegionTag : RegionTag, IBlockTag2
         {
             public IBlockTag2 Parent { get; }
+            public int Level { get; }
+            public SnapshotSpan Span { get; }
+            public SnapshotSpan StatementSpan { get; }
+
+            public string Type => OutliningSpan.Type;
+            public bool IsCollapsible => true;
 
             public RoslynRegionTag(
+                AbstractOutliningTaggerProvider<IBlockTag2> provider,
                 IBlockTag2 parent,
-                ITextBuffer subjectBuffer,
-                string replacementString,
-                SnapshotSpan hintSpan, 
-                bool isImplementation, 
-                bool isDefaultCollapsed, 
-                ITextEditorFactoryService textEditorFactoryService, 
-                IProjectionBufferFactoryService projectionBufferFactoryService, 
-                IEditorOptionsFactoryService editorOptionsFactoryService) : 
-                base(subjectBuffer, replacementString, hintSpan, isImplementation, isDefaultCollapsed, textEditorFactoryService, projectionBufferFactoryService, editorOptionsFactoryService)
+                ITextSnapshot snapshot,
+                OutliningSpan outliningSpan) : 
+                base(provider, snapshot, outliningSpan)
             {
                 Parent = parent;
+                Level = parent == null ? 0 : parent.Level + 1;
+                Span = outliningSpan.TextSpan.ToSnapshotSpan(snapshot);
+                StatementSpan = outliningSpan.HintSpan.ToSnapshotSpan(snapshot);
             }
         }
     }

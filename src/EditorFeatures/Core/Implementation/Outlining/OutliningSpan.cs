@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
@@ -31,13 +32,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         /// </summary>
         public bool IsDefaultCollapsed { get; }
 
-        public OutliningSpan(TextSpan textSpan, TextSpan hintSpan, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+        public string Type { get; }
+
+        public OutliningSpan(TextSpan textSpan, TextSpan hintSpan, string bannerText, bool autoCollapse, bool isDefaultCollapsed)
+            : this(textSpan, hintSpan, bannerText, autoCollapse, isDefaultCollapsed, type: null)
+        {
+        }
+
+        public OutliningSpan(
+            TextSpan textSpan, TextSpan hintSpan, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false, string type = null)
         {
             TextSpan = textSpan;
             BannerText = bannerText;
             HintSpan = hintSpan;
             AutoCollapse = autoCollapse;
             IsDefaultCollapsed = isDefaultCollapsed;
+            Type = type ?? PredefinedStructureTypes2.NonStructural;
         }
 
         public OutliningSpan(TextSpan textSpan, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
