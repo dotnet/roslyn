@@ -330,6 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _exceptionRegions = null;
                 _committedBaseline = null;
                 _activeStatementIds = null;
+                _projectBeingEmitted = null;
 
                 Debug.Assert((_pdbReaderObjAsStream == IntPtr.Zero) || (_pdbReader == null));
 
