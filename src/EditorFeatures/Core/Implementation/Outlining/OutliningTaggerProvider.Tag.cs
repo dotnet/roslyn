@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         // we are collapsing.
         private class Tag : IOutliningRegionTag
         {
+            private const string Ellipsis = "...";
             private const int MaxPreviewText = 1000;
 
             private readonly ITextBuffer _subjectBuffer;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 var sourceSpans = new List<object>()
                 {
                     elisionSpan.Snapshot.CreateTrackingSpan(elisionSpan, SpanTrackingMode.EdgeExclusive),
-                    "..."
+                    Ellipsis
                 };
 
                 var projectionBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(
