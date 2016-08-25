@@ -286,6 +286,7 @@
     <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
+    <Compile Include="Implementation\Outlining\AbstractOutliningTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
