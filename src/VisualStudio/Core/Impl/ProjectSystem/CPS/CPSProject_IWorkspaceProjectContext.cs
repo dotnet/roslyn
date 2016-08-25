@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                SetOutputPathAndRelatedData(objOutputPath: this.TryGetObjOutputPath(), binOutputPath: value);
+                SetBinOutputPathAndRelatedData(value);
             }
         }
 
@@ -83,12 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private void PostSetOptions(CommandLineArguments commandLineArguments)
         {
-            // Invoke SetOutputPathAndRelatedData to update the project output paths.
+            // Invoke SetOutputPathAndRelatedData to update the project obj output path.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
                 var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
-                var binOutputPath = this.TryGetBinOutputPath();
-                SetOutputPathAndRelatedData(objOutputPath, binOutputPath);
+                SetObjOutputPathAndRelatedData(objOutputPath);
             }
         }
         #endregion

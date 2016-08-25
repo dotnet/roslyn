@@ -69,13 +69,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)
         {
-            string binOutputPath;
-            if (!TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
-            {
-                binOutputPath = this.TryGetBinOutputPath();
-            }
+            // Update the objOutputPath and related data.
+            SetObjOutputPathAndRelatedData(objOutputPath);
 
-            SetOutputPathAndRelatedData(objOutputPath, binOutputPath);
+            // Also fetch and update the new binOutputPath.
+            string binOutputPath;
+            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
+            {
+                SetBinOutputPathAndRelatedData(binOutputPath);
+            }
         }
 
         private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)

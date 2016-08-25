@@ -144,6 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
             }
+
+            UpdateAssemblyName();
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -1163,7 +1165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOutputPathAndRelatedData(string objOutputPath, string binOutputPath)
+        protected void SetObjOutputPathAndRelatedData(string objOutputPath)
         {
             if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(_objOutputPathOpt, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -1184,8 +1186,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, CurrentCompilationOptions, CurrentParseOptions));
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOutputFilePathChanged(this.Id, _objOutputPathOpt));
                 }
-            }
 
+                UpdateAssemblyName();
+            }
+        }
+
+        private void UpdateAssemblyName()
+        {
             // set assembly name if changed
             // we use designTimeOutputPath to get assembly name since it is more reliable way to get the assembly name.
             // otherwise, friend assembly all get messed up.
@@ -1199,7 +1206,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAssemblyNameChanged(this.Id, AssemblyName));
                 }
             }
+        }
 
+        protected void SetBinOutputPathAndRelatedData(string binOutputPath)
+        {
             // refresh final output path
             if (binOutputPath != null && !string.Equals(_binOutputPathOpt, binOutputPath, StringComparison.OrdinalIgnoreCase))
             {

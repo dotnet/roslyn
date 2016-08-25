@@ -30,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                    hierarchy, language, projectGuid, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
         {
             // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
-            // Also initialize the objOutputPath to the same value.
-            SetOutputPathAndRelatedData(objOutputPath: binOutputPath, binOutputPath: binOutputPath);
+            SetBinOutputPathAndRelatedData(binOutputPath);
 
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
