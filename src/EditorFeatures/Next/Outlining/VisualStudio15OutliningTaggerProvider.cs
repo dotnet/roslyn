@@ -3,6 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -10,6 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
@@ -23,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [Export(typeof(VisualStudio14OutliningTaggerProvider))]
-    [TagType(typeof(IOutliningRegionTag))]
+    [Export(typeof(VisualStudio15OutliningTaggerProvider))]
+    [TagType(typeof(IBlockTag2))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class VisualStudio14OutliningTaggerProvider : 
-        AbstractOutliningTaggerProvider<IOutliningRegionTag>
+    internal partial class VisualStudio15OutliningTaggerProvider : 
+        AbstractOutliningTaggerProvider<IBlockTag2>
     {
         [ImportingConstructor]
-        public VisualStudio14OutliningTaggerProvider(
+        public VisualStudio15OutliningTaggerProvider(
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
@@ -40,22 +47,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         {
         }
 
-        public override bool Equals(IOutliningRegionTag x, IOutliningRegionTag y)
+        public override bool Equals(IBlockTag2 x, IBlockTag2 y)
         {
             // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
             // unless the CollapsedForm properties are different.
             return EqualityComparer<object>.Default.Equals(x.CollapsedForm, y.CollapsedForm);
         }
 
-        public override int GetHashCode(IOutliningRegionTag obj)
+        public override int GetHashCode(IBlockTag2 obj)
         {
             return EqualityComparer<object>.Default.GetHashCode(obj.CollapsedForm);
         }
 
-        protected override IOutliningRegionTag CreateTag(
-            IOutliningRegionTag parentTag, ITextSnapshot snapshot, OutliningSpan region)
+        protected override IBlockTag2 CreateTag(
+            IBlockTag2 parentTag, ITextSnapshot snapshot, OutliningSpan region)
         {
-            return new RegionTag(this, snapshot, region);
+            return new RoslynRegionTag(
+                snapshot.TextBuffer,
+                region.BannerText,
+                new SnapshotSpan(snapshot, region.HintSpan.ToSpan()),
+                region.AutoCollapse,
+                region.IsDefaultCollapsed,
+                TextEditorFactoryService,
+                ProjectionBufferFactoryService, 
+                EditorOptionsFactoryService);               
+        }
+
+        private class RoslynRegionTag : RegionTag, IBlockTag2
+        {
+            public IBlockTag2 Parent { get; }
+
+            public RoslynRegionTag(
+                IBlockTag2 parent,
+                ITextBuffer subjectBuffer,
+                string replacementString,
+                SnapshotSpan hintSpan, 
+                bool isImplementation, 
+                bool isDefaultCollapsed, 
+                ITextEditorFactoryService textEditorFactoryService, 
+                IProjectionBufferFactoryService projectionBufferFactoryService, 
+                IEditorOptionsFactoryService editorOptionsFactoryService) : 
+                base(subjectBuffer, replacementString, hintSpan, isImplementation, isDefaultCollapsed, textEditorFactoryService, projectionBufferFactoryService, editorOptionsFactoryService)
+            {
+                Parent = parent;
+            }
         }
     }
 }

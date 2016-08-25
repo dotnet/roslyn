@@ -12,58 +12,45 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    internal partial class VisualStudio14OutliningTaggerProvider
+    internal abstract partial class AbstractOutliningTaggerProvider<TRegionTag>
     {
         // Our implementation of an outlining region tag.  The collapsedHintForm
         // is dynamically created using an elision buffer over the actual text
         // we are collapsing.
-        private class Tag : IOutliningRegionTag
+        protected class RegionTag : IOutliningRegionTag
         {
             private const string Ellipsis = "...";
             private const int MaxPreviewText = 1000;
 
+            private readonly AbstractOutliningTaggerProvider<TRegionTag> _provider;
+            private readonly OutliningSpan _outliningSpan;
+
             private readonly ITextBuffer _subjectBuffer;
-            private readonly ITextEditorFactoryService _textEditorFactoryService;
-            private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
             private readonly ITrackingSpan _hintSpan;
 
-            public bool IsDefaultCollapsed { get; }
-            public bool IsImplementation { get; }
-            public object CollapsedForm { get; }
+            public bool IsDefaultCollapsed => _outliningSpan.IsDefaultCollapsed;
+            public bool IsImplementation => _outliningSpan.AutoCollapse;
+            public object CollapsedForm => _outliningSpan.BannerText;
 
-            public Tag(
-                ITextBuffer subjectBuffer,
-                string replacementString,
-                SnapshotSpan hintSpan,
-                bool isImplementation,
-                bool isDefaultCollapsed,
-                ITextEditorFactoryService textEditorFactoryService,
-                IProjectionBufferFactoryService projectionBufferFactoryService,
-                IEditorOptionsFactoryService editorOptionsFactoryService)
+            public RegionTag(
+                AbstractOutliningTaggerProvider<TRegionTag> provider,
+                ITextSnapshot snapshot,
+                OutliningSpan outliningSpan)
             {
-                _subjectBuffer = subjectBuffer;
-                this.CollapsedForm = replacementString;
-                _hintSpan = hintSpan.Snapshot.CreateTrackingSpan(hintSpan.Span, SpanTrackingMode.EdgeExclusive);
-                this.IsImplementation = isImplementation;
-                this.IsDefaultCollapsed = isDefaultCollapsed;
-                _textEditorFactoryService = textEditorFactoryService;
-                _projectionBufferFactoryService = projectionBufferFactoryService;
-                _editorOptionsFactoryService = editorOptionsFactoryService;
+                _provider = provider;
+                _subjectBuffer = snapshot.TextBuffer;
+                _outliningSpan = outliningSpan;
+                
+                _hintSpan = snapshot.CreateTrackingSpan(_outliningSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
             }
 
-            public object CollapsedHintForm
-            {
-                get
-                {
-                    return new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
-                }
-            }
+            public object CollapsedHintForm =>
+                new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                var roles = _textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
-                var view = _textEditorFactoryService.CreateTextView(finalBuffer, roles);
+                var roles = _provider.TextEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+                var view = _provider.TextEditorFactoryService.CreateTextView(finalBuffer, roles);
 
                 view.Background = Brushes.Transparent;
 
@@ -115,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                     Ellipsis
                 };
 
-                var projectionBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(
+                var projectionBuffer = _provider.ProjectionBufferFactoryService.CreateProjectionBuffer(
                     projectionEditResolver: null,
                     sourceSpans: sourceSpans,
                     options: ProjectionBufferOptions.None);
@@ -144,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             private ITextBuffer CreateElisionBufferWithoutIndentation(
                 ITextBuffer dataBuffer, Span shortHintSpan)
             {
-                return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
-                    _editorOptionsFactoryService.GlobalOptions,
+                return _provider.ProjectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
+                    _provider.EditorOptionsFactoryService.GlobalOptions,
                     contentType: null,
                     exposedSpans: new SnapshotSpan(dataBuffer.CurrentSnapshot, shortHintSpan));
             }

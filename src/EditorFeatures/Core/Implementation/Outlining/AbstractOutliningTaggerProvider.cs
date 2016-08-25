@@ -159,24 +159,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 regions = GetMultiLineRegions(outliningService, regions, snapshot);
 
                 // Create the outlining tags.
-                var tagSpans =
-                    from region in regions
-                    let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
-                    let tag = CreateTag(snapshot, region)
-                    select new TagSpan<TRegionTag>(spanToCollapse, tag);
+                var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
 
-                foreach (var tagSpan in tagSpans)
+                foreach (var region in regions)
                 {
+                    var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
+
+                    while (tagSpanStack.Count > 0 && 
+                           tagSpanStack.Peek().Span.End <= spanToCollapse.Span.Start)
+                    {
+                        tagSpanStack.Pop();
+                    }
+
+                    var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
+                    var tag = CreateTag(parentTag.Tag, snapshot, region);
+
+                    var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
+
                     context.AddTag(tagSpan);
+                    tagSpanStack.Push(tagSpan);
                 }
             }
         }
 
-        protected abstract TRegionTag CreateTag(ITextSnapshot snapshot, OutliningSpan region);
+        protected abstract TRegionTag CreateTag(
+            TRegionTag parentTag, ITextSnapshot snapshot, OutliningSpan region);
 
         private static bool s_exceptionReported = false;
 
-        private IList<OutliningSpan> GetMultiLineRegions(IOutliningService service, IList<OutliningSpan> regions, ITextSnapshot snapshot)
+        private List<OutliningSpan> GetMultiLineRegions(IOutliningService service, IList<OutliningSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
             var multiLineRegions = new List<OutliningSpan>(regions.Count);
@@ -214,6 +225,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 }
             }
 
+            // Make sure the regions are lexicographically sorted.  This is needed
+            // so we can appropriately parent them for BlockTags.
+            multiLineRegions.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
             return multiLineRegions;
         }
     }

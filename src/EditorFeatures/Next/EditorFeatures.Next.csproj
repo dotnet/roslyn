@@ -70,9 +70,11 @@
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
+    <Compile Include="Outlining\BlockTag2.cs" />
+    <Compile Include="Outlining\IBlockTag2.cs" />
+    <Compile Include="Outlining\PredefinedStructureTypes2.cs" />
+    <Compile Include="Outlining\VisualStudio15OutliningTaggerProvider.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Outlining\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
