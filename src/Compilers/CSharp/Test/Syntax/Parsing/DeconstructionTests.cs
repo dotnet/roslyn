@@ -1759,6 +1759,7 @@ class C
     void M()
     {
         (int x1, x2) = (1, 2);
+        (x3, int x4) = (1, 2);
     }
 }
 namespace System
@@ -1773,7 +1774,10 @@ namespace System
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,18): error CS1031: Type expected
                 //         (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x2").WithLocation(6, 18),
+                // (7,10): error CS1031: Type expected
+                //         (x3, int x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x3").WithLocation(7, 10)
                 );
         }
 
