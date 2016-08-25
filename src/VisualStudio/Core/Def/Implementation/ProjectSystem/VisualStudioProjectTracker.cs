@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private bool _solutionLoadComplete = false;
 
-        internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
+        internal ImmutableArray<AbstractProject> Projects { get { return _projectMap.Values.ToImmutableArray(); } }
 
         IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {
