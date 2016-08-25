@@ -487,9 +487,11 @@ class C
     static void h<T>(Func<Task<T>> lambda) { }
     static void h<T>(Func<MyTask<T>> lambda) { }
 }
-public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(MyTaskBuilder<>))]
+public class MyTask<T> { }
 public class MyTaskBuilder<T>
 {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -498,6 +500,8 @@ public class MyTaskBuilder<T>
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
 ";
             CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
@@ -518,9 +522,11 @@ class C
     static void k<T>(Func<YourTask<T>> lambda) { }
     static void k<T>(Func<MyTask<T>> lambda) { }
 }
-public class MyTask<T> {  public static MyTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(tyepof(MyTaskBuilder<>))]
+public class MyTask<T> { }
 public class MyTaskBuilder<T>
 {
+    public static MyTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -530,9 +536,11 @@ public class MyTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-public class YourTask<T> {  public static YourTaskBuilder<T> CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(YourTask<>))]
+public class YourTask<T> { }
 public class YourTaskBuilder<T>
 {
+    public static YourTaskBuilder<T> Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult(T result) { }
@@ -541,6 +549,8 @@ public class YourTaskBuilder<T>
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
 ";
             CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
@@ -567,20 +577,21 @@ unsafe class C<T, U>
     static int* F4;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
@@ -625,19 +636,17 @@ class C<T, U>
     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
 }
 namespace System
 {
@@ -657,7 +666,11 @@ namespace System.Runtime.CompilerServices
     {
         public TupleElementNamesAttribute(string[] names) { }
     }
-}";
+
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
@@ -754,13 +767,15 @@ namespace System.Runtime.CompilerServices
     static C<MyTask<int>>* F0;
 #pragma warning restore CS0169
 }
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
@@ -815,20 +830,21 @@ struct MyTaskMethodBuilder<T>
     static MyTask<B> F1;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
@@ -865,21 +881,22 @@ struct MyTaskMethodBuilder<T>
     class Inner
     {
     }
-    class MyTask
-    {
-        public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
-    }
-    class MyTask<V>
-    {
-        public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
-    }
+    [AsyncBuilder(tyepof(MyTaskMethodBuilder))]
+    class MyTask { }
+    [AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+    class MyTask<V> { }
     class MyTaskMethodBuilder
     {
+        public static MyTaskMethodBuilder Create() => null;
     }
     class MyTaskMethodBuilder<V>
     {
+        public static MyTaskMethodBuilder<V> Create() => null;
     }
-}";
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
@@ -910,22 +927,27 @@ struct MyTaskMethodBuilder<T>
     static MyTask<MyTask<object>>.B F1;
 #pragma warning restore CS0169
 }
+[AsyncBuilder(typeof(MyTaskMethodBuilder))]
 class MyTask
 {
     internal class A { }
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => null;
 }
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
 class MyTask<V>
 {
     internal class B { }
-    public static MyTaskMethodBuilder<V> CreateAsyncMethodBuilder() => null;
 }
 class MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => null;
 }
 class MyTaskMethodBuilder<V>
 {
-}";
+    public static MyTaskMethodBuilder<V> Create() => null;
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
@@ -954,20 +976,21 @@ class MyTaskMethodBuilder<V>
     static MyTask<MyTask> F;
 #pragma warning restore CS0169
 }
-struct MyTask
-{
-    public static MyTaskMethodBuilder CreateAsyncMethodBuilder() => new MyTaskMethodBuilder();
-}
-struct MyTask<T>
-{
-    public static MyTaskMethodBuilder<T> CreateAsyncMethodBuilder() => new MyTaskMethodBuilder<T>();
-}
+[AsyncBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask { }
+[AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
 struct MyTaskMethodBuilder
 {
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
 }
 struct MyTaskMethodBuilder<T>
 {
-}";
+    public MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+";
             var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();
             var type = compilation.GetMember<FieldSymbol>("C.F").Type;

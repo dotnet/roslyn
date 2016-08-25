@@ -3227,10 +3227,13 @@ class C
     async ValueTask f() { await (Task)null; }
     async ValueTask<int> g() { await (Task)null; return 1; }
 }
-struct ValueTask { public static ValueTaskMethodBuilder CreateAsyncMethodBuilder() => null; }
-struct ValueTask<T> { public static ValueTaskMethodBuilder<T> CreateAsyncMethodBuilder() => null;}
+[AsyncBuilder(typeof(ValueTaskMethodBuilder))]
+struct ValueTask { }
+[AsyncBuilder(typeof(ValueTaskMethodBuilder<>))]
+struct ValueTask<T> { }
 class ValueTaskMethodBuilder
 {
+    public static ValueTaskMethodBuilder Create() => null;
     public ValueTask Task { get; }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
@@ -3241,6 +3244,7 @@ class ValueTaskMethodBuilder
 }
 class ValueTaskMethodBuilder<T>
 {
+    public static ValueTaskMethodBuilder<T> Create() => null;
     public ValueTask<T> Task { get; }
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
@@ -3248,6 +3252,11 @@ class ValueTaskMethodBuilder<T>
     public void SetResult(T result) { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
 }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
@@ -3313,9 +3322,11 @@ class C
     static void g(Func<Task> lambda) { }
     static void k<T>(Func<T> lambda) { }
 }
-class MyTask { public static MyTaskBuilder CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
 class MyTaskBuilder
 {
+    public static MyTaskBuilder Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult() { }
@@ -3323,6 +3334,11 @@ class MyTaskBuilder
     public MyTask Task => default(MyTask);
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
 }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
@@ -3377,22 +3393,33 @@ class C
     async ValueTask1 g() { await Task.Delay(0); }
     async ValueTask2 h() { await Task.Delay(0); }
 }
-struct ValueTask0 { public static ValueTaskMethodBuilder0 CreateAsyncMethodBuilder() => null; }
-struct ValueTask1 { public static ValueTaskMethodBuilder1 CreateAsyncMethodBuilder() => null; }
-struct ValueTask2 { public static ValueTaskMethodBuilder2 CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(ValueTaskMethodBuilder0))]
+struct ValueTask0 { }
+[AsyncBuilder(typeof(ValueTaskMethodBuilder1))]
+struct ValueTask1 { }
+[AsyncBuilder(typeof(ValueTaskMethodBuilder2))]
+struct ValueTask2 { }
 class ValueTaskMethodBuilder0
 {
+    public static ValueTaskMethodBuilder0 Create() => null;
     public ValueTask0 Task => default(ValueTask0);
 }
 class ValueTaskMethodBuilder1
 {
+    public static ValueTaskMethodBuilder1 Create() => null;
     public ValueTask1 Task => default(ValueTask1);
     public void SetException(System.Exception ex) { }
 }
 class ValueTaskMethodBuilder2
 {
+    public static ValueTaskMethodBuilder2 Create() => null;
     public ValueTask2 Task => default(ValueTask2);
     public void SetException(System.Exception ex) { } public void SetResult() { }
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
 }
 ";
 
@@ -3420,11 +3447,23 @@ class C {
     async Mismatch1<int> f() { await (Task)null; return 1; }
     async Mismatch2 g() { await (Task)null; return 1; }
 }
-struct Mismatch1<T> { public static Mismatch1MethodBuilder CreateAsyncMethodBuilder() => null; }
-struct Mismatch2 { public static Mismatch2MethodBuilder<int> CreateAsyncMethodBuilder() => null; }
-class Mismatch1MethodBuilder { }
-class Mismatch2MethodBuilder<T> {}
-";
+[AsyncBuilder(typeof(Mismatch1MethodBuilder))]
+struct Mismatch1<T> { }
+[AsyncBuilder(typeof(Mismatch2MethodBuilder<>))]
+struct Mismatch2 { }
+class Mismatch1MethodBuilder
+{
+    public static Mismatch1MethodBuilder Create() => null;
+}
+class Mismatch2MethodBuilder<T>
+{
+    public static Mismatch2MethodBuilder<T> Create() => null;
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
+}";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
                 // (6,21): error CS1983: The return type of an async method must be void, Task or Task<T>
@@ -3450,12 +3489,14 @@ class C
     async MyTask f() { await (Task)null; }
 }
 
-class MyTask {  public static MyTaskBuilder CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
 
 interface I { }
 
 class MyTaskBuilder
 {
+    public static MyTaskBuilder Create() => null;
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TSM>(ref TSM stateMachine) where TSM : I { }
     public void AwaitOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) { }
@@ -3463,6 +3504,12 @@ class MyTaskBuilder
     public void SetResult() { }
     public void SetException(Exception ex) { }
     public MyTask Task => null;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
 }
 ";
 
@@ -3483,10 +3530,12 @@ class C
     async MyTask f() { await (Task)null; }
 }
 
-class MyTask {  public static MyTaskBuilder CreateAsyncMethodBuilder() => null; }
+[AsyncBuilder(typeof(MyTaskBuilder))]
+class MyTask { }
 
 class MyTaskBuilder
 {
+    public static MyTaskBuilder Create() => null;
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TSM>(ref TSM stateMachine) where TSM : IAsyncStateMachine { }
     public void AwaitOnCompleted<TA, TSM>(ref TA awaiter, ref TSM stateMachine) where TA : INotifyCompletion where TSM : IAsyncStateMachine { }
@@ -3494,6 +3543,12 @@ class MyTaskBuilder
     public void SetResult() { }
     public void SetException(Exception ex) { }
     public MyTask Task => null;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
 }
 ";
 
