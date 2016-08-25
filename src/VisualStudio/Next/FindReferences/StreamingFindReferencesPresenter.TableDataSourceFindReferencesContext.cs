@@ -400,8 +400,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // (indeed, this happens with semantic classification as different
                 // providers produce different results in an arbitrary order).  Order
                 // them first before proceeding.
-                syntaxSpans = Order(syntaxSpans);
-                semanticSpans = Order(semanticSpans);
+                Order(syntaxSpans);
+                Order(semanticSpans);
 
                 // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
                 // also produce parts for the regions between the sections that the classifiers
@@ -416,9 +416,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return CreateAllParts(syntaxParts, semanticParts);
             }
 
-            private List<ClassifiedSpan> Order(List<ClassifiedSpan> syntaxSpans)
+            private void Order(List<ClassifiedSpan> syntaxSpans)
             {
-                return syntaxSpans.OrderBy(s => s.TextSpan.Start).ToList();
+                syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
             }
 
             private List<SymbolDisplayPart> CreateAllParts(
