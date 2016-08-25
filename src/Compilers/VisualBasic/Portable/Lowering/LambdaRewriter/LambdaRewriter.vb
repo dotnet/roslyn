@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameType">The type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Private Function FrameOfType(syntax As VisualBasicSyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
+        Private Function FrameOfType(syntax As SyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
             Dim result As BoundExpression = FramePointer(syntax, frameType.OriginalDefinition)
             Debug.Assert(result.Type = frameType)
             Return result
@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameClass">The class type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+        Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
             Debug.Assert(frameClass.IsDefinition)
             If _currentFrameThis IsNot Nothing AndAlso _currentFrameThis.Type = frameClass Then
                 Return New BoundMeReference(syntax, frameClass)
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
-            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
+            Dim syntaxNode As SyntaxNode = constructor.Syntax
 
             Dim builder = ArrayBuilder(Of BoundStatement).GetInstance
             builder.Add(MethodCompiler.BindDefaultConstructorInitializer(constructor, diagnostics))
@@ -504,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
             Debug.Assert(frameType = constructor.ContainingType)
 
-            Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
+            Dim syntaxNode As SyntaxNode = node.Syntax
 
             Dim frameAccess = New BoundLocal(syntaxNode, framePointer, frameType)
 
@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If parameter (or variable in the EE) is lifted, initialize its proxy.
         ''' </summary>
-        Private Sub InitVariableProxy(syntaxNode As VisualBasicSyntaxNode,
+        Private Sub InitVariableProxy(syntaxNode As SyntaxNode,
                                       originalSymbol As Symbol,
                                       framePointer As LocalSymbol,
                                       frameType As NamedTypeSymbol,
@@ -1361,11 +1361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If rewritten.Kind = BoundKind.Call Then
                 Dim rewrittenCall As BoundCall = DirectCast(rewritten, BoundCall)
-                Dim rewrittenMethod As MethodSymbol = rewrittenCall.Method
-                Dim rewrittenReceiverOpt As BoundExpression = rewrittenCall.ReceiverOpt
-                Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = rewrittenCall.Arguments
-
-                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall, rewrittenMethod, rewrittenReceiverOpt, rewrittenArguments)
+                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall)
 
                 ' Check if we need to init Me proxy and this is a ctor call
                 If _currentMethod Is _topLevelMethod Then
@@ -1413,8 +1409,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''           If we decide to do this, we should be careful with extension methods because they have
         '''           special treatment of 'this' parameter. 
         ''' </summary>
-        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall, method As MethodSymbol, receiver As BoundExpression, arguments As ImmutableArray(Of BoundExpression)) As BoundCall
-
+        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
+            Dim method = node.Method
+            Dim receiver = node.ReceiverOpt
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
@@ -1430,7 +1427,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not delegateCreation.Method.IsReducedExtensionMethod Then
                     method = delegateCreation.Method
                     receiver = delegateCreation.ReceiverOpt
-                    node = node.Update(method, Nothing, receiver, arguments, Nothing, node.SuppressObjectClone, node.Type)
+                    node = node.Update(
+                        method,
+                        Nothing,
+                        receiver,
+                        node.Arguments,
+                        Nothing,
+                        isLValue:=False,
+                        suppressObjectClone:=node.SuppressObjectClone,
+                        type:=node.Type)
                 End If
             End If
 

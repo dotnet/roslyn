@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -100,19 +100,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var formatStrings = new string[2, 2, 2]
                 {
                   {
-                    { FeaturesResources.IntroduceFieldFor, FeaturesResources.IntroduceLocalFor },
-                    { FeaturesResources.IntroduceConstantFor, FeaturesResources.IntroduceLocalConstantFor }
+                    { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },
+                    { FeaturesResources.Introduce_constant_for_0, FeaturesResources.Introduce_local_constant_for_0 }
                   },
                   {
-                    { FeaturesResources.IntroduceFieldForAllOccurrences,  FeaturesResources.IntroduceLocalForAllOccurrences },
-                    { FeaturesResources.IntroduceConstantForAllOccurrences, FeaturesResources.IntroduceLocalConstantForAll }
+                    { FeaturesResources.Introduce_field_for_all_occurrences_of_0,  FeaturesResources.Introduce_local_for_all_occurrences_of_0 },
+                    { FeaturesResources.Introduce_constant_for_all_occurrences_of_0, FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0 }
                   }
                 };
 
                 var formatString = _isQueryLocal
                     ? _allOccurrences
-                        ? FeaturesResources.IntroduceQueryVariableForAll
-                        : FeaturesResources.IntroduceQueryVariableFor
+                        ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0
+                        : FeaturesResources.Introduce_query_variable_for_0
                     : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
                 return string.Format(formatString, nodeString);
             }

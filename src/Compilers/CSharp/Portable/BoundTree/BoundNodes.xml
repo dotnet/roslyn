@@ -84,7 +84,7 @@
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
-  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
+  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
   <!-- only used by codegen -->
@@ -404,19 +404,24 @@
     <Field Name="Right" Type="BoundExpression"/>
 
     <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
-
+    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
     <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+    <Field Name="ConstructionSteps" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
     <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
     <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
     <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
+    <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
@@ -475,12 +480,59 @@
     <Field Name="GetResult" Type="MethodSymbol" Null="allow"/>
   </Node>
 
-  <Node Name="BoundTypeOfOperator" Base="BoundExpression">
+  <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="SourceType" Type="BoundTypeExpression"/>
     <!-- Well-known member populated during lowering -->
     <Field Name="GetTypeFromHandle" Type="MethodSymbol" Null="allow"/>
+  </AbstractNode>
+    
+  <Node Name="BoundTypeOfOperator" Base="BoundTypeOf">
+    <Field Name="SourceType" Type="BoundTypeExpression"/>
+  </Node>
+  
+   <!-- Represents the raw metadata token index value for a method definition.
+        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
+  <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Method" Type="MethodSymbol"/>
+  </Node>
+
+  <!-- Represents the maximum raw metadata token index value for any method definition in the current module. -->
+  <Node Name="BoundMaximumMethodDefIndex" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module.
+       Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol. -->
+  <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
+    <Field Name="AnalysisKind" Type="int"/>
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Represents the GUID that is the current module's MVID.
+       Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
+  <Node Name="BoundModuleVersionId" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Represents a string encoding of the GUID that is the current module's MVID.
+       Implemented as a reference to a string constant that is backpatched after the MVID is computed. -->
+  <Node Name="BoundModuleVersionIdString" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Represents the index in the documents table of the source document containing a method definition.
+       Used by dynamic instrumentation to identify the source document containing a method. -->
+  <Node Name="BoundSourceDocumentIndex" Base="BoundExpression">
+      <!-- Non-null type is required for this node kind -->
+      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="Document" Type="Cci.DebugSourceDocument"/>
   </Node>
 
   <Node Name="BoundMethodInfo" Base="BoundExpression">
@@ -787,7 +839,6 @@
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundStatement"/>
     <Field Name="AlternativeOpt" Type="BoundStatement" Null="allow"/>
@@ -1121,7 +1172,7 @@
         Otherwise, ReferenceTypeReceiver should be used.  
         This kind of receiver is created only by Async rewriter. 
   -->
-  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression" HasValidate="true">
+  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
     <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
@@ -1222,7 +1273,7 @@
     <!-- 
     It is possible for a tuple to not have a type in a literal form
     Ex: 
-     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+     (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>

@@ -282,13 +282,13 @@ Friend Class GreenNodeWriter
 
         _writer.WriteLine("        Public Overrides Function WithLeadingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "DirectCast(trivia, VisualBasicSyntaxNode)", "GetTrailingTrivia")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "trivia", "GetTrailingTrivia")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
         _writer.WriteLine("        Public Overrides Function WithTrailingTrivia(ByVal trivia As GreenNode) As GreenNode")
         _writer.Write("            Return new {0}", StructureTypeName(nodeStructure))
-        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "DirectCast(trivia, VisualBasicSyntaxNode)")
+        GenerateNodeStructureConstructorParameters(nodeStructure, "GetDiagnostics", "GetAnnotations", "GetLeadingTrivia", "trivia")
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
@@ -493,11 +493,7 @@ Friend Class GreenNodeWriter
         If nodeStructure.IsToken Then
             ' tokens have trivia
 
-            _writer.Write(", leadingTrivia As {0}, trailingTrivia As {0}", StructureTypeName(_parseTree.RootStructure))
-        End If
-
-        If contextual Then
-            _writer.Write(", context As ISyntaxFactoryContext")
+            _writer.Write(", leadingTrivia As GreenNode, trailingTrivia As GreenNode", StructureTypeName(_parseTree.RootStructure))
         End If
 
         For Each field In allFields
@@ -509,6 +505,11 @@ Friend Class GreenNodeWriter
             _writer.Write(", ")
             GenerateNodeStructureChildParameter(child, Nothing, True)
         Next
+
+        If contextual Then
+            _writer.Write(", context As ISyntaxFactoryContext")
+        End If
+
         _writer.WriteLine(")")
 
         ' Generate each of the field parameters
@@ -687,10 +688,10 @@ Friend Class GreenNodeWriter
             _writer.WriteLine("                Return Me.{0}", ChildVarName(child))
 
         ElseIf child.IsSeparated Then
-            _writer.WriteLine("                Return new {0}(New SyntaxList(of {1})(Me.{2}))", ChildPropertyTypeRef(node, child, True), BaseTypeReference(child), ChildVarName(child))
+            _writer.WriteLine("                Return new {0}(New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of {1})(Me.{2}))", ChildPropertyTypeRef(node, child, True), BaseTypeReference(child), ChildVarName(child))
 
         ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-            _writer.WriteLine("                Return New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList(of {0})(Me.{1})", BaseTypeReference(child), ChildVarName(child))
+            _writer.WriteLine("                Return New Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)(Me.{1})", BaseTypeReference(child), ChildVarName(child))
 
         Else
             _writer.WriteLine("                Return new {0}(Me.{1})", ChildPropertyTypeRef(node, child, True), ChildVarName(child))

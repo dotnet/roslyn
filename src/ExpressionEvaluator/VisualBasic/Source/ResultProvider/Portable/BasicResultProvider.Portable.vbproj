@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -22,11 +20,12 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Engine\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Debugger.Metadata\14.3.25420\lib\portable\Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
+      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
+      <Name>Concord</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
       <Project>{fa0e905d-ec46-466d-b7b2-3b5557f9428c}</Project>
       <Name>ResultProvider.Portable</Name>
@@ -63,8 +62,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

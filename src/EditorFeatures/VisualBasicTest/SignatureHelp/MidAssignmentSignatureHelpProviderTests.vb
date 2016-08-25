@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     NameOfStringVariable,
+                                     $"Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}",
+                                     VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string,
+                                     VBWorkspaceResources.The_name_of_the_string_variable_to_modify,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -49,9 +49,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     OneBasedStartPos,
+                                     $"Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}",
+                                     VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string,
+                                     VBWorkspaceResources.The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins,
                                      currentParameterIndex:=1))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
@@ -69,9 +69,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}",
-                                     ReplacesChars,
-                                     NumberOfCharsToReplace,
+                                     $"Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}",
+                                     VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string,
+                                     VBWorkspaceResources.The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used,
                                      currentParameterIndex:=2))
             Await TestAsync(markup, expectedOrderedItems)
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                 var workspace = ws as InteractiveWorkspace;
                 if (workspace != null)
                 {
-                    var window = workspace.Engine.CurrentWindow;
+                    var window = workspace.Window;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                     if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))

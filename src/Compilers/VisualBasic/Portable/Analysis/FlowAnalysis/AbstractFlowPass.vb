@@ -2313,6 +2313,21 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral) As BoundNode
+            Return VisitTupleExpression(node)
+        End Function
+
+        Private Function VisitTupleExpression(node As BoundTupleExpression) As BoundNode
+            For Each argument In node.Arguments
+                VisitRvalue(argument)
+            Next
+            Return Nothing
+        End Function
+
         Public Overrides Function VisitDirectCast(node As BoundDirectCast) As BoundNode
             VisitRvalue(node.Operand)
             Return Nothing
@@ -2613,6 +2628,29 @@ EnteredRegion:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitMethodDefIndex(node As BoundMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitMaximumMethodDefIndex(node As BoundMaximumMethodDefIndex) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionId(node As BoundModuleVersionId) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitModuleVersionIdString(node As BoundModuleVersionIdString) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInstrumentationPayloadRoot(node As BoundInstrumentationPayloadRoot) As BoundNode
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitSourceDocumentIndex(node As BoundSourceDocumentIndex) As BoundNode
+            Return Nothing
+        End Function
 #End Region
 
     End Class

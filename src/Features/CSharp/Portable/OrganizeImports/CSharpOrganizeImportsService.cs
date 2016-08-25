@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         }
 
         public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
-            CSharpFeaturesResources.RemoveAndSortUsingsWithAccelerator;
+            CSharpFeaturesResources.Remove_and_Sort_Usings;
     }
 }

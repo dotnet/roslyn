@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string ColonString = ":";
 
+        // Explicitly remove ":" from the set of filter characters because (by default)
+        // any character that appears in DisplayText gets treated as a filter char.
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
+            .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -94,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     displayText: escapedName + ColonString,
                     insertionText: null,
                     symbol: parameter,
-                    descriptionPosition: token.SpanStart,
+                    contextPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules.Default,
+                    rules: s_rules,
                     matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }

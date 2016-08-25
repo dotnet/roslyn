@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -135,8 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             if (propertyDeclaration.ExpressionBody != null)
             {
-                var returnStatement = SyntaxFactory.ReturnStatement(propertyDeclaration.ExpressionBody.Expression)
-                                                   .WithSemicolonToken(propertyDeclaration.SemicolonToken);
+                var returnKeyword = SyntaxFactory.Token(SyntaxKind.ReturnKeyword)
+                                                 .WithTrailingTrivia(propertyDeclaration.ExpressionBody.ArrowToken.TrailingTrivia);
+
+                var returnStatement = SyntaxFactory.ReturnStatement(
+                    returnKeyword, 
+                    propertyDeclaration.ExpressionBody.Expression,
+                    propertyDeclaration.SemicolonToken);
                 statements.Add(returnStatement);
             }
             else

@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -81,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
-            return EncodeDescription(description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray());
+            return EncodeDescription(description.ToTaggedText());
         }
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)

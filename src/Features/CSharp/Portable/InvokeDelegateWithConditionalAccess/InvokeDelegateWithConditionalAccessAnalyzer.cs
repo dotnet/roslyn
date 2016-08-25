@@ -1,8 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -21,14 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
+            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
+            CSharpFeaturesResources.Delegate_invocation_can_be_simplified,
             DiagnosticCategory.Style,
             DiagnosticSeverity.Hidden,
             isEnabledByDefault: true,
             customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+        public bool RunInProcess => false;
 
         public override void Initialize(AnalysisContext context)
         {
@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         {
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
+
+            // ?. is only available in C# 6.0 and above.  Don't offer this refactoring
+            // in projects targetting a lesser version.
+            if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
+            {
+                return;
+            }
+
             if (!ifStatement.Condition.IsKind(SyntaxKind.NotEqualsExpression))
             {
                 return;

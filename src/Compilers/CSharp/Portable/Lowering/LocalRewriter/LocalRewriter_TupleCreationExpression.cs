@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeTupleCreationExpression(node.Syntax, (NamedTypeSymbol)node.Type, rewrittenArguments);
         }
 
-        private BoundExpression MakeTupleCreationExpression(CSharpSyntaxNode syntax, NamedTypeSymbol type, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundExpression MakeTupleCreationExpression(SyntaxNode syntax, NamedTypeSymbol type, ImmutableArray<BoundExpression> rewrittenArguments)
         {
             NamedTypeSymbol underlyingTupleType = type.TupleUnderlyingType ?? type;
             Debug.Assert(underlyingTupleType.IsTupleCompatible());

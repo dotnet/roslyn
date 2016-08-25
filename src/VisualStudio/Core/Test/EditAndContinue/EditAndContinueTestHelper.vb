@@ -106,6 +106,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Public Function ContainsDiagnostics(workspace As Workspace, projectId As ProjectId) As Boolean Implements IDiagnosticAnalyzerService.ContainsDiagnostics
                 Throw New NotImplementedException()
             End Function
+
+            Public Function GetHostAnalyzerReferences() As IEnumerable(Of AnalyzerReference) Implements IDiagnosticAnalyzerService.GetHostAnalyzerReferences
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

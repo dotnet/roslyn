@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return AnalyzerActionCounts.Create(analyzerActions);
+            return new AnalyzerActionCounts(analyzerActions);
         }
 
         /// <summary>
@@ -1629,7 +1629,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol symbol,
             SyntaxReference declaration,
             SemanticModel semanticModel,
-            bool shouldExecuteSyntaxNodeActions,
             AnalysisScope analysisScope,
             Func<DeclarationAnalysisData> allocateData,
             CancellationToken cancellationToken)
@@ -1644,9 +1643,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
 
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            var nodesToAnalyze = shouldExecuteSyntaxNodeActions ?
-                    GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor) :
-                    ImmutableArray<SyntaxNode>.Empty;
+            var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
 
             declarationAnalysisData.DeclaringReferenceSyntax = declaringReferenceSyntax;
             declarationAnalysisData.TopmostNodeForAnalysis = topmostNodeForAnalysis;
@@ -1698,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declarationAnalysisData = compilationData.GetOrComputeDeclarationAnalysisData(
                 decl,
-                allocateData => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, shouldExecuteSyntaxNodeActions, analysisScope, allocateData, cancellationToken),
+                allocateData => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, allocateData, cancellationToken),
                 cacheAnalysisData);
 
             if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
@@ -1707,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var success = true;
-            
+
             // Execute stateless syntax node actions.
             if (shouldExecuteSyntaxNodeActions)
             {
@@ -2015,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (SyntaxNode executableBlock in executableBlocks)
             {
-                IOperation operation = semanticModel.GetOperation(executableBlock, cancellationToken);
+                IOperation operation = semanticModel.GetOperationInternal(executableBlock, cancellationToken);
                 if (operation != null)
                 {
                     operationBlocksToAnalyze.AddRange(operation);

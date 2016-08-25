@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "Features",
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
-                "PreprocessorSymbols");
+                "PreprocessorSymbols",
+                "SpecifiedLanguageVersion");
         }
     }
 }

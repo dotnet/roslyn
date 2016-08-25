@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In C# 6 and earlier, we use the old binder. In C# 7 and later, we use the new binder which
                 // is capable of binding both the old and new syntax. However, the new binder does not yet
                 // lead to a translation that fully supports edit-and-continue, so it delegates to the C# 6
-                // binder when it can. The "typeswitch" feature flag forces the use of the C# 7 switch binder
+                // binder when it can. The "testV7SwitchBinder" feature flag forces the use of the C# 7 switch binder
                 // for all operations; we use it to enhance test coverage.
-                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("typeswitch") != false)
+                (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false || parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false)
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
         {
             var switchGoverningDiagnostics = new DiagnosticBag();
-            var boundSwitchExpression = BindSwitchExpression(SwitchSyntax.Expression, switchGoverningDiagnostics);
+            var boundSwitchExpression = BindSwitchExpression(switchGoverningDiagnostics);
             _switchGoverningDiagnostics = switchGoverningDiagnostics;
             Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var section in SwitchSyntax.Sections)
             {
-                builder.AddRange(BuildLocals(section.Statements));
+                builder.AddRange(BuildLocals(section.Statements, GetBinder(section)));
             }
 
             return builder.ToImmutableAndFree();
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (SwitchSyntax == scopeDesignator)
             {
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Bind the switch expression
-        private BoundExpression BindSwitchExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindSwitchExpression(DiagnosticBag diagnostics)
         {
             // We are at present inside the switch binder, but the switch expression is not
             // bound in the context of the switch binder; it's bound in the context of the
@@ -395,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // The "x" in "switch(x)" refers to this.x, not the local x that is in scope inside the switch block.
 
-            Debug.Assert(node == SwitchSyntax.Expression);
+            Debug.Assert(ScopeDesignator == SwitchSyntax);
+            ExpressionSyntax node = SwitchSyntax.Expression;
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 
@@ -461,12 +462,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!switchExpression.HasAnyErrors)
             {
-                if (PatternsEnabled)
+                if ((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void)
                 {
                     diagnostics.Add(ErrorCode.ERR_PatternValueExpected, node.Location, switchExpression.Display);
                 }
                 else
                 {
+                    Debug.Assert(!PatternsEnabled);
                     diagnostics.Add(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, node.Location);
                 }
             }

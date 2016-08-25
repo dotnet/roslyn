@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 throw new ArgumentOutOfRangeException(nameof(expectedSymbols));
             }
 
-            return "+" + NonBreakingSpace + (expectedSymbols - 1) + NonBreakingSpace + FeaturesResources.Overload;
+            return "+" + NonBreakingSpace + (expectedSymbols - 1) + NonBreakingSpace + FeaturesResources.overload;
         }
 
         protected async Task VerifyItemInLinkedFilesAsync(string xmlString, string expectedItem, string expectedDescription)

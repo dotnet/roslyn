@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -208,6 +207,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         EmitSizeOfExpression((BoundSizeOfOperator)expression);
                     }
+                    break;
+
+                case BoundKind.ModuleVersionId:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.ModuleVersionIdString:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdStringLoad((BoundModuleVersionIdString)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    Debug.Assert(used);
+                    EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
+                case BoundKind.MethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMethodDefIndexExpression((BoundMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.MaximumMethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMaximumMethodDefIndexExpression((BoundMaximumMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.SourceDocumentIndex:
+                    Debug.Assert(used);
+                    EmitSourceDocumentIndex((BoundSourceDocumentIndex)expression);
                     break;
 
                 case BoundKind.MethodInfo:
@@ -1112,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitLoadIndirect(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitLoadIndirect(TypeSymbol type, SyntaxNode syntaxNode)
         {
             if (type.IsEnumType())
             {
@@ -1713,11 +1742,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (!used &&
-                    expression.Constructor.OriginalDefinition == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+                if (!used && ConstructorNotSideEffecting(constructor))
                 {
-                    // creating nullable has no side-effects, so we will just evaluate the arg
-                    EmitExpression(expression.Arguments[0], used: false);
+                    // creating nullable has no side-effects, so we will just evaluate the arguments
+                    foreach (var arg in expression.Arguments)
+                    {
+                        EmitExpression(arg, used: false);
+                    }
                 }
                 else
                 {
@@ -1733,6 +1764,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPopIfUnused(used);
                 }
             }
+        }
+
+        /// <summary>
+        /// Recognizes constructors known to not have side-effects (which means they can be skipped unless the constructed object is used)
+        /// </summary>
+        private bool ConstructorNotSideEffecting(MethodSymbol constructor)
+        {
+            var originalDef = constructor.OriginalDefinition;
+            var compilation = _module.Compilation;
+
+            if (originalDef == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+            {
+                return true;
+            }
+
+            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+                    (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T5__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T6__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T7__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_TRest__ctor) ||
+                    originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__ctor)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, UseKind useKind)
@@ -2108,21 +2168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     {
-                        var left = (BoundCall)assignmentOperator.Left;
+                        var left = (BoundCall)assignmentTarget;
 
                         Debug.Assert(left.Method.RefKind != RefKind.None);
                         EmitCallExpression(left, UseKind.UsedAsAddress);
-
-                        lhsUsesStack = true;
-                    }
-                    break;
-
-                case BoundKind.AssignmentOperator:
-                    {
-                        var left = (BoundAssignmentOperator)assignmentOperator.Left;
-
-                        Debug.Assert(left.RefKind != RefKind.None);
-                        EmitAssignmentExpression(left, UseKind.UsedAsAddress);
 
                         lhsUsesStack = true;
                     }
@@ -2139,6 +2188,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget);
                     lhsUsesStack = true;
                     break;
+
+                case BoundKind.ModuleVersionId:
+                case BoundKind.InstrumentationPayloadRoot:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
             }
 
             return lhsUsesStack;
@@ -2284,9 +2340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
-                case BoundKind.AssignmentOperator:
-                    Debug.Assert(((BoundAssignmentOperator)expression).RefKind != RefKind.None);
-                    EmitIndirectStore(expression.Type, expression.Syntax);
+                case BoundKind.ModuleVersionId:
+                    EmitModuleVersionIdStore((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -2318,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(thisRef.Type, thisRef.Syntax);
         }
 
-        private void EmitArrayElementStore(ArrayTypeSymbol arrayType, CSharpSyntaxNode syntaxNode)
+        private void EmitArrayElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
             if (arrayType.IsSZArray)
             {
@@ -2333,7 +2392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Emit an element store instruction for a single dimensional array.
         /// </summary>
-        private void EmitVectorElementStore(ArrayTypeSymbol arrayType, CSharpSyntaxNode syntaxNode)
+        private void EmitVectorElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
             var elementType = arrayType.ElementType;
 
@@ -2424,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIndirectStore(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitIndirectStore(TypeSymbol type, SyntaxNode syntaxNode)
         {
             if (type.IsEnumType())
             {
@@ -2539,7 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultValue(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitDefaultValue(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
             {
@@ -2569,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitInitObj(expression.Type, used, expression.Syntax);
         }
 
-        private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
             if (used)  // unused constant has no side-effects
             {
@@ -2585,7 +2644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitInitObj(TypeSymbol type, bool used, CSharpSyntaxNode syntaxNode)
+        private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
             {
@@ -2612,15 +2671,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitGetTypeFromHandle(BoundTypeOf boundTypeOf)
+        {
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
+            var getTypeMethod = boundTypeOf.GetTypeFromHandle;
+            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
+            EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
+        }
+
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
         {
             TypeSymbol type = boundTypeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
-            var getTypeMethod = boundTypeOfOperator.GetTypeFromHandle;
-            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
-            EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax, null);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitSizeOfExpression(BoundSizeOfOperator boundSizeOfOperator)
@@ -2628,6 +2692,68 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             TypeSymbol type = boundSizeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Sizeof);
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
+        }
+
+        private void EmitMethodDefIndexExpression(BoundMethodDefIndex node)
+        {
+            Debug.Assert(node.Method.IsDefinition);
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitGreatestMethodToken();
+        }
+
+        private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            EmitModuleVersionIdToken(node);
+        }
+
+        private void EmitModuleVersionIdStore(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitModuleVersionIdToken(node);
+        }
+
+        private void EmitModuleVersionIdToken(BoundModuleVersionId node)
+        {
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitModuleVersionIdStringLoad(BoundModuleVersionIdString node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldstr);
+            _builder.EmitModuleVersionIdStringToken();
+        }
+
+        private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            EmitInstrumentationPayloadRootToken(node);
+        }
+
+        private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            EmitInstrumentationPayloadRootToken(node);
+        }
+
+        private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitSourceDocumentIndexToken(node.Document);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)
@@ -2925,7 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                    (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)to));
         }
 
-        private void EmitStaticCast(TypeSymbol to, CSharpSyntaxNode syntax)
+        private void EmitStaticCast(TypeSymbol to, SyntaxNode syntax)
         {
             Debug.Assert(to.IsVerifierReference());
 
@@ -2945,7 +3071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             FreeTemp(temp);
         }
 
-        private void EmitBox(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private void EmitBox(TypeSymbol type, SyntaxNode syntaxNode)
         {
             _builder.EmitOpCode(ILOpCode.Box);
             EmitSymbolToken(type, syntaxNode);

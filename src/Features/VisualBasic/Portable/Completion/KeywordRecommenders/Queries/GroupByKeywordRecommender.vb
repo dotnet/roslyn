@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
             If context.TargetToken.IsChildToken(Of GroupByClauseSyntax)(Function(groupBy) groupBy.GroupKeyword) OrElse
                context.SyntaxTree.IsFollowingCompleteExpression(Of GroupByClauseSyntax)(
                    context.Position, context.TargetToken, Function(groupBy) groupBy.Items.LastRangeExpression(), cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("By", VBFeaturesResources.ByQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("By", VBFeaturesResources.Specifies_the_element_keys_used_for_grouping_in_Group_By_or_sort_order_in_Order_By))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

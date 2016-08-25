@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     // a totally compatible implementation of switch that also accepts pattern-matching constructs.
     internal partial class PatternSwitchBinder : SwitchBinder
     {
-        private bool? _isPatternSwitch;
-
         internal PatternSwitchBinder(Binder next, SwitchStatementSyntax switchSyntax) : base(next, switchSyntax)
         {
         }
@@ -27,25 +25,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// However, until we have edit-and-continue working, we continue using the old binder
         /// when we can.
         /// </summary>
-        private bool IsPatternSwitch
+        private bool UseV7SwitchBinder
         {
             get
             {
-                if (_isPatternSwitch == null)
-                {
                     var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
-                    _isPatternSwitch =
-                        (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false &&
-                        (parseOptions?.Features.ContainsKey("typeswitch") == true ||
-                         IsPatternSwitchSyntax(SwitchSyntax) ||
-                         !SwitchGoverningType.IsValidV6SwitchGoverningType()));
-                }
-
-                return _isPatternSwitch.GetValueOrDefault();
+                    return
+                        parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
+                        HasPatternSwitchSyntax(SwitchSyntax) ||
+                        !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
         }
 
-        private static bool IsPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
+        private static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
         {
             foreach (var section in switchSyntax.Sections)
             {
@@ -61,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!IsPatternSwitch) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            if (!UseV7SwitchBinder) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
 
             Debug.Assert(SwitchSyntax.Equals(node));
 
@@ -135,7 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
-                        if (!hasErrors && (object)constantValue != null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
+                        if (!hasErrors &&
+                            (object)constantValue != null &&
+                            pattern.Value.Type == SwitchGoverningType &&
+                            this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
@@ -150,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, "default");
+                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
                             hasErrors = true;
                         }
 

@@ -1,20 +1,20 @@
 # Required Software
 
-1. [Visual Studio 2015 with Update 2](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 2_.
+1. [Visual Studio 2015 with Update 3](http://go.microsoft.com/fwlink/?LinkId=691129).
 2. Visual Studio 2015 Extensibility Tools.
  
     If you already installed Visual Studio, the Extensibility Tools can be added as follows: 
     - Open Control Panel -> Programs and Features
     - Select the entry for your installation of Microsoft Visual Studio. Depending on your version, it may appear as follows:
-        - Microsoft Visual Studio Community 2015 with Update 2
+        - Microsoft Visual Studio Community 2015 with Update 3
         - Microsoft Visual Studio Professional 2015
         - Microsoft Visual Studio Enterprise 2015
     - Press the 'Change' button
     - In the resulting window, press the 'Modify' button
-    - Check the "Visual Studio Extensibility Tools Update 1" item and press the 'Next' button
+    - Check the "Visual Studio Extensibility Tools Update 3" item and press the 'Next' button
     - Press the 'Update' button
 
-
+NOTE: You can also use a [Visual Studio "15" Preview](https://www.visualstudio.com/news/releasenotes/vs15-relnotes). The publicly available version of Visual Studio "15" Preview 4 is a work in progress, and as such, does not fully support developing against the Roslyn solution. If you use Preview 4 with the Roslyn solution, you will see issues that prevent the setup project from building and stop the setup VSIX from getting deployed to the RoslynDev hive even when the build does succeed. As such, we recommend remaining on Visual Studio "15" Preview 3 if you are developing against the Roslyn solution. 
 
 # Getting the Code
 
@@ -31,7 +31,7 @@ Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
 1. Run the "Developer Command Prompt for VS2015" from your start menu.
 2. Navigate to the directory of your Git clone.
-3. Run `msbuild /v:m /m BuildAndTest.proj` in the command prompt.
+3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 
 To debug through tests, you can right click the test project that contains your
 tests and choose **Set as Startup Project**. Then press F5. This will run the

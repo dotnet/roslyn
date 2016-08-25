@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
@@ -293,6 +289,23 @@ class D
     private int GetProp()
     {
         return 1; // Comment
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestComputedPropWithTrailingTriviaAfterArrow()
+        {
+            await TestAsync(
+@"class C
+{
+    public int [||]Prop => /* return 42 */ 42;
+}",
+@"class C
+{
+    public int GetProp()
+    {
+        return /* return 42 */ 42;
     }
 }", compareTokens: false);
         }

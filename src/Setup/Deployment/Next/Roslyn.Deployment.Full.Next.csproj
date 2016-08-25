@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -41,13 +39,6 @@
       <Name>VisualStudioDiagnosticsWindow</Name>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <VSIXSubPath>Vsixes</VSIXSubPath>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualStudio\Telemetry\VisualStudioTelemetry.csproj">
-      <Project>{63fb8976-170e-4fb0-abb8-6a7070c55dc7}</Project>
-      <Name>VisualStudioTelemetry</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <VSIXSubPath>Vsixes</VSIXSubPath>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Extension\CompilerExtension.csproj">
@@ -105,7 +96,5 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

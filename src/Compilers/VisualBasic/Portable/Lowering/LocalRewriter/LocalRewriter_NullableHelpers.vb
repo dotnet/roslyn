@@ -109,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
+            Return CaptureOperand(operand, temp, init)
+        End Function
+
+        Private Function CaptureOperand(operand As BoundExpression, <Out> ByRef temp As SynthesizedLocal, <Out> ByRef init As BoundExpression) As BoundExpression
             temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
@@ -171,8 +175,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueOrDefaultMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -194,8 +199,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
@@ -221,15 +227,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 hasValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=hasValueMethod.ReturnType)
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),
                                           Me.Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
         End Function
 
-        Private Shared Function NullableNull(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol) As BoundExpression
+        Private Shared Function NullableNull(syntax As SyntaxNode, nullableType As TypeSymbol) As BoundExpression
             Debug.Assert(nullableType.IsNullableType)
 
             Return New BoundObjectCreationExpression(syntax,
@@ -260,19 +267,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return candidateNullExpression
         End Function
 
-        Private Function NullableFalse(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableFalse(syntax As SyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.False, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function NullableTrue(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableTrue(syntax As SyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.True, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function GetNullableMethod(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
+        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
             Dim method As MethodSymbol = Nothing
 
             If TryGetSpecialMember(method, member, syntax) Then
@@ -283,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function NullableOfBooleanValue(syntax As VisualBasicSyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableOfBooleanValue(syntax As SyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
             If isTrue Then
                 Return NullableTrue(syntax, nullableOfBoolean)
             Else
@@ -329,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Performs some trivial constant folding.
         ''' TODO: Perhaps belong to a different file
         ''' </summary>
-        Private Function MakeBinaryExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeBinaryExpression(syntax As SyntaxNode,
                                             binaryOpKind As BinaryOperatorKind,
                                             left As BoundExpression,
                                             right As BoundExpression,
@@ -430,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' When operand are boolean, the result type is same as operand's and is never checked 
         ''' so do not need to pass that in.
         ''' </summary>
-        Private Function MakeBooleanBinaryExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeBooleanBinaryExpression(syntax As SyntaxNode,
                                     binaryOpKind As BinaryOperatorKind,
                                     left As BoundExpression,
                                     right As BoundExpression) As BoundExpression
@@ -441,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)
         End Function
 
-        Private Shared Function MakeNullLiteral(syntax As VisualBasicSyntaxNode, type As TypeSymbol) As BoundLiteral
+        Private Shared Function MakeNullLiteral(syntax As SyntaxNode, type As TypeSymbol) As BoundLiteral
             Return New BoundLiteral(syntax, ConstantValue.Nothing, type)
         End Function
 
@@ -455,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Shared Function MakeSequence(syntax As VisualBasicSyntaxNode,
+        Private Shared Function MakeSequence(syntax As SyntaxNode,
                                              first As BoundExpression,
                                              second As BoundExpression) As BoundExpression
 
@@ -474,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Function MakeTernaryConditionalExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeTernaryConditionalExpression(syntax As SyntaxNode,
                                                           condition As BoundExpression,
                                                           whenTrue As BoundExpression,
                                                           whenFalse As BoundExpression) As BoundExpression

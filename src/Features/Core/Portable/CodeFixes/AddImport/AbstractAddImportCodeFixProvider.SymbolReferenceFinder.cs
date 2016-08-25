@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
-                Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
+                Document document, SemanticModel semanticModel,
+                Diagnostic diagnostic, SyntaxNode node,
+                CancellationToken cancellationToken)
             {
                 _owner = owner;
                 _document = document;
@@ -44,14 +47,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                _namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+                _namespacesInScope = GetNamespacesInScope(cancellationToken);
             }
 
-            internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
-                Project project, bool exact, CancellationToken cancellationToken)
+            private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
             {
-                var searchScope = new AllSymbolsProjectSearchScope(_owner, project, exact, cancellationToken);
+                // Add all hte namespaces brought in by imports/usings.
+                var set = _owner.GetImportNamespacesInScope(_semanticModel, _node, cancellationToken);
+
+                // Also add all the namespaces we're containing in.  We don't want
+                // to add imports for these namespaces either.
+                for (var containingNamespace = _semanticModel.GetEnclosingNamespace(_node.SpanStart, cancellationToken);
+                     containingNamespace != null;
+                     containingNamespace = containingNamespace.ContainingNamespace)
+                {
+                    set.Add(MapToCompilationNamespaceIfPossible(containingNamespace));
+                }
+
+                return set;
+            }
+
+            private INamespaceSymbol MapToCompilationNamespaceIfPossible(INamespaceSymbol containingNamespace)
+            {
+                return _semanticModel.Compilation.GetCompilationNamespace(containingNamespace) ?? containingNamespace;
+            }
+
+            internal Task<List<SymbolReference>> FindInAllSymbolsInStartingProjectAsync(
+                bool exact, CancellationToken cancellationToken)
+            {
+                var searchScope = new AllSymbolsProjectSearchScope(_owner, _document.Project, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -65,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal Task<List<SymbolReference>> FindInMetadataSymbolsAsync(
-                Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference,
+                IAssemblySymbol assembly, PortableExecutableReference metadataReference,
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, solution, assembly, metadataReference, exact, cancellationToken);
+                    _owner, _document.Project.Solution, assembly, metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -127,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .Distinct()
                     .Where(NotNull)
                     .Where(NotGlobalNamespace)
-                    .Order()
+                    .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
                     .ToList();
             }
 
@@ -634,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // We only want to offer to add a using if we don't already have one.
                 return
                     namespaces.Where(n => !n.Symbol.IsGlobalNamespace)
-                              .Select(n => n.WithSymbol(_semanticModel.Compilation.GetCompilationNamespace(n.Symbol) ?? n.Symbol))
+                              .Select(n => n.WithSymbol(MapToCompilationNamespaceIfPossible(n.Symbol)))
                               .Where(n => n.Symbol != null && !_namespacesInScope.Contains(n.Symbol))
                               .Select(n => scope.CreateReference(n))
                               .ToList();

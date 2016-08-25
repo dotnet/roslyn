@@ -33,16 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Function(propertyStatement As PropertyStatementSyntax) Not propertyStatement.Modifiers.Any(SyntaxKind.SharedKeyword),
                     Function(eventStatement As EventStatementSyntax) Not eventStatement.Modifiers.Any(SyntaxKind.SharedKeyword)) Then
 
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.MeKeywordToolTip, matchPriority:=priority))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running, matchPriority:=priority))
                 End If
 
                 If targetToken.GetContainingMember().TypeSwitch(Function(fieldInitializer As FieldDeclarationSyntax) Not fieldInitializer.Modifiers.Any(SyntaxKind.SharedKeyword)) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.MeKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running))
                 End If
             End If
 
             If context.IsAccessibleEventContext(startAtEnclosingBaseType:=False, cancellationToken:=cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.MeKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

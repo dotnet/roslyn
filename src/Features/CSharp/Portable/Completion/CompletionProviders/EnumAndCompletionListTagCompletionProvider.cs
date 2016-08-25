@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     displayText: displayText,
                     insertionText: null,
                     symbol: alias ?? type,
-                    descriptionPosition: position,
+                    contextPosition: position,
                     matchPriority: MatchPriority.Preselect,
                     rules: s_rules);
 

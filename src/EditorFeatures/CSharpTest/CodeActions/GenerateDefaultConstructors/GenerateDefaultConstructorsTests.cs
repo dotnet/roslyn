@@ -1,12 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstructors;
+using Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -104,6 +101,15 @@ index: 3);
             await TestAsync(
 @"class C : [||]B { public C(bool x) { } } class B { internal B(int x) { } protected B(string x) { } public B(bool x) { } }",
 @"class C : B { public C(bool x) { } protected C(string x) : base(x) { } internal C(int x) : base(x) { } } class B { internal B(int x) { } protected B(string x) { } public B(bool x) { } }",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestFixAll_WithTuples()
+        {
+            await TestAsync(
+@"class C : [||]B { public C((bool, bool) x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
+@"class C : B { public C((bool, bool) x) { } protected C((string, string) x) : base(x) { } internal C((int, int) x) : base(x) { } } class B { internal B((int, int) x) { } protected B((string, string) x) { } public B((bool, bool) x) { } }",
 index: 2);
         }
 

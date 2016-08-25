@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -27,6 +25,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             await TestAsync(
 @"interface IInterface { void Method1 ( ) ; } class Class : [|IInterface|] { } ",
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        private static readonly string s_tupleElementNamesAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Event )]
+    public sealed class TupleElementNamesAttribute : Attribute { }
+}
+";
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInMethod()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x); } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x) ; } class Class : IInterface { public (int a, int b)[] Method1 ((int c, string) x) { throw new NotImplementedException ( ) ; } } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInMethod_Explicitly()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x); } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Method1 ((int c, string) x) ; } class Class : IInterface { (int a, int b)[] IInterface.Method1 ((int c, string) x) { throw new NotImplementedException ( ) ; } } " + s_tupleElementNamesAttribute,
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInProperty()
+        {
+            await TestAsync(
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Property1 { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] get; [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] set; } } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"using System; interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] (int a, int b)[] Property1 { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] get; [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] set; } } class Class : IInterface { public (int a, int b)[] Property1 { get { throw new NotImplementedException(); } set { throw new NotImplementedException(); } } } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNamesInEvent()
+        {
+            await TestAsync(
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : [|IInterface|] { } " + s_tupleElementNamesAttribute,
+@"interface IInterface { [System.Runtime.CompilerServices.TupleElementNames(new[] { ""a"", ""b"" })] event Func<(int a, int b)> Event1; } class Class : IInterface { public event Func<(int a, int b)> Event1; } " + s_tupleElementNamesAttribute);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task NoDynamicAttributeInMethod()
+        {
+            await TestAsync(
+@"interface IInterface { [return: System.Runtime.CompilerServices.DynamicAttribute()] object Method1 (); } class Class : [|IInterface|] { } ",
+@"using System; interface IInterface { [return: System.Runtime.CompilerServices.DynamicAttribute()] object Method1 (); } class Class : IInterface { public object Method1 () { throw new NotImplementedException ( ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -2601,7 +2648,7 @@ partial class C
         private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
         {
             return $@"    #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.ToDetectRedundantCalls}
+    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
 
     {disposeVisibility}void Dispose(bool disposing)
     {{
@@ -2609,28 +2656,28 @@ partial class C
         {{
             if (disposing)
             {{
-                // {FeaturesResources.DisposeManagedStateTodo}
+                // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
 
-            // {CSharpFeaturesResources.FreeUnmanagedResourcesTodo}
-            // {FeaturesResources.SetLargeFieldsToNullTodo}
+            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
+            // {FeaturesResources.TODO_colon_set_large_fields_to_null}
 
             disposedValue = true;
         }}
     }}
 
-    // {CSharpFeaturesResources.OverrideAFinalizerTodo}
+    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
     // ~{className}() {{
-    //   // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
 
-    // {CSharpFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {implementationVisibility}Dispose()
     {{
-        // {CSharpFeaturesResources.DoNotChangeThisCodeUseDispose}
+        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
         Dispose(true);
-        // {CSharpFeaturesResources.UncommentTheFollowingIfFinalizerOverriddenTodo}
+        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
         // GC.SuppressFinalize(this);
     }}
     #endregion";

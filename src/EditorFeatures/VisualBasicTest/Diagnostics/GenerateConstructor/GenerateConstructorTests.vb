@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
@@ -566,8 +564,8 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType_Crash() As Task
-            Await TestMissingAsync(
+        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
+            Await TestAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -578,6 +576,20 @@ End Class
 Public Class [|;;|]Derived
     Inherits Base
 
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class ;;Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
 End Class")
         End Function
 

@@ -44,6 +44,11 @@ namespace Roslyn.Utilities
             return Empty.Set<T>.Instance;
         }
 
+        public static IReadOnlySet<T> EmptyReadOnlySet<T>()
+        {
+            return Empty.Set<T>.Instance;
+        }
+
         public static IDictionary<TKey, TValue> EmptyDictionary<TKey, TValue>()
         {
             return Empty.Dictionary<TKey, TValue>.Instance;
@@ -56,17 +61,22 @@ namespace Roslyn.Utilities
 
         public static IEnumerable<T> SingletonEnumerable<T>(T value)
         {
-            return new Singleton.Collection<T>(value);
+            return new Singleton.List<T>(value);
         }
 
         public static ICollection<T> SingletonCollection<T>(T value)
         {
-            return new Singleton.Collection<T>(value);
+            return new Singleton.List<T>(value);
         }
 
         public static IEnumerator<T> SingletonEnumerator<T>(T value)
         {
             return new Singleton.Enumerator<T>(value);
+        }
+
+        public static IList<T> SingletonList<T>(T value)
+        {
+            return new Singleton.List<T>(value);
         }
 
         public static IEnumerable<T> ReadOnlyEnumerable<T>(IEnumerable<T> values)
@@ -88,22 +98,11 @@ namespace Roslyn.Utilities
                 : new ReadOnly.Set<ISet<T>, T>(set);
         }
 
-        public static ISet<T> ReadOnlySet<T>(IEnumerable<T> values)
+        public static IReadOnlySet<T> StronglyTypedReadOnlySet<T>(ISet<T> set)
         {
-            var set = values as ISet<T>;
-            if (set != null)
-            {
-                return ReadOnlySet(set);
-            }
-
-            HashSet<T> result = null;
-            foreach (var item in values)
-            {
-                result = result ?? new HashSet<T>();
-                result.Add(item);
-            }
-
-            return ReadOnlySet(result);
+            return set == null || set.Count == 0
+                ? EmptyReadOnlySet<T>()
+                : new ReadOnly.Set<ISet<T>, T>(set);
         }
     }
 }

@@ -19,6 +19,7 @@ if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
 REM the build. The Jenkins script netci.groovy passes the time limit to this script.
@@ -42,8 +43,8 @@ if not "%BuildTimeLimit%" == "" (
 ) else (
     set RunProcessWatchdog=false
 )
-    
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
+
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
@@ -83,21 +84,19 @@ if defined TestPerfCorrectness (
     exit /b 0
 )
 
+if defined TestPerfRun (
+    msbuild %MSBuildAdditionalCommandLineArgs% Roslyn.sln /p:Configuration=%BuildConfiguration% /p:DeployExtension=false || goto :BuildFailed
+    .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --no-trace-upload || goto :BuildFailed
+    exit /b 0
+)
+
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
-REM Verify that our project.lock.json files didn't change as a result of 
-REM restore.  If they do then the commit changed the dependencies without 
-REM updating the lock files.
-REM git diff --exit-code --quiet
-REM if ERRORLEVEL 1 (
-REM    echo Commit changed dependencies without updating project.lock.json
-REM    git diff --exit-code
-REM    exit /b 1
-REM )
-
+REM Verify the state of our project.jsons
+.\Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

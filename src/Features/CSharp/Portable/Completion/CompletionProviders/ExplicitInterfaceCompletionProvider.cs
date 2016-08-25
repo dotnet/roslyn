@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ExplicitInterfaceCompletionProvider : CommonCompletionProvider
     {
+        private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
+
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -90,36 +92,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var member in members)
             {
-                var displayText = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                var displayText = member.ToMinimalDisplayString(
+                    semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                context.AddItem(SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.Create(
                     displayText,
                     insertionText: insertionText,
                     symbol: member,
                     contextPosition: position,
-                    descriptionPosition: position,
-                    rules: CompletionItemRules.Default));
+                    rules: CompletionItemRules.Default);
+                item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
+
+                context.AddItem(item);
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override Task<CompletionDescription> GetDescriptionAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            if (ch.HasValue && ch.Value == '(')
+            if (ch == '(')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length > 0)
+                string insertionText;
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out insertionText))
                 {
-                    return new TextChange(selectedItem.Span, symbols[0].Name);
+                    return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
                 }
             }
 
-            return new TextChange(selectedItem.Span, selectedItem.DisplayText);
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
         }
     }
 }

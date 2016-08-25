@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SubstituteFields(otherInstance, typeMap)
         End Function
 
-        Friend Function ToBoundExpression(syntax As VisualBasicSyntaxNode, isLValue As Boolean, suppressVirtualCalls As Boolean) As BoundExpression
+        Friend Function ToBoundExpression(syntax As SyntaxNode, isLValue As Boolean, suppressVirtualCalls As Boolean) As BoundExpression
             Dim expr = Me.DisplayClassInstance.ToBoundExpression(syntax)
             Dim fields = ArrayBuilder(Of FieldSymbol).GetInstance()
             fields.AddRange(Me.DisplayClassFields)

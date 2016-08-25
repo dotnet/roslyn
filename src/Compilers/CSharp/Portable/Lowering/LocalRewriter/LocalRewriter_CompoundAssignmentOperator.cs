@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // double-evaluation of side effects.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
 
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
 
             // OK, we now have the temporary declarations, the temporary stores, and the transformed left hand side.
             // We need to generate 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
 
-            CSharpSyntaxNode syntax = indexerAccess.Syntax;
+            SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
             ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
             bool expanded = indexerAccess.Expanded;

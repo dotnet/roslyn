@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.CorrectNextControlVariable
+                    Return VBFeaturesResources.Use_the_correct_control_variable
                 End Get
             End Property
 

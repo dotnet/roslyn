@@ -2,13 +2,11 @@
 
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
@@ -46,15 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 return;
             }
 
-            if (argument.Expression != null)
+            var cancellationToken = context.CancellationToken;
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
+            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                var cancellationToken = context.CancellationToken;
-                var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-                AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
-                foreach (var symbol in symbolInfo.CandidateSymbols)
-                {
-                    AddIneligibleField(symbol, ineligibleFields);
-                }
+                AddIneligibleField(symbol, ineligibleFields);
             }
         }
 

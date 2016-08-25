@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             If targetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.LibraryName.Token) AndAlso Not touchingToken.ContainsDiagnostics Then
                 Return SpecializedCollections.SingletonEnumerable(
-                    New RecommendedKeyword("Alias", VBFeaturesResources.AliasKeywordToolTip))
+                    New RecommendedKeyword("Alias", VBFeaturesResources.Indicates_that_an_external_procedure_has_another_name_in_its_DLL))
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

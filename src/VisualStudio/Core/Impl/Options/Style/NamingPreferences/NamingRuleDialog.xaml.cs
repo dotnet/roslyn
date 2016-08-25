@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         private readonly INotificationService _notificationService;
         private readonly ImmutableArray<string> _categories;
 
-        public string DialogTitle => ServicesVSResources.NamingRuleDialogTitle;
-        public string NameLabelText => ServicesVSResources.NameEntryLabel;
-        public string SymbolSpecificationLabelText => ServicesVSResources.SymbolSpecificationEntryLabel;
-        public string NamingStyleLabelText => ServicesVSResources.NamingStyleEntryLabel;
-        public string ParentRuleLabelText => ServicesVSResources.ParentRuleEntryLabel;
-        public string EnforcementLevelsLabelText => ServicesVSResources.EnforcementLevelEntryLabel;
+        public string DialogTitle => ServicesVSResources.Naming_Rule;
+        public string NameLabelText => ServicesVSResources.Name_colon2;
+        public string SymbolSpecificationLabelText => ServicesVSResources.Symbol_Specification_colon;
+        public string NamingStyleLabelText => ServicesVSResources.Naming_Style_colon;
+        public string ParentRuleLabelText => ServicesVSResources.Parent_Rule_colon;
+        public string EnforcementLevelsLabelText => ServicesVSResources.Severity_colon;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 

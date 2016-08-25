@@ -8,8 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -401,27 +399,113 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return project.ProjectReferences.Any(p => p.ProjectId == sourceProject.Id);
             }
 
+            return project.HasReferenceToAssembly(containingAssembly);
+        }
+
+        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol)
+        {
+            return project.HasReferenceToAssembly(assemblySymbol.Name);
+        }
+
+        public static bool HasReferenceToAssembly(this Project project, string assemblyName)
+        {
+            bool? hasMatch = project.GetAssemblyReferenceType(
+                a => a.Name == assemblyName ? true : (bool?)null);
+
+            return hasMatch == true;
+        }
+
+        /// <summary>
+        /// Determines if this project has a reference to an assembly matching a passed
+        /// in predicate.  The predicate returns 'null' to indicate no match, and non-null
+        /// to indicate a match of some kind.  If any match is found, that value is returned
+        /// as the value of this function.  Otherwise 'null' is returned.
+        /// </summary>
+        private static T? GetAssemblyReferenceType<T>(
+            this Project project, 
+            Func<IAssemblySymbol, T?> predicate) where T : struct
+        {
             // If the project we're looking at doesn't even support compilations, then there's no 
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
             // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
             if (!project.SupportsCompilation)
             {
-                return false;
+                return null;
             }
 
             // WORKAROUND:
-            // perf  check metadata reference using newly created empty compilation with only metadata references.
+            // perf check metadata reference using newly created empty compilation with only metadata references.
+            //
+            // TODO(cyrusn): Why don't we call project.TryGetCompilation first?  
+            // wouldn't we want to use that compilation if it's available?
             var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
-                project.AssemblyName,
-                project.CompilationOptions);
+                project.AssemblyName, project.CompilationOptions);
 
             compilation = compilation.AddReferences(project.MetadataReferences);
 
-            return project.MetadataReferences.Any(m =>
+            foreach (var reference in project.MetadataReferences)
             {
-                var symbol = compilation.GetAssemblyOrModuleSymbol(m) as IAssemblySymbol;
-                return symbol != null && symbol.Name == containingAssembly.Name;
-            });
+                var symbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                if (symbol != null)
+                {
+                    var result = predicate(symbol);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Finds projects in this solution that have a reference to an assembly with the 
+        /// identity provided.  Projects will be ordered such that those that have a 
+        /// reference that is <see cref="AssemblyIdentityComparer.ComparisonResult.Equivalent"/>
+        /// will be returned before those that are 
+        /// <see cref="AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion"/>.
+        /// </summary>
+        public static IEnumerable<Project> ProjectsWithReferenceToAssembly(
+            this Solution solution, AssemblyIdentity identity)
+        {
+            var projectMatchesIgnoringVersion = new List<Project>();
+            foreach (var project in solution.Projects)
+            {
+                var referenceType = project.GetAssemblyReferenceType(a =>
+                    {
+                        var result = AssemblyIdentityComparer.Default.Compare(a.Identity, identity);
+
+                        // If the assembly and the identity are NotEquivalent, return null to indicate
+                        // that we need to keep checking the rest of the assemblies.  Otherwise,
+                        // return the result we got which will bubble out into 'referenceType'.
+                        return result == AssemblyIdentityComparer.ComparisonResult.NotEquivalent
+                            ? (AssemblyIdentityComparer.ComparisonResult?)null
+                            : result;
+                    });
+
+                if (referenceType.HasValue)
+                {
+                    if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.Equivalent)
+                    {
+                        // We found an assembly reference exactly matching the assembly identity.
+                        // Return it immediately.
+                        yield return project;
+                    }
+                    else if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
+                    {
+                        // We found an assembly reference matching the assembly identity if
+                        // versions were ignored.  Return it after all the exact matches are
+                        // returned.
+                        projectMatchesIgnoringVersion.Add(project);
+                    }
+                }
+            }
+
+            foreach (var project in projectMatchesIgnoringVersion)
+            {
+                yield return project;
+            }
         }
     }
 }

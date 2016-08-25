@@ -28,7 +28,7 @@ class C
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface"))
+                    String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interface"))
             End Using
         End Function
 
@@ -38,8 +38,8 @@ class C
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources.Keyword, "interface")}
-{String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")}")
+                Await state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources._0_Keyword, "interface")}
+{String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interface")}")
             End Using
         End Function
 
@@ -51,7 +51,7 @@ class C
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interfac"))
+                    String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interfac"))
             End Using
         End Sub
 
@@ -61,7 +61,7 @@ class C
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces")
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "interface"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "interface"))
             End Using
         End Sub
 
@@ -72,7 +72,7 @@ class C
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "InsertionText"))
             End Using
         End Sub
 
@@ -99,7 +99,7 @@ class C
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "for"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "for"))
             End Using
         End Function
 

@@ -25,11 +25,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationTestData testData = null,
             DiagnosticDescription[] expectedWarnings = null,
             Stream pdbStream = null,
-            IMethodSymbol debugEntryPoint = null)
+            IMethodSymbol debugEntryPoint = null,
+            Stream sourceLinkStream = null,
+            IEnumerable<EmbeddedText> embeddedTexts = null)
         {
-            var stream = new MemoryStream();
+            var peStream = new MemoryStream();
 
-            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
+            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
                 if (MonoHelpers.IsRunningOnMono())
                 {
@@ -40,13 +42,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var emitResult = compilation.Emit(
-                peStream: stream,
+                peStream: peStream,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
                 manifestResources: null,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
+                sourceLinkStream: sourceLinkStream,
+                embeddedTexts: embeddedTexts,
                 testData: testData,
                 cancellationToken: default(CancellationToken));
 
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 emitResult.Diagnostics.Verify(expectedWarnings);
             }
 
-            return stream.ToImmutable();
+            return peStream.ToImmutable();
         }
 
         public static MemoryStream EmitToStream(this Compilation compilation, EmitOptions options = null, DiagnosticDescription[] expectedWarnings = null)
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
         {
-            IOperation operation = model.GetOperation(node);
+            IOperation operation = model.GetOperationInternal(node);
             if (operation != null)
             {
                 string operationTree = OperationTreeVerifier.GetOperationTree(operation, initialIndent);

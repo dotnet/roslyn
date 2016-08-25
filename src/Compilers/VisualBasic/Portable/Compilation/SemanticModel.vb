@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend MustOverride ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property Root As SyntaxNode
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' a position. Just using FindToken doesn't give quite the right results, especially in situations where
         ' end constructs haven't been typed yet. If we are in the trivia between two tokens, we move backward to the previous
         ' token. There are also some special cases around beginning and end of the whole tree.
-        Friend Function FindInitialNodeFromPosition(position As Integer) As VisualBasicSyntaxNode
+        Friend Function FindInitialNodeFromPosition(position As Integer) As SyntaxNode
             Dim fullStart As Integer = Root.Position
             Dim fullEnd As Integer = Root.EndPosition
 
@@ -944,7 +944,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Let's account for that.
             If lowestExpr.Kind = BoundKind.ArrayCreation AndAlso DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralOpt IsNot Nothing Then
                 type = Nothing
-                conversion = New conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+                conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+            ElseIf lowestExpr.Kind = BoundKind.ConvertedTupleLiteral Then
+                type = DirectCast(lowestExpr, BoundConvertedTupleLiteral).NaturalTypeOpt
             Else
                 type = lowestExpr.Type
             End If
@@ -994,7 +996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Special case: overload failure on X in New X(...), where overload resolution failed. 
                 ' Binds to method group which can't have a type.
 
-                Dim parentSyntax As VisualBasicSyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
+                Dim parentSyntax As SyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
                 If parentSyntax IsNot Nothing AndAlso
                    parentSyntax Is boundNodes.LowestBoundNode.Syntax.Parent AndAlso
                    ((parentSyntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax))) Then
@@ -1430,7 +1432,7 @@ _Default:
             Debug.Assert(boundNodeOfSyntacticParent IsNot Nothing)
 
             ' Check if boundNode.Syntax is the type-name child of an ObjectCreationExpression or Attribute.
-            Dim parentSyntax As VisualBasicSyntaxNode = boundNodeOfSyntacticParent.Syntax
+            Dim parentSyntax As SyntaxNode = boundNodeOfSyntacticParent.Syntax
             If parentSyntax IsNot Nothing AndAlso
                lowestBoundNode IsNot Nothing AndAlso
                parentSyntax Is lowestBoundNode.Syntax.Parent AndAlso
@@ -1566,7 +1568,7 @@ _Default:
         End Function
 
         ' This is used by other binding API's to invoke the right binder API
-        Friend Overridable Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overridable Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim expr = TryCast(node, ExpressionSyntax)
             If expr IsNot Nothing Then
                 Return binder.BindNamespaceOrTypeOrExpressionSyntaxForSemanticModel(expr, diagnostics)

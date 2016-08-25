@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -84,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<bool> dynamicTransformFlags,
             bool checkLength = true)
         {
-            Debug.Assert(containingAssembly is SourceAssemblySymbol); // Doesn't happen during decoding.
             return TransformTypeInternal(
                 type,
                 containingAssembly,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(_index >= 0);
 
             if (!HasFlag ||
-                PeekFlag() && type.SpecialType != SpecialType.System_Object)
+                PeekFlag() && (type.SpecialType != SpecialType.System_Object && !type.IsDynamic()))
             {
                 // Bail, since flags are invalid.
                 return null;
@@ -206,10 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
-            // Dig into tuples
             if (namedType.IsTupleType)
             {
-                namedType = namedType.TupleUnderlyingType;
+                return TransformTupleType(namedType, isContaining);
             }
 
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
@@ -254,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var newTypeArguments = customModifiers.IsDefault ?
                                        transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
-                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+                                       transformedTypeArguments.ZipAsArray(customModifiers, (t, m) => new TypeWithModifiers(t, m));
 
                 if (containerIsChanged)
                 {
@@ -268,6 +267,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return namedType;
             }
+        }
+
+        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
+        {
+            Debug.Assert(tupleType.IsTupleType);
+
+            var underlying = tupleType.TupleUnderlyingType;
+            var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 
         private ImmutableArray<TypeSymbol> TransformTypeArguments(ImmutableArray<TypeSymbol> typeArguments)

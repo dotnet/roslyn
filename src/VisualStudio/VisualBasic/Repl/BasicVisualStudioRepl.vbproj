@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -59,6 +57,11 @@
       <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Core\Impl\ServicesVisualStudioImpl.csproj">
+      <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
+      <Name>ServicesVisualStudioImpl</Name>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\InteractiveServices\VisualStudioInteractiveServices.csproj">
       <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
       <Name>VisualStudioInteractiveServices</Name>
@@ -92,7 +95,7 @@
     <Compile Include="VisualBasicVsInteractiveWindowCommandProvider.vb" />
     <Compile Include="VisualBasicVsResetInteractiveCommand.vb" />
     <Content Include="Resources\ScriptFile.ico" />
-    <Content Include="VisualBasicInteractive.rsp" >
+    <Content Include="VisualBasicInteractive.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -116,7 +119,5 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

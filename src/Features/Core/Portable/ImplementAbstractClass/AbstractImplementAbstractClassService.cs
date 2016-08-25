@@ -7,31 +7,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal abstract partial class AbstractImplementAbstractClassService : IImplementAbstractClassService
+    internal abstract partial class AbstractImplementAbstractClassService<TClassSyntax> :
+        IImplementAbstractClassService
+        where TClassSyntax : SyntaxNode
     {
         protected AbstractImplementAbstractClassService()
         {
         }
 
-        protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode classNode, CancellationToken cancellationToken, out INamedTypeSymbol classType, out INamedTypeSymbol abstractClassType);
+        protected abstract bool TryInitializeState(Document document, SemanticModel model, TClassSyntax classNode, CancellationToken cancellationToken, out INamedTypeSymbol classType, out INamedTypeSymbol abstractClassType);
 
-        public Task<Document> ImplementAbstractClassAsync(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<Document> ImplementAbstractClassAsync(
+            Document document, SyntaxNode classNode, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_ImplementAbstractClass, cancellationToken))
             {
-                var state = State.Generate(this, document, model, node, cancellationToken);
+                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var state = State.Generate(this, document, model, (TClassSyntax)classNode, cancellationToken);
                 if (state == null)
                 {
-                    return SpecializedTasks.Default<Document>();
+                    return null;
                 }
 
-                return new Editor(document, model, state).GetEditAsync(cancellationToken);
+                return await new Editor(document, model, state).GetEditAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public bool CanImplementAbstractClass(Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<bool> CanImplementAbstractClassAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return State.Generate(this, document, model, node, cancellationToken) != null;
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return State.Generate(this, document, model, (TClassSyntax)node, cancellationToken) != null;
         }
     }
 }

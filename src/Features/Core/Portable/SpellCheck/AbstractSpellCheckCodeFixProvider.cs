@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo, oldName, newName),
+                string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }

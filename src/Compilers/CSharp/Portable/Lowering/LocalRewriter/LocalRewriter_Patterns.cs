@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
+        BoundExpression MakeDeclarationPattern(SyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
         {
             var type = target.Type;
             // a pattern match of the form "expression is Type identifier" is equivalent to

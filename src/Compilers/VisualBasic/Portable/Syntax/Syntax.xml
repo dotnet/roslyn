@@ -5037,6 +5037,73 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <!--****************
+      -  TupleExpression
+      ******************-->
+    <node-structure name="TupleExpressionSyntax" parent="ExpressionSyntax">
+      <description>Represents a tuple literal expression.</description>
+      <grammar>TupleExpression</grammar>
+
+      <node-kind name="TupleExpression" />
+
+      <child name="OpenParenToken" kind="OpenParenToken">
+        <description>The "(" token</description>
+      </child>
+
+      <child name="Arguments" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@SimpleArgumentSyntax">
+        <description>The list of tuple arguments.</description>
+      </child>
+      
+      <child name="CloseParenToken" kind="CloseParenToken">
+        <description>The ")" token</description>
+      </child>
+    </node-structure>
+
+      <!--****************
+      -  TupleType
+      ******************-->
+    <node-structure name="TupleTypeSyntax" parent="TypeSyntax">
+      <description>Represents a tuple type expression.</description>
+      <grammar>TupleType</grammar>
+
+      <node-kind name="TupleType">
+      </node-kind>
+
+      <child name="OpenParenToken" kind="OpenParenToken">
+        <description>The "(" token</description>
+      </child>
+
+      <child name="Elements" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TupleElementSyntax">
+        <description>The list of tuple arguments.</description>
+      </child>
+      
+      <child name="CloseParenToken" kind="CloseParenToken">
+        <description>The ")" token</description>
+      </child>
+    </node-structure>
+
+    <!--********************
+      -  TupleElementSyntax
+      **********************-->
+    <node-structure name="TupleElementSyntax" parent="VisualBasicSyntaxNode">
+      <description>Represents a single declaration of a tuple element. </description>
+      <grammar>TupleElement</grammar>
+
+      <node-kind name="TupleElement"></node-kind>
+
+      <child name="IdentifierName" optional="true" kind="IdentifierName">
+        <description>An identifier naming a tuple element.</description>
+      </child>
+
+      <child name="AsKeyword" optional="true" kind="AsKeyword">
+        <description>The "As" keyword.</description>
+      </child>
+            
+      <child name="Type" kind="@TypeSyntax">
+        <description>The type-name part of the tuple element syntax.</description>
+      </child>
+    </node-structure>
+      
+    <!--****************
       -  SpecialInstance
       ******************-->
     <node-structure name="InstanceExpressionSyntax"  abstract="true" parent="ExpressionSyntax">

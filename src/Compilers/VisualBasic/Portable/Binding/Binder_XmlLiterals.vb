@@ -1013,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the method or property group is not Nothing, bind as an invocation expression.
         ''' Otherwise return a BoundBadExpression containing the arguments.
         ''' </summary>
-        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As VisualBasicSyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As SyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
             If groupOpt Is Nothing Then
                 Return BadExpression(syntax, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
             Else
@@ -1933,7 +1933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+            Friend Overrides ReadOnly Property Syntax As SyntaxNode
                 Get
                     Return _originalDefinition.Syntax
                 End Get

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression RewriteParameter(CSharpSyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
+        private BoundExpression RewriteParameter(SyntaxNode syntax, ParameterSymbol symbol, BoundExpression node)
         {
             // This can happen in error scenarios (e.g. user binds "this" in a lambda in a static method).
             if ((object)symbol == null)
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var result = variable.ToBoundExpression(syntax);
             Debug.Assert(node.Kind == BoundKind.BaseReference
-                ? result.Type.BaseType.Equals(node.Type, ignoreDynamic: true)
-                : result.Type.Equals(node.Type, ignoreDynamic: true));
+                ? result.Type.BaseType.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames)
+                : result.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             return result;
         }
 
-        private void ReportMissingThis(BoundKind boundKind, CSharpSyntaxNode syntax)
+        private void ReportMissingThis(BoundKind boundKind, SyntaxNode syntax)
         {
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference

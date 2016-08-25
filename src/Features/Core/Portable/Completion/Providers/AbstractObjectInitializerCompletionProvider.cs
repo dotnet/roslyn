@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     displayText: uninitializedMember.Name,
                     insertionText: null,
                     symbol: uninitializedMember,
-                    descriptionPosition: initializerLocation.SourceSpan.Start,
+                    contextPosition: initializerLocation.SourceSpan.Start,
                     rules: s_rules));
             }
         }
