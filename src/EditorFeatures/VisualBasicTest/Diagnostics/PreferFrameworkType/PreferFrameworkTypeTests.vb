@@ -533,5 +533,24 @@ Class C
 End Class", options:=FrameworkTypeInDeclaration)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
+        Public Async Function LeadingTrivia() As Task
+            Await TestAsync(
+"Imports System
+Class C
+    Public Sub Test()
+        ' This is a comment
+        Dim x As [|Integer|]
+    End Sub
+End Class",
+"Imports System
+Class C
+    Public Sub Test()
+        ' This is a comment
+        Dim x As Int32
+    End Sub
+End Class", options:=FrameworkTypeInDeclaration, compareTokens:=False)
+        End Function
+
     End Class
 End Namespace

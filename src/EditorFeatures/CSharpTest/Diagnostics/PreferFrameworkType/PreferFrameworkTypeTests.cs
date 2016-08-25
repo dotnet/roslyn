@@ -718,5 +718,57 @@ class Program
 }";
             await TestAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        public async Task LeadingTrivia()
+        {
+            var code =
+@"using System;
+class Program
+{
+    void Method()
+    {
+        // this is a comment
+        [|int|] x = 5;
+    }
+}";
+
+            var expected =
+@"using System;
+class Program
+{
+    void Method()
+    {
+        // this is a comment
+        Int32 x = 5;
+    }
+}";
+            await TestAsync(code, expected, options: FrameworkTypeInDeclaration, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
+        public async Task TrailingTrivia()
+        {
+            var code =
+@"using System;
+class Program
+{
+    void Method()
+    {
+        [|int|] /* 2 */ x = 5;
+    }
+}";
+
+            var expected =
+@"using System;
+class Program
+{
+    void Method()
+    {
+        Int32 /* 2 */ x = 5;
+    }
+}";
+            await TestAsync(code, expected, options: FrameworkTypeInDeclaration, compareTokens: false);
+        }
     }
 }
