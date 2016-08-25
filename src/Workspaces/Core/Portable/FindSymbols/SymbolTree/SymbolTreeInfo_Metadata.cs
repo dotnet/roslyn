@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private static char[] s_dotSeparator = { '.' };
+
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
             var typeName = reader.GetString(name);
@@ -422,28 +424,75 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 EntityHandle baseTypeOrInterfaceHandle,
                 List<string> simpleNames)
             {
-                var provider = BaseNameProvider.Allocate(simpleNames);
-                try
+                var typeDefOrRefHandle = GetTypeDefOrRefHandle(baseTypeOrInterfaceHandle);
+                if (typeDefOrRefHandle.Kind == HandleKind.TypeDefinition)
                 {
-                    if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeDefinition)
-                    {
-                        provider.GetTypeFromDefinition(
-                            _metadataReader, (TypeDefinitionHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
-                    }
-                    else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeReference)
-                    {
-                        provider.GetTypeFromReference(
-                            _metadataReader, (TypeReferenceHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
-                    }
-                    else if (baseTypeOrInterfaceHandle.Kind == HandleKind.TypeSpecification)
-                    {
-                        provider.GetTypeFromSpecification(
-                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
-                    }
+                    AddTypeDefinitionNameParts((TypeDefinitionHandle)typeDefOrRefHandle, simpleNames);
                 }
-                finally
+                else if (typeDefOrRefHandle.Kind == HandleKind.TypeReference)
                 {
-                    BaseNameProvider.Free(provider);
+                    AddTypeReferenceNameParts((TypeReferenceHandle)typeDefOrRefHandle, simpleNames);
+                }
+            }
+
+            private void AddTypeDefinitionNameParts(
+                TypeDefinitionHandle handle, List<string> simpleNames)
+            {
+                var typeDefinition = _metadataReader.GetTypeDefinition(handle);
+                var declaringType = typeDefinition.GetDeclaringType();
+                if (declaringType.IsNil)
+                {
+                    // Not a nested type, just add the containing namespace.
+                    AddNamespaceParts(typeDefinition.NamespaceDefinition, simpleNames);
+                }
+                else
+                {
+                    // We're a nested type, recurse and add the type we're declared in.
+                    // It will handle adding the namespace properly.
+                    AddTypeDefinitionNameParts(declaringType, simpleNames);
+                }
+
+                // Now add the simple name of the type itself.
+                simpleNames.Add(GetMetadataNameWithoutBackticks(_metadataReader, typeDefinition.Name));
+            }
+
+            private void AddNamespaceParts(
+                NamespaceDefinitionHandle namespaceHandle, List<string> simpleNames)
+            {
+                if (namespaceHandle.IsNil)
+                {
+                    return;
+                }
+
+                var namespaceDefinition = _metadataReader.GetNamespaceDefinition(namespaceHandle);
+                AddNamespaceParts(namespaceDefinition.Parent, simpleNames);
+                simpleNames.Add(_metadataReader.GetString(namespaceDefinition.Name));
+            }
+
+            private void AddTypeReferenceNameParts(TypeReferenceHandle handle, List<string> simpleNames)
+            {
+                var typeReference = _metadataReader.GetTypeReference(handle);
+                var namespaceString = _metadataReader.GetString(typeReference.Namespace);
+
+                // NOTE(cyrusn): Unfortunately, we are forced to allocate here
+                // no matter what.  The metadata reader API gives us no way to
+                // just get the component namespace parts for a namespace reference.
+                simpleNames.AddRange(namespaceString.Split(s_dotSeparator));
+                simpleNames.Add(GetMetadataNameWithoutBackticks(_metadataReader, typeReference.Name));
+            }
+
+            private EntityHandle GetTypeDefOrRefHandle(EntityHandle baseTypeOrInterfaceHandle)
+            {
+                switch (baseTypeOrInterfaceHandle.Kind)
+                {
+                    case HandleKind.TypeDefinition:
+                    case HandleKind.TypeReference:
+                        return baseTypeOrInterfaceHandle;
+                    case HandleKind.TypeSpecification:
+                        return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
+                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                    default:
+                        return default(EntityHandle);
                 }
             }
 
