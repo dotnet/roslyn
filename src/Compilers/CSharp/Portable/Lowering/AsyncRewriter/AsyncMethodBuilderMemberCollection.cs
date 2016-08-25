@@ -139,10 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod;
                 PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType, out createBuilderMethod);
+                bool customBuilder = returnType.IsCustomTaskType(out builderType);
                 if (customBuilder)
                 {
                     taskProperty = GetCustomTaskProperty(F, builderType);
+                    createBuilderMethod = GetCustomCreateMethod(F, builderType);
                 }
                 else
                 {
@@ -154,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builderType,
                         customBuilder,
                         out createBuilderMethod);
+                    Debug.Assert(createBuilderMethod == GetCustomCreateMethod(F, builderType));
                     TryGetBuilderMember<PropertySymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod;
                 PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType, out createBuilderMethod);
+                bool customBuilder = returnType.IsCustomTaskType(out builderType);
                 if (!customBuilder)
                 {
                     builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
@@ -209,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (customBuilder)
                 {
                     taskProperty = GetCustomTaskProperty(F, builderType);
+                    createBuilderMethod = GetCustomCreateMethod(F, builderType);
                 }
                 else
                 {
@@ -218,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builderType,
                         customBuilder,
                         out createBuilderMethod);
+                    Debug.Assert(createBuilderMethod == GetCustomCreateMethod(F, builderType));
                     TryGetBuilderMember<PropertySymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task,
@@ -339,6 +343,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             return true;
+        }
+
+        private static MethodSymbol GetCustomCreateMethod(
+            SyntheticBoundNodeFactory F,
+            NamedTypeSymbol builderType)
+        {
+            // The Create method's return type is expected to be buildderType.
+            // The WellKnownMembers routines aren't able to enforce that, which is this method exists.
+            //
+            // TODO: consider removing WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder*__Create
+            // and using GetCustomCreateMethod for the Task types as well as for custom tasklikes.
+            const string methodName = "Create";
+            var members = builderType.GetMembers(methodName);
+            foreach (var member in members)
+            {
+                if (member.Kind != SymbolKind.Method)
+                {
+                    continue;
+                }
+                var method = (MethodSymbol)member;
+                if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                    method.IsStatic &&
+                    method.ParameterCount == 0 &&
+                    !method.IsGenericMethod &&
+                    method.ReturnType == builderType) // TODO: is this the right equality check?
+                {
+                    return method;
+                }
+            }
+            var diagnostic = new CSDiagnostic(
+                new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, builderType, methodName),
+                F.Syntax.Location);
+            F.Diagnostics.Add(diagnostic);
+            return null;
         }
 
         private static PropertySymbol GetCustomTaskProperty(

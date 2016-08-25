@@ -151,8 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)delegateReturnType != null)
             {
                 NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                if (delegateReturnType.IsCustomTaskType(out builderType, out createBuilderMethod))
+                if (delegateReturnType.IsCustomTaskType(out builderType))
                 {
                     taskType = delegateReturnType;
                 }

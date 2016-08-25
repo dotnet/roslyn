@@ -1274,8 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+            return namedType.IsCustomTaskType(out builderType);
         }
 
         internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1290,15 +1289,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
             NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+            return namedType.IsCustomTaskType(out builderType);
         }
 
         /// <summary>
-        /// Returns true if the type is generic or non-generic task-like type. If so, the async
+        /// Returns true if the type is generic or non-generic custom task-like type. If so, the async
         /// method builder type is returned along with the method to construct that type.
         /// </summary>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType, out MethodSymbol createBuilderMethod)
+        /// <remarks>
+        /// For the Task types themselves, this method might return true or false depending on mscorlib.
+        /// The definition of "custom task-like type" is one that has an [AsyncBuilder] attribute on it,
+        /// and the attribute has the correct form, and it identifies a builder with the correct arity.
+        /// If those conditions are not met then the type doesn't count as tasklike and we don't even
+        /// report an error. (Might be nice to, but it's pretty niche). If the conditions are met
+        /// but the members of the builder type are malformed, that's a compilation error reported during lowering.
+        /// </remarks>
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
@@ -1306,34 +1312,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the public static CreateAsyncMethodBuilder method.
-                var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
-                foreach (var member in members)
+                // Find the AsyncBuilder attribute.
+                foreach (var attr in type.GetAttributes())
                 {
-                    if (member.Kind != SymbolKind.Method)
+                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncBuilderAttribute)
+                        && attr.CommonConstructorArguments.Length == 1
+                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        continue;
-                    }
-                    var method = (MethodSymbol)member;
-                    if ((method.DeclaredAccessibility == Accessibility.Public) &&
-                        method.IsStatic &&
-                        (method.ParameterCount == 0) &&
-                        !method.IsGenericMethod)
-                    {
-                        var returnType = method.ReturnType as NamedTypeSymbol;
-                        if ((object)returnType == null || returnType.Arity != arity)
+                        var attrArgument = attr.CommonConstructorArguments[0].Value as NamedTypeSymbol;
+                        if (attrArgument?.Arity != arity) continue;
+                        if (arity == 0)
                         {
-                            break;
+                            builderType = attrArgument;
+                            return true;
                         }
-                        builderType = returnType;
-                        createBuilderMethod = method;
-                        return true;
+                        else
+                        {
+                            bool isArgumentOpen = attrArgument.TypeArguments[0].IsErrorType();
+                            if (!isArgumentOpen) continue;
+                            builderType = attrArgument.ConstructedFrom.Construct(type.TypeArguments[0]);
+                            return true;
+                        }
                     }
                 }
             }
 
             builderType = null;
-            createBuilderMethod = null;
             return false;
         }
 
@@ -1413,8 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            if (type.OriginalDefinition.IsCustomTaskType(out builderType, out createBuilderMethod))
+            if (type.OriginalDefinition.IsCustomTaskType(out builderType))
             {
                 int arity = type.Arity;
                 Debug.Assert(arity < 2);

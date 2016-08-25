@@ -298,11 +298,5 @@ namespace Microsoft.CodeAnalysis
         /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string OnCompleted = nameof(OnCompleted);
-
-        /// <summary>
-        /// The required name for the <c>CreateAsyncMethodBuilder</c> method used to
-        /// build a tasklike instance.
-        /// </summary>
-        public const string CreateAsyncMethodBuilder = "CreateAsyncMethodBuilder";
     }
 }
