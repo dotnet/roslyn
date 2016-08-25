@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal SyntaxIdentifierWithTrailingTrivia(ObjectReader reader)
                 : base(reader)
             {
-                var trailing = (CSharpSyntaxNode)reader.ReadValue();
+                var trailing = (GreenNode)reader.ReadValue();
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
