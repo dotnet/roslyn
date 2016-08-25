@@ -67,6 +67,7 @@
     <Compile Include="FlowAnalysis\FlowTestBase.cs" />
     <Compile Include="FlowAnalysis\FlowTests.cs" />
     <Compile Include="FlowAnalysis\IterationJumpYieldStatementTests.cs" />
+    <Compile Include="FlowAnalysis\LocalFunctions.cs" />
     <Compile Include="FlowAnalysis\PatternsVsRegions.cs" />
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
