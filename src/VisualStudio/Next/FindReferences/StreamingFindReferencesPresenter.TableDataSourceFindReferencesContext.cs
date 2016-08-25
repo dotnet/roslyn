@@ -396,16 +396,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
                 TextSpan widenedSpan, SourceText sourceText)
             {
+                // The spans produced by the language services may not be ordered
+                // (indeed, this happens with semantic classification as different
+                // providers produce different results in an arbitrary order).  Order
+                // them first before proceeding.
                 syntaxSpans = Order(syntaxSpans);
                 semanticSpans = Order(semanticSpans);
 
+                // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
+                // also produce parts for the regions between the sections that the classifiers
+                // returned results for (i.e. for things like spaces and plain text).
                 var syntaxParts = Classifier.ConvertClassifications(
                     sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
                 var semanticParts = Classifier.ConvertClassifications(
                     sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
 
-                var allParts = CreateAllParts(syntaxParts, semanticParts);
-                return allParts;
+                // Now merge the lists together, taking all the results from syntaxParts
+                // unless they were overridden by results in semanticParts.
+                return CreateAllParts(syntaxParts, semanticParts);
             }
 
             private List<ClassifiedSpan> Order(List<ClassifiedSpan> syntaxSpans)
