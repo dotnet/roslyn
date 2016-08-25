@@ -108,15 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(closestTypeSyntax != null);
 
             Debug.Assert(closestTypeSyntax.Kind() != SyntaxKind.RefType);
-            if (closestTypeSyntax.IsVar)
-            {
-                return new DeconstructionLocalSymbol(
-                    containingSymbol, scopeBinder, closestTypeSyntax, identifierToken, kind, deconstruction);
-            }
-            else
-            {
-                return new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
-            }
+            return closestTypeSyntax.IsVar
+                ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
         }
 
         /// <summary>
@@ -133,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode forbiddenZone)
         {
             Debug.Assert(nodeToBind.Kind() != SyntaxKind.BracketedArgumentList);
-            return new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone);
+            return typeSyntax.IsVar
+                ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
         }
 
         /// <summary>
@@ -163,12 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            if (initializer == null)
-            {
-                return new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind, typeSyntax, identifierToken, declarationKind);
-            }
-
-            return new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind);
+            return (initializer != null)
+                ? new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind, typeSyntax, identifierToken, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
