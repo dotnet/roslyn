@@ -169,7 +169,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
             {
-                return Unwrap(x).Aggregate(currentHash, (a, n) => CombineNamedTypeHashCode(n, a));
+                currentHash = CombineNamedTypeHashCode(x, currentHash);
+
+                var errorType = x as IErrorTypeSymbol;
+                if (errorType != null)
+                {
+                    foreach (var candidate in errorType.CandidateSymbols)
+                    {
+                        var candidateNamedType = candidate as INamedTypeSymbol;
+                        if (candidateNamedType != null)
+                        {
+                            currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
+                        }
+                    }
+                }
+
+                return currentHash;
             }
 
             private int CombineNamedTypeHashCode(INamedTypeSymbol x, int currentHash)
