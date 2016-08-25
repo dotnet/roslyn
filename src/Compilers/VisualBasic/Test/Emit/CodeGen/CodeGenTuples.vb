@@ -5896,6 +5896,47 @@ fourth]]>)
 
         End Sub
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13277")>
+        <WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
+        Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.CreateErrorTypeSymbol(Nothing, "ValueTuple", 2).Construct(intType, intType)
+
+            Dim tuple = comp.CreateTupleTypeSymbol(vt2, Nothing)
+            ' Crashes in IsTupleCompatible
+
+        End Sub
+
+        <Fact>
+        <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
+        Public Sub GetSymbolInfoOnTupleType()
+            Dim verifier = CompileAndVerify(
+ <compilation>
+     <file name="a.vb">
+Module C
+     Function M() As (System.Int32, String)
+        throw new System.Exception()
+     End Function
+End Module
+
+    </file>
+ </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim type = nodes.OfType(Of QualifiedNameSyntax)().First()
+            Assert.Equal("System.Int32", type.ToString())
+            Assert.NotNull(model.GetSymbolInfo(type).Symbol)
+            Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString())
+
+        End Sub
+
     End Class
 
 End Namespace

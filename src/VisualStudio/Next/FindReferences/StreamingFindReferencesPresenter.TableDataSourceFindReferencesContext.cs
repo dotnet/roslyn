@@ -358,20 +358,130 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private async Task<TaggedTextAndHighlightSpan> GetTaggedTextForReferenceAsync(
                 Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var classificationService = document.GetLanguageService<IEditorClassificationService>();
+                if (classificationService == null)
+                {
+                    return new TaggedTextAndHighlightSpan(ImmutableArray<TaggedText>.Empty, new TextSpan());
+                }
 
-                var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                    semanticModel, widenedSpan, document.Project.Solution.Workspace,
-                    insertSourceTextInGaps: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                // Call out to the individual language to classify the chunk of text around the
+                // reference. We'll get both the syntactic and semantic spans for this region.
+                // Because the semantic tags may override the semantic ones (for example, 
+                // "DateTime" might be syntactically an identifier, but semantically a struct
+                // name), we'll do a later merging step to get the final correct list of 
+                // classifications.  For tagging, normally the editor handles this.  But as
+                // we're producing the list of Inlines ourselves, we have to handles this here.
+                var syntaxSpans = new List<ClassifiedSpan>();
+                var semanticSpans = new List<ClassifiedSpan>();
 
-                var taggedText = classifiedLineParts.ToTaggedText();
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                await classificationService.AddSyntacticClassificationsAsync(
+                    document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddSemanticClassificationsAsync(
+                    document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+
+                var allParts = MergeClassifiedSpans(
+                    syntaxSpans, semanticSpans, widenedSpan, sourceText);
+                var taggedText = allParts.ToTaggedText();
 
                 var highlightSpan = new TextSpan(
-                    start: referenceSpan.Start - widenedSpan.Start, 
+                    start: referenceSpan.Start - widenedSpan.Start,
                     length: referenceSpan.Length);
 
                 return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
+            }
+
+            private List<SymbolDisplayPart> MergeClassifiedSpans(
+                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
+                TextSpan widenedSpan, SourceText sourceText)
+            {
+                // The spans produced by the language services may not be ordered
+                // (indeed, this happens with semantic classification as different
+                // providers produce different results in an arbitrary order).  Order
+                // them first before proceeding.
+                Order(syntaxSpans);
+                Order(semanticSpans);
+
+                // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
+                // also produce parts for the regions between the sections that the classifiers
+                // returned results for (i.e. for things like spaces and plain text).
+                var syntaxParts = Classifier.ConvertClassifications(
+                    sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
+                var semanticParts = Classifier.ConvertClassifications(
+                    sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
+
+                // Now merge the lists together, taking all the results from syntaxParts
+                // unless they were overridden by results in semanticParts.
+                return MergeParts(syntaxParts, semanticParts);
+            }
+
+            private void Order(List<ClassifiedSpan> syntaxSpans)
+            {
+                syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+            }
+
+            private List<SymbolDisplayPart> MergeParts(
+                List<SymbolDisplayPart> syntaxParts,
+                List<SymbolDisplayPart> semanticParts)
+            {
+                // Take all the syntax parts.  However, if any have been overridden by a 
+                // semantic part, then choose that one.
+
+                // To make life easier, determine the spans for all the parts in the lists.
+                var syntaxPartsAndSpans = AddSpans(syntaxParts);
+                var semanticPartsAndSpans = AddSpans(semanticParts);
+
+                var finalParts = new List<SymbolDisplayPart>();
+                var lastReplacementIndex = 0;
+                for (int i = 0, n = syntaxPartsAndSpans.Count; i < n; i++)
+                {
+                    var syntaxPartAndSpan = syntaxPartsAndSpans[i];
+
+                    // See if we can find a semantic part to replace this syntax part.
+                    var replacementIndex = semanticPartsAndSpans.FindIndex(
+                        lastReplacementIndex, t => t.Item2 == syntaxPartAndSpan.Item2);
+
+                    var part = replacementIndex >= 0 && ShouldUseSemanticPart(semanticPartsAndSpans[replacementIndex])
+                        ? semanticPartsAndSpans[replacementIndex].Item1
+                        : syntaxPartAndSpan.Item1;
+                    finalParts.Add(part);
+
+                    if (replacementIndex >= 0)
+                    {
+                        // If we found a semantic replacement, update the lastIndex.
+                        // That way we can start searching from that point instead 
+                        // of checking all the elements each time.
+                        lastReplacementIndex = replacementIndex + 1;
+                    }
+                }
+
+                return finalParts;
+            }
+
+            private bool ShouldUseSemanticPart(ValueTuple<SymbolDisplayPart, TextSpan> partAndSpan)
+            {
+                // Don't take 'text' from the semantic parts.  We'll get those for the 
+                // spaces between the actual interesting semantic spans, and we don't 
+                // want them to override actual good syntax spans.
+                return partAndSpan.Item1.Kind != SymbolDisplayPartKind.Text;
+            }
+
+            private List<ValueTuple<SymbolDisplayPart, TextSpan>> AddSpans(
+                List<SymbolDisplayPart> parts)
+            {
+                var result = new List<ValueTuple<SymbolDisplayPart, TextSpan>>(parts.Count);
+                var position = 0;
+
+                foreach (var part in parts)
+                {
+                    var partLength = part.ToString().Length;
+                    result.Add(ValueTuple.Create(part, new TextSpan(position, partLength)));
+
+                    position += partLength;
+                }
+
+                return result;
             }
 
             private RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)

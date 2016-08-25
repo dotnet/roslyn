@@ -50,10 +50,6 @@ Public Class BuildDevDivInsertionFiles
         End Try
     End Function
 
-    Private ReadOnly BinariesToSkipLocalization As String() = {
-        "Microsoft.CodeAnalysis.Elfie.dll"
-    }
-
     Private ReadOnly VsixContentsToSkip As String() = {
         "Microsoft.Data.ConnectionUI.dll",
         "Microsoft.TeamFoundation.TestManagement.Client.dll",
@@ -91,11 +87,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.VisualBasic.Repl.pkgdef",
         "VisualBasicInteractive.png",
         "VisualBasicInteractive.rsp",
-        "VisualBasicInteractivePackageRegistration.pkgdef",
-        "System.Collections.Immutable.dll",                ' Setup authoring: Platform\Components
-        "System.Reflection.Metadata.dll",                  ' Setup authoring: Platform\Components
-        "Microsoft.DiaSymReader.dll",                      ' Setup authoring: edev\debugger\Components
-        "Microsoft.DiaSymReader.PortablePdb.dll"           ' Setup authoring: edev\debugger\Components
+        "VisualBasicInteractivePackageRegistration.pkgdef"
     }
 
     Private ReadOnly CompilerFiles As String() = {
@@ -374,7 +366,6 @@ Public Class BuildDevDivInsertionFiles
         ' Build a dependency map
         Dim dependencies = BuildDependencyMap(_binDirectory)
         GenerateContractsListMsbuild(dependencies)
-        GenerateImplementationsListWxi(dependencies)
         GenerateAssemblyVersionList(dependencies)
         CopyDependencies(dependencies)
 
@@ -383,7 +374,6 @@ Public Class BuildDevDivInsertionFiles
         ' Files in DevDivInsertionFiles\ExternalAPIs don't need to be added, they are included in the nuspec using a pattern.
         ' May contain duplicates.
         Dim filesToInsert = New List(Of NugetFileInfo)
-        Dim locProjects = New List(Of String)
 
         ' And now copy over all our core compiler binaries and related files
         ' Build tools setup authoring depends on these files being inserted.
@@ -394,12 +384,6 @@ Public Class BuildDevDivInsertionFiles
                 AddXmlDocumentationFile(filesToInsert, fileName)
                 filesToInsert.Add(New NugetFileInfo(fileName))
             End If
-
-            If NeedsLocalization(fileName) Then
-                ' use implementation assembly for loc and setup authoring
-                Dim relativeOutputDir = GetExternalApiDirectory(dependency, contract:=False)
-                GenerateLocProject(fileName, Path.Combine(relativeOutputDir, fileName), locProjects)
-            End If
         Next
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
@@ -408,10 +392,7 @@ Public Class BuildDevDivInsertionFiles
             filesToInsert.Add(New NugetFileInfo(Path.Combine(NetFX20DirectoryName, Path.GetFileName(relativePath)), NetFX20DirectoryName))
         Next
 
-        ProcessVsixFiles(filesToInsert, locProjects, dependencies)
-
-        ' Generate loc project that imports loc projects generated for each localized binary:
-        GenerateMainLocProj(locProjects)
+        ProcessVsixFiles(filesToInsert, dependencies)
 
         ' Generate Roslyn.nuspec:
         GenerateRoslynNuSpec(filesToInsert)
@@ -515,7 +496,7 @@ Public Class BuildDevDivInsertionFiles
 
         For Each projectLockJson In Directory.EnumerateFiles(Path.Combine(_setupDirectory, DevDivPackagesDirName), "*.lock.json", SearchOption.AllDirectories)
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
-            Const targetFx = ".NETFramework,Version=v4.6.1/win"
+            Const targetFx = ".NETFramework,Version=v4.6/win"
 
             Dim targetObj = DirectCast(DirectCast(DirectCast(items, JObject).Property("targets")?.Value, JObject).Property(targetFx)?.Value, JObject)
             If targetObj Is Nothing Then
@@ -582,20 +563,6 @@ Public Class BuildDevDivInsertionFiles
 
             writer.WriteLine("  </PropertyGroup>")
             writer.WriteLine("</Project>")
-        End Using
-    End Sub
-
-    Private Sub GenerateImplementationsListWxi(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
-        Using writer = New StreamWriter(GetAbsolutePathInOutputDirectory("SetupAuthoring\netfx\Common\CoreFX.wxi"))
-            writer.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
-            writer.WriteLine("<Include xmlns=""http://schemas.microsoft.com/wix/2006/wix"">")
-            writer.WriteLine("  <!-- Generated file, do not directly edit. Contact mlinfraswat@microsoft.com if you need to add a library that's not listed -->")
-
-            For Each entry In GetImplementations(dependencies)
-                writer.WriteLine($"  <?define {entry.Key} = ""{entry.Value}"" ?>")
-            Next
-
-            writer.WriteLine("</Include>")
         End Using
     End Sub
 
@@ -721,15 +688,7 @@ Public Class BuildDevDivInsertionFiles
         Next
     End Sub
 
-    Private Sub ProcessVsixFiles(filesToInsert As List(Of NugetFileInfo), locProjects As List(Of String), dependencies As Dictionary(Of String, DependencyInfo))
-        Dim wsx = <?xml version="1.0" encoding="utf-8"?>
-                  <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-                  </Wix>
-
-        Dim resWsx = <?xml version="1.0" encoding="utf-8"?>
-                     <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-                     </Wix>
-
+    Private Sub ProcessVsixFiles(filesToInsert As List(Of NugetFileInfo), dependencies As Dictionary(Of String, DependencyInfo))
         Dim processedFiles = New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
         ' We build our language service authoring by cracking our .vsixes and pulling out the bits that matter
@@ -751,16 +710,13 @@ Public Class BuildDevDivInsertionFiles
                         Continue For
                     End If
 
-                    ' We'll want to extract this file out somewhere. If it's code, we'll extract it to our top-level
-                    ' directory since we don't need duplicates. Otherwise, we'll stick it in a subfolder
-                    Dim dependency As DependencyInfo = Nothing
-                    Dim relativeOutputDir As String
+                    If dependencies.ContainsKey(partFileName) Then
+                        Continue For
+                    End If
 
+                    Dim relativeOutputDir As String
                     If IsLanguageServiceRegistrationFile(partFileName) Then
                         relativeOutputDir = Path.Combine(GetExternalApiDirectory(), "LanguageServiceRegistration", vsixName)
-                    ElseIf dependencies.TryGetValue(partFileName, dependency) Then
-                        ' use implementation assembly for loc and setup authoring
-                        relativeOutputDir = GetExternalApiDirectory(dependency, contract:=False)
                     Else
                         relativeOutputDir = GetExternalApiDirectory()
                     End If
@@ -780,48 +736,15 @@ Public Class BuildDevDivInsertionFiles
                                 Case ".vsixmanifest"
                                     RewriteVsixManifest(absoluteOutputFilePath)
                             End Select
-                        ElseIf dependency Is Nothing Then
-                            If Not File.Exists(Path.Combine(_binDirectory, partRelativePath)) Then
-                                Throw New InvalidOperationException($"File '{vsixPart.Uri}' is contained in '{vsixFileName}' but not present in '{_binDirectory}'.")
-                            End If
-
+                        Else
                             ' paths are relative to input directory:
                             filesToInsert.Add(New NugetFileInfo(partFileName))
-
                             AddXmlDocumentationFile(filesToInsert, partFileName)
-                        End If
-
-                        ' Now write the setup authoring for it
-                        wsx.Root.Add(CreateComponentFragment(vsixName, partFileName, relativeOutputFilePath))
-
-                        ' Localization:
-                        If NeedsLocalization(partFileName) Then
-                            Dim resourceFileSourcePath = If(CompilerFiles.Contains(partFileName),
-                                $"!(bindpath.binaries.$(var.Chip))\$(var.LocalizationPathModifier)\simship\$(var.Lang)\{relativeOutputDir}\",
-                                $"!(bindpath.binaries.$(var.Chip))\$(var.LocalizationPathModifier)\$(var.Lang)\{relativeOutputDir}\")
-
-                            Dim resourcePath = resourceFileSourcePath + GetAssemblyResourcesDllName(partFileName)
-                            resWsx.Root.Add(CreateResourceComponentFragment(vsixName, partFileName, resourcePath))
-
-                            GenerateLocProject(partFileName, relativeOutputFilePath, locProjects)
                         End If
                     End If
                 Next
             End Using
         Next
-
-        ' Collect all the component IDs together
-        Dim componentGroupFragment = CreateComponentGroupFragment(wsx)
-        wsx.Root.Add(componentGroupFragment)
-
-        Dim resourceComponentGroupFragment = CreateResourceComponentGroupFragment(resWsx)
-        resWsx.Root.Add(resourceComponentGroupFragment)
-
-        resWsx.Root.AddFirst(<?if $(var.Lang) != enu ?>)
-        resWsx.Root.Add(<?endif?>)
-
-        wsx.Save(GetAbsolutePathInOutputDirectory("SetupAuthoring\Roslyn\RoslynLanguageServices.wxs"), SaveOptions.OmitDuplicateNamespaces)
-        resWsx.Save(GetAbsolutePathInOutputDirectory("SetupAuthoring\Roslyn\RoslynLanguageServices_Res.wxs"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
     Private Function GetPartRelativePath(part As PackagePart) As String
@@ -831,10 +754,6 @@ Public Class BuildDevDivInsertionFiles
         End If
 
         Return name.Replace("/"c, "\"c)
-    End Function
-
-    Private Function NeedsLocalization(fileName As String) As Boolean
-        Return IsExecutableCodeFileName(fileName) AndAlso Not BinariesToSkipLocalization.Contains(fileName)
     End Function
 
     ' XML doc file if exists:
@@ -881,36 +800,6 @@ Public Class BuildDevDivInsertionFiles
         xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
     End Sub
 
-    Private Sub GenerateMainLocProj(locProjects As List(Of String))
-        Dim xml = <?xml version="1.0" encoding="utf-8"?>
-                  <Project DefaultTargets="Localize" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-                      <PropertyGroup>
-                          <RunFromAll>true</RunFromAll>
-                      </PropertyGroup>
-                      <!--When running from a top-level project $(RunFromMaster) = true-->
-                      <Import Project="$(_NTBINDIR)\tools\devdiv\loc\Loctask\Localization.settings.targets" Condition=" '$(RunFromMaster)' == '' "/>
-                      <ItemDefinitionGroup>
-                          <LocalizeFile>
-                              <Store>sources</Store>
-                          </LocalizeFile>
-                      </ItemDefinitionGroup>
-                      <%= locProjects.OrderBy(Function(f) f).Distinct().Select(AddressOf MakeLocProjectImportElement) %>
-                  </Project>
-
-        xml.Save(GetAbsolutePathInOutputDirectory("Roslyn\all.roslyn.locproj"), SaveOptions.OmitDuplicateNamespaces)
-    End Sub
-
-    Private Shared Function MakeLocProjectImportElement(projectFileName As String) As XElement
-        Dim locCondition = "Exists('LocProjects\" & projectFileName + "')"
-
-        If IsVisualStudioLanguageServiceComponent(projectFileName) Then
-            ' We change our loc condition depending upon if it's a 32-bit binary only or not
-            locCondition += " and '$(BuildArchitecture)' == 'i386'"
-        End If
-
-        Return <Import Project=<%= "LocProjects\" & projectFileName %> Condition=<%= locCondition %> xmlns="http://schemas.microsoft.com/developer/msbuild/2003"/>
-    End Function
-
     Private Sub RewriteVsixManifest(fileToRewrite As String)
         Dim xml = XDocument.Load(fileToRewrite)
         Dim installationElement = xml.<vsix:PackageManifest>.<vsix:Installation>.Single()
@@ -935,153 +824,8 @@ Public Class BuildDevDivInsertionFiles
         xml.Save(fileToRewrite)
     End Sub
 
-    Private Function CreateResourceComponentGroupFragment(languageServiceResourcesSetupAuthoring As XDocument) As XElement
-        Return <Fragment xmlns="http://schemas.microsoft.com/wix/2006/wi">
-                   <ComponentGroup Id="RoslynLanguageServices_Res_$(var.Chip)_$(var.Lang)">
-                       <?if $(var.IncludeLanguageSpecificBits) = true?>
-                       <%= From component In languageServiceResourcesSetupAuthoring...<wix:Component>
-                           Order By component.@Id
-                           Select <ComponentRef Id=<%= component.@Id %> xmlns="http://schemas.microsoft.com/wix/2006/wi"/> %>
-                       <?endif?>
-                   </ComponentGroup>
-               </Fragment>
-    End Function
-
-    Private Function CreateComponentGroupFragment(languageServiceSetupAuthoring As XDocument) As XElement
-        Return <Fragment xmlns="http://schemas.microsoft.com/wix/2006/wi">
-                   <ComponentGroup Id="RoslynLanguageServices_$(var.Chip)">
-                       <?if $(var.IncludeLanguageNeutralBits) = true?>
-                       <%= From component In languageServiceSetupAuthoring...<wix:Component>
-                           Order By component.@Id
-                           Select <ComponentRef Id=<%= component.@Id %> xmlns="http://schemas.microsoft.com/wix/2006/wi"/> %>
-                       <?endif?>
-                   </ComponentGroup>
-               </Fragment>
-    End Function
-
-    Private Function CreateResourceComponentFragment(vsixName As String, vsixPartFileName As String, resourcePath As String) As XElement
-        Dim resourceId = "Roslyn_" + vsixName + "_" + GetAssemblyResourcesDllName(vsixPartFileName) + "_$(var.Chip)_$(var.Lang)"
-        Dim fragment As XElement = <Fragment xmlns="http://schemas.microsoft.com/wix/2006/wi">
-                                       <Component Id=<%= resourceId %> Directory="PrivateAssemblies_culture_of_$(var.Lang).3643236F_FC70_11D3_A536_0090278A1BB8">
-                                           <File KeyPath="yes" Id=<%= resourceId %> Source=<%= resourcePath %>>
-                                               <netfx:NativeImage Id=<%= "ngen_" + resourceId %> Platform="32bit" Priority="3" AssemblyApplication="[VS_NGEN_EXE_CONFIG_PATH]" Dependencies="no"/>
-                                           </File>
-                                       </Component>
-                                   </Fragment>
-        Return fragment
-    End Function
-
-    Private Function CreateComponentFragment(vsixName As String, vsixPartFileName As String, relativePartOutputPath As String) As XElement
-        Dim id = "Roslyn_" + vsixName + "_" + vsixPartFileName + "_$(var.Chip)"
-        If Not IsLanguageServiceRegistrationFile(vsixPartFileName) Then
-            Return <Fragment xmlns="http://schemas.microsoft.com/wix/2006/wi">
-                       <Component Id=<%= id %> Directory="PrivateAssemblies.3643236F_FC70_11D3_A536_0090278A1BB8">
-                           <File KeyPath="yes" Id=<%= id %> Source=<%= "!(bindpath.sources)\" + relativePartOutputPath %>>
-                               <netfx:NativeImage Id=<%= "ngen_" + id %> Platform="32bit" Priority="3" AssemblyApplication="[VS_NGEN_EXE_CONFIG_PATH]" Dependencies="no"/>
-                           </File>
-                       </Component>
-                   </Fragment>
-        Else
-            Return <Fragment xmlns="http://schemas.microsoft.com/wix/2006/wi">
-                       <Component Id=<%= id %> Directory=<%= "CommonRoslynExtensions_" + vsixName + ".3643236F_FC70_11D3_A536_0090278A1BB8" %>>
-                           <File KeyPath="yes" Id=<%= id %> Source=<%= "!(bindpath.sources)\" + relativePartOutputPath %>/>
-                       </Component>
-                   </Fragment>
-        End If
-    End Function
-
     Private Shared Function IsVisualStudioLanguageServiceComponent(fileName As String) As Boolean
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
-    End Function
-
-    Private Sub GenerateLocProject(fileName As String, devdivPath As String, locProjects As List(Of String))
-        Dim lciFileName = fileName & ".lci"
-        Dim lclFileName = fileName & ".lcl"
-        Dim locProjFileName = fileName & ".locproj"
-
-        Dim locProj = <?xml version="1.0" encoding="utf-8"?>
-                      <!-- This file is generated by DevDivInsertionFiles utility. Don't make manual changes. -->
-                      <Project DefaultTargets="Localize" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-                          <ItemGroup>
-                              <LocalizeFile Include=<%= "$(Sources)\" & devdivPath %>>
-                                  <Store>sources</Store>
-                                  <%= GetBamlExclusionElement(fileName) %>
-                                  <TranslationFile><%= "$(LocRepo)\{Lang}\Roslyn\" & lclFileName %></TranslationFile>
-                                  <LciCommentFile><%= "$(Sources)\Roslyn\LCI\" & lciFileName %></LciCommentFile>
-                                  <%= If(CompilerFiles.Contains(fileName),
-                                      <SimShip xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-                                          <Type>Simship</Type>
-                                          <Languages>$(VS)</Languages>
-                                      </SimShip>,
-                                      Nothing) %>
-                                  <ProjectFile>$(MSBuildThisFileFullPath)</ProjectFile>
-                              </LocalizeFile>
-                              <%= GetWPFDependencyElements(fileName) %>
-                          </ItemGroup>
-                          <!--When running from a top-level project $(RunFromAll) = true-->
-                          <Import Project="$(_NTBINDIR)\tools\devdiv\loc\Loctask\Localization.settings.targets" Condition=" '$(RunFromAll)' == '' "/>
-                      </Project>
-
-        locProjects.Add(locProjFileName)
-
-        locProj.Save(GetAbsolutePathInOutputDirectory(Path.Combine("Roslyn", "LocProjects", locProjFileName)), SaveOptions.OmitDuplicateNamespaces)
-
-        Dim lci = <?xml version="1.0" encoding="utf-8"?>
-                  <LCX SchemaVersion="6.0" Name=<%= Path.Combine("f:\ddSetup\sources", devdivPath) %> PsrId="211" FileType="1" SrcCul="en-US" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
-                      <OwnedComments>
-                          <Cmt Name="LcxAdmin"/>
-                          <Cmt Name="Loc"/>
-                      </OwnedComments>
-                  </LCX>
-
-        lci.Save(GetAbsolutePathInOutputDirectory(Path.Combine("Roslyn", "LCI", lciFileName)), SaveOptions.OmitDuplicateNamespaces)
-    End Sub
-
-    Private Function GetBamlExclusionElement(fileName As String) As XElement
-        ' *** VS Commit d10bd185a2dcf1fa78b03863df6abb4a5819ebbd ***
-        ' Use baml - excluding SettingsFile for Roslyn LocProjs containing baml
-        ' Related to DevDiv bug 153499
-        ' Trying to localize several Roslyn IDE assemblies was causing LSBuild errors when it tried to resolve baml references to v14 assemblies, 
-        ' when all that's available at LSBuild-time are the v15 assemblies. Because Roslyn does not keep any localizable assets in the xaml files
-        ' themselves(instead data binding all strings into the UI), we don't actually need LSBuild to process/include our baml files at all 
-        ' -- falling back to the "english" baml files still produces localized UIs because the underlying strings are still localized. 
-        ' Only one of these baml files (Microsoft.CodeAnalysis.EditorFeatures) was causing actual build breaks, 
-        ' but I've updated all of the ones currently containing xaml in case somebody adds direct references to CrispImage (for example) to them.
-        ' This change also undoes the measures previously taken to completely disable localization of Microsoft.CodeAnalysis.EditorFeatures.
-        ' NOTE:   This change requires the deployment of the referenced "MCP_excludeBaml.lss" file to the Dev15 loc toolset nuget.
-        ' I've tested locally by manually placing this file at the referenced location under "$(Sources)\Tools\Devdiv\Loc\Current\", 
-        ' And the produced assemblies produced loc'd UIs as expected in both JPN VS and ENU VS + JPN LP scenarios.
-
-        Select Case fileName
-            Case "Microsoft.CodeAnalysis.EditorFeatures.dll",
-                 "Microsoft.VisualStudio.LanguageServices.dll",
-                 "Microsoft.VisualStudio.LanguageServices.VisualStudio.dll",
-                 "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
-                 "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-                 "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-                 "Microsoft.VisualStudio.LanguageServices.Xaml.dll"
-                Return <SettingsFile xmlns="http://schemas.microsoft.com/developer/msbuild/2003">$(Sources)\Tools\Devdiv\Loc\Current\MCP_excludeBaml.lss</SettingsFile>
-        End Select
-
-        Return Nothing
-    End Function
-
-    Private Iterator Function GetWPFDependencyElements(fileName As String) As IEnumerable(Of XElement)
-        Select Case fileName
-            Case "Microsoft.VisualStudio.LanguageServices.Next.dll"
-                Yield <WPFDependency Include="$(Binaries)\bin\$(BinChip)\Microsoft.VisualStudio.Utilities.dll" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"/>
-
-            Case "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll"
-                Yield <WPFDependency Include="$(Binaries)\bin\$(BinChip)\Microsoft.VisualStudio.Utilities.dll" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"/>
-                Yield <WPFDependency Include="$(Sources)\ExternalAPIs\LegacyMPF\Microsoft.VisualStudio.Shell.14.0.dll" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-                          <Store>sources</Store>
-                      </WPFDependency>
-        End Select
-    End Function
-
-    Private Function GetAssemblyResourcesDllName(fileName As String) As String
-        ' The resource path always ends in a .dll, even if it's originally an .exe
-        Return Path.GetFileNameWithoutExtension(fileName) + ".resources.dll"
     End Function
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
