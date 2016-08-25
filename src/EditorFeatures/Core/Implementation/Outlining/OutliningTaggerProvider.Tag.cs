@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
@@ -20,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         // we are collapsing.
         private class Tag : IOutliningRegionTag
         {
+            private const int MaxPreviewText = 1000;
+
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITextEditorFactoryService _textEditorFactoryService;
             private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;

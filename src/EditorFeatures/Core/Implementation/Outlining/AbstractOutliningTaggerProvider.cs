@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
@@ -36,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     {
         public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
 
-        private const int MaxPreviewText = 1000;
-        private const string Ellipsis = "...";
-
         protected readonly ITextEditorFactoryService TextEditorFactoryService;
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
@@ -56,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        protected override IEqualityComparer<TRegionTag> TagComparer => this;
+        protected sealed override IEqualityComparer<TRegionTag> TagComparer => this;
 
         public abstract bool Equals(TRegionTag x, TRegionTag y);
 
         public abstract int GetHashCode(TRegionTag obj);
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when
@@ -84,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         /// <summary>
         /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
         /// </summary>
-        protected override async Task ProduceTagsAsync(
+        protected sealed override async Task ProduceTagsAsync(
             TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
@@ -106,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         /// <summary>
         /// Keep this in sync with <see cref="ProduceTagsAsync"/>
         /// </summary>
-        protected override void ProduceTagsSynchronously(
+        protected sealed override void ProduceTagsSynchronously(
             TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
@@ -166,8 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 var tagSpans =
                     from region in regions
                     let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
-                    let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
-                    let tag = CreateTag(snapshot.TextBuffer, region, hintSpan)
+                    let tag = CreateTag(snapshot, region)
                     select new TagSpan<TRegionTag>(spanToCollapse, tag);
 
                 foreach (var tagSpan in tagSpans)
@@ -177,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             }
         }
 
-        protected abstract TRegionTag CreateTag(
-            ITextBuffer textBuffer, OutliningSpan region, SnapshotSpan hintSpan);
+        protected abstract TRegionTag CreateTag(ITextSnapshot snapshot, OutliningSpan region);
 
         private static bool s_exceptionReported = false;
 
