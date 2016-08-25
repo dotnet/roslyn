@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -51,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private bool _solutionLoadComplete = false;
 
-        internal ImmutableArray<AbstractProject> Projects { get { return _projectMap.Values.ToImmutableArray(); } }
+        internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
 
         IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {

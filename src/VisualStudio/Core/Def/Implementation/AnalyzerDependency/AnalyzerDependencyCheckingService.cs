@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -76,6 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return;
             }
 
+            ThreadHelper.Generic.Invoke(() => ProcessAnalyzerDependencyResults(results));
+        }
+
+        private void ProcessAnalyzerDependencyResults(AnalyzerDependencyResults results)
+        {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
 
             var conflicts = results.Conflicts;
