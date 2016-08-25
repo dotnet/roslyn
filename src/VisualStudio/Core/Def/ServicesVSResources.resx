@@ -480,6 +480,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
+    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
+  </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
