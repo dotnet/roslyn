@@ -56,17 +56,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var predefinedTypeNode = context.Node as TPredefinedTypeSyntax;
-            if (predefinedTypeNode == null)
-            {
-                return;
-            }
-
             var optionSet = context.Options.GetOptionSet();
             if (optionSet == null)
             {
                 return;
             }
+
+            var predefinedTypeNode = (TPredefinedTypeSyntax)context.Node;
 
             // check if the predefined type is replaceable with an equivalent framework type.
             if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedTypeNode))

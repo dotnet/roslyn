@@ -23,7 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean
             Dim keywordKind = node.Keyword.Kind()
 
-            ' There is nothing to replace if keyword matches type name.
+            ' There is nothing to replace if keyword matches type name. For e.g: we don't want to replace `Object` 
+            ' Or `String` because we'd essentially be replacing it with the same thing.
             Return SyntaxFacts.IsPredefinedType(keywordKind) AndAlso
                    Not KeywordMatchesTypeName(keywordKind)
         End Function
