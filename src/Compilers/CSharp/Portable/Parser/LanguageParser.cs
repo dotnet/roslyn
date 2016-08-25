@@ -4771,7 +4771,7 @@ tryAgain:
                                 isNonEqualsBinaryToken)
                             {
                                 var isPossibleLocalFunctionToken =
-                                    currentTokenKind == SyntaxKind.OpenParenToken |
+                                    currentTokenKind == SyntaxKind.OpenParenToken ||
                                     currentTokenKind == SyntaxKind.LessThanToken;
 
                                 // Make sure this isn't a local function
