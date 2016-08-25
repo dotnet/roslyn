@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly OutliningTaggerProvider _outliningTaggerProvider;
+        private readonly VisualStudio14OutliningTaggerProvider _outliningTaggerProvider;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
-            OutliningTaggerProvider outliningTaggerProvider)
+            VisualStudio14OutliningTaggerProvider outliningTaggerProvider)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;

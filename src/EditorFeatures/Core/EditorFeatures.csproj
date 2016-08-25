@@ -574,8 +574,8 @@
     <Compile Include="Implementation\Outlining\OutliningCommandHandler.cs" />
     <Compile Include="Implementation\Outlining\OutliningExtensions.cs" />
     <Compile Include="Implementation\Outlining\OutliningSpan.cs" />
-    <Compile Include="Implementation\Outlining\OutliningTaggerProvider.cs" />
-    <Compile Include="Implementation\Outlining\OutliningTaggerProvider.Tag.cs" />
+    <Compile Include="Implementation\Outlining\VisualStudio14OutliningTaggerProvider.cs" />
+    <Compile Include="Implementation\Outlining\VisualStudio14OutliningTaggerProvider.Tag.cs" />
     <Compile Include="Implementation\Outlining\RegionCollector.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />

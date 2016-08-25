@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    internal partial class OutliningTaggerProvider
+    internal partial class VisualStudio14OutliningTaggerProvider
     {
         // Our implementation of an outlining region tag.  The collapsedHintForm
         // is dynamically created using an elision buffer over the actual text

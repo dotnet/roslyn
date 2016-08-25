@@ -128,7 +128,7 @@ End Module";
             var editorService = workspace.GetService<IEditorOptionsFactoryService>();
             var projectionService = workspace.GetService<IProjectionBufferFactoryService>();
 
-            var provider = new OutliningTaggerProvider(
+            var provider = new VisualStudio14OutliningTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 textService, editorService, projectionService,
                 AggregateAsynchronousOperationListener.EmptyListeners);

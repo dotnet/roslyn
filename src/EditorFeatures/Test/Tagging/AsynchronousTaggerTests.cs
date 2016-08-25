@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
-                var tagProvider = new OutliningTaggerProvider(
+                var tagProvider = new VisualStudio14OutliningTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),
                     workspace.GetService<ITextEditorFactoryService>(),
                     workspace.GetService<IEditorOptionsFactoryService>(),

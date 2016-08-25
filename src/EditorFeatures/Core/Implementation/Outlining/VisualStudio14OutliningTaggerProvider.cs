@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [Export(typeof(OutliningTaggerProvider))]
+    [Export(typeof(VisualStudio14OutliningTaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class OutliningTaggerProvider : 
+    internal partial class VisualStudio14OutliningTaggerProvider : 
         AbstractOutliningTaggerProvider<IOutliningRegionTag>
     {
         [ImportingConstructor]
-        public OutliningTaggerProvider(
+        public VisualStudio14OutliningTaggerProvider(
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,

@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private void EnsureOutliningTagsComputed(IWpfTextView wpfTextView)
         {
             // We need to get our outlining tag source to notify it to start blocking
-            var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
+            var outliningTaggerProvider = this.Package.ComponentModel.GetService<VisualStudio14OutliningTaggerProvider>();
 
             var subjectBuffer = wpfTextView.TextBuffer;
             var snapshot = subjectBuffer.CurrentSnapshot;
