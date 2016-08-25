@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             var id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString());
             var title = id;
             var codeAction = new SimplifyTypeNameCodeAction(title,
-                    (c) => SimplifyTypeNameAsync(document, node, c),
+                    c => SimplifyTypeNameAsync(document, node, c),
                     id);
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);

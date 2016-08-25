@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>
-            (expression?.Parent is MemberAccessExpressionSyntax);
+            expression?.Parent is MemberAccessExpressionSyntax;
 
         public static bool IsAliasReplaceableExpression(this ExpressionSyntax expression)
         {

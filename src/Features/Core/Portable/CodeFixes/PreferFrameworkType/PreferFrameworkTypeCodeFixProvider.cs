@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -25,12 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var codeAction = new CodeAction.DocumentChangeAction(
-                title: FeaturesResources.Use_framework_type,
-                createChangedDocument: c => CreateChangedDocumentAsync(context.Document, context.Span, c),
-                equivalenceKey: FeaturesResources.Use_framework_type);
-
-            context.RegisterCodeFix(codeAction, context.Diagnostics);
+            context.RegisterCodeFix(
+                new PreferFrameworkTypeCodeAction(
+                    FeaturesResources.Use_framework_type,
+                    c => CreateChangedDocumentAsync(context.Document, context.Span, c)),
+                context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
         }
@@ -41,16 +41,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
             var node = root.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
-            var replacementNode = GetReplacementSyntax(node, generator, semanticModel, cancellationToken);
+            var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
 
             return await document.ReplaceNodeAsync(node, replacementNode, cancellationToken).ConfigureAwait(false);
         }
 
-        private SyntaxNode GetReplacementSyntax(SyntaxNode node, SyntaxGenerator generator, SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+        private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
         {
-            var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-            return generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
+            public PreferFrameworkTypeCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(title, createChangedDocument, equivalenceKey: title)
+            {
+            }
         }
     }
 }
