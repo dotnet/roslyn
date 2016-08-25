@@ -386,6 +386,9 @@ Public Class BuildDevDivInsertionFiles
             End If
         Next
 
+        ' Add just the compiler files to a separate compiler nuspec
+        GenerateRoslynCompilerNuSpec(filesToInsert)
+
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
         For Each relativePath In Directory.EnumerateFiles(Path.Combine(_binDirectory, NetFX20DirectoryName), "*.ExpressionEvaluator.*.dll", SearchOption.TopDirectoryOnly)
@@ -827,6 +830,29 @@ Public Class BuildDevDivInsertionFiles
     Private Shared Function IsVisualStudioLanguageServiceComponent(fileName As String) As Boolean
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
     End Function
+
+    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As List(Of NugetFileInfo))
+        Const PackageName As String = "VS.Tools.Roslyn"
+
+        Dim xml = <?xml version="1.0" encoding="utf-8"?>
+                  <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                      <metadata>
+                          <id><%= PackageName %></id>
+                          <summary>Roslyn compiler binaries used to build VS</summary>
+                          <description>CoreXT package for Roslyn compiler toolset.</description>
+                          <authors>Managed Language Compilers</authors>
+                          <version>0.0</version>
+                      </metadata>
+                      <files>
+                          <%= filesToInsert.
+                              OrderBy(Function(f) f.Path).
+                              Distinct().
+                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                      </files>
+                  </package>
+
+        xml.Save(GetAbsolutePathInOutputDirectory(PackageName & ".nuspec"), SaveOptions.OmitDuplicateNamespaces)
+    End Sub
 
     Private Function IsLanguageServiceRegistrationFile(fileName As String) As Boolean
         Select Case Path.GetExtension(fileName)
