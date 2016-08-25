@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     internal abstract partial class AbstractOutliningTaggerProvider<TRegionTag> : 
         AsynchronousTaggerProvider<TRegionTag>,
         IEqualityComparer<TRegionTag>
-        where TRegionTag : ITag
+        where TRegionTag : class, ITag
     {
         public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
 
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                     }
 
                     var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
-                    var tag = CreateTag(parentTag.Tag, snapshot, region);
+                    var tag = CreateTag(parentTag?.Tag, snapshot, region);
 
                     var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
 
