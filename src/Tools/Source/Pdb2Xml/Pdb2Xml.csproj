@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -28,17 +26,11 @@
     <Compile Include="PdbToXmlApp.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
     </ProjectReference>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

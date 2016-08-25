@@ -404,7 +404,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
 
@@ -463,7 +463,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As VisualBasicSyntaxNode" } : new[] { "kind As BoundKind", "syntax as VisualBasicSyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
 
@@ -540,7 +540,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
                         ParenList(fields, x => x);
@@ -589,7 +589,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As VisualBasicSyntaxNode" } : new[] { "kind As BoundKind", "syntax as VisualBasicSyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
                         ParenList(fields, x => x);
@@ -1165,8 +1165,10 @@ namespace BoundTreeGenerator
                     {
                         WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                         Brace();
-                        foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type)))
+                        foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f)))
+                        {
                             WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
+                        }
                         WriteLine("return null;");
                         Unbrace();
                     }
@@ -1344,7 +1346,14 @@ namespace BoundTreeGenerator
                             foreach (Field field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                WriteLine("{3} {0} = ({3})this.Visit{2}(node.{1});", ToCamelCase(field.Name), field.Name, IsNodeList(field.Type) ? "List" : "", field.Type);
+                                if (SkipInVisitor(field))
+                                {
+                                    WriteLine("{2} {0} = node.{1};", ToCamelCase(field.Name), field.Name, field.Type);
+                                }
+                                else
+                                {
+                                    WriteLine("{3} {0} = ({3})this.Visit{2}(node.{1});", ToCamelCase(field.Name), field.Name, IsNodeList(field.Type) ? "List" : "", field.Type);
+                                }
                             }
                             foreach (Field field in AllTypeFields(node))
                             {

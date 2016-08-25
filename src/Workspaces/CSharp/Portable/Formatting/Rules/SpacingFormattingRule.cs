@@ -321,6 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
+            // Always put a space in the var form of deconstruction-declaration
+            if (currentToken.IsOpenParenInVarDeconstructionDeclaration())
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+            }
+
             return nextOperation.Invoke();
         }
 
@@ -371,7 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
             return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
-                syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.DoStatement ||
+                syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.ForEachComponentStatement ||
+                syntaxKind == SyntaxKind.DoStatement ||
                 syntaxKind == SyntaxKind.CatchDeclaration || syntaxKind == SyntaxKind.UsingStatement || syntaxKind == SyntaxKind.LockStatement ||
                 syntaxKind == SyntaxKind.FixedStatement || syntaxKind == SyntaxKind.CatchFilterClause);
         }

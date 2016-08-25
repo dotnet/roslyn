@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -18,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             private readonly CancellationToken _cancellationToken;
             private readonly int _position;
-            private readonly TextSpan _span;
             private readonly AbstractOverrideCompletionProvider _provider;
             private readonly SymbolDisplayFormat _overrideNameFormat = SymbolDisplayFormats.NameFormat.WithParameterOptions(
                 SymbolDisplayParameterOptions.IncludeDefaultValue |
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
                 Document document, 
                 int position, 
-                TextSpan span,
                 SourceText text,
                 SyntaxTree syntaxTree,
                 int startLineNumber,
@@ -47,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _provider = overrideCompletionProvider;
                 _document = document;
                 _position = position;
-                _span = span;
                 _text = text;
                 _syntaxTree = syntaxTree;
                 _startLineNumber = startLineNumber;
@@ -59,14 +55,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
                 Document document,
                 int position,
-                TextSpan span,
                 CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var startLineNumber = text.Lines.IndexOf(position);
                 var startLine = text.Lines[startLineNumber];
-                return new ItemGetter(overrideCompletionProvider, document, position, span, text, syntaxTree, startLineNumber, startLine, cancellationToken);
+                return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, startLine, cancellationToken);
             }
 
             internal async Task<IEnumerable<CompletionItem>> GetItemsAsync()
@@ -101,11 +96,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
                 return overridableMembers.Select(m => CreateItem(
-                    m, _span, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+                    m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
             }
 
             private CompletionItem CreateItem(
-                ISymbol symbol, TextSpan textChangeSpan, ISymbolDisplayService symbolDisplayService,
+                ISymbol symbol, ISymbolDisplayService symbolDisplayService,
                 SemanticModel semanticModel, SyntaxToken startToken, DeclarationModifiers modifiers)
             {
                 var position = startToken.SpanStart;
@@ -114,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return  MemberInsertionCompletionItem.Create(
                     displayString,
-                    textChangeSpan,
                     symbol.GetGlyph(),
                     modifiers,
                     _startLineNumber,

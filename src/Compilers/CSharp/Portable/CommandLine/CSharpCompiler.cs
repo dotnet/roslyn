@@ -8,9 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out string normalizedFilePath)
         {
             var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = ReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
+            var content = TryReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {
@@ -276,6 +278,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonMessageProvider messageProvider)
         {
             return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+        }
+
+        protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
+            SyntaxTree tree,
+            SourceReferenceResolver resolver,
+            OrderedSet<string> embeddedFiles,
+            IList<Diagnostic> diagnostics)
+        {
+            foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
+                d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
+            {
+                string path = (string)directive.File.Value;
+                if (path == null)
+                {
+                    continue;
+                }
+
+                string resolvedPath = resolver.ResolveReference(path, tree.FilePath);
+                if (resolvedPath == null)
+                {
+                    diagnostics.Add(
+                        MessageProvider.CreateDiagnostic(
+                            (int)ErrorCode.ERR_NoSourceFile,
+                            directive.File.GetLocation(),
+                            path,
+                            CSharpResources.CouldNotFindFile));
+
+                    continue;
+                }
+
+                embeddedFiles.Add(resolvedPath);
+            }
         }
     }
 }

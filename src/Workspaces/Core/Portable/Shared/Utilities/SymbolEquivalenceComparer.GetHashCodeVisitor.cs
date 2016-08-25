@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -169,11 +167,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
             {
-                return Unwrap(x).Aggregate(currentHash, (a, n) => CombineNamedTypeHashCode(n, a));
+                currentHash = CombineNamedTypeHashCode(x, currentHash);
+
+                var errorType = x as IErrorTypeSymbol;
+                if (errorType != null)
+                {
+                    foreach (var candidate in errorType.CandidateSymbols)
+                    {
+                        var candidateNamedType = candidate as INamedTypeSymbol;
+                        if (candidateNamedType != null)
+                        {
+                            currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
+                        }
+                    }
+                }
+
+                return currentHash;
             }
 
             private int CombineNamedTypeHashCode(INamedTypeSymbol x, int currentHash)
             {
+                if (x.IsTupleType)
+                {
+                    return CombineHashCodes(x.TupleElementTypes, currentHash, _symbolAggregator);
+                }
+
                 // If we want object and dynamic to be the same, and this is 'object', then return
                 // the same hash we do for 'dynamic'.
                 currentHash =

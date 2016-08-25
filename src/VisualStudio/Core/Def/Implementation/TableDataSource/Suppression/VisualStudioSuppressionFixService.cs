@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -176,12 +176,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static string GetFixTitle(bool isAddSuppression)
         {
-            return isAddSuppression ? ServicesVSResources.SuppressMultipleOccurrences : ServicesVSResources.RemoveSuppressMultipleOccurrences;
+            return isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
         }
 
         private static string GetWaitDialogMessage(bool isAddSuppression)
         {
-            return isAddSuppression ? ServicesVSResources.ComputingSuppressionFix : ServicesVSResources.ComputingRemoveSuppressionFix;
+            return isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
         }
 
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
@@ -270,8 +270,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // Equivalence key determines what fix will be applied.
                 // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
                 var equivalenceKey = isAddSuppression ?
-                    (isSuppressionInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage) :
-                    FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix;
+                    (isSuppressionInSource ? FeaturesResources.in_Source : FeaturesResources.in_Suppression_File) :
+                    FeaturesResources.Remove_Suppression;
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
@@ -364,17 +364,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
             }
 
-            waitDialogMessage = isAddSuppression ? ServicesVSResources.ApplyingSuppressionFix : ServicesVSResources.ApplyingRemoveSuppressionFix;
+            waitDialogMessage = isAddSuppression ? ServicesVSResources.Applying_suppressions_fix : ServicesVSResources.Applying_remove_suppressions_fix;
             Action<IWaitContext> applyFix = context =>
             {
-                var operations = SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                _editHandlerService.Apply(
+                var operations = SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));
+                var cancellationToken = context.CancellationToken;
+                _editHandlerService.ApplyAsync(
                     _workspace,
                     fromDocument: null,
                     operations: operations,
                     title: title,
                     progressTracker: context.ProgressTracker,
-                    cancellationToken: context.CancellationToken);
+                    cancellationToken: cancellationToken).Wait(cancellationToken);
             };
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);

@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
@@ -102,12 +101,12 @@ End Class")).OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
             Dim second = spans(1)
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
-            Assert.Equal(VBFeaturesResources.RemoveUnnecessaryImportsDiagnosticTitle, CType(first.Tag.ToolTipContent, String))
+            Assert.Equal(VBFeaturesResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
             Assert.Equal(Of Integer)(79, first.Span.Start)
             Assert.Equal(83, first.Span.Length)
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType)
-            Assert.Equal(WorkspacesResources.NameCanBeSimplified, CType(second.Tag.ToolTipContent, String))
+            Assert.Equal(WorkspacesResources.Name_can_be_simplified, CType(second.Tag.ToolTipContent, String))
             Assert.Equal(Of Integer)(221, second.Span.Start)
             Assert.Equal(5, second.Span.Length)
         End Sub

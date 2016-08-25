@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract partial class ConversionsBase
     {
         /// <remarks>
-        /// NOTE: Keep this method in sync with AnalyzeImplicitUserDefinedConversionForSwitchGoverningType.
+        /// NOTE: Keep this method in sync with <see cref="AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType"/>.
         /// </remarks>
         private UserDefinedConversionResult AnalyzeImplicitUserDefinedConversions(
             BoundExpression sourceExpression,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// type to any target type.
         /// </summary>
         /// <remarks>
-        /// Currently allowAnyTarget flag is only set to true by AnalyzeImplicitUserDefinedConversionForSwitchGoverningType,
+        /// Currently allowAnyTarget flag is only set to true by <see cref="AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType"/>,
         /// where we must consider user defined implicit conversions from the type of the switch expression to
         /// any of the possible switch governing types.
         /// </remarks>
@@ -602,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                     return true;
 
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
                     return false;
 
@@ -815,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// NOTE: Keep this method in sync with AnalyzeImplicitUserDefinedConversion.
         /// </remarks>
-        protected UserDefinedConversionResult AnalyzeImplicitUserDefinedConversionForSwitchGoverningType(TypeSymbol source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected UserDefinedConversionResult AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -828,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE:    This method implements part (2) above, it should be called only if (1) is false for source type.
             Debug.Assert((object)source != null);
-            Debug.Assert(!source.IsValidSwitchGoverningType());
+            Debug.Assert(!source.IsValidV6SwitchGoverningType());
 
             // NOTE: For (2) we use an approach similar to native compiler's approach, but call into the common code for analyzing user defined implicit conversions.
             // NOTE:    (a) Compute the set of types D from which user-defined conversion operators should be considered by considering only the source type.
@@ -894,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
             // (c) Find that conversion with the least amount of lifting
-            int? best = MostSpecificConversionOperator(conv => conv.ToType.IsValidSwitchGoverningType(isTargetTypeOfUserDefinedOp: true), u);
+            int? best = MostSpecificConversionOperator(conv => conv.ToType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true), u);
             if (best != null)
             {
                 return UserDefinedConversionResult.Valid(u, best.Value);

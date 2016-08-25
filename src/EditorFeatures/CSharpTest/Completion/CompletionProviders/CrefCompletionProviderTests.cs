@@ -551,6 +551,11 @@ class C
                 throw new NotImplementedException();
             }
 
+            public bool IsDeclaration(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
             public string GetText(int kind)
             {
                 throw new NotImplementedException();
@@ -831,6 +836,21 @@ class C
                 throw new NotImplementedException();
             }
 
+            public bool IsDocumentationComment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsUsingOrExternOrImport(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsGlobalAttribute(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
             public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
             {
                 throw new NotImplementedException();
@@ -987,6 +1007,11 @@ class C
             }
 
             public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node, out SyntaxNode initializedInstance)
             {
                 throw new NotImplementedException();
             }

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;

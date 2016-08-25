@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
         System_CLSCompliantAttribute__ctor,
         System_FlagsAttribute__ctor,
         System_Guid__ctor,
+        System_Guid__Parse,
 
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,
@@ -309,6 +310,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
         System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
 
+        System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetException,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetResult,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__AwaitOnCompleted,
@@ -316,6 +318,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Start_T,
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetStateMachine,
 
+        System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
@@ -324,6 +327,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
 
+        System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted,
@@ -407,7 +411,12 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7__ctor,
         System_ValueTuple_TRest__ctor,
 
+        System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
+
         System_String__Format_IFormatProvider,
+
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+
         Count
     }
 }

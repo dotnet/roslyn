@@ -2,11 +2,8 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options

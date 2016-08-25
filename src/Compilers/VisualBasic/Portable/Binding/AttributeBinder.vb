@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Some nodes have special binder's for their contents 
         ''' </summary>
-        Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Public Overrides Function GetBinder(node As SyntaxNode) As Binder
             Return Nothing
         End Function
 

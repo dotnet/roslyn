@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Xml.Linq;
 
 namespace Roslyn.Utilities
@@ -577,7 +574,7 @@ namespace Roslyn.Utilities
                     s_lazyTransformBlock = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(TransformBlock), new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]), typeof(int) });
                 }
 
-                return (int)s_lazyTransformBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
+                return (int)s_lazyTransformBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset });
             }
 
             internal static byte[] TransformFinalBlock(object hashAlgorithm, byte[] inputBuffer, int inputOffset, int inputCount)

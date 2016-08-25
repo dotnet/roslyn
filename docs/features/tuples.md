@@ -1,14 +1,37 @@
 
-A lot of details and motivation for the feature is given in 
-[https://github.com/dotnet/roslyn/issues/347](https://github.com/dotnet/roslyn/issues/347)
+Quickstart guide for tuples (C# 7.0)
+------------------------------------
+1. Install dev15 preview 4
+2. Start a C# project
+3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
+![Install the ValueTuple package](img/install-valuetuple.png)
+4. Use tuples:
 
-Current design notes:
-https://github.com/dotnet/roslyn/issues/10429
+    ```C#
+public class C
+{
+        public static (int code, string message) Method((int, string) x) 
+        { 
+                return x;
+        }
 
-NOTE: The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
+        public static void Main()
+        {
+                var pair1 = (42, "hello");
+                Console.Write(Method(pair1).message);
+        
+                var pair2 = (code: 43, message: "world");
+                Console.Write(pair2.message);
+        }
+}
+    ```
+5. Use deconstructions: see the [deconstruction page](deconstruction.md)
+
+Design
+------
+The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
 Changes in design will be applied to this document as the changes are implemented.
 
------------------------------------
 
 Tuple types
 -----------
@@ -75,10 +98,10 @@ In all scenarios tuple types behave exactly like underlying types with only addi
 ```C#
 var t = (sum: 0, count: 1);	
 t.sum   = 1;				// sum   is the name for the field #1 
-t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also avaialable
+t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also available
 
 var t1 = (0, 1);			// tuple omits the field names.
-t.Item1 = 1;				// underlying field name is still avaialable 
+t.Item1 = 1;				// underlying field name is still available 
 
 t.ToString()				// ToString on the underlying tuple type is called.
 
@@ -293,3 +316,13 @@ Open issues:
 - [ ] Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
 - [ ] Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
 - [ ] Exactly matching expression
+
+References:
+-----------
+
+A lot of details and motivation for the feature is given in 
+[Proposal: Language support for Tuples](https://github.com/dotnet/roslyn/issues/347)
+
+[C# Design Notes for Apr 6, 2016](https://github.com/dotnet/roslyn/issues/10429)
+
+

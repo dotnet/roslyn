@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if ((object)ctor != null) EmitSymbolToken(ctor, node.Syntax, null);
         }
 
-        private MethodSymbol DelegateConstructor(CSharpSyntaxNode syntax, TypeSymbol delegateType)
+        private MethodSymbol DelegateConstructor(SyntaxNode syntax, TypeSymbol delegateType)
         {
             foreach (var possibleCtor in delegateType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {

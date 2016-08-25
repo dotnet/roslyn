@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { WarningLevel = warningLevel };
         }
 
-        public CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
+        public new CSharpCompilationOptions WithConcurrentBuild(bool concurrentBuild)
         {
             if (concurrentBuild == this.ConcurrentBuild)
             {
@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
+        protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);
         protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
         protected override CompilationOptions CommonWithOutputKind(OutputKind kind) => WithOutputKind(kind);

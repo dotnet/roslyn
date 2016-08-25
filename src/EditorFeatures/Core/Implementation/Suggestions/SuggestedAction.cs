@@ -168,12 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
                 {
+                    // ConfigureAwait(true) so we come back to the same thread as 
+                    // we do all application on the UI thread.
                     operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
                     this.AssertIsForeground();
                 }
             }
             else
             {
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
                 operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
                 this.AssertIsForeground();
             }
@@ -183,8 +187,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
                 progressTracker.Clear();
-                EditHandler.Apply(Workspace, getFromDocument(), operations, CodeAction.Title, 
-                    progressTracker, cancellationToken);
+
+                // ConfigureAwait(true) so we come back to the same thread as 
+                // we do all application on the UI thread.
+                await EditHandler.ApplyAsync(Workspace, getFromDocument(), operations, CodeAction.Title, 
+                    progressTracker, cancellationToken).ConfigureAwait(true);
             }
         }
 

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 13)]
+    [ProvideMenuResource("Menus.ctmenu", version: 16)]
     internal class RoslynPackage : AbstractPackage
     {
         private LibraryManager _libraryManager;
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
-            this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
+            this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();

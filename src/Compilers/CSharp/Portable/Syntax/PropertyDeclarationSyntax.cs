@@ -24,32 +24,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return this.WithSemicolonToken(semicolon);
         }
-
-        public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
-        {
-            return Update(attributeLists, modifiers, this.RefKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
-        }
     }
 }
-
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    public partial class SyntaxFactory
-    {
-        public static PropertyDeclarationSyntax PropertyDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
-        {
-            return PropertyDeclaration(
-                attributeLists,
-                modifiers,
-                refKeyword: default(SyntaxToken),
-                type: type,
-                explicitInterfaceSpecifier: explicitInterfaceSpecifier, 
-                identifier: identifier, 
-                accessorList: accessorList, 
-                expressionBody: expressionBody, 
-                initializer: initializer, 
-                semicolonToken: semicolonToken);
-        }
-    }
-}
-

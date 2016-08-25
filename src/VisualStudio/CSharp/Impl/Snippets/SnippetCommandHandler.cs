@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
@@ -17,7 +15,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
@@ -102,13 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 bstrKinds: null,
                 iCountKinds: 0,
                 fIncludeNULLKind: 0,
-                bstrPrefixText: surroundWith ? CSharpVSResources.SurroundWith : CSharpVSResources.InsertSnippet,
+                bstrPrefixText: surroundWith ? CSharpVSResources.Surround_With : CSharpVSResources.Insert_Snippet,
                 bstrCompletionChar: null);
         }
 
         protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
 
             return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
                 !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);

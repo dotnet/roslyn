@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract bool CanAddImportForQuery(Diagnostic diagnostic, SyntaxNode node);
         protected abstract bool CanAddImportForType(Diagnostic diagnostic, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
-        protected abstract ISet<INamespaceSymbol> GetNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
 
@@ -162,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
-            await FindResultsInAllProjectSymbolsAsync(
-                project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            await FindResultsInAllSymbolsInStartingProjectAsync(
+                allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
             // Only bother doing this for host workspaces.  We don't want this for 
             // things like the Interactive workspace as we can't even add project
@@ -188,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return allReferences;
         }
 
-        private async Task FindResultsInAllProjectSymbolsAsync(
-            Project project, List<Reference> allSymbolReferences,
-            SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        private async Task FindResultsInAllSymbolsInStartingProjectAsync(
+            List<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            bool exact, CancellationToken cancellationToken)
         {
-            var references = await finder.FindInAllSymbolsInProjectAsync(project, exact, cancellationToken).ConfigureAwait(false);
+            var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
             AddRange(allSymbolReferences, references);
         }
 
@@ -274,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (assembly != null)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                            project.Solution, assembly, reference, exact, linkedTokenSource.Token));
+                            assembly, reference, exact, linkedTokenSource.Token));
                     }
                 }
 

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // If more than one filter was provided, then present it to the user.
             if (_showFilters && Filters == null && completionItemFilters.Length > 1)
             {
-                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
+                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
                                                .ToArray();
             }
         }
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
         {
-            if (_highlightMatchingPortions && CompletionItemToFilterText != null)
+            if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(FilterText))
             {
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
@@ -80,14 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                     if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
                     {
-                        string filterText;
-                        if (CompletionItemToFilterText.TryGetValue(presentationItem.Item, out filterText))
+                        var highlightedSpans = completionHelper.GetHighlightedSpans(
+                            presentationItem.Item, FilterText, CultureInfo.CurrentCulture);
+                        if (highlightedSpans != null)
                         {
-                            var highlightedSpans = completionHelper.GetHighlightedSpans(presentationItem.Item, filterText);
-                            if (highlightedSpans != null)
-                            {
-                                return highlightedSpans.Select(s => s.ToSpan()).ToArray();
-                            }
+                            return highlightedSpans.Select(s => s.ToSpan()).ToArray();
                         }
                     }
                 }

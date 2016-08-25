@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                token.IsFollowingCompleteObjectCreation() Then
 
                 Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("With",
-                                                                                         VBFeaturesResources.WithInitializerKeywordToolTip))
+                                                                                         VBFeaturesResources.Specifies_the_declaration_of_property_initializations_in_an_object_initializer_New_typeName_With_bracket_property_expression_bracket_bracket_bracket))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

@@ -6,6 +6,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -884,19 +885,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function SelectAndInitializeCollection(Of T)(
-            scope As ImportScope,
+            scope As VBImportScopeKind,
             ByRef projectLevelCollection As T,
             ByRef fileLevelCollection As T,
             initializeCollection As Func(Of T)) As T
 
-            If scope = ImportScope.Project Then
+            If scope = VBImportScopeKind.Project Then
                 If projectLevelCollection Is Nothing Then
                     projectLevelCollection = initializeCollection()
                 End If
 
                 Return projectLevelCollection
             Else
-                Debug.Assert(scope = ImportScope.File OrElse scope = ImportScope.Unspecified)
+                Debug.Assert(scope = VBImportScopeKind.File OrElse scope = VBImportScopeKind.Unspecified)
 
                 If fileLevelCollection Is Nothing Then
                     fileLevelCollection = initializeCollection()
@@ -1283,6 +1284,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ' locals above.  We assert that we are seeing the latter.
                     Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
                         (variableKind = DisplayClassVariableKind.Me))
+
+                    If variableKind = DisplayClassVariableKind.Parameter AndAlso GeneratedNames.GetKind(instance.Type.Name) = GeneratedNameKind.LambdaDisplayClass Then
+                        displayClassVariablesBuilder(variableName) = instance.ToVariable(variableName, variableKind, field)
+                    End If
+
                 Else
                     displayClassVariableNamesInOrder.Add(variableName)
                     displayClassVariablesBuilder.Add(variableName, instance.ToVariable(variableName, variableKind, field))

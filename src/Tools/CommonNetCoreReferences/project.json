@@ -16,6 +16,7 @@
     "System.Diagnostics.Tools": "4.0.1",
     "System.Dynamic.Runtime": "4.0.11",
     "System.Globalization": "4.0.11",
+    "System.IO.Compression": "4.1.0",
     "System.IO.FileSystem": "4.0.1",
     "System.IO.FileSystem.Primitives": "4.0.1",
     "System.IO.FileSystem.Watcher": "4.0.0",
@@ -49,6 +50,10 @@
     "System.Xml.XPath.XDocument": "4.0.1"
   },
   "frameworks": {
+    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+    "netstandard1.6": {
+      "imports": "portable-net452"
+    },
     "netcoreapp1.0": {
       "imports": "portable-net452"
     }

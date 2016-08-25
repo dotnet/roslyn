@@ -3,17 +3,11 @@
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.EditorUtilities
-Imports Moq
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
     Public Class TodoCommentTests
@@ -185,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
 
                 Dim document = workspace.Documents.First()
                 Dim documentId = document.Id
-                Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None)
+                Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None)
 
                 Dim todoLists = worker.GetItems_TestingOnly(documentId)
 

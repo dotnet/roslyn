@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
+                    code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     int notShown = errorsAndWarnings.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Error.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally

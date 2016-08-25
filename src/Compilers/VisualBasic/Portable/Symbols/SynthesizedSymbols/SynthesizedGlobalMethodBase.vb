@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasSpecialName As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return False
             End Get
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' VB language that are represented as methods. This property allow distinguishing those things
         ''' without having to decode the name of the method.
         ''' </summary>
-        Public NotOverridable Overrides ReadOnly Property MethodKind As MethodKind
+        Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
                 Return MethodKind.Ordinary
             End Get
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot()
             End Get

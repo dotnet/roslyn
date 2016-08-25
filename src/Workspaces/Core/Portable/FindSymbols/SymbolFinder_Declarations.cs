@@ -282,7 +282,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
+            SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
@@ -292,8 +293,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {
-                        var symbols = await info.FindAsync(query, assembly, cancellationToken).ConfigureAwait(false);
-                        list.AddRange(FilterByCriteria(symbols, filter));
+                        var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);
+                        list.AddRange(symbols);
                     }
                 }
             }

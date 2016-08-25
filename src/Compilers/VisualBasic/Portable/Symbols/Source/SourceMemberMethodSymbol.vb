@@ -541,12 +541,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             If Me.IsPartial Then
                 Throw ExceptionUtilities.Unreachable
             End If
 
-            Return MyBase.GetBoundMethodBody(diagnostics, methodBodyBinder)
+            Return MyBase.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
         End Function
 
 #End Region

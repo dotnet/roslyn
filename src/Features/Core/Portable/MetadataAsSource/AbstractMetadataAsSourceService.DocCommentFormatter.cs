@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private static readonly int s_indentSize = 2;
             private static readonly int s_wrapLength = 80;
 
-            private static readonly string s_summaryHeader = FeaturesResources.Summary;
-            private static readonly string s_paramHeader = FeaturesResources.Parameters;
+            private static readonly string s_summaryHeader = FeaturesResources.Summary_colon;
+            private static readonly string s_paramHeader = FeaturesResources.Parameters_colon;
             private static readonly string s_labelFormat = "{0}:";
-            private static readonly string s_typeParameterHeader = FeaturesResources.TypeParameters;
-            private static readonly string s_returnsHeader = FeaturesResources.Returns;
-            private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions;
-            private static readonly string s_remarksHeader = FeaturesResources.Remarks;
+            private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
+            private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
+            private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
+            private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Emit;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly ConcurrentDictionary<IMethodSymbol, MethodData> Methods = new ConcurrentDictionary<IMethodSymbol, MethodData>();
 
         // The emitted module.
-        public Cci.IModule Module;
+        public CommonPEModuleBuilder Module;
 
         public Func<object> SymWriterFactory;
 

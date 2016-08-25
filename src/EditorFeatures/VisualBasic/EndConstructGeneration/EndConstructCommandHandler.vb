@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim statement = root.FindToken(position.Value).GetAncestor(Of StatementSyntax)()
             If statement Is Nothing OrElse TypeOf statement Is EmptyStatementSyntax OrElse
                Not statement.ContainsDiagnostics Then
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
 
-            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.EndConstruct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
+            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
                 cleanDocument.Project.Solution.Workspace.ApplyDocumentChanges(cleanDocument, cancellationToken)

@@ -198,6 +198,9 @@
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
     <value>Command-line syntax error: Missing Guid for option '{1}'</value>
   </data>
+  <data name="ERR_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
   </data>
@@ -4916,9 +4919,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
-    <value>Unrecognized file format.</value>
-  </data>
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
@@ -5054,10 +5054,15 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
-/debug:portable                   Emit debugging information in the portable format.
-/debug:pdbonly                    Emit PDB file only.
+/debug:pdbonly                    Emit full debugging information.
+/debug:portable                   Emit cross-platform debugging information.
+/debug:embedded                   Emit cross-platform debugging information into 
+                                  the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/instrument:options               Sets instrumentation options.
+                                  If empty instrumentation is disabled.
+/sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5070,8 +5075,8 @@
                                   diagnostics.
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
-                                  - LANGUAGE -
 
+                                  - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
@@ -5079,15 +5084,16 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
+                                  15.0|default|latest
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
                                   declarations.
 /optionstrict[+|-]                Enforce strict language semantics.
-/optionstrict:custom              Warn when strict language semantics are not 
+/optionstrict:custom              Warn when strict language semantics are not
                                   respected.
-/optioncompare:binary             Specifies binary-style string comparisons. 
+/optioncompare:binary             Specifies binary-style string comparisons.
                                   This is the default.
 /optioncompare:text               Specifies text-style string comparisons.
 
@@ -5346,6 +5352,9 @@
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
   </data>
+  <data name="FEATURE_Tuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5361,10 +5370,31 @@
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
-  <data name="TuplesNotSupported" xml:space="preserve">
-    <value>Tuples are not supported in VB.</value>
-  </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
+    <value>Tuple member names must be unique.</value>
+  </data>
+  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
+    <value>Tuple member names must all be provided, if any one is provided.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
+    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
+    <value>Tuple membername '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
   </data>
 </root>

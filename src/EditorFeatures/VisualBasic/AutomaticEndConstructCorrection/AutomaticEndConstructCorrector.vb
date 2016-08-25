@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            Dim root = _previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = _previousDocument.GetSyntaxRootSynchronously(cancellationToken)
             token = root.FindToken(textChange.OldPosition)
 
             If Not IsChangeOnCorrectToken(token) Then

@@ -1,5 +1,14 @@
 {
-  "dependencies": { },
+  "dependencies": { 
+    "Microsoft.VisualStudio.Language.Intellisense": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Editor": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    }
+  },
   "frameworks": {
     "net46": { }
   },

@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             VerifyChecksum(SourceText.From(streamBOM, encodingBOM, checksumAlgorigthm), checksumBOM);
 
             // LargeText from stream no BOM. Checksum should ignore explicit encoding.
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumNoBOM);
-            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
+            VerifyChecksum(LargeText.Decode(streamNoBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumNoBOM);
 
             // LargeText from stream with BOM. Checksum should include BOM.
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumBOM);
-            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingNoBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
+            VerifyChecksum(LargeText.Decode(streamBOM, encodingBOM, checksumAlgorigthm, throwIfBinaryDetected: false, canBeEmbedded: false), checksumBOM);
 
             // LargeText from writer no BOM. Checksum includes BOM
             // from explicit encoding. This is inconsistent with the

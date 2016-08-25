@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
 
-        private AwaitExpressionSpiller(MethodSymbol method, CSharpSyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
+        private AwaitExpressionSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _tempSubstitution = tempSubstitution;
@@ -846,14 +846,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder,
                 node.Update(
                     operand,
-                    node.ConversionKind,
-                    node.ResultKind,
+                    node.Conversion,
                     isBaseConversion: node.IsBaseConversion,
-                    symbolOpt: node.SymbolOpt,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
-                    isExtensionMethod: node.IsExtensionMethod,
-                    isArrayIndex: node.IsArrayIndex,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }

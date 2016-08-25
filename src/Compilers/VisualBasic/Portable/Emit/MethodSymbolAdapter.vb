@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
-                Return False
+                Return ReturnsByRef
             End Get
         End Property
 

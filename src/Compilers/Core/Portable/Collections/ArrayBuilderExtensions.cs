@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {

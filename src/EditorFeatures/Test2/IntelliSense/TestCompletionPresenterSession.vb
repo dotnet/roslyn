@@ -1,13 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -39,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 suggestionMode As Boolean,
                                 isSoftSelected As Boolean,
                                 completionItemFilters As ImmutableArray(Of CompletionItemFilter),
-                                completionItemToFilterText As IReadOnlyDictionary(Of CompletionItem, String)) Implements ICompletionPresenterSession.PresentItems
+                                filterText As String) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
             Me.PresentationItems = presentationItems

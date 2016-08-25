@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <FileUpgradeFlags>
@@ -30,11 +28,6 @@
     <ProjectReference Include="..\..\..\..\src\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>Microsoft.CodeAnalysis.CSharp.Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Composition\Composition.csproj">
-      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
-      <Name>Composition</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -91,7 +84,5 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

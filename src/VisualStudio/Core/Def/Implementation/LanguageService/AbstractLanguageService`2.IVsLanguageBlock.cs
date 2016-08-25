@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -42,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(
-                ServicesVSResources.CurrentBlock,
-                ServicesVSResources.DeterminingCurrentBlock,
+                ServicesVSResources.Current_block,
+                ServicesVSResources.Determining_current_block,
                 allowCancel: true,
                 action: context =>
                 {

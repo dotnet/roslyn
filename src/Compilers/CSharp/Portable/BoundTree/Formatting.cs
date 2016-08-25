@@ -103,4 +103,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return string.Empty; }
         }
     }
+
+    internal partial class OutDeconstructVarPendingInference
+    {
+        public override object Display
+        {
+            get { return string.Empty; }
+        }
+    }
+
+    internal partial class DeconstructionLocalPendingInference
+    {
+        public override object Display
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
 }

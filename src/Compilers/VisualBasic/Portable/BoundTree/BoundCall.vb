@@ -1,27 +1,50 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundCall
+    Partial Friend Class BoundCall
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             method As MethodSymbol,
-            methodGroup As BoundMethodGroup,
-            receiver As BoundExpression,
+            methodGroupOpt As BoundMethodGroup,
+            receiverOpt As BoundExpression,
             arguments As ImmutableArray(Of BoundExpression),
             constantValueOpt As ConstantValue,
             type As TypeSymbol,
             Optional suppressObjectClone As Boolean = False,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, method, methodGroup, receiver, arguments,
-                   constantValueOpt, suppressObjectClone, type, hasErrors)
+            Me.New(syntax, method, methodGroupOpt, receiverOpt, arguments,
+                   constantValueOpt,
+                   isLValue:=method.ReturnsByRef,
+                   suppressObjectClone:=suppressObjectClone,
+                   type:=type,
+                   hasErrors:=hasErrors)
         End Sub
+
+        Protected Overrides Function MakeRValueImpl() As BoundExpression
+            Return MakeRValue()
+        End Function
+
+        Public Shadows Function MakeRValue() As BoundCall
+            If _IsLValue Then
+                Return Update(
+                    Method,
+                    MethodGroupOpt,
+                    ReceiverOpt,
+                    Arguments,
+                    ConstantValueOpt,
+                    isLValue:=False,
+                    suppressObjectClone:=SuppressObjectClone,
+                    type:=Type)
+            End If
+
+            Return Me
+        End Function
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get

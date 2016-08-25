@@ -946,6 +946,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Algorithm &apos;{0}&apos; is not supported.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadChecksumAlgorithm() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadChecksumAlgorithm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Classes cannot be declared &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadClassFlags1() As String
@@ -1735,6 +1744,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_CannotEmbedInterfaceWithGeneric() As String
             Get
                 Return ResourceManager.GetString("ERR_CannotEmbedInterfaceWithGeneric", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        '''</summary>
+        Friend ReadOnly Property ERR_CannotEmbedWithoutPdb() As String
+            Get
+                Return ResourceManager.GetString("ERR_CannotEmbedWithoutPdb", resourceCulture)
             End Get
         End Property
         
@@ -9416,6 +9434,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to An expression tree may not contain a call to a method or property that returns by reference..
+        '''</summary>
+        Friend ReadOnly Property ERR_RefReturningCallInExpressionTree() As String
+            Get
+                Return ResourceManager.GetString("ERR_RefReturningCallInExpressionTree", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}.{1}&apos; is already implemented by the base class &apos;{2}&apos;. Re-implementation of Windows Runtime Interface &apos;{3}&apos; is not allowed.
         '''</summary>
         Friend ReadOnly Property ERR_ReImplementingWinRTInterface4() As String
@@ -9808,6 +9835,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_SourceInterfaceMustBeInterface() As String
             Get
                 Return ResourceManager.GetString("ERR_SourceInterfaceMustBeInterface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        '''</summary>
+        Friend ReadOnly Property ERR_SourceLinkRequiresPortablePdb() As String
+            Get
+                Return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture)
             End Get
         End Property
         
@@ -10322,6 +10358,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TryWithoutCatchOrFinally() As String
             Get
                 Return ResourceManager.GetString("ERR_TryWithoutCatchOrFinally", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple member names must be unique..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleDuplicateMemberName() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleDuplicateMemberName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple member names must all be provided, if any one is provided..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleExplicitNamesOnAllMembersOrNone() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleExplicitNamesOnAllMembersOrNone", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is only allowed at position {1}..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedMemberName() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedMemberName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleReservedMemberNameAnyPosition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuple must contain at least two elements..
+        '''</summary>
+        Friend ReadOnly Property ERR_TupleTooFewElements() As String
+            Get
+                Return ResourceManager.GetString("ERR_TupleTooFewElements", resourceCulture)
             End Get
         End Property
         
@@ -11830,6 +11911,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to tuples.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_Tuples() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_Tuples", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to TypeOf IsNot expression.
         '''</summary>
         Friend ReadOnly Property FEATURE_TypeOfIsNot() As String
@@ -12015,15 +12105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property IDS_ToolName() As String
             Get
                 Return ResourceManager.GetString("IDS_ToolName", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Unrecognized file format..
-        '''</summary>
-        Friend ReadOnly Property IDS_UnrecognizedFileFormat() As String
-            Get
-                Return ResourceManager.GetString("IDS_UnrecognizedFileFormat", resourceCulture)
             End Get
         End Property
         
@@ -12267,15 +12348,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property TreesMustHaveRootNode() As String
             Get
                 Return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Tuples are not supported in VB..
-        '''</summary>
-        Friend ReadOnly Property TuplesNotSupported() As String
-            Get
-                Return ResourceManager.GetString("TuplesNotSupported", resourceCulture)
             End Get
         End Property
         
