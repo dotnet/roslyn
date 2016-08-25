@@ -8348,7 +8348,7 @@ tryAgain:
         private VariableComponentAssignmentSyntax TryParseDeconstructionDeclarationAssignment()
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
-               || (CurrentToken.IsVar() || IsPredefinedType(CurrentToken.Kind)) && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+               || CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 var resetPoint = this.GetResetPoint();
 
@@ -8381,7 +8381,7 @@ tryAgain:
         private VariableComponentSyntax TryParseDeconstructionDeclaration(SyntaxKind nextExpectedKind)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
-               || (CurrentToken.IsVar() || IsPredefinedType(CurrentToken.Kind)) && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+               || CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 var resetPoint = this.GetResetPoint();
 
@@ -8435,7 +8435,7 @@ tryAgain:
         private VariableComponentSyntax ParseDeconstructionComponent(bool topLevel = false)
         {
             if (topLevel &&
-                !((this.CurrentToken.IsVar() || IsPredefinedType(this.CurrentToken.Kind)) && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.CurrentToken.Kind == SyntaxKind.OpenParenToken))
+                !(CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.CurrentToken.Kind == SyntaxKind.OpenParenToken))
             {
                 return null;
             }
@@ -8494,7 +8494,7 @@ tryAgain:
                 topLevel ? (ComponentHasTypes(result) ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
         }
 
-        private bool ComponentHasTypes(VariableComponentSyntax node)
+        private static bool ComponentHasTypes(VariableComponentSyntax node)
         {
             switch (node.Kind)
             {
@@ -8567,7 +8567,7 @@ tryAgain:
         /// </summary>
         private bool IsPossibleDeconstructionDeclaration()
         {
-            if (((this.CurrentToken.IsVar() || IsPredefinedType(this.CurrentToken.Kind)) && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken) ||
+            if (CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken ||
                 this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var resetPoint = this.GetResetPoint();
