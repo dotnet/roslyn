@@ -404,6 +404,96 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test2(
         End Sub
 
         <Fact()>
+        Public Sub TupleDefaultType007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim valid As (A as Action, B as Action) = (AddressOf Main, AddressOf Main)
+        Test2(valid)
+
+        Test2((AddressOf Main, Sub() Main))
+    End Sub
+
+    function Test2(of T)(x as (T, T)) as (T, T)
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Action
+VB$AnonymousDelegate_0
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType007err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim x = (AddressOf Main, AddressOf Main)
+        Dim x1 = (Function() Main, Function() Main)
+        Dim x2 = (AddressOf Mai, Function() Mai)
+        Dim x3 = (A := AddressOf Main, B := (D := AddressOf Main, C := AddressOf Main))
+        
+        Test1((AddressOf Main, Sub() Main))
+        Test1((AddressOf Main, Function() Main))
+        Test2((AddressOf Main, Function() Main))
+    End Sub
+
+    function Test1(of T)(x as T) as T
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+
+    function Test2(of T)(x as (T, T)) as (T, T)
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        Dim x = (AddressOf Main, AddressOf Main)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30491: Expression does not produce a value.
+        Dim x1 = (Function() Main, Function() Main)
+                             ~~~~
+BC30491: Expression does not produce a value.
+        Dim x1 = (Function() Main, Function() Main)
+                                              ~~~~
+BC30451: 'Mai' is not declared. It may be inaccessible due to its protection level.
+        Dim x2 = (AddressOf Mai, Function() Mai)
+                            ~~~
+BC30491: Expression does not produce a value.
+        Dim x3 = (A := AddressOf Main, B := (D := AddressOf Main, C := AddressOf Main))
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test1(Of T)(x As T) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test1((AddressOf Main, Sub() Main))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test1(Of T)(x As T) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test1((AddressOf Main, Function() Main))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test2(Of T)(x As (T, T)) As (T, T)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2((AddressOf Main, Function() Main))
+        ~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
         Public Sub DataFlow()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -5518,9 +5608,6 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = (1, Function(t) t)
-                         ~
 </errors>)
 
         End Sub
@@ -5567,9 +5654,6 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = DirectCast((1, Function(t) t), (Integer, Integer))
                            ~~~~~~~~~~~~~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = DirectCast((1, Function(t) t), (Integer, Integer))
-                                    ~
 </errors>)
 
         End Sub
@@ -5619,11 +5703,78 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = (1, Function(t) t)
-                         ~
 </errors>)
 
+        End Sub
+
+        <Fact>
+        Public Sub TupleInferredLambdStrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Class C
+    Shared Sub Main()
+        Dim valid = (1, Function() Nothing)
+        Dim x = (Nothing, Function(t) t)
+        Dim y = (1, Function(t) t)
+        Dim z = (Function(t) t, Function(t) t)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim x = (Nothing, Function(t) t)
+                                   ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim y = (1, Function(t) t)
+                             ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim z = (Function(t) t, Function(t) t)
+                          ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim z = (Function(t) t, Function(t) t)
+                                         ~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleInferredLambdStrictOff()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Class C
+    Shared Sub Main()
+        Dim valid = (1, Function() Nothing)
+        Test(valid)
+
+        Dim x = (Nothing, Function(t) t)
+        Test(x)
+
+        Dim y = (1, Function(t) t)
+        Test(y)
+    End Sub
+
+    shared function Test(of T)(x as T) as T
+        System.Console.WriteLine(GetType(T))
+
+        return x
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_0`1[System.Object]]
+System.ValueTuple`2[System.Object,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
+System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
+            ]]>)
         End Sub
 
         <Fact>
@@ -5677,9 +5828,6 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Stri
 BC36625: Lambda expression cannot be converted to 'String' because 'String' is not a delegate type.
         x = (1, Function(t) t)
                 ~~~~~~~~~~~~~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = (1, Function(t) t)
-                         ~
 </errors>)
 
         End Sub
@@ -5729,12 +5877,6 @@ BC30201: Expression expected.
 BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
         x = ((1, Function(t) t), 1)
                  ~~~~~~~~~~~~~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = ((1, Function(t) t), 1)
-                          ~
-BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
-        x = ((1, Function(t) t), 1)
-                          ~
 </errors>)
 
         End Sub

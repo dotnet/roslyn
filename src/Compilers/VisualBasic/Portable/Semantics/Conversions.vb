@@ -965,7 +965,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 source.Type)
 
             If sourceType Is Nothing Then
-                userDefinedConversionsMightStillBeApplicable = source.GetMostEnclosedParenthesizedExpression().Kind = BoundKind.ArrayLiteral
+                Dim mostEnclosing = source.GetMostEnclosedParenthesizedExpression().Kind
+                userDefinedConversionsMightStillBeApplicable = mostEnclosing = BoundKind.ArrayLiteral OrElse
+                                                               mostEnclosing = BoundKind.TupleLiteral
 
                 ' The node doesn't have a type yet and reclassification failed.
                 Return Nothing ' No conversion
@@ -1228,7 +1230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' tuple literal converts to its inferred type 
-            If source.InferredType.IsSameTypeIgnoringCustomModifiers(destination) Then
+            If source.InferredType?.IsSameTypeIgnoringCustomModifiers(destination) Then
                 Return wideningConversion
             End If
 
@@ -2079,6 +2081,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     sourceType = New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral))
                 ElseIf source.Kind = BoundKind.TupleLiteral Then
                     sourceType = DirectCast(source, BoundTupleLiteral).InferredType
+                    If sourceType Is Nothing Then
+                        Return Nothing
+                    End If
                 Else
                     sourceType = source.Type
                 End If

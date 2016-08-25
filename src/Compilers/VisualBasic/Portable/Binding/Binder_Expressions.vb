@@ -316,6 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim hasErrors = False
             Dim hasNaturalType = True
+            Dim hasInferredType = True
 
             ' set of names already used
             Dim uniqueFieldNames = PooledHashSet(Of String).GetInstance()
@@ -351,10 +352,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
                 boundArguments.Add(boundArgument)
 
-                Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasErrors)
+                Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType, hasErrors)
                 If elementType Is Nothing Then
-                    hasNaturalType = False
-                    elementType = ReclassifyExpression(boundArgument, diagnostics).Type
+                    hasInferredType = False
                 End If
 
                 elementTypes.Add(elementType)
@@ -373,7 +373,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elements = elementTypes.ToImmutableAndFree()
             Dim locations = elementLocations.ToImmutableAndFree()
 
-            Dim inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics)
+            Dim inferredType = If(hasInferredType,
+                                    TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics),
+                                    Nothing)
+
             If hasNaturalType Then
                 tupleTypeOpt = inferredType
             End If
@@ -385,8 +388,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns the type to be used as a field type.
         ''' Generates errors in case the type is not supported for tuple type fields.
         ''' </summary>
-        Private Shared Function GetTupleFieldType(expression As BoundExpression, errorSyntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, <Out> ByRef hasError As Boolean) As TypeSymbol
+        Private Function GetTupleFieldType(expression As BoundExpression,
+                                                  errorSyntax As VisualBasicSyntaxNode,
+                                                  diagnostics As DiagnosticBag,
+                                                  ByRef hasNaturalType As Boolean,
+                                                  <Out> ByRef hasError As Boolean) As TypeSymbol
             Dim expressionType As TypeSymbol = expression.Type
+
+            If expressionType Is Nothing Then
+                hasNaturalType = False
+
+                ' Dig through parenthesized.
+                If Not expression.IsNothingLiteral Then
+                    expression = expression.GetMostEnclosedParenthesizedExpression()
+                End If
+
+                Select Case expression.Kind
+                    Case BoundKind.UnboundLambda
+                        expressionType = DirectCast(expression, UnboundLambda).InferredAnonymousDelegate.Key
+
+                    Case BoundKind.TupleLiteral
+                        expressionType = DirectCast(expression, BoundTupleLiteral).InferredType
+
+                    Case BoundKind.ArrayLiteral
+                        expressionType = DirectCast(expression, BoundArrayLiteral).InferredType
+
+                    Case Else
+                        If expression.IsNothingLiteral Then
+                            expressionType = GetSpecialType(SpecialType.System_Object, expression.Syntax, diagnostics)
+                        End If
+                End Select
+
+            End If
 
             If Not expression.HasErrors Then
                 If expressionType IsNot Nothing Then
@@ -1315,22 +1348,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(address.MethodGroup.ResultKind = LookupResultKind.Good)
                     End If
 
-                    ReportDiagnostic(diagnostics, expr.Syntax, ERRID.ERR_VoidValue)
-                    Return BadExpression(expr.Syntax, expr, ErrorTypeSymbol.UnknownResultType)
-
                 Case BoundKind.ArrayLiteral
                     Return ReclassifyArrayLiteralExpression(DirectCast(expr, BoundArrayLiteral), diagnostics)
 
                 Case BoundKind.TupleLiteral
-                    Return ReclassifyTupleLiteralExpression(DirectCast(expr, BoundTupleLiteral), diagnostics)
+                    Dim tupleLiteral = DirectCast(expr, BoundTupleLiteral)
+
+                    If tupleLiteral.InferredType IsNot Nothing Then
+                        Return ReclassifyTupleLiteralExpression(tupleLiteral, diagnostics)
+                    End If
 
                 Case Else
-                    'TODO: We need to do other expression reclassifications here.
-                    '      For now, we simply report an error.
-
-                    ReportDiagnostic(diagnostics, expr.Syntax, ERRID.ERR_VoidValue)
-                    Return BadExpression(expr.Syntax, expr, ErrorTypeSymbol.UnknownResultType)
             End Select
+
+            'TODO: We need to do other expression reclassifications here.
+            '      For now, we simply report an error.
+
+            ReportDiagnostic(diagnostics, expr.Syntax, ERRID.ERR_VoidValue)
+            Return BadExpression(expr.Syntax, expr, ErrorTypeSymbol.UnknownResultType)
+
         End Function
 
         Private Function ReclassifyArrayLiteralExpression(conversionSemantics As SyntaxKind,
@@ -1518,9 +1554,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReclassifyTupleLiteralExpression(
-                                                         tupleLiteral As BoundTupleLiteral,
-                                                         diagnostics As DiagnosticBag
-                                                         ) As BoundExpression
+           tupleLiteral As BoundTupleLiteral,
+           diagnostics As DiagnosticBag
+        ) As BoundExpression
 
             Return ApplyImplicitConversion(tupleLiteral.Syntax,
                                            tupleLiteral.InferredType,
