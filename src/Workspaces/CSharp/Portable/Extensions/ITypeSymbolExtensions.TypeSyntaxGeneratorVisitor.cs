@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             private readonly bool _nameOnly;
 
+            private static TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
+            private static TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
+
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
             {
                 _nameOnly = nameOnly;
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
             {
-                return new TypeSyntaxGeneratorVisitor(nameOnly);
+                return nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
             }
 
             public override TypeSyntax DefaultVisit(ISymbol node)
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 for (int i = 0; i < types.Length; i++)
                 {
-                    var name = hasNames ? SyntaxFactory.IdentifierName(names[i]) : null;
+                    var name = (hasNames && names[i] != null) ? SyntaxFactory.IdentifierName(names[i]) : null;
                     list = list.Add(SyntaxFactory.TupleElement(types[i].GenerateTypeSyntax(), name));
                 }
 

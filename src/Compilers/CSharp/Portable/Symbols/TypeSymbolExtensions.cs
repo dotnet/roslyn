@@ -355,9 +355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
-            Debug.Assert((object)type.DelegateInvokeMethod() != null && !type.DelegateInvokeMethod().HasUseSiteError,
-                         "This method should only be called on valid delegate types.");
-            return type.DelegateInvokeMethod().Parameters;
+            var invokeMethod = type.DelegateInvokeMethod();
+            if ((object)invokeMethod == null)
+            {
+                return default(ImmutableArray<ParameterSymbol>);
+            }
+            return invokeMethod.Parameters;
         }
 
         public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
@@ -523,12 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool isNestedNamedType = false;
 
-                // for tuple types, visit underlying type
-                if (current.IsTupleType)
-                {
-                    current = current.TupleUnderlyingType;
-                }
-
                 // Visit containing types from outer-most to inner-most.
                 switch (current.TypeKind)
                 {
@@ -574,9 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        if (current.IsTupleType)
                         {
-                            var result = typeArg.VisitType(predicate, arg);
+                            // turn tuple type elements into parameters
+                            current = current.TupleUnderlyingType;
+                        }
+
+                        foreach (var nestedType in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
+                        {
+                            var result = nestedType.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -803,6 +806,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, object, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
         /// <summary>
+        /// Return true if the type contains any tuples.
+        /// </summary>
+        internal static bool ContainsTuple(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType, null) != null;
+
+        /// <summary>
+        /// Return true if the type contains any tuples with element names.
+        /// </summary>
+        internal static bool ContainsTupleNames(this TypeSymbol type) =>
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType && !t.TupleElementNames.IsDefault , null) != null;
+
+        /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
         /// Otherwise, the underlying type (if any) of the error type will be
@@ -834,9 +849,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the type is a valid switch expression type.
+        /// Returns true if the type was a valid switch expression type in C# 6. We use this test to determine
+        /// whether or not we should attempt a user-defined conversion from the type to a C# 6 switch governing
+        /// type, which we support for compatibility with C# 6 and earlier.
         /// </summary>
-        internal static bool IsValidSwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
+        internal static bool IsValidV6SwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -1239,6 +1256,243 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
+        }
+
+        internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            if (namedType.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+        }
+
+        internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+        }
+
+        /// <summary>
+        /// Returns true if the type is generic or non-generic task-like type. If so, the async
+        /// method builder type is returned along with the method to construct that type.
+        /// </summary>
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType, out MethodSymbol createBuilderMethod)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+
+            var arity = type.Arity;
+            if (arity < 2)
+            {
+                // Find the public static CreateAsyncMethodBuilder method.
+                var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
+                foreach (var member in members)
+                {
+                    if (member.Kind != SymbolKind.Method)
+                    {
+                        continue;
+                    }
+                    var method = (MethodSymbol)member;
+                    if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                        method.IsStatic &&
+                        (method.ParameterCount == 0) &&
+                        !method.IsGenericMethod)
+                    {
+                        var returnType = method.ReturnType as NamedTypeSymbol;
+                        if ((object)returnType == null || returnType.Arity != arity)
+                        {
+                            break;
+                        }
+                        builderType = returnType;
+                        createBuilderMethod = method;
+                        return true;
+                    }
+                }
+            }
+
+            builderType = null;
+            createBuilderMethod = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types.
+        /// </summary>
+        internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            NormalizeTaskTypesInType(compilation, ref type);
+            return type;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types. Returns true if there were changes.
+        /// </summary>
+        private static bool NormalizeTaskTypesInType(CSharpCompilation compilation, ref TypeSymbol type)
+        {
+            switch (type.Kind)
+            {
+                case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
+                    {
+                        var namedType = (NamedTypeSymbol)type;
+                        var changed = type.IsTupleType ?
+                            NormalizeTaskTypesInTuple(compilation, ref namedType) :
+                            NormalizeTaskTypesInNamedType(compilation, ref namedType);
+                        type = namedType;
+                        return changed;
+                    }
+                case SymbolKind.ArrayType:
+                    {
+                        var arrayType = (ArrayTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInArray(compilation, ref arrayType);
+                        type = arrayType;
+                        return changed;
+                    }
+                case SymbolKind.PointerType:
+                    {
+                        var pointerType = (PointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInPointer(compilation, ref pointerType);
+                        type = pointerType;
+                        return changed;
+                    }
+            }
+            return false;
+        }
+
+        private static bool NormalizeTaskTypesInNamedType(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            bool hasChanged = false;
+
+            if (!type.IsDefinition)
+            {
+                Debug.Assert(type.IsGenericType);
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance();
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
+                for (int i = 0; i < typeArgumentsBuilder.Count; i++)
+                {
+                    var typeWithModifier = typeArgumentsBuilder[i];
+                    var typeArgNormalized = typeWithModifier.Type;
+                    if (NormalizeTaskTypesInType(compilation, ref typeArgNormalized))
+                    {
+                        hasChanged = true;
+                        // Preserve custom modifiers but without normalizing those types.
+                        typeArgumentsBuilder[i] = new TypeWithModifiers(typeArgNormalized, typeWithModifier.CustomModifiers);
+                    }
+                }
+                if (hasChanged)
+                {
+                    var originalDefinition = type.OriginalDefinition;
+                    var typeParameters = originalDefinition.GetAllTypeParameters();
+                    var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
+                    type = typeMap.SubstituteNamedType(originalDefinition);
+                }
+                typeArgumentsBuilder.Free();
+            }
+
+            NamedTypeSymbol builderType;
+            MethodSymbol createBuilderMethod;
+            if (type.OriginalDefinition.IsCustomTaskType(out builderType, out createBuilderMethod))
+            {
+                int arity = type.Arity;
+                Debug.Assert(arity < 2);
+                var taskType = compilation.GetWellKnownType(
+                    arity == 0 ?
+                    WellKnownType.System_Threading_Tasks_Task :
+                    WellKnownType.System_Threading_Tasks_Task_T);
+                if (taskType.TypeKind == TypeKind.Error)
+                {
+                    // Skip if Task types are not available.
+                    return false;
+                }
+                type = arity == 0 ?
+                    taskType :
+                    taskType.Construct(
+                        ImmutableArray.Create(
+                            new TypeWithModifiers(
+                                type.TypeArgumentsNoUseSiteDiagnostics[0],
+                                type.HasTypeArgumentsCustomModifiers ? type.TypeArgumentsCustomModifiers[0] : default(ImmutableArray<CustomModifier>))),
+                        unbound: false);
+                hasChanged = true;
+            }
+
+            return hasChanged;
+        }
+
+        private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            Debug.Assert(type.IsTupleType);
+            var underlyingType = type.TupleUnderlyingType;
+            if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
+            {
+                return false;
+            }
+            type = TupleTypeSymbol.Create(underlyingType, type.TupleElementNames);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        {
+            var elementType = arrayType.ElementType;
+            if (!NormalizeTaskTypesInType(compilation, ref elementType))
+            {
+                return false;
+            }
+            arrayType = arrayType.WithElementType(elementType);
+            return true;
+        }
+
+        private static bool NormalizeTaskTypesInPointer(CSharpCompilation compilation, ref PointerTypeSymbol pointerType)
+        {
+            var pointedAtType = pointerType.PointedAtType;
+            if (!NormalizeTaskTypesInType(compilation, ref pointedAtType))
+            {
+                return false;
+            }
+            // Preserve custom modifiers but without normalizing those types.
+            pointerType = new PointerTypeSymbol(pointedAtType, pointerType.CustomModifiers);
+            return true;
+        }
+
+        internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
+            this TypeSymbol type,
+            CSharpCompilation declaringCompilation,
+            Cci.ITypeReference typeRef)
+        {
+            if (type.ContainsTuple())
+            {
+                var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                if (attr != null)
+                {
+                    return new Cci.TypeReferenceWithAttributes(
+                        typeRef,
+                        ImmutableArray.Create<Cci.ICustomAttribute>(attr));
+                }
+            }
+
+            return new Cci.TypeReferenceWithAttributes(typeRef);
         }
     }
 }

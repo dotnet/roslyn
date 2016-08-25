@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId);
 
-            var rootToFormat = addedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
 
             var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, addedDocument.Options, cancellationToken);
             var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);

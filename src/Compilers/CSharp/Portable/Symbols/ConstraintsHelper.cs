@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CheckConstraints(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
-            CSharpSyntaxNode typeSyntax,
+            SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
             ConsList<Symbol> basesBeingResolved,
@@ -516,13 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
         }
 
         public static bool CheckConstraints(
             this MethodSymbol method,
             ConversionsBase conversions,
-            CSharpSyntaxNode syntaxNode,
+            SyntaxNode syntaxNode,
             Compilation currentCompilation,
             DiagnosticBag diagnostics,
             BitVector skipParameters = default(BitVector))

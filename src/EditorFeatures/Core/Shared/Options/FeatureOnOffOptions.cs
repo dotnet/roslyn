@@ -64,5 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// </summary>
         [ExportOption]
         public static readonly PerLanguageOption<bool> RefactoringVerification = new PerLanguageOption<bool>(OptionName, "Refactoring Verification", defaultValue: false);
+
+        [ExportOption]
+        public static readonly PerLanguageOption<bool> StreamingFindReferences = new PerLanguageOption<bool>(OptionName, nameof(StreamingFindReferences), defaultValue: true);
     }
 }

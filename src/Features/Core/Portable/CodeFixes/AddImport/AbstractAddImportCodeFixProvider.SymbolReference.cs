@@ -3,11 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -27,19 +25,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract Solution UpdateSolution(Document newDocument);
             protected abstract Glyph? GetGlyph(Document document);
             protected abstract bool CheckForExistingImport(Project project);
-
-            public override int CompareTo(Reference other)
-            {
-                var diff = base.CompareTo(other);
-                if (diff != 0)
-                {
-                    return diff;
-                }
-
-                var name1 = this.SymbolResult.DesiredName;
-                var name2 = (other as SymbolReference)?.SymbolResult.DesiredName;
-                return StringComparer.Ordinal.Compare(name1, name2);
-            }
 
             public override bool Equals(object obj)
             {
@@ -88,6 +73,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (description == null)
                 {
                     return null;
+                }
+
+                if (!this.SearchResult.DesiredNameMatchesSourceName(document))
+                {
+                    // The name is going to change.  Make it clear in the description that 
+                    // this is going to happen.
+                    description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
                 return new OperationBasedCodeAction(description, GetGlyph(document), GetPriority(document),

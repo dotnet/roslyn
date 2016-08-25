@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
-                message: EditorFeaturesResources.FindingTokenToRename,
+                message: EditorFeaturesResources.Finding_token_to_rename,
                 allowCancel: true,
                 action: waitContext =>
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 

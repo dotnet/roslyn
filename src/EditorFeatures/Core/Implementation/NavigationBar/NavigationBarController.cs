@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Refresh the drop downs to their full information
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => UpdateDropDownsSynchronously(context.CancellationToken));
         }
@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             _waitIndicator.Wait(
-                EditorFeaturesResources.NavigationBars,
-                EditorFeaturesResources.RefreshingNavigationBars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
                 action: context => ProcessItemSelectionSynchronously(e.Item, context.CancellationToken));
         }

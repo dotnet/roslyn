@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,9 +18,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxFactsService : AbstractSyntaxFactsService, ISyntaxFactsService
     {
+        internal static readonly CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
+
+        private CSharpSyntaxFactsService()
+        {
+        }
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);
@@ -669,11 +672,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {
+            SyntaxNode unused;
+            return IsObjectInitializerNamedAssignmentIdentifier(node, out unused);
+        }
+
+        public bool IsObjectInitializerNamedAssignmentIdentifier(
+            SyntaxNode node, out SyntaxNode initializedInstance)
+        {
+            initializedInstance = null;
             var identifier = node as IdentifierNameSyntax;
-            return
-                identifier != null &&
+            if (identifier != null &&
                 identifier.IsLeftSideOfAssignExpression() &&
-                identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression);
+                identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
+            {
+                var objectInitializer = identifier.Parent.Parent;
+                if (objectInitializer.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                {
+                    initializedInstance = objectInitializer.Parent;
+                    return true;
+                }
+                else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    initializedInstance = ((AssignmentExpressionSyntax)objectInitializer.Parent).Left;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool IsElementAccessExpression(SyntaxNode node)
@@ -1668,6 +1693,72 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
         {
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
+        }
+
+        public bool IsDocumentationComment(SyntaxNode node)
+        {
+            return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
+        }
+
+        public bool IsUsingOrExternOrImport(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.UsingDirective) ||
+                   node.IsKind(SyntaxKind.ExternAliasDirective);
+        }
+
+        public bool IsGlobalAttribute(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.Attribute) && node.Parent.IsKind(SyntaxKind.AttributeList) &&
+                   ((AttributeListSyntax)node.Parent).Target?.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
+        }
+
+        private static bool IsMemberDeclaration(SyntaxNode node)
+        {
+            // From the C# language spec:
+            // class-member-declaration:
+            //    constant-declaration
+            //    field-declaration
+            //    method-declaration
+            //    property-declaration
+            //    event-declaration
+            //    indexer-declaration
+            //    operator-declaration
+            //    constructor-declaration
+            //    destructor-declaration
+            //    static-constructor-declaration
+            //    type-declaration
+            switch (node.Kind())
+            {
+                // Because fields declarations can define multiple symbols "public int a, b;" 
+                // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
+                case SyntaxKind.VariableDeclarator:
+                    return node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
+                           node.Parent.Parent.IsKind(SyntaxKind.EventFieldDeclaration);
+
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public bool IsDeclaration(SyntaxNode node)
+        {
+            return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
         }
     }
 }

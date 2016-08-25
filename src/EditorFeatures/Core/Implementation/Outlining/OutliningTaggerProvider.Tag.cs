@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
@@ -138,11 +139,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 return span;
             }
 
-            private ITextBuffer CreateElisionBufferWithoutIndentation(ITextBuffer dataBuffer, Span shortHintSpan)
+            private ITextBuffer CreateElisionBufferWithoutIndentation(
+                ITextBuffer dataBuffer, Span shortHintSpan)
             {
                 return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
                     _editorOptionsFactoryService.GlobalOptions,
-                    new SnapshotSpan(dataBuffer.CurrentSnapshot, shortHintSpan));
+                    contentType: null,
+                    exposedSpans: new SnapshotSpan(dataBuffer.CurrentSnapshot, shortHintSpan));
             }
         }
     }

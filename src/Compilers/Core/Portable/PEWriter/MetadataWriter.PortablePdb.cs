@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -134,7 +136,7 @@ namespace Microsoft.Cci
             SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
 
             // delta doesn't need this information - we use information recorded by previous generation emit
-            if (Context.ModuleBuilder.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
+            if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
             {
                 SerializeEncMethodDebugInformation(bodyOpt, methodHandle);
             }
@@ -697,57 +699,42 @@ namespace Microsoft.Cci
             DocumentHandle documentHandle;
             if (!index.TryGetValue(document, out documentHandle))
             {
-                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
+                DebugSourceInfo info = document.GetSourceInfo();
 
                 documentHandle = _debugMetadataOpt.AddDocument(
-                    name: SerializeDocumentName(document.Location),
-                    hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(checksumAndAlgorithm.Item2),
-                    hash: (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(checksumAndAlgorithm.Item1),
+                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
                     language: _debugMetadataOpt.GetOrAddGuid(document.Language));
 
                 index.Add(document, documentHandle);
+
+                if (info.EmbeddedTextBlob != null)
+                {
+                    _debugMetadataOpt.AddCustomDebugInformation(
+                        parent: documentHandle,
+                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
+                }
             }
 
             return documentHandle;
         }
 
-        private static readonly char[] s_separator1 = { '/' };
-        private static readonly char[] s_separator2 = { '\\' };
-
-        private BlobHandle SerializeDocumentName(string name)
+        /// <summary>
+        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// </summary>
+        /// <remarks>
+        /// This is done after serializing method debug info to ensure that we embed all requested
+        /// text even if there are no correspodning sequence points.
+        /// </remarks>
+        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
         {
-            Debug.Assert(name != null);
-
-            var writer = new BlobBuilder();
-
-            int c1 = Count(name, s_separator1[0]);
-            int c2 = Count(name, s_separator2[0]);
-            char[] separator = (c1 >= c2) ? s_separator1 : s_separator2;
-
-            writer.WriteByte((byte)separator[0]);
-
-            // TODO: avoid allocations
-            foreach (var part in name.Split(separator))
+            foreach (var document in documents)
             {
-                BlobHandle partIndex = _debugMetadataOpt.GetOrAddBlob(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger(MetadataTokens.GetHeapOffset(partIndex));
+                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
+                GetOrAddDocument(document, _documentIndex);
             }
-
-            return _debugMetadataOpt.GetOrAddBlob(writer);
-        }
-
-        private static int Count(string str, char c)
-        {
-            int count = 0;
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == c)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         #endregion
@@ -784,5 +771,24 @@ namespace Microsoft.Cci
         }
 
         #endregion
+
+        private void EmbedSourceLink(Stream stream)
+        {
+            // TODO: be more efficient: https://github.com/dotnet/roslyn/issues/12853
+            var memoryStream = new MemoryStream();
+            try
+            {
+                stream.CopyTo(memoryStream);
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
+                value: _debugMetadataOpt.GetOrAddBlob(memoryStream.ToArray()));
+        }
     }
 }

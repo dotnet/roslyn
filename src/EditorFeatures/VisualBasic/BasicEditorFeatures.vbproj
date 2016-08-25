@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -84,7 +82,6 @@
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
     <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
-    <Compile Include="Completion\VisualBasicCompletionHelper.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentCommandHandler.vb" />
     <Compile Include="DocumentationComments\XmlTagCompletionCommandHandler.vb" />
@@ -245,7 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBEditorResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBEditorResources.Designer.vb</LastGenOutput>
       <SubType>Designer</SubType>
@@ -261,7 +258,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

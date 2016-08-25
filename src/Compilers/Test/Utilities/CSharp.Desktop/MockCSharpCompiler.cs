@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -24,16 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             : base(CSharpCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers;
-        }
-
-        protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override uint GetSqmAppID()
-        {
-            throw new NotImplementedException();
         }
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(

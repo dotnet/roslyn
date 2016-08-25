@@ -1477,5 +1477,72 @@ class C
                 TestOptions.Regular,
                 Options.Script);
         }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+",
+    Class("MyClass"));
+        }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass(int)""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+");
+        }
+
+        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified()
+        {
+            await TestAsync(@"
+/// <summary>
+/// <see cref=""MyClass.MyClass(int)""/>
+/// </summary>
+class MyClass
+{
+    public MyClass(int x) { }
+}
+",
+    Class("MyClass"));
+        }
+
+        [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestMemberBindingThatLooksGeneric()
+        {
+            await TestAsync(@"
+using System.Diagnostics;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Debug.Assert(args?.Length < 2);
+        }
+    }
+}", Class("Debug"));
+        }
     }
 }

@@ -1083,6 +1083,7 @@ Foo();
             Assert.True(foo.IsStatic);
             Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
             Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.False(foo.Parameters[0].Type.IsAbstract);
         }
 
         [Fact]
@@ -3760,9 +3761,9 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         void Local() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "void Local() { }").WithArguments("local functions", "7").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7").WithLocation(6, 14)
                 );
         }
 
@@ -3785,7 +3786,39 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 13),
                 // (7,9): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         int Add(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9),
+                // (7,13): warning CS0168: The variable 'Add' is declared but never used
+                //         int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Add").WithArguments("Add").WithLocation(7, 13)
+                );
+        }
+
+        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        public void LabeledLocalFunctionInIf()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        if () // typing at this point
+a:      int Add(int x, int y) => x + y;
+    }
+}
+";
+            VerifyDiagnostics(source,
+                // (6,13): error CS1525: Invalid expression term ')'
+                //         if () // typing at this point
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 13),
+                // (7,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // a:      int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "a:      int Add(int x, int y) => x + y;").WithLocation(7, 1),
+                // (7,1): warning CS0164: This label has not been referenced
+                // a:      int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(7, 1),
+                // (7,13): warning CS0168: The variable 'Add' is declared but never used
+                // a:      int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Add").WithArguments("Add").WithLocation(7, 13)
                 );
         }
 

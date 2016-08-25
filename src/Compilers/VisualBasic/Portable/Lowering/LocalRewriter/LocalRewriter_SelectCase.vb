@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Function RewriteSelectStatement(
             node As BoundSelectStatement,
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             selectExpressionStmt As BoundExpressionStatement,
             exprPlaceholderOpt As BoundRValuePlaceholder,
             caseBlocks As ImmutableArray(Of BoundCaseBlock),
@@ -67,6 +67,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             exitLabel As LabelSymbol
         ) As BoundNode
             Dim statementBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
+            Dim instrument = Me.Instrument(node)
+
+            If instrument Then
+                ' Add select case begin sequence point
+                Dim prologue As BoundStatement = _instrumenter.CreateSelectStatementPrologue(node)
+                If prologue IsNot Nothing Then
+                    statementBuilder.Add(prologue)
+                End If
+            End If
 
             ' Rewrite select expression
             Dim rewrittenSelectExpression As BoundExpression = Nothing
@@ -127,17 +136,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(exprPlaceholderOpt)
             End If
 
-            If Me.GenerateDebugInfo Then
+            Dim epilogue As BoundStatement = endSelectResumeLabel
+            If instrument Then
                 ' Add End Select sequence point
-                Dim selectSyntax = DirectCast(syntaxNode, SelectBlockSyntax)
-                If selectSyntax IsNot Nothing Then
-                    statementBuilder.Add(New BoundSequencePoint(selectSyntax.EndSelectStatement, endSelectResumeLabel))
-                    endSelectResumeLabel = Nothing
-                End If
+                epilogue = _instrumenter.InstrumentSelectStatementEpilogue(node, epilogue)
             End If
 
-            If endSelectResumeLabel IsNot Nothing Then
-                statementBuilder.Add(endSelectResumeLabel)
+            If epilogue IsNot Nothing Then
+                statementBuilder.Add(epilogue)
             End If
 
             Return New BoundBlock(syntaxNode, Nothing, tempLocals, statementBuilder.ToImmutableAndFree()).MakeCompilerGenerated()
@@ -198,11 +204,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not caseBlocks.IsDefault)
 
             Dim selectExprStmtSyntax = selectExpressionStmt.Syntax
-            If Me.GenerateDebugInfo Then
-                ' Add select case begin sequence point
-                statementBuilder.Add(New BoundSequencePoint(selectExprStmtSyntax, Nothing))
-            End If
-
 
             If generateUnstructuredExceptionHandlingResumeCode Then
                 RegisterUnstructuredExceptionHandlingResumeTarget(selectExprStmtSyntax, canThrow:=True, statements:=statementBuilder)
@@ -276,6 +277,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenBody = AppendToBlock(rewrittenBody, RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(curCaseBlock.Syntax))
             End If
 
+            Dim instrument = Me.Instrument(selectStatement)
+
             If rewrittenCaseCondition Is Nothing Then
                 ' This must be a Case Else Block
                 Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseElseBlock)
@@ -285,24 +288,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(startFrom = caseBlocks.Length - 1)
 
                 ' Case Else statement needs a sequence point
-                If Me.GenerateDebugInfo Then
-                    rewrittenStatement = New BoundSequencePoint(curCaseBlock.CaseStatement.Syntax, rewrittenBody)
+                If instrument Then
+                    rewrittenStatement = _instrumenter.InstrumentCaseElseBlock(curCaseBlock, rewrittenBody)
                 Else
                     rewrittenStatement = rewrittenBody
                 End If
             Else
                 Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseBlock)
+                If instrument Then
+                    rewrittenCaseCondition = _instrumenter.InstrumentSelectStatementCaseCondition(selectStatement, rewrittenCaseCondition, _currentMethodOrLambda, lazyConditionalBranchLocal)
+                End If
 
                 ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
                 ' the containing method is edited while methods invoked in the condition are being executed.
                 rewrittenStatement = RewriteIfStatement(
                     syntaxNode:=curCaseBlock.Syntax,
-                    conditionSyntax:=curCaseBlock.CaseStatement.Syntax,
-                    rewrittenCondition:=AddConditionSequencePoint(rewrittenCaseCondition, selectStatement, lazyConditionalBranchLocal),
+                    rewrittenCondition:=rewrittenCaseCondition,
                     rewrittenConsequence:=rewrittenBody,
                     rewrittenAlternative:=RewriteCaseBlocksRecursive(selectStatement, generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1, lazyConditionalBranchLocal),
                     unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget,
-                    generateDebugInfo:=True)
+                    instrumentationTargetOpt:=If(instrument, curCaseBlock, Nothing))
             End If
 
             Return rewrittenStatement

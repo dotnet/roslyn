@@ -186,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
+
+                    case TupleElement:
+                        return ((TupleElementSyntax)parent).Type == node;
+
+                    case TypedVariableComponent:
+                        return ((TypedVariableComponentSyntax)parent).Type == node;
                 }
             }
 
@@ -312,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //
@@ -375,6 +381,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLambdaBody(SyntaxNode node)
         {
             return LambdaUtilities.IsLambdaBody(node);
+        }
+
+        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+        }
+
+        internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)
+        {
+            var component = node.Parent as TypedVariableComponentSyntax;
+            parent = component;
+            return node == component?.Type;
         }
     }
 }

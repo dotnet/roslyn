@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 current = current._next;
             }
 
-            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint(documentProvider);
+            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
                 return;
@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // Find the document for the first non-hidden sequence point (issue #4370)
-        // Returns null if a real sequence point was found.
-        private FileLinePositionSpan? FindFirstRealSequencePoint(DebugDocumentProvider documentProvider)
+        // Returns null if a real sequence point was not found.
+        private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
             
@@ -216,10 +216,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
                     if (!isHidden)
                     {
-                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        FileLinePositionSpan fileLinePositionSpan = current._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
                         if (!isHidden)
                         {
-
                             return fileLinePositionSpan;
                         }
                     }

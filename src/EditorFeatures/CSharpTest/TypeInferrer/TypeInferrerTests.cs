@@ -1850,5 +1850,24 @@ class C
 }";
             await TestAsync(text, "global::System.Collections.Generic.IEnumerable<global::System.Object>", testPosition: false);
         }
+
+        [WorkItem(12755, "https://github.com/dotnet/roslyn/issues/12755")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestObjectCreationBeforeArrayIndexing()
+        {
+            var text =
+@"using System;
+class C
+{
+  void M()
+  {
+        int[] array;
+        C p = new [||]
+        array[4] = 4;
+  }
+}";
+
+            await TestAsync(text, "global::C", testNode: false);
+        }
     }
 }

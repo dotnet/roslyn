@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundExpression CreateConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             bool isCast,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundExpression CreateConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             bool isCast,
@@ -62,10 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.TupleLiteral)
                 {
                     var sourceTuple = (BoundTupleLiteral)source;
+                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination.TupleElementNames, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
-                        sourceTuple.Type, 
-                        sourceTuple.Arguments, 
+                        sourceTuple.Type,
+                        sourceTuple.Arguments,
                         sourceTuple.Type, // same type to keep original element names 
                         sourceTuple.HasErrors);
                 }
@@ -90,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTupleLiteral || 
-                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
+            if (conversion.IsTupleLiteralConversion ||
+                (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetIsNumeric && source.IsPointerType();
         }
 
-        protected BoundExpression CreateUserDefinedConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             if (!conversion.IsValid)
             {
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
 
-                    toConversion = Conversions.ClassifyConversion(conversionReturnType, destination, ref useSiteDiagnostics);
+                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, ref useSiteDiagnostics);
                     Debug.Assert(toConversion.Exists);
                 }
                 else
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        private static BoundExpression CreateAnonymousFunctionConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
             // which is a conversion on top of an unbound lambda, replace it with the bound
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateMethodGroupConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
             BoundExpression receiverOpt = group.ReceiverOpt;
@@ -331,24 +332,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleLiteralConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-
-            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTupleLiteral || conversion.Kind == ConversionKind.ImplicitNullable);
             Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
 
-            TypeSymbol destinationWithoutNullable = conversion.Kind == ConversionKind.ImplicitNullable ?
-                                                                           destinationWithoutNullable = destination.GetNullableUnderlyingType() :
-                                                                           destination;
+            var destinationWithoutNullable = destination;
+            var conversionWithoutNullable = conversion;
+
+            if (conversion.Kind == ConversionKind.ImplicitNullable)
+            {
+                destinationWithoutNullable = destination.GetNullableUnderlyingType();
+                conversionWithoutNullable = conversion.UnderlyingConversions[0];
+            }
+
+            Debug.Assert(conversionWithoutNullable.IsTupleLiteralConversion);
 
             NamedTypeSymbol targetType = (NamedTypeSymbol)destinationWithoutNullable;
-
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
                 // do not lose the original element names in the literal if different from names in the target
+
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType.TupleElementNames, sourceTuple, diagnostics);
 
                 // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
@@ -359,47 +366,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
+            var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
+                var elementConversion = underlyingConversions[i];
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion elementConversion;
-                if (isCast)
-                {
-                    elementConversion = this.Conversions.ClassifyConversionForCast(argument, destType, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    elementConversion = this.Conversions.ClassifyConversionFromExpression(argument, destType, ref useSiteDiagnostics);
-                }
-
-                diagnostics.Add(syntax, useSiteDiagnostics);
                 convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
                 sourceTuple.Type,
-                convertedArguments.ToImmutableAndFree(), 
+                convertedArguments.ToImmutableAndFree(),
                 targetType);
 
-            // We need to preserve any conversion that changes the type (even identity conversions),
-            // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-            if (!isCast && targetType == destination)
+            if (sourceTuple.Type != destination)
             {
-                return result;
+                // literal cast is applied to the literal 
+                result = new BoundConversion(
+                    sourceTuple.Syntax,
+                    result,
+                    conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination);
             }
 
-            // if we have a nullable cast combined with a name/dynamic cast
-            // name/dynamic cast must happen before converting to nullable
-            if (conversion.Kind == ConversionKind.ImplicitNullable &&
-                destinationWithoutNullable != targetType)
+            // If we had a cast in the code, keep conversion in the tree.
+            // even though the literal is already converted to the target type.
+            if (isCast)
             {
-                Debug.Assert(destinationWithoutNullable.Equals(targetType, ignoreDynamic: true));
-
                 result = new BoundConversion(
                     syntax,
                     result,
@@ -407,19 +407,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: destinationWithoutNullable)
-                { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+                    type: destination);
             }
-                                  
-            return new BoundConversion(
-                syntax,
-                result,
-                conversion,
-                @checked: false,
-                explicitCastInCode: isCast,
-                constantValueOpt: ConstantValue.NotAvailable,
-                type: destination)
-            { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+
+            return result;
         }
 
         private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
@@ -467,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error.
         /// </returns>
-        private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, CSharpSyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
             {
@@ -537,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error.
         /// </returns>
-        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression receiverOpt, Symbol memberSymbol, CSharpSyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression receiverOpt, Symbol memberSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             // Perform final validation of the method to be invoked.
 
@@ -591,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
-                    CSharpSyntaxNode errorNode = node;
+                    SyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
                     {
                         errorNode = node.Parent;
@@ -752,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Where diagnostics should be added.</param>
         /// <returns>True if a diagnostic has been added.</returns>
         private bool MethodGroupConversionHasErrors(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             Conversion conversion,
             BoundExpression receiverOpt,
             bool isExtensionMethod,
@@ -832,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ConstantValue FoldConstantConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             TypeSymbol destination,
@@ -923,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ConstantValue FoldConstantNumericConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             ConstantValue sourceValue,
             TypeSymbol destination,
             DiagnosticBag diagnostics)

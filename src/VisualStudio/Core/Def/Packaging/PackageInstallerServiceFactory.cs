@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -204,11 +204,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_0, e.Message);
+                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.
@@ -245,11 +245,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_0, e.Message);
+                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.

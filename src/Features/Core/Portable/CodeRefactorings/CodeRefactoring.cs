@@ -1,8 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -11,31 +10,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Represents a set of transformations that can be applied to a piece of code.
     /// </summary>
-    internal class CodeRefactoring : ICodeRefactoring
+    internal class CodeRefactoring
     {
-        private readonly CodeRefactoringProvider _provider;
-        private readonly IReadOnlyList<CodeAction> _actions;
-
-        public CodeRefactoringProvider Provider
-        {
-            get { return _provider; }
-        }
+        public CodeRefactoringProvider Provider { get; }
 
         /// <summary>
         /// List of possible actions that can be used to transform the code.
         /// </summary>
-        public IReadOnlyList<CodeAction> Actions => _actions;
-
-        IEnumerable<CodeAction> ICodeRefactoring.Actions => Actions;
+        public IReadOnlyList<CodeAction> Actions { get; }
 
         public CodeRefactoring(CodeRefactoringProvider provider, IEnumerable<CodeAction> actions)
         {
-            _provider = provider;
-            _actions = actions.ToImmutableArrayOrEmpty();
+            Provider = provider;
+            Actions = actions.ToImmutableArrayOrEmpty();
 
-            if (_actions.Count == 0)
+            if (Actions.Count == 0)
             {
-                throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, nameof(actions));
+                throw new ArgumentException(FeaturesResources.Actions_can_not_be_empty, nameof(actions));
             }
         }
     }

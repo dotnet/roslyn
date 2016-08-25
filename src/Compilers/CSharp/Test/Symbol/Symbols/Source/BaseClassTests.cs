@@ -1541,7 +1541,7 @@ class C : I2 { }
             var derivedInterface = global.GetMember<NamedTypeSymbol>("I2");
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var bothInterfaces = ImmutableArray.Create<NamedTypeSymbol>(baseInterface, derivedInterface);
+            var bothInterfaces = ImmutableArray.Create(baseInterface, derivedInterface);
 
             Assert.Equal(baseInterface, derivedInterface.AllInterfaces.Single());
             Assert.Equal(derivedInterface, @class.Interfaces.Single());
@@ -1551,7 +1551,8 @@ class C : I2 { }
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag());
-            var cciInterfaces = typeDef.Interfaces(context).Cast<NamedTypeSymbol>().AsImmutable();
+            var cciInterfaces = typeDef.Interfaces(context)
+                .Select(impl => impl.TypeRef).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
             context.Diagnostics.Verify();
         }

@@ -331,11 +331,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
-            ' Check returns by ref.
-            If Me.ReturnsByRef Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-            End If
-
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
 
@@ -405,6 +400,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
                 Return Me.ContainingSymbol.EmbeddedSymbolKind
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Is this a property of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleProperty() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a property of a tuple type, return corresponding underlying property from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingProperty() As PropertySymbol
+            Get
+                Return Nothing
             End Get
         End Property
 

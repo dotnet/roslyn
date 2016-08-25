@@ -548,7 +548,7 @@ namespace System
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
-            for (var wkt = WellKnownType.First; wkt <= WellKnownType.Last; wkt++)
+            for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
                 switch (wkt)
                 {
@@ -559,6 +559,8 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                         // Not yet in the platform.
+                    case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                        // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
                         // Not a real type
@@ -572,7 +574,7 @@ namespace System
         }
 
         [Fact]
-        public void AllWellKnowTypesBeforeCSharp7()
+        public void AllWellKnownTypesBeforeCSharp7()
         {
             foreach (var type in new[] {
                             WellKnownType.System_Math,
@@ -837,6 +839,9 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                         // Not yet in the platform.
+                        continue;
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                        // Not always available.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

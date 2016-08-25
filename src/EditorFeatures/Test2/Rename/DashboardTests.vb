@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
+                    searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     changedOptionSet:=changingOptions)
         End Function
 
@@ -66,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Function
@@ -95,10 +94,10 @@ class Program
                     </Project>
                 </Workspace>,
                 newName:="Bar",
-                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
+                searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 changedOptionSet:=changingOptions,
                 hasRenameOverload:=True,
-                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
+                unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
                 severity:=DashboardSeverity.Error)
         End Function
 
@@ -117,8 +116,8 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="AttributeAttributeAttribute",
-                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
-                    resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
+                    searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
+                    resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
                     severity:=DashboardSeverity.Info)
         End Function
 
@@ -156,7 +155,7 @@ class AttributeAttribute : System.Attribute { }
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 5),
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
                     hasRenameOverload:=True,
                     changedOptionSet:=changingOptions)
         End Function
@@ -197,7 +196,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 6),
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 6),
                     changedOptionSet:=changingOptions)
         End Function
 
@@ -237,7 +236,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                     changedOptionSet:=changingOptions)
         End Function
 
@@ -278,7 +277,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="P",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 7),
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 7),
                     changedOptionSet:=changingOptions)
         End Function
 
@@ -300,7 +299,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3))
+                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3))
         End Function
 
         <WpfFact>
@@ -321,7 +320,7 @@ class $$Program
                          </Project>
                      </Workspace>),
                     newName:="",
-                    searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile)
+                    searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file)
         End Function
 
         <WpfFact>
@@ -343,8 +342,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
-                resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
+                searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
+                resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
                 severity:=DashboardSeverity.Info)
         End Function
 
@@ -368,8 +367,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 2),
-                resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 2),
+                searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
+                resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 2),
                 severity:=DashboardSeverity.Info)
         End Function
 
@@ -391,8 +390,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=EditorFeaturesResources.RenameWillUpdateReferenceInFile,
-                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 1),
+                searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
+                unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
                 severity:=DashboardSeverity.Error)
         End Function
 
@@ -416,8 +415,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                 newName:="foo",
-                searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3),
-                unresolvableConflictText:=String.Format(EditorFeaturesResources.UnresolvableConflicts, 3),
+                searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
+                unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 3),
                 severity:=DashboardSeverity.Error)
         End Function
 
@@ -453,8 +452,8 @@ class $$Program
                      </Project>
                  </Workspace>),
                    newName:="Bar",
-                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInMultipleFiles, 4, 2),
-                   resolvableConflictText:=String.Format(EditorFeaturesResources.ConflictsWillBeResolved, 1),
+                   searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, 4, 2),
+                   resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
                    severity:=DashboardSeverity.Info)
         End Function
 
@@ -477,7 +476,7 @@ class C
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferenceInFile),
+                   searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_1_reference_in_1_file),
                    hasRenameOverload:=True,
                    isRenameOverloadsEditable:=True)
         End Function
@@ -501,7 +500,7 @@ class C
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 3),
+                   searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
                    hasRenameOverload:=True,
                    isRenameOverloadsEditable:=False)
         End Function
@@ -538,7 +537,7 @@ class D : B
                      </Project>
                  </Workspace>),
                    newName:="Mo",
-                   searchResultText:=String.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, 5),
+                   searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
                    changedOptionSet:=changingOptions,
                    hasRenameOverload:=True)
         End Function

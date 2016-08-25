@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeBinaryOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeBinaryOperator(
             BoundBinaryOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, null, LookupResultKind.Viable, type);
         }
 
-        private BoundExpression RewriteLiftedBinaryOperator(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol method)
+        private BoundExpression RewriteLiftedBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol method)
         {
             var conditionalLeft = loweredLeft as BoundLoweredConditionalAccess;
 
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeDynamicLogicalBinaryOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // false && right  ->  box(false)
                     // true || right   ->  box(true)
-                    return MakeConversion(loweredLeft, type, @checked: false);
+                    return MakeConversionNode(loweredLeft, type, @checked: false);
                 }
             }
 
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We might need to box.
                     BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, leftTruthOperator, negative: isAnd);
-                    var convertedLeft = MakeConversion(loweredLeft, type, @checked: false);
+                    var convertedLeft = MakeConversionNode(loweredLeft, type, @checked: false);
                     result = _factory.Conditional(leftTest, convertedLeft, op, type);
                 }
             }
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression MakeTruthTestForDynamicLogicalOperator(CSharpSyntaxNode syntax, BoundExpression loweredLeft, TypeSymbol boolean, MethodSymbol leftTruthOperator, bool negative)
+        private BoundExpression MakeTruthTestForDynamicLogicalOperator(SyntaxNode syntax, BoundExpression loweredLeft, TypeSymbol boolean, MethodSymbol leftTruthOperator, bool negative)
         {
             if (loweredLeft.HasDynamicType())
             {
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversion(loweredLeft, boolean, @checked: false);
+                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, LookupResultKind.Viable, boolean)
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression TrivialLiftedComparisonOperatorOptimizations(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression MakeOptimizedGetValueOrDefault(CSharpSyntaxNode syntax, BoundExpression expression)
+        private BoundExpression MakeOptimizedGetValueOrDefault(SyntaxNode syntax, BoundExpression expression)
         {
             // If the expression is of nullable type then call GetValueOrDefault. If not,
             // then just use its value.
@@ -804,12 +804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        private BoundExpression MakeBooleanConstant(CSharpSyntaxNode syntax, bool value)
+        private BoundExpression MakeBooleanConstant(SyntaxNode syntax, bool value)
         {
             return MakeLiteral(syntax, ConstantValue.Create(value), _compilation.GetSpecialType(SpecialType.System_Boolean));
         }
 
-        private BoundExpression MakeOptimizedHasValue(CSharpSyntaxNode syntax, BoundExpression expression)
+        private BoundExpression MakeOptimizedHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             // If the expression is of nullable type then call HasValue. If not, then it has a value,
             // so return constant true.
@@ -821,13 +821,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeBooleanConstant(syntax, true);
         }
 
-        private BoundExpression MakeNullableHasValue(CSharpSyntaxNode syntax, BoundExpression expression)
+        private BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             return BoundCall.Synthesized(syntax, expression, GetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
         }
 
         private BoundExpression LowerLiftedBuiltInComparisonOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight)
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression LowerLiftedUserDefinedComparisonOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression TrivialLiftedBinaryArithmeticOptimizations(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeLiftedBinaryOperatorConsequence(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundExpression OptimizeLiftedArithmeticOperatorOneNull(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression left,
             BoundExpression right,
             TypeSymbol type)
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression LowerLiftedBinaryArithmeticOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression OptimizeLiftedBinaryArithmetic(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
@@ -1455,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression MakeNewNullableBoolean(CSharpSyntaxNode syntax, bool? value)
+        private BoundExpression MakeNewNullableBoolean(SyntaxNode syntax, bool? value)
         {
             NamedTypeSymbol nullableType = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression OptimizeLiftedBooleanOperatorOneNull(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right)
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression OptimizeLiftedBooleanOperatorOneNonNull(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right)
@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression LowerLiftedBooleanOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight)
@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: conditionalExpression.Type);
         }
 
-        private MethodSymbol GetNullableMethod(CSharpSyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
+        private MethodSymbol GetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
         {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert((object)nullableType2 != null);
@@ -1704,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteNullableNullEquality(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -1712,11 +1712,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // This handles the case where we have a nullable user-defined struct type compared against null, eg:
             //
-            // struct S {} ... S? s = whatever; if (s != null) 
+            // struct S {} ... S? s = whatever; if (s != null)
             //
-            // If S does not define an overloaded != operator then this is lowered to s.HasValue.  
+            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
             //
-            // If the type already has a user-defined or built-in operator then comparing to null is 
+            // If the type already has a user-defined or built-in operator then comparing to null is
             // treated as a lifted equality operator.
 
             Debug.Assert(loweredLeft != null);
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: returnType);
             }
 
-            // arr?.Length == null   
+            // arr?.Length == null
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
             if (conditionalAccess != null &&
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
+        private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
             {
@@ -1806,7 +1806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
-        private BoundExpression RewriteDelegateOperation(CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
+        private BoundExpression RewriteDelegateOperation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
         {
             MethodSymbol method;
             if (operatorKind == BinaryOperatorKind.DelegateEqual || operatorKind == BinaryOperatorKind.DelegateNotEqual)
@@ -1831,12 +1831,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, null, method, default(LookupResultKind), method.ReturnType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
-                MakeConversion(syntax, call, ConversionKind.ExplicitReference, type, @checked: false) :
+                MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
                 call;
             return result;
         }
 
-        private BoundExpression RewriteDecimalBinaryOperation(CSharpSyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, BinaryOperatorKind operatorKind)
+        private BoundExpression RewriteDecimalBinaryOperation(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight, BinaryOperatorKind operatorKind)
         {
             Debug.Assert(loweredLeft.Type.SpecialType == SpecialType.System_Decimal);
             Debug.Assert(loweredRight.Type.SpecialType == SpecialType.System_Decimal);
@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
-        private BoundExpression MakeNullCheck(CSharpSyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+        private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
         {
             Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
                 (operatorKind == BinaryOperatorKind.NullableNullEqual) || (operatorKind == BinaryOperatorKind.NullableNullNotEqual));
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (exprType.Kind == SymbolKind.TypeParameter)
                 {
                     // Box type parameters.
-                    rewrittenExpr = MakeConversion(syntax, rewrittenExpr, ConversionKind.Boxing, objectType, @checked: false);
+                    rewrittenExpr = MakeConversionNode(syntax, rewrittenExpr, Conversion.Boxing, objectType, @checked: false);
                 }
                 else if (exprType.IsNullableType())
                 {
@@ -1925,14 +1925,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteBuiltInShiftOperation(
             BoundBinaryOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
             TypeSymbol type,
             int rightMask)
         {
-            CSharpSyntaxNode rightSyntax = loweredRight.Syntax;
+            SyntaxNode rightSyntax = loweredRight.Syntax;
             ConstantValue rightConstantValue = loweredRight.ConstantValue;
             TypeSymbol rightType = loweredRight.Type;
             Debug.Assert(rightType.SpecialType == SpecialType.System_Int32);
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewritePointerNumericOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,

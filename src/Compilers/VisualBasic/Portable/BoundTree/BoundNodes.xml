@@ -247,6 +247,52 @@
         <Field Name="NamespaceSymbol" Type="NamespaceSymbol"/>
     </Node>
 
+    <!-- Represents the raw metadata token index value for a method definition.
+         Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
+    <Node Name="BoundMethodDefIndex" Base="BoundExpression">
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+        <Field Name="Method" Type="MethodSymbol"/>
+    </Node>
+
+    <!-- Represents the maximum raw metadata token index value for any method definition in the current module. -->
+    <Node Name="BoundMaximumMethodDefIndex" Base="BoundExpression">
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    </Node>
+
+    <!-- Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module.
+         Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol. -->
+    <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
+        <Field Name="AnalysisKind" Type="Integer"/>
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
+    </Node>
+
+    <!-- Represents the GUID that is the current module's MVID.
+         Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
+    <Node Name="BoundModuleVersionId" Base="BoundExpression">
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
+    </Node>
+
+    <!-- Represents a string encoding of the GUID that is the current module's MVID.
+         Implemented as a reference to a string constant that is backpatched after the MVID is computed. -->
+    <Node Name="BoundModuleVersionIdString" Base="BoundExpression">
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    </Node>
+
+    <!-- Represents the index in the documents table of the source document containing a method definition.
+         Used by dynamic instrumentation to identify the source document containing a method. -->
+    <Node Name="BoundSourceDocumentIndex" Base="BoundExpression">
+        <!-- Non-null type is required for this node kind -->
+        <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+        <Field Name="Document" Type="Cci.DebugSourceDocument"/>
+    </Node>
+    
     <Node Name="BoundUnaryOperator" Base="BoundExpression" HasValidate="true">
         <!-- Type is required for this node type; may not be null -->
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -587,6 +633,7 @@
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
 
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
 
         <!-- Suppress GetObjectValue call injection for arguments of this method call -->
         <Field Name="SuppressObjectClone" Type="Boolean"/>
@@ -653,6 +700,42 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="Binder" Type="Binder" Null="disallow"/>
     <Field Name="MemberAccess" Type="BoundLateMemberAccess" Null="disallow"/>
+  </Node>
+
+  <!-- 
+  Tuple literals can exist in two forms - literal and converted literal.
+  This is the base node for both forms.
+  -->
+  <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
+    <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+  </AbstractNode>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The tuple literal is one which has not been converted to a target type.
+  -->
+  <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
+    <!-- 
+    It is possible for a tuple to not have a type in a literal form
+    Ex: 
+     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+    -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray(Of String)" Null="allow"/>
+  </Node>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted tuple literal is one which has been already converted to a target type.
+  Converted tuple literal always has a type.
+  -->
+  <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
+    <!-- Converted tuple must have a type -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be null -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
   
   <AbstractNode Name="BoundObjectCreationExpressionBase" Base="BoundExpression" HasValidate="true">
@@ -845,7 +928,8 @@
         <!-- autoproperty could be writable even when having no setter 
              when in a corresponding constructor or initializer -->
         <Field Name="IsWriteable" Type="Boolean"/>
-      
+        <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
+
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
     </Node>

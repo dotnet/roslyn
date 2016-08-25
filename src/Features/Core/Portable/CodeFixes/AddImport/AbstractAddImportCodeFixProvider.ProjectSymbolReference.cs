@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -51,19 +47,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 if (document.Project.Id == _project.Id)
                 {
-                    if (!SearchResult.DesiredNameDiffersFromSourceName())
+                    if (SearchResult.DesiredNameMatchesSourceName(document))
                     {
                         // The name doesn't change.  This is a normal priority action.
-                        return CodeActionPriority.Medium;
-                    }
-
-                    // We need to update the source name. If all we're doing is changing the 
-                    // casing, and this is a case insensitive language, then this is just a 
-                    // normal priority action.  Otherwise, this wil be low priority.
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    if (!syntaxFacts.IsCaseSensitive && 
-                        SearchResult.DesiredNameDiffersFromSourceNameOnlyByCase())
-                    {
                         return CodeActionPriority.Medium;
                     }
                 }

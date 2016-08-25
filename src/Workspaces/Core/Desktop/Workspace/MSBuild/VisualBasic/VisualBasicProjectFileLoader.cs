@@ -189,10 +189,8 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             private class VisualBasicCompilerInputs :
                 MSB.Tasks.Hosting.IVbcHostObject5,
-                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
-#if !MSBUILD12
-                , IAnalyzerHostObject
-#endif
+                MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded,
+                MSB.Tasks.Hosting.IAnalyzerHostObject
             {
                 private readonly VisualBasicProjectFile _projectFile;
                 private bool _initialized;
@@ -394,6 +392,16 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                         else if (string.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase))
                         {
                             this.CommandLineArgs.Add("/debug:full");
+                            return true;
+                        }
+                        else if (string.Equals(debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                            return true;
+                        }
+                        else if (string.Equals(debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
                             return true;
                         }
                     }

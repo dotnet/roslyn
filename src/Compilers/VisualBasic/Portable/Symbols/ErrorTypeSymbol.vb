@@ -140,12 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
-            Get
-                Throw New InvalidOperationException()
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property Name As String
             Get
                 Return String.Empty

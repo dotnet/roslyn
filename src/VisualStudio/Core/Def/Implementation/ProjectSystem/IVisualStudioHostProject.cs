@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         ProjectInfo CreateProjectInfoForCurrentState();
 
-        IReadOnlyList<string> GetFolderNames(uint documentItemID);
         bool ContainsFile(string moniker);
     }
 }

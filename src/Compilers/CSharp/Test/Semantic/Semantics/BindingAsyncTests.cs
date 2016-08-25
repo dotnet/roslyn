@@ -3821,5 +3821,41 @@ public class Program
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => YAsync()").WithLocation(15, 21)
                 );
         }
+
+        [Fact()]
+        public void DelegateTypeWithNoInvokeMethod()
+        {
+            // Delegate type with no Invoke method.
+            var ilSource =
+@".class public auto ansi sealed D`1<T>
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(object 'object',
+                               native int 'method') runtime managed
+  {
+  }
+}";
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F(D<Task> d) { }
+    static void F<T>(D<Task<T>> d) { }
+    static void F(Func<Task> f) { }
+    static void F<T>(Func<Task<T>> f) { }
+    static void M()
+    {
+#pragma warning disable CS1998
+        F(async () => { });
+        F(async () => { return 3; });
+#pragma warning restore CS1998
+    }
+}";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyEmitDiagnostics();
+        }
     }
 }

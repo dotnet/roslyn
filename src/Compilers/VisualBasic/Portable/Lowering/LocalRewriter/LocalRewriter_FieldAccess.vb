@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
@@ -10,8 +11,69 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitFieldAccess(node As BoundFieldAccess) As BoundNode
-            Dim receiverOpt As BoundExpression = If(node.FieldSymbol.IsShared, Nothing, Me.VisitExpressionNode(node.ReceiverOpt))
-            Return node.Update(receiverOpt, node.FieldSymbol, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+            Dim rewrittenReceiver As BoundExpression = If(node.FieldSymbol.IsShared, Nothing, Me.VisitExpressionNode(node.ReceiverOpt))
+
+            If node.FieldSymbol.IsTupleField Then
+                Return MakeTupleFieldAccess(node.Syntax, node.FieldSymbol, rewrittenReceiver, node.ConstantValueOpt, node.IsLValue)
+            End If
+
+            Return node.Update(rewrittenReceiver, node.FieldSymbol, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+        End Function
+
+        ''' <summary>
+        ''' Converts access to a tuple instance into access into the underlying ValueTuple(s).
+        '''
+        ''' For instance, tuple.Item8
+        ''' produces fieldAccess(field=Item1, receiver=fieldAccess(field=Rest, receiver=ValueTuple for tuple))
+        ''' </summary>
+        Private Function MakeTupleFieldAccess(
+            syntax As SyntaxNode,
+            tupleField As FieldSymbol,
+            rewrittenReceiver As BoundExpression,
+            constantValueOpt As ConstantValue,
+            isLValue As Boolean) As BoundExpression
+
+            Dim tupleType = tupleField.ContainingType
+
+            Dim currentLinkType As NamedTypeSymbol = tupleType.TupleUnderlyingType
+            Dim underlyingField As FieldSymbol = tupleField.TupleUnderlyingField
+
+            If underlyingField Is Nothing Then
+                ' Use-site error must have been reported elsewhere.
+                Return MakeBadFieldAccess(syntax, tupleField, rewrittenReceiver)
+            End If
+
+            If underlyingField.ContainingType <> currentLinkType Then
+                Dim wellKnownTupleRest As WellKnownMember = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition)
+                Dim tupleRestField = DirectCast(TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax), FieldSymbol)
+
+                If tupleRestField Is Nothing Then
+                    ' error tolerance for cases when Rest is missing
+                    Return MakeBadFieldAccess(syntax, tupleField, rewrittenReceiver)
+                End If
+
+                ' make nested field accesses to Rest
+                Do
+                    Dim nestedFieldSymbol As FieldSymbol = tupleRestField.AsMember(currentLinkType)
+                    rewrittenReceiver = New BoundFieldAccess(syntax, rewrittenReceiver, nestedFieldSymbol, isLValue, nestedFieldSymbol.Type)
+
+                    currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1).TupleUnderlyingType
+                Loop While underlyingField.ContainingType <> currentLinkType
+
+            End If
+
+            ' make a field access for the most local access
+            Return New BoundFieldAccess(syntax, rewrittenReceiver, underlyingField, isLValue, underlyingField.Type)
+        End Function
+
+        Private Shared Function MakeBadFieldAccess(syntax As SyntaxNode, tupleField As FieldSymbol, rewrittenReceiver As BoundExpression) As BoundBadExpression
+            Return New BoundBadExpression(
+                                    syntax,
+                                    LookupResultKind.Empty,
+                                    ImmutableArray.Create(Of Symbol)(tupleField),
+                                    ImmutableArray.Create(Of BoundNode)(rewrittenReceiver),
+                                    tupleField.Type,
+                                    hasErrors:=True)
         End Function
     End Class
 End Namespace

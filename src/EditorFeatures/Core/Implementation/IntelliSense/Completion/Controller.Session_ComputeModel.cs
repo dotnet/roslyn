@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         return Model.CreateModel(
+                            _documentOpt,
                             _disconnectedBufferGraph,
                             completionList,
                             selectedItem: completionList.Items.First(),

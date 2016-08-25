@@ -182,11 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return argument.NameColon.Name.Identifier.ValueText;
             }
 
-            if (argument.Declaration != null)
-            {
-                return argument.Declaration.Variables.First().Identifier.ValueText.ToCamelCase();
-            }
-
             return semanticModel.GenerateNameForExpression(argument.Expression);
         }
 
@@ -236,6 +231,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current is CastExpressionSyntax)
                 {
                     current = ((CastExpressionSyntax)current).Expression;
+                }
+                else if (current is DeclarationExpressionSyntax)
+                {
+                    var decl = (DeclarationExpressionSyntax)current;
+                    var component = decl.VariableComponent as TypedVariableComponentSyntax;
+                    var name = component?.Designation as SingleVariableDesignationSyntax;
+                    if (name == null) break;
+                    return name.Identifier.ValueText.ToCamelCase();
                 }
                 else
                 {
@@ -310,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ISet<INamespaceSymbol> GetUsingNamespacesInScope(this SemanticModel semanticModel, SyntaxNode location)
         {
             // Avoiding linq here for perf reasons. This is used heavily in the AddImport service
-            HashSet<INamespaceSymbol> result = null;
+            var result = new HashSet<INamespaceSymbol>();
 
             foreach (var @using in location.GetEnclosingUsingDirectives())
             {
@@ -325,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return result ?? SpecializedCollections.EmptySet<INamespaceSymbol>();
+            return result;
         }
 
         public static Accessibility DetermineAccessibilityConstraint(

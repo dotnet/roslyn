@@ -2,6 +2,7 @@
 
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             {
                 if (_projectCodeModel == null)
                 {
-                    _projectCodeModel = new CSharpProjectCodeModel(this, (VisualStudioWorkspace)this.Workspace, ServiceProvider);
+                    _projectCodeModel = new CSharpProjectCodeModel(this, (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
                 }
 
                 return _projectCodeModel;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 return VSConstants.E_FAIL;
             }
 
-            codeModel = codeModelCache.GetOrCreateRootCodeModel(parent);
+            codeModel = codeModelCache.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
             return VSConstants.S_OK;
         }
 
