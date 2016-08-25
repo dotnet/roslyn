@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 {
@@ -21,30 +23,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 
         public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
-            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-
             var codeAction = new CodeAction.DocumentChangeAction(
                 title: FeaturesResources.Use_framework_type,
-                createChangedDocument: c => CreateChangedDocument(document, node, generator, semanticModel, c),
+                createChangedDocument: c => CreateChangedDocumentAsync(context.Document, context.Span, c),
                 equivalenceKey: FeaturesResources.Use_framework_type);
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);
+
+            return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> CreateChangedDocument(Document document, SyntaxNode node, SyntaxGenerator generator,
-            SemanticModel semanticModel, CancellationToken cancellationToken)
+        private async Task<Document> CreateChangedDocumentAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
             var replacementNode = GetReplacementSyntax(node, generator, semanticModel, cancellationToken);
-            return document.ReplaceNodeAsync(node, replacementNode, cancellationToken);
+
+            return await document.ReplaceNodeAsync(node, replacementNode, cancellationToken).ConfigureAwait(false);
         }
 
         private SyntaxNode GetReplacementSyntax(SyntaxNode node, SyntaxGenerator generator, SemanticModel semanticModel,
