@@ -413,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 // Now merge the lists together, taking all the results from syntaxParts
                 // unless they were overridden by results in semanticParts.
-                return CreateAllParts(syntaxParts, semanticParts);
+                return MergeParts(syntaxParts, semanticParts);
             }
 
             private void Order(List<ClassifiedSpan> syntaxSpans)
@@ -421,7 +421,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
             }
 
-            private List<SymbolDisplayPart> CreateAllParts(
+            private List<SymbolDisplayPart> MergeParts(
                 List<SymbolDisplayPart> syntaxParts,
                 List<SymbolDisplayPart> semanticParts)
             {
