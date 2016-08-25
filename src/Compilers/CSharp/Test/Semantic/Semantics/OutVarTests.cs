@@ -173,7 +173,7 @@ public class Cls
 
             Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
             Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Same(symbol, model.GetDeclaredSymbol(decl));
+            Assert.Null(model.GetDeclaredSymbol(decl));
 
             foreach (var reference in references)
             {
