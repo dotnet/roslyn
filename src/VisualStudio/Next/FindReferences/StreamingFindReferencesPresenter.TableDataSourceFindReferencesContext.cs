@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private List<ValueTuple<SymbolDisplayPart, TextSpan>> AddSpans(
                 List<SymbolDisplayPart> parts)
             {
-                var result = new List<ValueTuple<SymbolDisplayPart, TextSpan>>();
+                var result = new List<ValueTuple<SymbolDisplayPart, TextSpan>>(parts.Count);
                 var position = 0;
 
                 foreach (var part in parts)
