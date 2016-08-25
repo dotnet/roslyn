@@ -1,5 +1,4 @@
 ﻿{
-  "$schema": "../../../schemas/servicehub.service.schema.json",
   "host": "desktopClr.x86",
   "hostId": "RoslynCodeAnalysisService32",
   "entryPoint": {

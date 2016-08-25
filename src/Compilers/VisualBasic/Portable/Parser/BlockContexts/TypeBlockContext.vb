@@ -3,17 +3,14 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the DeclarationContext
 '-----------------------------------------------------------------------------
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class TypeBlockContext
         Inherits DeclarationContext
 
-        Protected _inheritsDecls As SyntaxList(Of InheritsStatementSyntax)
-        Private _implementsDecls As SyntaxList(Of ImplementsStatementSyntax)
+        Protected _inheritsDecls As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of InheritsStatementSyntax)
+        Private _implementsDecls As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImplementsStatementSyntax)
         Protected _state As SyntaxKind
 
         Friend Sub New(contextKind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)

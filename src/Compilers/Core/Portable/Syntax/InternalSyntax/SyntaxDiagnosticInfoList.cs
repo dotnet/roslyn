@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    //This used to implement IEnumerable and have more functionality, but it was not tested or used.
+    // Avoid implementing IEnumerable so we do not get any unintentional boxing.
     internal struct SyntaxDiagnosticInfoList
     {
         private readonly GreenNode _node;
@@ -49,11 +49,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             private NodeIteration[] _stack;
             private int _count;
-            private DiagnosticInfo _current;
 
-            internal Enumerator(GreenNode node)
+            public DiagnosticInfo Current { get; private set; }
+
+            internal Enumerator(GreenNode node) 
             {
-                _current = null;
+                Current = null;
                 _stack = null;
                 _count = 0;
                 if (node != null && node.ContainsDiagnostics)
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     if (diagIndex < diags.Length - 1)
                     {
                         diagIndex++;
-                        _current = diags[diagIndex];
+                        Current = diags[diagIndex];
                         _stack[_count - 1].DiagnosticIndex = diagIndex;
                         return true;
                     }
@@ -145,11 +146,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             private void Pop()
             {
                 _count--;
-            }
-
-            public DiagnosticInfo Current
-            {
-                get { return _current; }
             }
         }
     }

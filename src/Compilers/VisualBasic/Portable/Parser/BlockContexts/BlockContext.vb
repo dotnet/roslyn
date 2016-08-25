@@ -3,6 +3,7 @@
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
@@ -204,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _parser._pool.Free(_statements)
         End Sub
 
-        Friend Function Body() As SyntaxList(Of StatementSyntax)
+        Friend Function Body() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Dim result = _statements.ToList()
 
             _statements.Clear()
@@ -224,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Return an empty body if the body is a single, zero-width EmptyStatement,
         ''' otherwise returns the entire body.
         ''' </summary>
-        Friend Function OptionalBody() As SyntaxList(Of StatementSyntax)
+        Friend Function OptionalBody() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             Dim statement = SingleStatementOrDefault()
 
             If statement IsNot Nothing AndAlso
@@ -236,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Body()
         End Function
 
-        Friend Function Body(Of T As StatementSyntax)() As SyntaxList(Of T)
+        Friend Function Body(Of T As StatementSyntax)() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
             Dim result = _statements.ToList(Of T)()
 
             _statements.Clear()
@@ -246,9 +247,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Same as Body(), but use a SyntaxListWithManyChildren if the
         ' body is large enough, so we get red node with weak children.
-        Friend Function BodyWithWeakChildren() As SyntaxList(Of StatementSyntax)
+        Friend Function BodyWithWeakChildren() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
-                Dim result = New SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
+                Dim result = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
 
                 _statements.Clear()
 
@@ -274,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        Friend Function BaseDeclarations(Of T As InheritsOrImplementsStatementSyntax)() As SyntaxList(Of T)
+        Friend Function BaseDeclarations(Of T As InheritsOrImplementsStatementSyntax)() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
 
             Dim result = _statements.ToList(Of T)()
 
@@ -319,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Private Sub HandleAnyUnexpectedTokens(currentStmt As StatementSyntax, unexpected As SyntaxList(Of SyntaxToken))
+        Private Sub HandleAnyUnexpectedTokens(currentStmt As StatementSyntax, unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken))
             If unexpected.Node Is Nothing Then
                 Return
             End If

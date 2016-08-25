@@ -188,12 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, enclosingBinder);
                                 locals.Add(localSymbol);
-
-                                var value = vdecl.Initializer?.Value;
-                                if (value != null)
-                                {
-                                    ExpressionVariableFinder.FindExpressionVariables(this, locals, value, enclosingBinder); 
-                                }
+                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl.Initializer?.Value, enclosingBinder); 
                             }
                         }
                         break;
@@ -201,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ExpressionStatement:
                     case SyntaxKind.IfStatement:
                     case SyntaxKind.YieldReturnStatement:
+                    case SyntaxKind.ReturnStatement:
+                    case SyntaxKind.ThrowStatement:
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
                         break;
 

@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected override async Task<Session> CreateCodeAnalysisServiceSessionAsync(ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
-            var serviceStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.CodeAnalysisService, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await _hubClient.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
             return new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
         }
