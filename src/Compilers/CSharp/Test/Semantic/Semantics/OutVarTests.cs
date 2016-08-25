@@ -15044,7 +15044,8 @@ public class Cls
             var model = compilation.GetSemanticModel(tree);
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
                 // (7,53): error CS1615: Argument 1 may not be passed with the 'out' keyword
