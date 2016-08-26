@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -41,17 +43,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            var unsortedNodes = new List<Node> { new Node(assembly.GlobalNamespace.Name, Node.RootNodeParentIndex) };
+            var unsortedNodes = ImmutableArray.CreateBuilder<Node>();
+            unsortedNodes.Add(new Node(assembly.GlobalNamespace.Name, Node.RootNodeParentIndex));
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
-            return CreateSymbolTreeInfo(solution, version, filePath, unsortedNodes);
+            return CreateSymbolTreeInfo(
+                solution, version, filePath, unsortedNodes.ToImmutable(), 
+                inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 
         // generate nodes for the global namespace an all descendants
         private static void GenerateSourceNodes(
             INamespaceSymbol globalNamespace,
-            List<Node> list,
+            ImmutableArray<Node>.Builder list,
             Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
             // Add all child members
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string name,
             int parentIndex,
             MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
-            List<Node> list,
+            ImmutableArray<Node>.Builder list,
             Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
             var node = new Node(name, parentIndex);
