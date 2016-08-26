@@ -16960,5 +16960,39 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x4").WithArguments("x4").WithLocation(19, 37)
                 );
         }
+
+        [Fact]
+        public void FixedFieldSize()
+        {
+            var text = @"
+unsafe struct S
+{
+    fixed int F1[out var x1, x1];
+    //fixed int F2[3 is int x2 ? x2 : 3];
+    //fixed int F2[3 is int x3 ? 3 : 3, x3];
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
+                                                            parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Empty(GetOutVarDeclarations(tree, "x1"));
+
+            compilation.VerifyDiagnostics(
+                // (4,18): error CS1003: Syntax error, ',' expected
+                //     fixed int F1[out var x1, x1];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(4, 18),
+                // (4,26): error CS1003: Syntax error, ',' expected
+                //     fixed int F1[out var x1, x1];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(4, 26),
+                // (4,17): error CS7092: A fixed buffer may only have one dimension.
+                //     fixed int F1[out var x1, x1];
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[out var x1, x1]").WithLocation(4, 17),
+                // (4,22): error CS0103: The name 'var' does not exist in the current context
+                //     fixed int F1[out var x1, x1];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(4, 22)
+                );
+        }
     }
 }

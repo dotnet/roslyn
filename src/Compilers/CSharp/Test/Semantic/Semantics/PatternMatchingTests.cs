@@ -14245,6 +14245,37 @@ True").VerifyDiagnostics();
             Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13417")]
+        public void FixedFieldSize()
+        {
+            var text = @"
+unsafe struct S
+{
+    fixed int F1[3 is var x1 ? x1 : 3];
+    fixed int F2[3 is var x2 ? 3 : 3, x2];
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
+                                                            parseOptions: TestOptions.Regular);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+                // not sure what the errors should be, but there should be some.
+                );
+        }
+
         private IEnumerable<DeclarationPatternSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == v);
