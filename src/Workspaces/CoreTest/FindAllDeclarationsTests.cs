@@ -592,7 +592,7 @@ Inner i;
                 {
                     var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
 
-                    Assert.True(info.IsEquivalent(readInfo));
+                    info.AssertEquivalentTo(readInfo);
                 }
             }
         }
