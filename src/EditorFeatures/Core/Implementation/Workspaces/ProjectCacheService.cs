@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             internal int Count;
             private readonly ProjectCacheService _cacheService;
             private readonly ProjectId _key;
-            private readonly ConditionalWeakTable<object, object> _cache = new ConditionalWeakTable<object, object>();
+            private ConditionalWeakTable<object, object> _cache = new ConditionalWeakTable<object, object>();
             private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new List<WeakReference<ICachedObjectOwner>>();
 
             public Cache(ProjectCacheService cacheService, ProjectId key)
@@ -197,6 +197,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                         owner.CachedObject = null;
                     }
                 }
+
+                // Explicitly free our ConditionalWeakTable to make sure it's released. We have a number of places in the codebase
+                // (in both tests and product code) that do using (service.EnableCaching), which implicitly returns a disposable instance
+                // this type. The runtime in many cases disposes, but does not unroot, the underlying object after the the using block is exited.
+                // This means the cache could still be rooting objects we don't expect it to be rooting by that point. By explicitly clearing
+                // these out, we get the expected behavior.
+                _cache = null;
+                _ownerObjects.Clear();
             }
         }
     }

@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "foo.cs", "public class Foo { }");
 
             var observedRoot = GetObservedSyntaxTreeRoot(sol, did);
-            StopObservingAndWaitForReferenceToGo(observedRoot);
+            observedRoot.AssertReleased();
 
             // re-get the tree (should recover from storage, not reparse)
             var root = sol.GetDocument(did).GetSyntaxRootAsync().Result;
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            StopObservingAndWaitForReferenceToGo(observedText);
+            observedText.AssertReleased();
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
@@ -657,51 +657,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace(TestHost.Services, "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
-        }
-
-        [DllImport("dbghelp.dll")]
-        private static extern bool MiniDumpWriteDump(IntPtr hProcess, int ProcessId, IntPtr hFile, int DumpType, IntPtr ExceptionParam, IntPtr UserStreamParam, IntPtr CallbackParam);
-
-        private static void DumpProcess(string dumpFileName)
-        {
-            using (var fs = File.Create(dumpFileName))
-            {
-                var proc = System.Diagnostics.Process.GetCurrentProcess();
-                MiniDumpWriteDump(proc.Handle, proc.Id, fs.SafeFileHandle.DangerousGetHandle(), /*MiniDumpWithFullMemory*/2, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-            }
-        }
-
-        private void StopObservingAndWaitForReferenceToGo(ObjectReference observed, int delay = 0, string dumpFileName = null)
-        {
-            // stop observing it and let GC reclaim it
-            observed.Strong = null;
-
-            DateTime start = DateTime.UtcNow;
-            TimeSpan maximumTimeToWait = TimeSpan.FromSeconds(120);
-
-            while (observed.Weak.IsAlive && (DateTime.UtcNow - start) < maximumTimeToWait)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-
-            const int TimerPrecision = 30;
-            var actualTimePassed = DateTime.UtcNow - start + TimeSpan.FromMilliseconds(TimerPrecision);
-            var isTargetCollected = observed.Weak.Target == null;
-
-            if (!isTargetCollected && !string.IsNullOrEmpty(dumpFileName))
-            {
-                if (string.Compare(Path.GetExtension(dumpFileName), ".dmp", StringComparison.OrdinalIgnoreCase) != 0)
-                {
-                    dumpFileName += ".dmp";
-                }
-
-                DumpProcess(dumpFileName);
-                Assert.True(false, $"Target object not collected.  Process dump saved to '{dumpFileName}'");
-            }
-
-            Assert.True(isTargetCollected,
-                string.Format("Target object ({0}) was not collected after {1} ms", observed.Weak.Target, actualTimePassed));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -758,7 +713,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // observe the text and then wait for the references to be GC'd
             var observed = GetObservedText(sol, did, text);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
 
             // get it async and force it to recover from temporary storage
             var doc = sol.GetDocument(did);
@@ -861,7 +816,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // observe the syntax tree root and wait for the references to be GC'd
             var observed = GetObservedSyntaxTreeRoot(sol, did);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
 
             // get it async and force it to be recovered from storage
             var doc = sol.GetDocument(did);
@@ -921,11 +876,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // observe the text and then wait for the references to be GC'd
             var observed = GetObservedText(sol, did, text);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
+        private ObjectReference<SourceText> GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -934,7 +889,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(expectedText, observedText.ToString());
             }
 
-            return new ObjectReference(observedText);
+            return new ObjectReference<SourceText>(observedText);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -951,11 +906,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // observe the text and then wait for the references to be GC'd
             var observed = GetObservedTextAsync(sol, did, text);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
+        private ObjectReference<SourceText> GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -964,7 +919,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(expectedText, observedText.ToString());
             }
 
-            return new ObjectReference(observedText);
+            return new ObjectReference<SourceText>(observedText);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -982,14 +937,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRoot(sol, did);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
+        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
-            return new ObjectReference(observedTree);
+            return new ObjectReference<SyntaxNode>(observedTree);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1007,14 +962,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRootAsync(sol, did);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
+        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
-            return new ObjectReference(observedTree);
+            return new ObjectReference<SyntaxNode>(observedTree);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1069,11 +1024,11 @@ End Class";
             TestRecoverableSyntaxTree(sol, did);
         }
 
-        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did, [CallerMemberName] string callingTest = null)
+        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
         {
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRootAsync(sol, did);
-            StopObservingAndWaitForReferenceToGo(observed, dumpFileName: callingTest);
+            observed.AssertReleased();
 
             var doc = sol.GetDocument(did);
 
@@ -1092,7 +1047,7 @@ End Class";
 
             // get it async and wait for it to get GC'd
             var observed2 = GetObservedSyntaxTreeRootAsync(doc2.Project.Solution, did);
-            StopObservingAndWaitForReferenceToGo(observed2, dumpFileName: callingTest);
+            observed2.AssertReleased();
 
             // access the tree & root again (recover it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
@@ -1118,14 +1073,14 @@ End Class";
 
             // get it async and wait for it to get GC'd
             var observed = GetObservedCompilationAsync(sol, pid);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedCompilationAsync(Solution solution, ProjectId projectId)
+        private ObjectReference<Compilation> GetObservedCompilationAsync(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
-            return new ObjectReference(observed);
+            return new ObjectReference<Compilation>(observed);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1142,14 +1097,14 @@ End Class";
 
             // get it async and wait for it to get GC'd
             var observed = GetObservedCompilation(sol, pid);
-            StopObservingAndWaitForReferenceToGo(observed);
+            observed.AssertReleased();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference GetObservedCompilation(Solution solution, ProjectId projectId)
+        private ObjectReference<Compilation> GetObservedCompilation(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
-            return new ObjectReference(observed);
+            return new ObjectReference<Compilation>(observed);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
