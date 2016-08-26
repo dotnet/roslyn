@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((object)builderType == null || 
                              builderType.SpecialType == SpecialType.System_Void ||
+                             builderType.DeclaredAccessibility != returnType.DeclaredAccessibility ||
                              builderType.IsGenericType)
                     {
                         // might be null if type isn't a named type, e.g. [AsyncBuilder(typeof(object[]))]
@@ -253,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((object)builderType == null ||
                         builderType.SpecialType == SpecialType.System_Void ||
+                        builderType.DeclaredAccessibility != returnType.DeclaredAccessibility ||
                         !isBuilderGenericityOk)
                     {
                         F.Diagnostics.Add(new CSDiagnostic(
