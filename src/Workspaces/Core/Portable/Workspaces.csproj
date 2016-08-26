@@ -72,9 +72,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.ComparisonComparer.cs">
-      <Link>InternalUtilities\EnumerableExtensions.ComparisonComparer.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs">
       <Link>InternalUtilities\EnumerableExtensions.cs</Link>
     </Compile>
