@@ -23,11 +23,8 @@ struct ValueTask { }
 [AsyncBuilder(typeof(Task<>))]
 struct ValueTask<T> { }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
 
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
             var methodf = compilation.GetMember<MethodSymbol>("C.f");
@@ -80,12 +77,12 @@ class Unawaitable
 [AsyncBuilder(typeof(TasklikeMethodBuilder))]
 public class Tasklike { }
 
-[AsyncBuilder(typeof(UnTasklikeMethodBuilder))]
+[AsyncBuilder(typeof(System.Collections.Generic.IEnumerable<>))]
 public class UnTasklike { }
 
 public class TasklikeMethodBuilder
 {
-    public static void TasklikeMethodBuilder Create() => null;
+    public static TasklikeMethodBuilder Create() => null;
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void SetResult() { }
@@ -109,11 +106,7 @@ public class UnTasklikeMethodBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
@@ -204,11 +197,8 @@ sealed class ValueTaskMethodBuilder<T>
     public ValueTask<T> Task => _task;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             source = source.Replace("<<arg>>", arg);
             source = source.Replace("<<betterOverload>>", (betterOverload != null) ? "static string " + betterOverload + " => \"better\";" : "");
             source = source.Replace("<<worseOverload>>", (worseOverload != null) ? "static string " + worseOverload + " => \"worse\";" : "");
@@ -336,11 +326,7 @@ struct ValueTask<T> { }
 class ValueTaskMethodBuilder {}
 class ValueTaskMethodBuilder<T> {}
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
             var methodf = compilation.GetMember<MethodSymbol>("C.f");
@@ -403,11 +389,7 @@ public class MyTaskBuilder
     public static MyTaskBuilder Create() => null;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source3).VerifyDiagnostics();
         }
@@ -459,11 +441,7 @@ public class MyTaskBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
@@ -485,11 +463,7 @@ class C {
 struct Mismatch2<T,U> { }
 class Mismatch2MethodBuilder<T> {}
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
@@ -559,11 +533,7 @@ class MyTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
         }
@@ -614,11 +584,7 @@ public class ValueTaskBuilder<T>
     public ValueTask<T> Task => null;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
         }

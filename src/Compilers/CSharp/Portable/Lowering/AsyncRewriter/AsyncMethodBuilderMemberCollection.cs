@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builderType,
                         customBuilder,
                         out createBuilderMethod);
-                    Debug.Assert(createBuilderMethod == GetCustomCreateMethod(F, builderType));
                     TryGetBuilderMember<PropertySymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
@@ -221,7 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builderType,
                         customBuilder,
                         out createBuilderMethod);
-                    Debug.Assert(createBuilderMethod == GetCustomCreateMethod(F, builderType));
                     TryGetBuilderMember<PropertySymbol>(
                         F,
                         WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task,

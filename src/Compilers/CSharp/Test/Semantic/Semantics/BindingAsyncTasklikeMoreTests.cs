@@ -96,11 +96,8 @@ struct MyTaskMethodBuilder<T>
     public MyTask<T> Task => _task;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "3");
             verifier.VerifyDiagnostics();
@@ -120,7 +117,7 @@ namespace System.Runtime.CompilerServices
   IL_0000:  newobj     ""C.<F>d__0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  call       ""MyTaskMethodBuilder MyTask.CreateAsyncMethodBuilder()""
+  IL_0007:  call       ""MyTaskMethodBuilder MyTaskMethodBuilder.Create()""
   IL_000c:  stfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
   IL_0011:  ldloc.0
   IL_0012:  ldc.i4.m1
@@ -148,7 +145,7 @@ namespace System.Runtime.CompilerServices
   IL_0007:  ldarg.0
   IL_0008:  stfld      ""T C.<G>d__1<T>.t""
   IL_000d:  ldloc.0
-  IL_000e:  call       ""MyTaskMethodBuilder<T> MyTask<T>.CreateAsyncMethodBuilder()""
+  IL_000e:  call       ""MyTaskMethodBuilder<T> MyTaskMethodBuilder<T>.Create()""
   IL_0013:  stfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
   IL_0018:  ldloc.0
   IL_0019:  ldc.i4.m1
@@ -198,11 +195,8 @@ struct MyTaskMethodBuilder<T>
     public MyTask<T> Task { get { return default(MyTask<T>); } }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
                 // (6,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Task'
@@ -225,7 +219,9 @@ class C
     static async MyTask F() { }
     static async MyTask<int> G() { return 3; }
 #pragma warning restore CS1998
+    [AsyncBuilder(typeof(MyTaskMethodBuilder))]
     private class MyTask { }
+    [AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
     private class MyTask<T> { }
     private class MyTaskMethodBuilder
     {
@@ -251,11 +247,8 @@ class C
     }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
@@ -335,11 +328,8 @@ class MyTaskMethodBuilder<T>
     public MyTask<T> Task => default(MyTask<T>);
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
@@ -417,11 +407,8 @@ class MyTaskMethodBuilder<T>
     public MyTask<T> Task => default(MyTask<T>);
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
@@ -478,11 +465,8 @@ class MyTaskMethodBuilder<T>
     public MyTask<T> Task => default(MyTask<T>);
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef });
             var verifier = CompileAndVerify(
                 compilation,
@@ -532,16 +516,16 @@ struct MyTask
     }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
                 // (8,26): error CS0656: Missing compiler required member 'string.Task'
                 //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Task").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Task").WithLocation(8, 26),
+                // (8,26): error CS0656: Missing compiler required member 'string.Create'
+                //         async MyTask F() { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Create").WithLocation(8, 26));
         }
 
         [Fact]
@@ -572,16 +556,16 @@ struct MyTask<T>
     }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
                 // (8,35): error CS0656: Missing compiler required member 'IEquatable<T>.Task'
                 //         async MyTask<T> F<T>(T t) => t;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Task").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Task").WithLocation(8, 35),
+                // (8,35): error CS0656: Missing compiler required member 'IEquatable<T>.Create'
+                //         async MyTask<T> F<T>(T t) => t;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Create").WithLocation(8, 35));
         }
 
         [Fact]
@@ -612,11 +596,8 @@ struct MyTask
     }
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
                 // (8,22): error CS0161: 'F()': not all code paths return a value

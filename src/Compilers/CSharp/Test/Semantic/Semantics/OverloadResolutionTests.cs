@@ -501,7 +501,7 @@ public class MyTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
@@ -522,7 +522,7 @@ class C
     static void k<T>(Func<YourTask<T>> lambda) { }
     static void k<T>(Func<MyTask<T>> lambda) { }
 }
-[AsyncBuilder(tyepof(MyTaskBuilder<>))]
+[AsyncBuilder(typeof(MyTaskBuilder<>))]
 public class MyTask<T> { }
 public class MyTaskBuilder<T>
 {
@@ -550,7 +550,7 @@ public class YourTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
@@ -563,7 +563,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes()
         {
             string source =
-@"class A<T>
+@"
+using System.Runtime.CompilerServices;
+class A<T>
 {
     internal struct B<U> { }
 }
@@ -590,7 +592,7 @@ struct MyTaskMethodBuilder<T>
     public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
@@ -626,6 +628,7 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         {
             string source =
 @"using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class C<T, U>
 {
@@ -669,7 +672,7 @@ namespace System.Runtime.CompilerServices
 
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
@@ -728,12 +731,12 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
 }
 .class public MyTask
 {
-  .method public hidebysig static class MyTaskMethodBuilder CreateAsyncMethodBuilder() cil managed { ldnull ret }
+  .custom instance void System.Runtime.CompilerServices.AsyncBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public MyTask`1<T>
 {
-  .method public hidebysig static class MyTaskMethodBuilder`1<!T> CreateAsyncMethodBuilder() cil managed { ldnull ret }
+  .custom instance void System.Runtime.CompilerServices.AsyncBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder`1) }
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public MyTaskMethodBuilder
@@ -743,6 +746,13 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
 .class public MyTaskMethodBuilder`1<T>
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
 }
 ";
             var source =
@@ -761,7 +771,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes_Pointers()
         {
             string source =
-@"unsafe class C<T>
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
 {
 #pragma warning disable CS0169
     static C<MyTask<int>>* F0;
@@ -774,13 +786,13 @@ struct MyTaskMethodBuilder<T>
     public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -799,12 +811,19 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
 }
 .class public MyTask
 {
-  .method public hidebysig static class MyTaskMethodBuilder CreateAsyncMethodBuilder() cil managed { ldnull ret }
+  .custom instance void System.Runtime.CompilerServices.AsyncBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public MyTaskMethodBuilder
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
 }
 ";
             var source =
@@ -823,7 +842,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes_Errors()
         {
             string source =
-@"class C
+@"
+using System.Runtime.CompilerServices;
+class C
 {
 #pragma warning disable CS0169
     static A<int, MyTask> F0;
@@ -843,16 +864,16 @@ struct MyTaskMethodBuilder<T>
     public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static MyTask<B> F1;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 19),
                 // (4,12): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
                 //     static A<int, MyTask> F0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(6, 12));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             Assert.Equal(TypeKind.Error, type.TypeKind);
@@ -871,7 +892,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes_Inner()
         {
             string source =
-@"class C<T, U>
+@"
+using System.Runtime.CompilerServices;
+class C<T, U>
 {
 #pragma warning disable CS0169
     static MyTask<U> F0;
@@ -881,9 +904,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
     class Inner
     {
     }
-    [AsyncBuilder(tyepof(MyTaskMethodBuilder))]
+    [AsyncBuilder(typeof(C<,>.MyTaskMethodBuilder))]
     class MyTask { }
-    [AsyncBuilder(typeof(MyTaskMethodBuilder<>))]
+    [AsyncBuilder(typeof(C<,>.MyTaskMethodBuilder<>))]
     class MyTask<V> { }
     class MyTaskMethodBuilder
     {
@@ -895,7 +918,7 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
     }
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
@@ -920,7 +943,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes_Outer()
         {
             string source =
-@"class C
+@"
+using System.Runtime.CompilerServices;
+class C
 {
 #pragma warning disable CS0169
     static MyTask<MyTask.A> F0;
@@ -946,7 +971,7 @@ class MyTaskMethodBuilder<V>
     public static MyTaskMethodBuilder<V> Create() => null;
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
@@ -970,7 +995,9 @@ class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) {
         public void NormalizeTaskTypes_MissingWellKnownTypes()
         {
             string source =
-@"class C
+@"
+using System.Runtime.CompilerServices;
+class C
 {
 #pragma warning disable CS0169
     static MyTask<MyTask> F;
@@ -989,7 +1016,7 @@ struct MyTaskMethodBuilder<T>
     public MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
 }
 
-class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type t) { } }
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilation(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();

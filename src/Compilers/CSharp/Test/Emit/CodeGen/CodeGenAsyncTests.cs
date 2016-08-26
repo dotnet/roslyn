@@ -3253,11 +3253,7 @@ class ValueTaskMethodBuilder<T>
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
 }
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.g",
@@ -3266,7 +3262,7 @@ namespace System.Runtime.CompilerServices
   .maxstack  2
   .locals init (C.<g>d__1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  call       ""ValueTaskMethodBuilder<int> ValueTask<int>.CreateAsyncMethodBuilder()""
+  IL_0002:  call       ""ValueTaskMethodBuilder<int> ValueTaskMethodBuilder<int>.Create()""
   IL_0007:  stfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldc.i4.m1
@@ -3286,7 +3282,7 @@ namespace System.Runtime.CompilerServices
   .maxstack  2
   .locals init (C.<f>d__0 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  call       ""ValueTaskMethodBuilder ValueTask.CreateAsyncMethodBuilder()""
+  IL_0002:  call       ""ValueTaskMethodBuilder ValueTaskMethodBuilder.Create()""
   IL_0007:  stfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldc.i4.m1
@@ -3335,11 +3331,7 @@ class MyTaskBuilder
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.Main", @"
@@ -3416,11 +3408,7 @@ class ValueTaskMethodBuilder2
     public ValueTask2 Task => default(ValueTask2);
     public void SetException(System.Exception ex) { } public void SetResult() { }
 }
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3459,11 +3447,8 @@ class Mismatch2MethodBuilder<T>
 {
     public static Mismatch2MethodBuilder<T> Create() => null;
 }
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}";
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
                 // (6,21): error CS1983: The return type of an async method must be void, Task or Task<T>
@@ -3506,11 +3491,7 @@ class MyTaskBuilder
     public MyTask Task => null;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
@@ -3545,11 +3526,7 @@ class MyTaskBuilder
     public MyTask Task => null;
 }
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    internal sealed class AsyncBuilderAttribute : Attribute { public AsyncBuilderAttribute(Type builderType) { } }
-}
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
