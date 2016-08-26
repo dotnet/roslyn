@@ -2556,7 +2556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!operand.HasAnyErrors)
                     {
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                        operand = new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(operand), CreateErrorType());
+                        operand = BadExpression(node, operand);
                     }
 
                     return true;
@@ -2595,7 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            var expressionHasErrors = IsOperandErrors(node, ref operand, diagnostics);
+            var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
@@ -2615,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     tempBag.Free();
                     diagnostics.AddRangeAndFree(tempBag2);
-                    return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, expressionHasErrors);
+                    return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors);
                 }
 
                 tempBag2.Free();
@@ -2624,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRangeAndFree(tempBag);
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
-            if (expressionHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
+            if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
             {
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }

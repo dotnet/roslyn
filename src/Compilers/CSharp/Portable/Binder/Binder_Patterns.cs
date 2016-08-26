@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            var hasErrors = node.HasErrors || IsOperandErrors(node, ref expression, diagnostics) || expression.HasErrors;
+            var hasErrors = node.HasErrors || IsOperandErrors(node, ref expression, diagnostics);
             var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
