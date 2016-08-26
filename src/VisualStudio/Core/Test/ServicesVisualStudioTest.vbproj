@@ -14,6 +14,10 @@
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj">
+      <Project>{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}</Project>
+      <Name>CodeAnalysisTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>

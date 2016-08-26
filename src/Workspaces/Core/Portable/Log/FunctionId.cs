@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedActions_GetSuggestedActions,
         AnalyzerDependencyCheckingService_LogConflict,
         AnalyzerDependencyCheckingService_LogMissingDependency,
+        AnalyzerDependencyCheckingService_LogLoadedAssemblyAnalyzerConflict,
         VirtualMemory_MemoryLow,
         Extension_Exception,
 

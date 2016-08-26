@@ -429,6 +429,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly" xml:space="preserve">
     <value>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</value>
   </data>
+  <data name="AnalyzerAndLoadedAssemblyConflict" xml:space="preserve">
+    <value>AnalyzerAndLoadedAssemblyConflict</value>
+  </data>
+  <data name="Analyzer_assembly_0_cannot_be_loaded_as_another_assembly_with_same_name_but_different_version_1_has_already_been_loaded_in_the_process_You_may_need_to_restart_the_process_for_analyzers_to_work_correctly" xml:space="preserve">
+    <value>Analyzer assembly '{0}' cannot be loaded as another assembly with same name but different version '{1}' has already been loaded in the process. You may need to restart the process for analyzers to work correctly.</value>
+  </data>
   <data name="_0_references" xml:space="preserve">
     <value>{0} references</value>
   </data>

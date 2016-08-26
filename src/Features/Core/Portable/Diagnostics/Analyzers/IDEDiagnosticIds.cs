@@ -23,5 +23,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ErrorReadingRulesetId = "IDE1004";
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
+        public const string LoadedAssemblyAnalyzerConflictId = "IDE1007";
     }
 }
