@@ -505,7 +505,7 @@ class C
     }
 }
 [AsyncBuilder(typeof(string))]
-struct MyTask
+public struct MyTask
 {
     internal Awaiter GetAwaiter() => null;
     internal class Awaiter : INotifyCompletion
@@ -545,7 +545,7 @@ class C
     }
 }
 [AsyncBuilder(typeof(IEquatable<>))]
-struct MyTask<T>
+public struct MyTask<T>
 {
     internal Awaiter GetAwaiter() => null;
     internal class Awaiter : INotifyCompletion
