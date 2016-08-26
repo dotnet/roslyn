@@ -755,9 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            return new BoundBlock(statement.Syntax, locals,
-                                  ImmutableArray<LocalFunctionSymbol>.Empty,
-                                  ImmutableArray.Create(statement))
+            return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
                         { WasCompilerGenerated = true };
         }
 

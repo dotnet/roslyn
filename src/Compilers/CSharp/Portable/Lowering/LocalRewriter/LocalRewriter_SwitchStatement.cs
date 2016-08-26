@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax,
                 locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: statementBuilder.ToImmutableAndFree());
         }
 
