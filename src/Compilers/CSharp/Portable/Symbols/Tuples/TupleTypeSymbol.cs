@@ -386,8 +386,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void ReportNamesMismatchesIfAny(ImmutableArray<string> destinationNames, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
         {
+            ImmutableArray<string> destinationNames = destination.TupleElementNames;
+
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
             {
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceName = sourceNames[i];
                 if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
-                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName);
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
                 }
             }
         }
