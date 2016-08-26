@@ -109,11 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var n in nodes)
             {
-                finder._nodeToBind = n;
                 finder.VisitNodeToBind(n);
             }
 
-            finder._nodeToBind = null;
             finder._scopeBinder = null;
             finder._enclosingBinder = null;
             finder._localsBuilder = null;
@@ -154,10 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ArgumentList != null)
             {
-            foreach (var argument in node.ArgumentList.Arguments)
-            {
-                VisitNodeToBind(argument.Expression);
-            }
+                foreach (var argument in node.ArgumentList.Arguments)
+                {
+                    VisitNodeToBind(argument.Expression);
+                }
             }
         }
 
@@ -282,7 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var argumentSyntax = (ArgumentSyntax)node?.Parent;
             var argumentListSyntax = (BaseArgumentListSyntax)argumentSyntax?.Parent;
-            var invocationSyntax = argumentListSyntax?.Parent;
             _localsBuilder.Add(SourceLocalSymbol.MakeLocalSymbolWithEnclosingContext(
                 containingSymbol: _scopeBinder.ContainingMemberOrLambda,
                 scopeBinder: _scopeBinder,
@@ -291,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifierToken: node.Identifier(),
                 kind: LocalDeclarationKind.RegularVariable,
                 nodeToBind: _nodeToBind,
-                forbiddenZone: invocationSyntax));
+                forbiddenZone: argumentListSyntax));
         }
 
         #region pool

@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode nodeToBind,
             SyntaxNode forbiddenZone)
         {
+            Debug.Assert(
+                nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
+                nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
+                nodeToBind is ExpressionSyntax);
             return typeSyntax.IsVar
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);

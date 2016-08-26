@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var declaration = (DeclarationExpressionSyntax)this.Syntax;
                 Binder.Error(
                     diagnosticsOpt, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, declaration.Identifier(),
-                    declaration.Identifier().ToString());
+                    declaration.Identifier().ValueText);
             }
 
             return this.SetInferredType(binder.CreateErrorType("var"), success: false);

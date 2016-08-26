@@ -13910,7 +13910,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                Dummy(x1, Data is var y1);
+                Dummy(x1 is var y1);
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -13953,7 +13953,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                while (Dummy(x1, Data is var y1)) break;
+                while (Dummy(x1 is var y1)) break;
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -13998,7 +13998,7 @@ public class X
             case 1 when Dummy(123, Data is var x1):
                 do
                     val = 0;
-                while (Dummy(x1, Data is var y1) && false);
+                while (Dummy(x1 is var y1) && false);
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -14041,7 +14041,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                lock ((object)Dummy(x1, Data is var y1)) {}
+                lock ((object)Dummy(x1 is var y1)) {}
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -14084,7 +14084,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                if (Dummy(x1, Data is var y1)) {}
+                if (Dummy(x1 is var y1)) {}
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -14127,7 +14127,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                switch (Dummy(x1, Data is var y1)) 
+                switch (Dummy(x1 is var y1)) 
                 {
                     default: break;
                 }
@@ -14173,7 +14173,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                yield return Dummy(x1, Data is var y1);
+                yield return Dummy(x1 is var y1);
                 System.Console.WriteLine(y1);
                 break;
         }
@@ -14216,7 +14216,7 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                var z1 = x1 > 0 & Dummy(x1, Data is var y1);
+                var z1 = x1 > 0 & Dummy(x1 is var y1);
                 System.Console.WriteLine(y1);
                 System.Console.WriteLine(z1);
                 break;
@@ -14239,10 +14239,10 @@ True").VerifyDiagnostics();
             var model = compilation.GetSemanticModel(tree);
 
             var yRef = GetReferences(tree, "y1").Single();
-            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(yRef).Type.ToTestDisplayString());
 
             var zRef = GetReferences(tree, "z1").Single();
-            Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
+            Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
         private IEnumerable<DeclarationPatternSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
