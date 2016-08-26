@@ -396,15 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement Abstract Class.
-        /// </summary>
-        internal static string Implement_Abstract_Class {
-            get {
-                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
         /// </summary>
         internal static string implicit_array_creation {

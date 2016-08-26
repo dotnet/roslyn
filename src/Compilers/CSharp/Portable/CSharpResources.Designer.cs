@@ -98,15 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to element is expected.
-        /// </summary>
-        internal static string ElementIsExpected {
-            get {
-                return ResourceManager.GetString("ElementIsExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Elements cannot be null..
         /// </summary>
         internal static string ElementsCannotBeNull {
@@ -3122,7 +3113,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Deconstruction `var (...)` form disallows a specific type for &apos;var&apos;..
+        ///   Looks up a localized string similar to Deconstruction &apos;var (...)&apos; form disallows a specific type for &apos;var&apos;..
         /// </summary>
         internal static string ERR_DeconstructionVarFormDisallowsSpecificType {
             get {
@@ -10467,15 +10458,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to separator is expected.
-        /// </summary>
-        internal static string SeparatorIsExpected {
-            get {
-                return ResourceManager.GetString("SeparatorIsExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Syntax node to be speculated cannot belong to a syntax tree from the current compilation..
         /// </summary>
         internal static string SpeculatedSyntaxNodeCannotBelongToCurrentCompilation {
@@ -10562,15 +10544,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TheStreamCannotBeReadFrom {
             get {
                 return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The stream cannot be written to..
-        /// </summary>
-        internal static string TheStreamCannotBeWritten {
-            get {
-                return ResourceManager.GetString("TheStreamCannotBeWritten", resourceCulture);
             }
         }
         

@@ -210,9 +210,6 @@
   <data name="Mid_statement" xml:space="preserve">
     <value>Mid statement</value>
   </data>
-  <data name="Implement_Abstract_Class" xml:space="preserve">
-    <value>Implement Abstract Class</value>
-  </data>
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
   </data>

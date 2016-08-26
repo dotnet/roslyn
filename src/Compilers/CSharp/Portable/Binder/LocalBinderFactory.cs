@@ -661,18 +661,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
         {
-            var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, patternBinder);
-            Visit(node.Assignment.Value, patternBinder);
+            Visit(node.Assignment.Value, _enclosing);
         }
 
         public override void VisitReturnStatement(ReturnStatementSyntax node)
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
         }
 
@@ -680,9 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, patternBinder);
-                Visit(node.Expression, patternBinder);
+                Visit(node.Expression, _enclosing);
             }
         }
 
@@ -749,6 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind())
             {
                 case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
                 // It is an error to have a declaration or a label in an embedded statement,
@@ -760,6 +755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThrowStatement:
                     Debug.Assert((object)_containingMemberOrLambda == enclosing.ContainingMemberOrLambda);
                     embeddedScopeDesignator = statement;
                     return new EmbeddedStatementBinder(enclosing, statement);

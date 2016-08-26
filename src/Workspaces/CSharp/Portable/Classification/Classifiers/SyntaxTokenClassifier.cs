@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -33,15 +34,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SyntaxToken identifier;
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out identifier))
             {
-                var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
-                if (types.Any(s_shouldInclude))
+                // IsInPartiallyWrittenGeneric will return true for things that could be 
+                // partially generic method calls (as opposed to partially written types).
+                //
+                // For example: X?.Y<
+                //
+                // In this case, this could never be a type, and we do not want to try to 
+                // resolve it as such as it can lead to innapropriate classifications.
+                if (CouldBeGenericType(identifier))
                 {
-                    return SpecializedCollections.SingletonEnumerable(
-                        new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+                    var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
+                    if (types.Any(s_shouldInclude))
+                    {
+                        return SpecializedCollections.SingletonEnumerable(
+                            new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+                    }
                 }
             }
 
             return null;
+        }
+
+        private bool CouldBeGenericType(SyntaxToken identifier)
+        {
+            // Look for patterns that indicate that this could never be a partially written 
+            // generic *Type* (although it could be a partially written generic method).
+
+            var identifierName = identifier.Parent as IdentifierNameSyntax;
+            if (identifierName == null)
+            {
+                // Definitely not a generic type if this isn't even an identifier name.
+                return false;
+            }
+
+            if (identifierName.IsParentKind(SyntaxKind.MemberBindingExpression))
+            {
+                // anything?.Identifier is never a generic type.
+                return false;
+            }
+
+            if (identifierName.IsMemberAccessExpressionName())
+            {
+                // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
+                if (identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+                {
+                    return false;
+                }
+            }
+
+            // Add more cases as necessary.
+            return true;
         }
     }
 }

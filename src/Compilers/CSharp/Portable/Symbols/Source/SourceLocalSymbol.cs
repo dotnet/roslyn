@@ -106,19 +106,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Make a local variable symbol for an element of a deconstruction,
         /// which can be inferred (if necessary) by binding the enclosing statement.
         /// </summary>
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="nodeBinder">
+        /// Enclosing binder for the location where the local is declared.
+        /// It should be used to bind something at that location.
+        /// </param>
+        /// <param name="closestTypeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="kind"></param>
+        /// <param name="deconstruction"></param>
+        /// <returns></returns>
         public static SourceLocalSymbol MakeDeconstructionLocal(
             Symbol containingSymbol,
             Binder scopeBinder,
+            Binder nodeBinder,
             TypeSyntax closestTypeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind kind,
             SyntaxNode deconstruction)
         {
             Debug.Assert(closestTypeSyntax != null);
+            Debug.Assert(nodeBinder != null);
 
             Debug.Assert(closestTypeSyntax.Kind() != SyntaxKind.RefType);
             return closestTypeSyntax.IsVar
-                ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
+                ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, nodeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
         }
 
@@ -611,10 +626,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private class DeconstructionLocalSymbol : SourceLocalSymbol
         {
             private readonly SyntaxNode _deconstruction;
+            private readonly Binder _nodeBinder;
 
             public DeconstructionLocalSymbol(
                 Symbol containingSymbol,
                 Binder scopeBinder,
+                Binder nodeBinder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
@@ -622,6 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
                 _deconstruction = deconstruction;
+                _nodeBinder = nodeBinder;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -631,19 +649,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         var localDecl = (DeconstructionDeclarationStatementSyntax)_deconstruction;
-                        var localBinder = this.ScopeBinder.GetBinder(localDecl);
-                        localBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
+                        _nodeBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)_deconstruction;
-                        var forBinder = this.ScopeBinder.GetBinder(forStatement);
-                        forBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
+                        Debug.Assert(this.ScopeBinder.GetBinder(forStatement) == _nodeBinder);
+                        _nodeBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachComponentStatement:
-                        var foreachBinder = this.ScopeBinder.GetBinder((ForEachComponentStatementSyntax)_deconstruction);
-                        foreachBinder.BindForEachDeconstruction(diagnostics, foreachBinder);
+                        Debug.Assert(this.ScopeBinder.GetBinder((ForEachComponentStatementSyntax)_deconstruction) == _nodeBinder);
+                        _nodeBinder.BindForEachDeconstruction(diagnostics, _nodeBinder);
                         break;
 
                     default:

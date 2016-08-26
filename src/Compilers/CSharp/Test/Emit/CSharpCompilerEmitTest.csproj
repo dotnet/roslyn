@@ -97,6 +97,7 @@
     <Compile Include="CodeGen\CodeGenIncrementTests.cs" />
     <Compile Include="CodeGen\CodeGenInterfaceImplementation.cs" />
     <Compile Include="CodeGen\CodeGenIterators.cs" />
+    <Compile Include="CodeGen\CodeGenLocalFunctionTests.cs" />
     <Compile Include="CodeGen\CodeGenMscorlib.cs" />
     <Compile Include="CodeGen\CodeGenOperators.cs" />
     <Compile Include="CodeGen\CodeGenOptimizedNullableOperators.cs" />

@@ -1315,6 +1315,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement Abstract Class.
+        /// </summary>
+        internal static string Implement_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement interface.
         /// </summary>
         internal static string Implement_interface {
@@ -2845,6 +2854,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_auto_property {
             get {
                 return ResourceManager.GetString("Use_auto_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use framework type.
+        /// </summary>
+        internal static string Use_framework_type {
+            get {
+                return ResourceManager.GetString("Use_framework_type", resourceCulture);
             }
         }
         

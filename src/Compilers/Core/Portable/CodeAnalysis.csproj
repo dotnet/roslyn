@@ -46,6 +46,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\ItemTokenMap.cs" />
@@ -107,10 +110,40 @@
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
     <Compile Include="Symbols\TypeCompareKind.cs" />
+    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithLotsOfChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
+    <Compile Include="Syntax\SyntaxList.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyWeakChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithTwoChildren.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
+    <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
+    <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />

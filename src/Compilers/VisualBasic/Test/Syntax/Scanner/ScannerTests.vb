@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Runtime.CompilerServices
 Imports System.Threading.Thread
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -180,22 +180,22 @@ Public Class ScannerTests
         tk = ScanOnce(" _'", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors(0).Code)
+        Assert.Equal(30999, tk.Errors.First().Code)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _ rem", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors(0).Code)
+        Assert.Equal(30999, tk.Errors.First().Code)
 
         tk = ScanOnce(" _ abc", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _ ", tk.ToFullString())
-        Assert.Equal(30203, tk.Errors(0).Code)
+        Assert.Equal(30203, tk.Errors.First().Code)
 
         Dim tks = ScanAllCheckDw(" _ rem")
         Assert.Equal(SyntaxKind.BadToken, tks(0).Kind)
         Assert.Equal(" _ rem", tks(0).ToFullString())
-        Assert.Equal(30999, tks(0).Errors(0).Code)
+        Assert.Equal(30999, tks(0).Errors.First().Code)
 
         tk = ScanOnce("_" & vbLf, startStatement:=True)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
@@ -1406,3 +1406,23 @@ End Class]]>)
         Assert.Equal(1, SyntaxFacts.MakeHalfWidthIdentifier(ChrW(65281)).Length)
     End Sub
 End Class
+
+Module SyntaxDiagnosticInfoListExtensions
+    <Extension>
+    Public Function Count(list As SyntaxDiagnosticInfoList) As Integer
+        Dim result = 0
+        For Each v In list
+            result += 1
+        Next
+        Return result
+    End Function
+
+    <Extension>
+    Public Function First(list As SyntaxDiagnosticInfoList) As DiagnosticInfo
+        For Each v In list
+            Return v
+        Next
+
+        Throw New InvalidOperationException()
+    End Function
+End Module

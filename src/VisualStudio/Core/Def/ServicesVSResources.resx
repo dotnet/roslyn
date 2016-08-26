@@ -714,4 +714,10 @@ Additional information: {1}</value>
   <data name="End_of_inner_exception_stack" xml:space="preserve">
     <value>--- End of inner exception stack trace ---</value>
   </data>
+  <data name="For_locals_parameters_and_members" xml:space="preserve">
+    <value>For locals, parameters and members</value>
+  </data>
+  <data name="For_member_access_expressions" xml:space="preserve">
+    <value>For member access expressions</value>
+  </data>
 </root>

@@ -760,5 +760,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   ImmutableArray.Create(statement))
                         { WasCompilerGenerated = true };
         }
+
+        /// <summary>
+        /// Should only be used with scopes that could declare local functions.
+        /// </summary>
+        internal BoundStatement WrapWithVariablesAndLocalFunctionsIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            var localFunctions = this.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+            if (locals.IsEmpty && localFunctions.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals, localFunctions,
+                                  ImmutableArray.Create(statement))
+            { WasCompilerGenerated = true };
+        }
     }
 }

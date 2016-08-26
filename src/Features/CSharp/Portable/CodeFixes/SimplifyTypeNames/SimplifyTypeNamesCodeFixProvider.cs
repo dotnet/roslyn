@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
@@ -28,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 return ImmutableArray.Create(
                     IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.RemoveQualificationDiagnosticId);
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId);
             }
         }
 
@@ -72,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 return;
             }
 
-            var id = GetCodeActionId(diagnosticId, node.ToString());
+            var id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString());
             var title = id;
             var codeAction = new SimplifyTypeNameCodeAction(title,
-                    (c) => SimplifyTypeNameAsync(document, node, c),
+                    c => SimplifyTypeNameAsync(document, node, c),
                     id);
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);
@@ -87,9 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
                     return string.Format(CSharpFeaturesResources.Simplify_name_0, nodeText);
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
                     return string.Format(CSharpFeaturesResources.Simplify_member_access_0, nodeText);
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:

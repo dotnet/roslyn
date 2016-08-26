@@ -187,59 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lastToken.TrailingTrivia;
         }
 
-        /// <summary>
-        /// Returns the string representation of this node, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
-        /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        public sealed override string ToString()
-        {
-            return this.Green.ToString();
-        }
-
-        /// <summary>
-        /// Returns full string representation of this node including its leading and trailing trivia.
-        /// </summary>
-        /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public sealed override string ToFullString()
-        {
-            return this.Green.ToFullString();
-        }
-
-        /// <summary>
-        /// Writes the full text of this node to the specified TextWriter.
-        /// </summary>
-        public override void WriteTo(System.IO.TextWriter writer)
-        {
-            this.Green.WriteTo(writer, true, true);
-        }
-
 #region serialization
-
-
-        private static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
-
-        /// <summary>
-        /// Serialize the syntax node into a byte stream.
-        /// </summary>
-        public override void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (!stream.CanWrite)
-            {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
-            }
-
-            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
-            {
-                writer.WriteValue(this.Green);
-            }
-        }
 
         /// <summary>
         /// Deserialize a syntax node from the byte stream.
@@ -264,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static ObjectWriterData s_defaultObjectWriterData;
-        private static ObjectWriterData GetDefaultObjectWriterData()
+        internal override ObjectWriterData GetDefaultObjectWriterData()
         {
             if (s_defaultObjectWriterData == null)
             {
@@ -316,9 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<double>),
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<double>),
                         typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
+                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
                     }
                     .Concat(
                         Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)
@@ -347,24 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return s_serializationData;
         }
 #endregion
-
-        /// <summary>
-        /// Determines whether this node is structurally equivalent to another.
-        /// </summary>
-        internal bool IsEquivalentTo(CSharpSyntaxNode other)
-        {
-            if (this == other)
-            {
-                return true;
-            }
-
-            if (other == null)
-            {
-                return false;
-            }
-
-            return this.Green.IsEquivalentTo(other.Green);
-        }
 
         /// <summary>
         /// Gets a <see cref="Location"/> for this node.
@@ -481,26 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion
-
-#region Node Lookup
-
-        /// <summary>
-        /// Returns child node or token that contains given position.
-        /// </summary>
-        public override SyntaxNodeOrToken ChildThatContainsPosition(int position)
-        {
-            //PERF: it is very important to keep this method fast.
-
-            if (!FullSpan.Contains(position))
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
-            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
-            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
-            return childNodeOrToken;
-        }
 #endregion
 
 #region Token Lookup
@@ -647,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         protected override bool EquivalentToCore(SyntaxNode other)
         {
-            return IsEquivalentTo(other as CSharpSyntaxNode);
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override SyntaxTree SyntaxTreeCore
@@ -714,6 +624,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-#endregion
+        internal override bool ShouldCreateWeakList()
+        {
+            if (this.Kind() == SyntaxKind.Block)
+            {
+                var parent = this.Parent;
+                if (parent is MemberDeclarationSyntax || parent is AccessorDeclarationSyntax)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }

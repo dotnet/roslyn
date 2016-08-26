@@ -4212,9 +4212,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongNumberOfTypeArguments" xml:space="preserve">
     <value>Wrong number of type arguments</value>
   </data>
-  <data name="TheStreamCannotBeWritten" xml:space="preserve">
-    <value>The stream cannot be written to.</value>
-  </data>
   <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
     <value>The stream cannot be read from.</value>
   </data>
@@ -4238,12 +4235,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
-  </data>
-  <data name="SeparatorIsExpected" xml:space="preserve">
-    <value>separator is expected</value>
-  </data>
-  <data name="ElementIsExpected" xml:space="preserve">
-    <value>element is expected</value>
   </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
@@ -4921,7 +4912,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
-    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
+    <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
