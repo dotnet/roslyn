@@ -186,6 +186,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestGenerateAfterEnumWithLongMaxValueInBinary()
+        {
+            await TestAsync(
+@"class Program { void Main ( ) { Color . [|Blue|] ; } } enum Color : long { Red = 0b0111111111111111111111111111111111111111111111111111111111111111 } ",
+@"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0b0111111111111111111111111111111111111111111111111111111111111111 , Blue = 0b1000000000000000000000000000000000000000000000000000000000000000 } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMaxValueInHex()
         {
             await TestAsync(
