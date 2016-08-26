@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     {
         public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
 
+        private static Comparison<BlockSpan> s_blockSpanComparison = (s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start;
+        private static IComparer<BlockSpan> s_blockSpanComparer = s_blockSpanComparison.ToComparer();
+
         protected readonly ITextEditorFactoryService TextEditorFactoryService;
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             // Make sure the regions are lexicographically sorted.  This is needed
             // so we can appropriately parent them for BlockTags.
-            multiLineRegions.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+            multiLineRegions.Sort(s_blockSpanComparer);
             return multiLineRegions.ToImmutable();
         }
     }

@@ -387,5 +387,10 @@ namespace Roslyn.Utilities
 
             return false;
         }
+
+        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
+        {
+            return new ComparisonComparer<T>(comparison);
+        }
     }
 }
