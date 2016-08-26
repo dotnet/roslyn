@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -35,7 +37,7 @@ class C
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
                 // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-                Assert.Equal(4, spans.Count);
+                Assert.Equal(4, spans.Length);
             }
         }
 
@@ -61,7 +63,7 @@ class C
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
                 // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-                Assert.Equal(4, spans.Count);
+                Assert.Equal(4, spans.Length);
             }
         }
 
@@ -87,17 +89,19 @@ class C
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
                 // ensure all 4 outlining region tags were found (usings, class, method, anonymous delegate)
-                Assert.Equal(4, spans.Count);
+                Assert.Equal(4, spans.Length);
             }
         }
 
-        private static async Task<IList<OutliningSpan>> GetSpansFromWorkspaceAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<BlockSpan>> GetSpansFromWorkspaceAsync(
+            TestWorkspace workspace)
         {
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+            var outliningService = document.Project.LanguageServices.GetService<BlockStructureService>();
 
-            return await outliningService.GetOutliningSpansAsync(document, CancellationToken.None);
+            var structure = await outliningService.GetBlockStructureAsync(document, CancellationToken.None);
+            return structure.Spans;
         }
     }
 }

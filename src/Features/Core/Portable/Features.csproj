@@ -88,6 +88,14 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
+    <Compile Include="Structure\Syntax\AbstractBlockStructureProvider.cs" />
+    <Compile Include="Structure\BlockSpan.cs" />
+    <Compile Include="Structure\BlockStructure.cs" />
+    <Compile Include="Structure\BlockStructureContext.cs" />
+    <Compile Include="Structure\BlockStructureProvider.cs" />
+    <Compile Include="Structure\BlockStructureService.cs" />
+    <Compile Include="Structure\BlockStructureServiceWithProviders.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\CannotChangeSignatureReason.cs" />
@@ -253,6 +261,11 @@
     <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
     <Compile Include="SolutionCrawler\GlobalOperationAwareIdleProcessor.cs" />
+    <Compile Include="Structure\PredefinedStructureTypes2.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxNodeStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxTriviaStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\BlockSpanCollector.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />

@@ -3,8 +3,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         protected override string LanguageName => LanguageNames.CSharp;
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        internal override async Task<BlockSpan[]> GetRegionsAsync(Document document, int position)
         {
-            var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+            var outliningService = document.Project.LanguageServices.GetService<BlockStructureService>();
 
-            return (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None))
-                .WhereNotNull().ToArray();
+            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None))
+                .Spans.WhereNotNull().ToArray();
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]

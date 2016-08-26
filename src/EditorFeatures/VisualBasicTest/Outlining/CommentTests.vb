@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class CommentTests
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of OutliningSpan())
+        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of BlockSpan())
             Dim root = Await document.GetSyntaxRootAsync()
             Dim trivia = root.FindTrivia(position, findInsideTrivia:=True)
 
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             ElseIf token.TrailingTrivia.Contains(trivia) Then
                 Return CreateCommentsRegions(token.TrailingTrivia).ToArray()
             Else
-                Return Contract.FailWithReturn(Of OutliningSpan())()
+                Return Contract.FailWithReturn(Of BlockSpan())()
             End If
         End Function
 
@@ -84,6 +84,5 @@ End Class
             Await VerifyRegionsAsync(code,
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
-
     End Class
 End Namespace

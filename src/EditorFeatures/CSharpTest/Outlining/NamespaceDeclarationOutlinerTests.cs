@@ -2,16 +2,16 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
+namespace Microsoft.CodeAnalysis.CSharp.Structure.Outlining
 {
     public class NamespaceDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<NamespaceDeclarationSyntax>
     {
-        internal override AbstractSyntaxOutliner CreateOutliner() => new NamespaceDeclarationOutliner();
+        internal override AbstractSyntaxStructureProvider CreateOutliner() => new NamespaceDeclarationOutliner();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespace()

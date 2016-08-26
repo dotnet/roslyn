@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        internal abstract Task<OutliningSpan[]> GetRegionsAsync(Document document, int position);
+        internal abstract Task<BlockSpan[]> GetRegionsAsync(Document document, int position);
 
         protected async Task VerifyRegionsAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             return Tuple.Create(collapseSpanName, collapseSpanName, bannerText, autoCollapse, isDefaultCollapsed);
         }
 
-        private static OutliningSpan CreateOutliningSpan(Tuple<string, string, string, bool, bool> regionData, IDictionary<string, IList<TextSpan>> spans)
+        private static BlockSpan CreateOutliningSpan(Tuple<string, string, string, bool, bool> regionData, IDictionary<string, IList<TextSpan>> spans)
         {
             var collapseSpanName = regionData.Item1;
             var hintSpanName = regionData.Item2;
@@ -80,10 +80,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var collapseSpan = spans[collapseSpanName][0];
             var hintSpan = spans[hintSpanName][0];
 
-            return new OutliningSpan(collapseSpan, hintSpan, bannerText, autoCollapse, isDefaultCollapsed);
+            return new BlockSpan(isCollapsible: true,
+                textSpan: collapseSpan, 
+                hintSpan: hintSpan,
+                bannerText: bannerText,
+                autoCollapse: autoCollapse, 
+                isDefaultCollapsed: isDefaultCollapsed);
         }
 
-        internal static void AssertRegion(OutliningSpan expected, OutliningSpan actual)
+        internal static void AssertRegion(BlockSpan expected, BlockSpan actual)
         {
             Assert.Equal(expected.TextSpan.Start, actual.TextSpan.Start);
             Assert.Equal(expected.TextSpan.End, actual.TextSpan.End);

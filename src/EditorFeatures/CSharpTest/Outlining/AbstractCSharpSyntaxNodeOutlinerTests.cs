@@ -4,7 +4,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public abstract class AbstractCSharpSyntaxNodeOutlinerTests<TSyntaxNode> : AbstractSyntaxNodeOutlinerTests<TSyntaxNode>
+    public abstract class AbstractCSharpSyntaxNodeOutlinerTests<TSyntaxNode> : 
+        AbstractSyntaxNodeOutlinerTests<TSyntaxNode>
         where TSyntaxNode : SyntaxNode
     {
         protected sealed override string LanguageName => LanguageNames.CSharp;

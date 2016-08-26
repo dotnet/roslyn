@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
@@ -17,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new OutliningSpan(span, hintSpan, bannerText, autoCollapse);
+            var outliningRegion = new BlockSpan(true, span, hintSpan, 
+                bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal(span, outliningRegion.TextSpan);
             Assert.Equal(hintSpan, outliningRegion.HintSpan);
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new OutliningSpan(span, hintSpan, bannerText, autoCollapse);
+            var outliningRegion = new BlockSpan(true, span, hintSpan, 
+                bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var bannerText = "Foo";
             var autoCollapse = true;
 
-            var outliningRegion = new OutliningSpan(span, bannerText, autoCollapse);
+            var outliningRegion = new BlockSpan(true, span, 
+                bannerText: bannerText, autoCollapse: autoCollapse);
 
             Assert.Equal("{Span=[0..1), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }

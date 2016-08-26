@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
+Imports Microsoft.CodeAnalysis.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class OverallOutliningTests
@@ -14,10 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of OutliningSpan())
-            Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
+        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of BlockSpan())
+            Dim outliningService = document.Project.LanguageServices.GetService(Of BlockStructureService)()
 
-            Return (Await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)) _
+            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)) _
+                .Spans _
                 .WhereNotNull() _
                 .ToArray()
         End Function
@@ -36,6 +37,5 @@ End Class|}
                 Region("span1", "Class C ...", autoCollapse:=False),
                 Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
-
     End Class
 End Namespace

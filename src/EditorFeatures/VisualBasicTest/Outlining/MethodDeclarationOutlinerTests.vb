@@ -1,14 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class MethodDeclarationOutlinerTests
         Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of MethodStatementSyntax)
 
-        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxStructureProvider
             Return New MethodDeclarationOutliner()
         End Function
 
@@ -174,6 +174,5 @@ End Class
             Await VerifyRegionsAsync(code,
                 Region("span", "Public Function myFunction(myFunc1 As Func(Of System.String, System.String, System.String), myFunc2 As Func(Of System.String, System.String, System.String)) ...", autoCollapse:=True))
         End Function
-
     End Class
 End Namespace

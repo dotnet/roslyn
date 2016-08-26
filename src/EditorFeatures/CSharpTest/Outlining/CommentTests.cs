@@ -2,9 +2,9 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        internal override async Task<BlockSpan[]> GetRegionsAsync(Document document, int position)
         {
             var root = await document.GetSyntaxRootAsync();
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             }
             else
             {
-                return Contract.FailWithReturn<OutliningSpan[]>();
+                return Contract.FailWithReturn<BlockSpan[]>();
             }
         }
 

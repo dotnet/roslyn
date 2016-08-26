@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
     public abstract class AbstractSyntaxNodeOutlinerTests<TSyntaxNode> : AbstractSyntaxOutlinerTests
         where TSyntaxNode : SyntaxNode
     {
-        internal abstract AbstractSyntaxOutliner CreateOutliner();
+        internal abstract AbstractSyntaxStructureProvider CreateOutliner();
 
-        internal sealed override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        internal sealed override async Task<BlockSpan[]> GetRegionsAsync(Document document, int position)
         {
             var root = await document.GetSyntaxRootAsync(CancellationToken.None);
             var token = root.FindToken(position, findInsideTrivia: true);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             }
 
             var outliner = CreateOutliner();
-            var actualRegions = new List<OutliningSpan>();
-            outliner.CollectOutliningSpans(document, node, actualRegions, CancellationToken.None);
+            var actualRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            outliner.CollectBlockSpans(document, node, actualRegions, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
             return actualRegions.WhereNotNull().ToArray();

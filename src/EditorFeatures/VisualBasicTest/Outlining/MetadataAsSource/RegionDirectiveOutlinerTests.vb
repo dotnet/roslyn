@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports MaSOutliners = Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
+Imports MaSOutliners = Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class RegionDirectiveOutlinerTests
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             End Get
         End Property
 
-        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxStructureProvider
             Return New MaSOutliners.RegionDirectiveOutliner()
         End Function
 
@@ -39,6 +39,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Await VerifyRegionsAsync(code,
                 Region("span", "#Region", autoCollapse:=True, isDefaultCollapsed:=False))
         End Function
-
     End Class
 End Namespace

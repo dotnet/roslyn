@@ -2,17 +2,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
-using MaSOutliners = Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSource;
+using MaSOutliners = Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
 {
     public class RegionDirectiveOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<RegionDirectiveTriviaSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.RegionDirectiveOutliner();
+        internal override AbstractSyntaxStructureProvider CreateOutliner() => new MaSOutliners.RegionDirectiveOutliner();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FileHeader()

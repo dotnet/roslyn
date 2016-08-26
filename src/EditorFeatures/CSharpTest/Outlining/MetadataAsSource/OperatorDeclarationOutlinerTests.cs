@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
-using MaSOutliners = Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSource;
+using MaSOutliners = Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
 {
     public class OperatorDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<OperatorDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.OperatorDeclarationOutliner();
+        internal override AbstractSyntaxStructureProvider CreateOutliner() => new MaSOutliners.OperatorDeclarationOutliner();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()

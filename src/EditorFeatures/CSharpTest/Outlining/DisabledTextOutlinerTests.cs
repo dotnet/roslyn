@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.CSharp.Structure;
+using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
     public class DisabledTextOutlinerTests : AbstractCSharpSyntaxTriviaOutlinerTests
     {
-        internal override AbstractSyntaxOutliner CreateOutliner() => new DisabledTextTriviaOutliner();
+        internal override AbstractSyntaxStructureProvider CreateOutliner() => new DisabledTextTriviaOutliner();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestDisabledIf()

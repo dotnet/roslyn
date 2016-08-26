@@ -1,14 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class TypeDeclarationOutlinerTests
         Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of TypeStatementSyntax)
 
-        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxStructureProvider
             Return New TypeDeclarationOutliner()
         End Function
 
@@ -178,6 +178,5 @@ End Structure|}
                 Region("span1", "Structure S1 ...", autoCollapse:=False),
                 Region("span2", "' Hello ...", autoCollapse:=True))
         End Function
-
     End Class
 End Namespace
