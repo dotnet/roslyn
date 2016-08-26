@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
             if ((object)delegateReturnType != null)
             {
-                NamedTypeSymbol builderType;
+                object builderType;
                 if (delegateReturnType.IsCustomTaskType(out builderType))
                 {
                     taskType = delegateReturnType;

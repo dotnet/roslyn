@@ -1273,8 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            NamedTypeSymbol builderType;
-            return namedType.IsCustomTaskType(out builderType);
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
         }
 
         internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1288,23 +1288,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            NamedTypeSymbol builderType;
-            return namedType.IsCustomTaskType(out builderType);
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
         }
 
         /// <summary>
-        /// Returns true if the type is generic or non-generic custom task-like type. If so, the async
-        /// method builder type is returned along with the method to construct that type.
+        /// Returns true if the type is generic or non-generic custom task-like type due to the
+        /// [AsyncBuilder(typeof(B))] attribute. It returns the "B".
         /// </summary>
         /// <remarks>
         /// For the Task types themselves, this method might return true or false depending on mscorlib.
-        /// The definition of "custom task-like type" is one that has an [AsyncBuilder] attribute on it,
-        /// and the attribute has the correct form, and it identifies a builder with the correct arity.
-        /// If those conditions are not met then the type doesn't count as tasklike and we don't even
-        /// report an error. (Might be nice to, but it's pretty niche). If the conditions are met
-        /// but the members of the builder type are malformed, that's a compilation error reported during lowering.
+        /// The definition of "custom task-like type" is one that has an [AsyncBuilder(typeof(B))] attribute,
+        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
+        /// without validation of any kind.
         /// </remarks>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType)
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
@@ -1319,25 +1317,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        var attrArgument = attr.CommonConstructorArguments[0].Value as NamedTypeSymbol;
-                        if (attrArgument?.Arity != arity) continue;
-                        if (arity == 0)
-                        {
-                            builderType = attrArgument;
-                            return true;
-                        }
-                        else
-                        {
-                            bool isArgumentOpen = attrArgument.TypeArguments[0].IsErrorType();
-                            if (!isArgumentOpen) continue;
-                            builderType = attrArgument.ConstructedFrom.Construct(type.TypeArguments[0]);
-                            return true;
-                        }
+                        builderArgument = attr.CommonConstructorArguments[0].Value;
+                        return true;
                     }
                 }
             }
 
-            builderType = null;
+            builderArgument = null;
             return false;
         }
 
@@ -1416,8 +1402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeArgumentsBuilder.Free();
             }
 
-            NamedTypeSymbol builderType;
-            if (type.OriginalDefinition.IsCustomTaskType(out builderType))
+            object builderArgument;
+            if (type.OriginalDefinition.IsCustomTaskType(out builderArgument))
             {
                 int arity = type.Arity;
                 Debug.Assert(arity < 2);

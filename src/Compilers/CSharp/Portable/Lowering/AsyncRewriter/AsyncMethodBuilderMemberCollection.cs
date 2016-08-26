@@ -133,17 +133,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
+            // TODO: in both nongeneric and generic forks below, we should unify both "custom tasklike" and "Task/Task<T>"
+            // down the same custom-tasklike path. (Should mscorlib ever device to put [AsyncBuilder] on Task then that
+            // will happen anyway).
+
             if (method.IsTaskReturningAsync(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType);
+                MethodSymbol createBuilderMethod = null;
+                PropertySymbol taskProperty = null;
+
+                object builderArgument;
+                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    taskProperty = GetCustomTaskProperty(F, builderType);
-                    createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    builderType = builderArgument as NamedTypeSymbol;
+                    if (builderType?.IsErrorType() == true)
+                    {
+                    }
+                    else if ((object)builderType == null || builderType.IsGenericType)
+                    {
+                        // might be null if type isn't a named type, e.g. [AsyncBuilder(typeof(object[]))]
+                        var diagnostic = new CSDiagnostic(
+                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncReturn), F.Syntax.Location);
+                        F.Diagnostics.Add(diagnostic);
+                    }
+                    else
+                    {
+                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    }
                 }
                 else
                 {
@@ -197,10 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = typeMap.SubstituteType(resultType).Type;
                 }
                 returnType = returnType.ConstructedFrom.Construct(resultType);
-                NamedTypeSymbol builderType;
-                MethodSymbol createBuilderMethod;
-                PropertySymbol taskProperty;
-                bool customBuilder = returnType.IsCustomTaskType(out builderType);
+                NamedTypeSymbol builderType = null;
+                MethodSymbol createBuilderMethod = null;
+                PropertySymbol taskProperty = null;
+
+                object builderArgument;
+                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (!customBuilder)
                 {
                     builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
@@ -209,8 +231,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (customBuilder)
                 {
-                    taskProperty = GetCustomTaskProperty(F, builderType);
-                    createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    builderType = builderArgument as NamedTypeSymbol;
+
+                    // builderType must be an open generic of arity 1, and its containing types must be nongeneric
+                    bool isBuilderGenericityOk = ((object)builderType != null &&
+                                                  !builderType.IsErrorType() &&
+                                                  builderType.Arity == 1 && 
+                                                  builderType.TypeArguments[0] is UnboundArgumentErrorTypeSymbol);
+
+                    for (var containingType = builderType.ContainingType;
+                        containingType != null && isBuilderGenericityOk;
+                        containingType = containingType.ContainingType)
+                    {
+                        isBuilderGenericityOk &= (containingType.Arity == 0);
+                    }
+
+                    if (builderType?.IsErrorType() == true)
+                    {
+                    }
+                    else if ((object)builderType == null || !isBuilderGenericityOk)
+                    {
+                        F.Diagnostics.Add(new CSDiagnostic(
+                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncReturn), F.Syntax.Location));
+                    }
+                    else
+                    {
+                        builderType = builderType.ConstructedFrom.Construct(resultType);
+                        taskProperty = GetCustomTaskProperty(F, builderType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
+                    }
                 }
                 else
                 {

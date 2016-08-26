@@ -3299,6 +3299,115 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
         }
 
         [Fact]
+        public void AsyncTasklikeGenericBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class N
+{
+    class BN { }
+    class BG<U> { }
+
+    [AsyncBuilder(typeof(N.BG<int>))] class T_NIT<V> { }
+    [AsyncBuilder(typeof(N.BG<int>))] class T_NIN { }
+    [AsyncBuilder(typeof(N.BG<>))] class T_NOT<V> { }
+    [AsyncBuilder(typeof(N.BG<>))] class T_NON { }
+    [AsyncBuilder(typeof(N.BN))] class T_NNT<V> { }
+    [AsyncBuilder(typeof(N.BN))] class T_NNN { }
+
+    async T_NIT<int> f1() => await Task.FromResult(1); 
+    async T_NIN f2() => await Task.FromResult(1);      
+    async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+    async T_NON f4() => await Task.FromResult(1);      
+    async T_NNT<int> f5() => await Task.FromResult(1); 
+    async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+}
+
+class G<T>
+{
+    class BN { }
+    class BG<U> { }
+
+    [AsyncBuilder(typeof(G<int>.BG<int>))] class T_IIT<V> { }
+    [AsyncBuilder(typeof(G<int>.BG<int>))] class T_IIN { }
+    [AsyncBuilder(typeof(G<int>.BN))] class T_INT<V> { }
+    [AsyncBuilder(typeof(G<int>.BN))] class T_INN { }
+    [AsyncBuilder(typeof(G<>.BG<>))] class T_OOT<V> { }
+    [AsyncBuilder(typeof(G<>.BG<>))] class T_OON { }
+    [AsyncBuilder(typeof(G<>.BN))] class T_ONT<V> { }
+    [AsyncBuilder(typeof(G<>.BN))] class T_ONN { }
+
+    async T_IIT<int> g1() => await Task.FromResult(1); 
+    async T_IIN g2() => await Task.FromResult(1);      
+    async T_INT<int> g3() => await Task.FromResult(1); 
+    async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
+    async T_OOT<int> g5() => await Task.FromResult(1); 
+    async T_OON g6() => await Task.FromResult(1);      
+    async T_ONT<int> g7() => await Task.FromResult(1); 
+    async T_ONN g8() => await Task.FromResult(1);      
+}
+
+class Program { static void Main() { } }
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (39,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIT<int> g1() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(39, 27),
+                // (17,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NIT<int> f1() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(17, 27),
+                // (18,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NIN f2() => await Task.FromResult(1);      
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(18, 22),
+                // (40,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_IIN g2() => await Task.FromResult(1);      
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(40, 22),
+                // (41,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INT<int> g3() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(41, 27),
+                // (42,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_INN g4() => await Task.FromResult(1);      // might have been ok builder genericity but we decided not
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(42, 22),
+                // (43,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OOT<int> g5() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(43, 27),
+                // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Task'
+                //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Task").WithLocation(19, 27),
+                // (19,27): error CS0656: Missing compiler required member 'N.BG<int>.Create'
+                //     async T_NOT<int> f3() => await Task.FromResult(1); // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BG<int>", "Create").WithLocation(19, 27),
+                // (20,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NON f4() => await Task.FromResult(1);      
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(20, 22),
+                // (44,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_OON g6() => await Task.FromResult(1);      
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(44, 22),
+                // (45,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONT<int> g7() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(45, 27),
+                // (21,27): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_NNT<int> f5() => await Task.FromResult(1); 
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(21, 27),
+                // (46,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T_ONN g8() => await Task.FromResult(1);      
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.FromResult(1)").WithLocation(46, 22),
+                // (22,22): error CS0656: Missing compiler required member 'N.BN.Task'
+                //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Task").WithLocation(22, 22),
+                // (22,22): error CS0656: Missing compiler required member 'N.BN.Create'
+                //     async T_NNN f6() => await Task.FromResult(1);      // ok builderType genericity (but missing members)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.FromResult(1)").WithArguments("N.BN", "Create").WithLocation(22, 22)
+                );
+
+        }
+
+        [Fact]
         public void AsyncTasklikeLambdaOverloads()
         {
             var source = @"
@@ -3451,12 +3560,12 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
-                // (6,21): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async Mismatch2 g() { await (Task)null; return 1; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "g").WithLocation(6, 21),
-                // (5,26): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await (Task)null; return 1; }").WithLocation(5, 30),
+                // (6,45): error CS1997: Since 'C.g()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     async Mismatch2 g() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.g()").WithLocation(6, 45)
                 );
         }
 

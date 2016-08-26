@@ -57,11 +57,6 @@ class Program
     {
         await (Task)null;
     }
-
-    static async UnTasklike h()
-    {
-        await (Task)null;
-    }
 }
 
 class Awaitable
@@ -77,9 +72,6 @@ class Unawaitable
 [AsyncBuilder(typeof(TasklikeMethodBuilder))]
 public class Tasklike { }
 
-[AsyncBuilder(typeof(System.Collections.Generic.IEnumerable<>))]
-public class UnTasklike { }
-
 public class TasklikeMethodBuilder
 {
     public static TasklikeMethodBuilder Create() => null;
@@ -93,31 +85,12 @@ public class TasklikeMethodBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-public class UnTasklikeMethodBuilder
-{
-    public static Func<UnTasklikeMethodBuilder> Create = () => null;
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void SetResult() { }
-    public void SetException(Exception exception) { }
-    private void EnsureTaskBuilder() { }
-    public UnTasklike Task => null;
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-}
-
 namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
                 //         await new Unawaitable(); // error: GetAwaiter must be a field not a delegate
-                Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9),
-                // (23,29): error CS1983: The return type of an async method must be void, Task, Task<T> or other tasklike
-                //     static async UnTasklike h()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "h").WithLocation(23, 29),
-                // (23,29): error CS0161: 'Program.h()': not all code paths return a value
-                //     static async UnTasklike h()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "h").WithArguments("Program.h()").WithLocation(23, 29)
+                Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9)
             );
         }
 

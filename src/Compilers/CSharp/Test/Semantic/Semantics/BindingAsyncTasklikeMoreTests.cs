@@ -600,12 +600,9 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS0161: 'F()': not all code paths return a value
-                //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("F()").WithLocation(8, 22),
                 // (8,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ }").WithLocation(8, 26));
         }
     }
 }
