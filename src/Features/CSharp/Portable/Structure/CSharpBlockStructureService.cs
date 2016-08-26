@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
     }
 
-    [ExportLanguageService(typeof(BlockStructureService), LanguageNames.CSharp), Shared]
     internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
     {
         public CSharpBlockStructureService(Workspace workspace) : base(workspace)
