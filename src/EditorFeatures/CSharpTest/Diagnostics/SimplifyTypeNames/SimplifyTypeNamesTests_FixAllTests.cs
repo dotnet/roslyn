@@ -122,7 +122,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -342,7 +342,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]

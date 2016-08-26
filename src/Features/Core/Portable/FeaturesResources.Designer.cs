@@ -2858,6 +2858,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use framework type.
+        /// </summary>
+        internal static string Use_framework_type {
+            get {
+                return ResourceManager.GetString("Use_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use local version &apos;{0}&apos;.
         /// </summary>
         internal static string Use_local_version_0 {

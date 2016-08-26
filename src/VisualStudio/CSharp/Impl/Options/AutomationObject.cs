@@ -515,16 +515,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.SpaceWithinSquareBrackets, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
         public string Style_NamingPreferences
