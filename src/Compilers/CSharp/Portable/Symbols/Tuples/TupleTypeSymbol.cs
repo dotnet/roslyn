@@ -376,10 +376,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
             Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
 
+            Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+
             if (chainLength > 1)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
                 Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, chainedTupleType, syntax, chainedTupleType.ContainingType, BinderFlags.None);
             }
         }
 

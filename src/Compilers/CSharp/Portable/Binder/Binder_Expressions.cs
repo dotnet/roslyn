@@ -728,6 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasNaturalType)
             {
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
+                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, tupleTypeOpt, node, tupleTypeOpt.ContainingType, BinderFlags.None);
             }
             else
             {
@@ -1693,10 +1694,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GenerateExplicitConversionErrors(
-            DiagnosticBag diagnostics, 
-            SyntaxNode syntax, 
-            Conversion conversion, 
-            BoundExpression operand, 
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Conversion conversion,
+            BoundExpression operand,
             TypeSymbol targetType)
         {
             // Make sure that errors within the unbound lambda don't get lost.
@@ -1787,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeSymbol> targetElementTypes)
-        {            
+        {
             var argLength = tupleArguments.Length;
 
             // report all leaf elements of the tuple literal that failed to convert

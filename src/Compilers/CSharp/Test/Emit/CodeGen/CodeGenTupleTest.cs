@@ -10194,6 +10194,12 @@ partial class C
                 // (78,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //         [System.Runtime.InteropServices.FieldOffsetAttribute(21)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(78, 10),
+                // (10,16): warning CS0612: '(int, int)' is obsolete
+                //         return (101, 102);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(101, 102)").WithArguments("(int, int)").WithLocation(10, 16),
+                // (25,16): warning CS0612: '(int, int)' is obsolete
+                //         return (1, 1);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 1)").WithArguments("(int, int)").WithLocation(25, 16),
                 // (58,16): error CS0843: Auto-implemented property 'ValueTuple<T1, T2>.I1.P1' must be fully assigned before control is returned to the caller.
                 //         public ValueTuple(T1 item1, T2 item2)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "ValueTuple").WithArguments("System.ValueTuple<T1, T2>.I1.P1").WithLocation(58, 16),
@@ -17678,15 +17684,7 @@ public class C
         [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
         public void ObsoleteValueTuple()
         {
-            var source = @"
-public class C
-{
-    void M()
-    {
-        (int, int) x1 = (1, 2);
-        var x2 = (1, 2); // no warning on var, which is consistent with the native compiler
-    }
-}
+            var lib_cs = @"
 namespace System
 {
     [Obsolete]
@@ -17694,14 +17692,62 @@ namespace System
     {
         public ValueTuple(T1 item1, T2 item2) { }
     }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3) { }
+    }
+    [Obsolete]
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+    }
+}
+public class D
+{
+    public static void M2((int, int) x) { }
+    public static void M3((int, string) x) { }
+}
+";
+            var source = @"
+public class C
+{
+    void M()
+    {
+        (int, int) x1 = (1, 2);
+        var x2 = (1, 2);
+        var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        var x10 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        D.M2((1, 2));
+        D.M3((1, null));
+    }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var compLib = CreateCompilationWithMscorlib(lib_cs, options: TestOptions.ReleaseDll);
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { compLib.ToMetadataReference() });
             comp.VerifyDiagnostics(
                 // (6,9): warning CS0612: '(int, int)' is obsolete
                 //         (int, int) x1 = (1, 2);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("(int, int)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("(int, int)").WithLocation(6, 9),
+                // (6,25): warning CS0612: '(int, int)' is obsolete
+                //         (int, int) x1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("(int, int)").WithLocation(6, 25),
+                // (7,18): warning CS0612: '(int, int)' is obsolete
+                //         var x2 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("(int, int)").WithLocation(7, 18),
+                // (8,18): warning CS0612: '(int, int, int, int, int, int, int, int, int)' is obsolete
+                //         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int, int)").WithLocation(8, 18),
+                // (9,19): warning CS0612: '(int, int, int, int, int, int, int, int, int, int)' is obsolete
+                //         var x10 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)").WithArguments("(int, int, int, int, int, int, int, int, int, int)").WithLocation(9, 19),
+                // (10,14): warning CS0612: '(int, int)' is obsolete
+                //         D.M2((1, 2));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("(int, int)").WithLocation(10, 14),
+                // (11,14): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         D.M3((1, null));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14)
                 );
         }
     }
