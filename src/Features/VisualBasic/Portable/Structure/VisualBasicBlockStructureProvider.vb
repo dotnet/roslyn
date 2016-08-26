@@ -38,51 +38,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class VisualBasicBlockStructureProvider
         Inherits AbstractBlockStructureProvider
 
-        Private Shared ReadOnly s_defaultNodeOutlinerMap As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxStructureProvider)) = CreateDefaultNodeOutlinerMap()
-        Private Shared ReadOnly s_defaultTriviaOutlinerMap As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider)) = CreateDefaultTriviaOutlinerMap()
-
-        Public Shared Function CreateDefaultNodeOutlinerMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxStructureProvider))
+        Public Shared Function CreateDefaultNodeStructureProviderMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxStructureProvider))
             Dim builder = ImmutableDictionary.CreateBuilder(Of Type, ImmutableArray(Of AbstractSyntaxStructureProvider))()
 
-            builder.Add(Of AccessorStatementSyntax, AccessorDeclarationOutliner)()
-            builder.Add(Of ClassStatementSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner)()
-            builder.Add(Of CompilationUnitSyntax, CompilationUnitOutliner)()
-            builder.Add(Of SubNewStatementSyntax, ConstructorDeclarationOutliner, MetadataAsSource.ConstructorDeclarationOutliner)()
-            builder.Add(Of DelegateStatementSyntax, DelegateDeclarationOutliner, MetadataAsSource.DelegateDeclarationOutliner)()
-            builder.Add(Of DocumentationCommentTriviaSyntax, DocumentationCommentOutliner)()
-            builder.Add(Of EnumStatementSyntax, EnumDeclarationOutliner, MetadataAsSource.EnumDeclarationOutliner)()
-            builder.Add(Of EnumMemberDeclarationSyntax, MetadataAsSource.EnumMemberDeclarationOutliner)()
-            builder.Add(Of EventStatementSyntax, EventDeclarationOutliner, MetadataAsSource.EventDeclarationOutliner)()
-            builder.Add(Of DeclareStatementSyntax, ExternalMethodDeclarationOutliner)()
-            builder.Add(Of FieldDeclarationSyntax, FieldDeclarationOutliner, MetadataAsSource.FieldDeclarationOutliner)()
-            builder.Add(Of InterfaceStatementSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner)()
-            builder.Add(Of MethodStatementSyntax, MethodDeclarationOutliner, MetadataAsSource.MethodDeclarationOutliner)()
-            builder.Add(Of ModuleStatementSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner)()
-            builder.Add(Of MultiLineLambdaExpressionSyntax, MultilineLambdaOutliner)()
-            builder.Add(Of NamespaceStatementSyntax, NamespaceDeclarationOutliner)()
-            builder.Add(Of OperatorStatementSyntax, OperatorDeclarationOutliner, MetadataAsSource.OperatorDeclarationOutliner)()
-            builder.Add(Of PropertyStatementSyntax, PropertyDeclarationOutliner, MetadataAsSource.PropertyDeclarationOutliner)()
-            builder.Add(Of RegionDirectiveTriviaSyntax, RegionDirectiveOutliner, MetadataAsSource.RegionDirectiveOutliner)()
-            builder.Add(Of StructureStatementSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner)()
-            builder.Add(Of XmlCDataSectionSyntax, XmlExpressionOutliner)()
-            builder.Add(Of XmlCommentSyntax, XmlExpressionOutliner)()
-            builder.Add(Of XmlDocumentSyntax, XmlExpressionOutliner)()
-            builder.Add(Of XmlElementSyntax, XmlExpressionOutliner)()
-            builder.Add(Of XmlProcessingInstructionSyntax, XmlExpressionOutliner)()
+            builder.Add(Of AccessorStatementSyntax, AccessorDeclarationStructureProvider)()
+            builder.Add(Of ClassStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
+            builder.Add(Of CompilationUnitSyntax, CompilationUnitStructureProvider)()
+            builder.Add(Of SubNewStatementSyntax, ConstructorDeclarationStructureProvider, MetadataAsSource.MetadataConstructorDeclarationStructureProvider)()
+            builder.Add(Of DelegateStatementSyntax, DelegateDeclarationStructureProvider, MetadataAsSource.MetadataDelegateDeclarationStructureProvider)()
+            builder.Add(Of DocumentationCommentTriviaSyntax, DocumentationCommentStructureProvider)()
+            builder.Add(Of EnumStatementSyntax, EnumDeclarationStructureProvider, MetadataAsSource.MetadataEnumDeclarationStructureProvider)()
+            builder.Add(Of EnumMemberDeclarationSyntax, MetadataAsSource.MetadataEnumMemberDeclarationStructureProvider)()
+            builder.Add(Of EventStatementSyntax, EventDeclarationStructureProvider, MetadataAsSource.MetadataEventDeclarationStructureProvider)()
+            builder.Add(Of DeclareStatementSyntax, ExternalMethodDeclarationStructureProvider)()
+            builder.Add(Of FieldDeclarationSyntax, FieldDeclarationStructureProvider, MetadataAsSource.MetadataFieldDeclarationStructureProvider)()
+            builder.Add(Of InterfaceStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
+            builder.Add(Of MethodStatementSyntax, MethodDeclarationStructureProvider, MetadataAsSource.MetadataMethodDeclarationStructureProvider)()
+            builder.Add(Of ModuleStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
+            builder.Add(Of MultiLineLambdaExpressionSyntax, MultilineLambdaStructureProvider)()
+            builder.Add(Of NamespaceStatementSyntax, NamespaceDeclarationStructureProvider)()
+            builder.Add(Of OperatorStatementSyntax, OperatorDeclarationStructureProvider, MetadataAsSource.MetadataOperatorDeclarationStructureProvider)()
+            builder.Add(Of PropertyStatementSyntax, PropertyDeclarationStructureProvider, MetadataAsSource.MetadataPropertyDeclarationStructureProvider)()
+            builder.Add(Of RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider)()
+            builder.Add(Of StructureStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
+            builder.Add(Of XmlCDataSectionSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of XmlCommentSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of XmlDocumentSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of XmlElementSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of XmlProcessingInstructionSyntax, XmlExpressionStructureProvider)()
 
             Return builder.ToImmutable()
         End Function
 
-        Public Shared Function CreateDefaultTriviaOutlinerMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider))
+        Public Shared Function CreateDefaultTriviaStructureProviderMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider))
             Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider))()
 
-            builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New DisabledTextTriviaOutliner()))
+            builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New DisabledTextTriviaStructureProvider()))
 
             Return builder.ToImmutable()
         End Function
 
         Friend Sub New()
-            MyBase.New(s_defaultNodeOutlinerMap, s_defaultTriviaOutlinerMap)
+            MyBase.New(CreateDefaultNodeStructureProviderMap(), CreateDefaultTriviaStructureProviderMap())
         End Sub
     End Class
 End Namespace

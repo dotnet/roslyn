@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
     {
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeOutlinerMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaOutlinerMap;
+        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
+        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
 
         protected AbstractBlockStructureProvider(
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> defaultNodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> defaultTriviaOutlinerMap)
         {
-            _nodeOutlinerMap = defaultNodeOutlinerMap;
-            _triviaOutlinerMap = defaultTriviaOutlinerMap;
+            _nodeProviderMap = defaultNodeOutlinerMap;
+            _triviaProviderMap = defaultTriviaOutlinerMap;
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             var spans = ImmutableArray.CreateBuilder<BlockSpan>();
             BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeOutlinerMap, _triviaOutlinerMap, spans, context.CancellationToken);
+                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
             foreach (var region in spans)
             {

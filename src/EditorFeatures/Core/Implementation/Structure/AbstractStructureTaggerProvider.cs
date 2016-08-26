@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetOutliningService(context, documentSnapshotSpan);
+                var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
                     var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
-                    ProcessOutliningSpans(
+                    ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetOutliningService(context, documentSnapshotSpan);
+                var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
                     var document = documentSnapshotSpan.Document;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     // and make a blocking call against the async service.
 
                     var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
-                    ProcessOutliningSpans(
+                    ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        private BlockStructureService TryGetOutliningService(
+        private BlockStructureService TryGetService(
             TaggerContext<TRegionTag> context,
             DocumentSnapshotSpan documentSnapshotSpan)
         {
@@ -148,21 +148,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return null;
         }
 
-        private void ProcessOutliningSpans(
+        private void ProcessSpans(
             TaggerContext<TRegionTag> context,
             SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
-            ImmutableArray<BlockSpan> regions)
+            ImmutableArray<BlockSpan> spans)
         {
-            if (regions != null)
+            if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
-                regions = GetMultiLineRegions(outliningService, regions, snapshot);
+                spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
                 // Create the outlining tags.
                 var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
 
-                foreach (var region in regions)
+                foreach (var region in spans)
                 {
                     var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
 

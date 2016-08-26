@@ -9,52 +9,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
     internal class CSharpBlockStructureProvider : AbstractBlockStructureProvider
     {
-        private static readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> s_defaultNodeOutlinerMap = CreateDefaultNodeOutlinerMap();
-        private static readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> s_defaultTriviaOutlinerMap = CreateDefaultTriviaOutlinerMap();
-
-        private static ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultNodeOutlinerMap()
+        private static ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultNodeProviderMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
-            builder.Add<AccessorDeclarationSyntax, AccessorDeclarationOutliner>();
-            builder.Add<AnonymousMethodExpressionSyntax, AnonymousMethodExpressionOutliner>();
-            builder.Add<ClassDeclarationSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner>();
-            builder.Add<CompilationUnitSyntax, CompilationUnitOutliner>();
-            builder.Add<ConstructorDeclarationSyntax, ConstructorDeclarationOutliner, MetadataAsSource.ConstructorDeclarationOutliner>();
-            builder.Add<ConversionOperatorDeclarationSyntax, ConversionOperatorDeclarationOutliner, MetadataAsSource.ConversionOperatorDeclarationOutliner>();
-            builder.Add<DelegateDeclarationSyntax, DelegateDeclarationOutliner, MetadataAsSource.DelegateDeclarationOutliner>();
-            builder.Add<DestructorDeclarationSyntax, DestructorDeclarationOutliner, MetadataAsSource.DestructorDeclarationOutliner>();
-            builder.Add<DocumentationCommentTriviaSyntax, DocumentationCommentOutliner>();
-            builder.Add<EnumDeclarationSyntax, EnumDeclarationOutliner, MetadataAsSource.EnumDeclarationOutliner>();
-            builder.Add<EnumMemberDeclarationSyntax, MetadataAsSource.EnumMemberDeclarationOutliner>();
-            builder.Add<EventDeclarationSyntax, EventDeclarationOutliner, MetadataAsSource.EventDeclarationOutliner>();
-            builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationOutliner, MetadataAsSource.EventFieldDeclarationOutliner>();
-            builder.Add<FieldDeclarationSyntax, FieldDeclarationOutliner, MetadataAsSource.FieldDeclarationOutliner>();
-            builder.Add<IndexerDeclarationSyntax, IndexerDeclarationOutliner, MetadataAsSource.IndexerDeclarationOutliner>();
-            builder.Add<InterfaceDeclarationSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner>();
-            builder.Add<MethodDeclarationSyntax, MethodDeclarationOutliner, MetadataAsSource.MethodDeclarationOutliner>();
-            builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationOutliner>();
-            builder.Add<OperatorDeclarationSyntax, OperatorDeclarationOutliner, MetadataAsSource.OperatorDeclarationOutliner>();
-            builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionOutliner>();
-            builder.Add<PropertyDeclarationSyntax, PropertyDeclarationOutliner, MetadataAsSource.PropertyDeclarationOutliner>();
-            builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveOutliner, MetadataAsSource.RegionDirectiveOutliner>();
-            builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionOutliner>();
-            builder.Add<StructDeclarationSyntax, TypeDeclarationOutliner, MetadataAsSource.TypeDeclarationOutliner>();
+            builder.Add<AccessorDeclarationSyntax, AccessorDeclarationStructureProvider>();
+            builder.Add<AnonymousMethodExpressionSyntax, AnonymousMethodExpressionStructureProvider>();
+            builder.Add<ClassDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
+            builder.Add<CompilationUnitSyntax, CompilationUnitStructureProvider>();
+            builder.Add<ConstructorDeclarationSyntax, ConstructorDeclarationStructureProvider, MetadataAsSource.MetadataConstructorDeclarationStructureProvider>();
+            builder.Add<ConversionOperatorDeclarationSyntax, ConversionOperatorDeclarationStructureProvider, MetadataAsSource.MetadataConversionOperatorDeclarationStructureProvider>();
+            builder.Add<DelegateDeclarationSyntax, DelegateDeclarationStructureProvider, MetadataAsSource.MetadataDelegateDeclarationStructureProvider>();
+            builder.Add<DestructorDeclarationSyntax, DestructorDeclarationStructureProvider, MetadataAsSource.MetadataDestructorDeclarationStructureProvider>();
+            builder.Add<DocumentationCommentTriviaSyntax, DocumentationCommentStructureProvider>();
+            builder.Add<EnumDeclarationSyntax, EnumDeclarationStructureProvider, MetadataAsSource.MetadataEnumDeclarationStructureProvider>();
+            builder.Add<EnumMemberDeclarationSyntax, MetadataAsSource.MetadataEnumMemberDeclarationStructureProvider>();
+            builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider, MetadataAsSource.MetadataEventDeclarationStructureProvider>();
+            builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider, MetadataAsSource.MetadataEventFieldDeclarationStructureProvider>();
+            builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider, MetadataAsSource.MetadataFieldDeclarationStructureProvider>();
+            builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider, MetadataAsSource.MetadataIndexerDeclarationStructureProvider>();
+            builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
+            builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider, MetadataAsSource.MetadataMethodDeclarationStructureProvider>();
+            builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
+            builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider, MetadataAsSource.MetadataOperatorDeclarationStructureProvider>();
+            builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionStructureProvider>();
+            builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider, MetadataAsSource.MetadataPropertyDeclarationStructureProvider>();
+            builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider>();
+            builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
+            builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
 
             return builder.ToImmutable();
         }
 
-        private static ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultTriviaOutlinerMap()
+        private static ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultTriviaProviderMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<int, ImmutableArray<AbstractSyntaxStructureProvider>>();
 
-            builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaOutliner()));
+            builder.Add((int)SyntaxKind.DisabledTextTrivia, ImmutableArray.Create<AbstractSyntaxStructureProvider>(new DisabledTextTriviaStructureProvider()));
 
             return builder.ToImmutable();
         }
 
         internal CSharpBlockStructureProvider()
-            : base(s_defaultNodeOutlinerMap, s_defaultTriviaOutlinerMap)
+            : base(CreateDefaultNodeProviderMap(), CreateDefaultTriviaProviderMap())
         {
         }
     }
