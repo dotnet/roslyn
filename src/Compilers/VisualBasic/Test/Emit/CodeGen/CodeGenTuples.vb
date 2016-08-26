@@ -6021,6 +6021,7 @@ BC37261: Tuple member name 'item1' is only allowed at position 1.
 
         End Sub
 
+        <Fact>
         Public Sub CaseSensitivity003()
 
             Dim verifier = CompileAndVerify(
@@ -6060,6 +6061,7 @@ End Module
             Assert.Equal("Bob#Item1#Item2#Item3", fields.Join("#"))
         End Sub
 
+        <Fact>
         Public Sub CaseSensitivity004()
 
             Dim verifier = CompileAndVerify(
