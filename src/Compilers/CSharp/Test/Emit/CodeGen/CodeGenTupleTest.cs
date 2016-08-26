@@ -17670,7 +17670,7 @@ public class C
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (10,42): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the assignment target.
-                //         return new[] { (d: 1, 2), (d: 1, e: 3) };
+                //         return new[] { (d: 1, 2), (d: 1, e: 3), TupleDE() };
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 3").WithArguments("e").WithLocation(10, 42)
                 );
         }
