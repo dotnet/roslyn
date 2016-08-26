@@ -2488,9 +2488,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-    // (15,27): error CS0103: The name 'x' does not exist in the current context
-    //         Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
+                // (15,27): error CS0103: The name 'x' does not exist in the current context
+                //         Console.WriteLine(x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
                 );
         }
 
@@ -15068,10 +15068,21 @@ public class Cls
         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
         int b(out var x2) = null; // parsed as a local function with syntax error
         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
+
+        int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+        x4 = 0;
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text);
-            Assert.Empty(compilation.SyntaxTrees[0].GetRoot().DescendantNodesAndSelf().OfType<DeclarationExpressionSyntax>());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            Assert.Equal(1, compilation.SyntaxTrees[0].GetRoot().DescendantNodesAndSelf().OfType<DeclarationExpressionSyntax>().Count());
+
+            var x4Decl = GetOutVarDeclaration(tree, "x4");
+            var x4Ref = GetReference(tree, "x4");
+            Assert.True(compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref).Type.TypeKind == TypeKind.Error);
+            VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
+
             compilation.VerifyDiagnostics(
                 // (6,13): error CS1003: Syntax error, ',' expected
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
@@ -15106,6 +15117,30 @@ public class Cls
                 // (8,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "x3").WithLocation(8, 23),
+                // (10,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x4").WithLocation(10, 17),
+                // (10,17): error CS1003: Syntax error, '[' expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 17),
+                // (10,18): error CS1525: Invalid expression term 'out'
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 18),
+                // (10,18): error CS1026: ) expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(10, 18),
+                // (10,18): error CS1003: Syntax error, ',' expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 18),
+                // (10,28): error CS1003: Syntax error, ']' expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
+                // (10,28): error CS1002: ; expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 28),
+                // (10,28): error CS1513: } expected
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 28),
                 // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
@@ -15127,6 +15162,12 @@ public class Cls
                 // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
+                // (10,13): warning CS0168: The variable 'd' is declared but never used
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 13),
+                // (10,16): warning CS0168: The variable 'e' is declared but never used
+                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 16),
                 // (7,13): warning CS0168: The variable 'b' is declared but never used
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)

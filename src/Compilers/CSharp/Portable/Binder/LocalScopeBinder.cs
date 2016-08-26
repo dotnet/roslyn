@@ -189,12 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, enclosingBinder);
                                 locals.Add(localSymbol);
 
-                                var value = vdecl.Initializer?.Value;
-                                if (value != null)
-                                {
-                                    ExpressionVariableFinder.FindExpressionVariables(this, locals, value, enclosingBinder); 
-                                }
+                                // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, enclosingBinder);
                             }
+
                         }
                         break;
 

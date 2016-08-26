@@ -83,6 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; } // Scope binder should be good enough for this.
         }
 
+        // When the variable's type has not yet been inferred,
+        // don't let the debugger force inference.
+        internal new string GetDebuggerDisplay()
+        {
+            return ((object)_type != null)
+                ? base.GetDebuggerDisplay()
+                : $"{this.Kind} <var> ${this.Name}";
+        }
+
         public static SourceLocalSymbol MakeForeachLocal(
             MethodSymbol containingMethod,
             ForEachLoopBinder binder,
@@ -126,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode nodeToBind,
             SyntaxNode forbiddenZone)
         {
-            Debug.Assert(nodeToBind.Kind() != SyntaxKind.BracketedArgumentList);
             return typeSyntax.IsVar
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
@@ -238,12 +246,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#if DEBUG
+        // We use this to detect infinite recursion in type inference.
+        private int concurrentTypeResolutions = 0;
+#endif
+
         public override TypeSymbol Type
         {
             get
             {
                 if ((object)_type == null)
                 {
+#if DEBUG
+                    concurrentTypeResolutions++;
+                    Debug.Assert(concurrentTypeResolutions < 50);
+#endif
                     TypeSymbol localType = GetTypeSymbol();
                     SetType(localType);
                 }
@@ -684,6 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind is ExpressionSyntax);
                 this._nodeBinder = nodeBinder;
                 this._nodeToBind = nodeToBind;
@@ -703,10 +721,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.ArgumentList:
                         var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
-                        ScopeBinder.BindConstructorInitializer(invocation.ArgumentList, (MethodSymbol)ContainingSymbol, diagnostics);
+                        _nodeBinder.BindConstructorInitializer(invocation.ArgumentList, (MethodSymbol)ContainingSymbol, diagnostics);
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:
-                        ScopeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);
+                        _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);
+                        break;
+                    case SyntaxKind.VariableDeclarator:
+                        // This occurs, for example, in
+                        // int x, y[out var Z, 1 is int I];
+                        // for (int x, y[out var Z, 1 is int I]; ;) {}
+                        var declarator = (VariableDeclaratorSyntax)_nodeToBind;
+                        if (declarator.ArgumentList != null)
+                        {
+                            foreach (var arg in declarator.ArgumentList.Arguments)
+                            {
+                                var expression = arg.Expression;
+                                if (expression.Kind() == SyntaxKind.DeclarationExpression)
+                                {
+                                    this.SetType(_nodeBinder.CreateErrorType("var"));
+                                    // no error is necessary, as they would be dropped on the floor by the caller
+                                }
+                                else
+                                {
+                                    _nodeBinder.BindExpression(expression, diagnostics);
+                                }
+                            }
+                        }
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

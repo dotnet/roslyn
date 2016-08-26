@@ -33,12 +33,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             finder._enclosingBinder = enclosingBinderOpt ?? scopeBinder;
             finder._localsBuilder = builder;
 
+#if DEBUG
+            // These are all of the kinds of nodes we should need to handle in this class.
+            // If you add to this list, make sure you handle that node kind with a visitor.
+            switch (node.Kind())
+            {
+                case SyntaxKind.EqualsValueClause:
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.Attribute:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.VariableDeclarator:
+                    break;
+                case SyntaxKind.ArgumentList:
+                    Debug.Assert(node.Parent is ConstructorInitializerSyntax);
+                    break;
+                default:
+                    Debug.Assert(node is ExpressionSyntax);
+                    break;
+            }
+#endif
+
             finder.VisitNodeToBind(node);
 
             finder._scopeBinder = null;
             finder._enclosingBinder = null;
             finder._localsBuilder = null;
             s_poolInstance.Free(finder);
+        }
+
+        public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
+        {
+            if (node.ArgumentList != null)
+            {
+                foreach (var arg in node.ArgumentList.Arguments)
+                {
+                    Visit(arg.Expression);
+                }
+            }
+
+            VisitNodeToBind(node.Initializer);
         }
 
         private void VisitNodeToBind(CSharpSyntaxNode node)
@@ -161,6 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             VisitNodeToBind(node.Expression);
+        }
+
+        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
+        {
+            VisitNodeToBind(node.Assignment.Value);
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
