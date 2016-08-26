@@ -3408,6 +3408,158 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
         }
 
         [Fact]
+        public void AsyncTasklikeBadAttributeArgument1()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(typeof(void))] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(9, 17)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeBadAttributeArgument2()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(""hello"")] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Type'
+                // [AsyncBuilder("hello")] class T { }
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""hello""").WithArguments("1", "string", "System.Type").WithLocation(5, 15),
+                // (9,13): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void AsyncTasklikeBadAttributeArgument3()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(typeof(Nonexistent))] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0246: The type or namespace name 'Nonexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [AsyncBuilder(typeof(Nonexistent))] class T { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonexistent").WithArguments("Nonexistent").WithLocation(5, 22)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeCreateMethod()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(typeof(B0))] class T0 { }
+[AsyncBuilder(typeof(B1))] class T1 { }
+[AsyncBuilder(typeof(B2))] class T2 { }
+[AsyncBuilder(typeof(B3))] class T3 { }
+[AsyncBuilder(typeof(B4))] class T4 { }
+[AsyncBuilder(typeof(B5))] class T5 { }
+
+class B0 { static public B0 Create() => null; }
+class B1 { static private B1 Create() => null; }
+class B2 { static public void Create() { } }
+class B3 { static public B1 Create() => null; }
+class B4 { static public B4 Create(int i) => null; }
+class B5 { static public B5 Create<T>() => null; }
+
+class Program {
+    static void Main() { }
+    async T0 f0() => await Task.Delay(0);
+    async T1 f1() => await Task.Delay(1);
+    async T2 f2() => await Task.Delay(2);
+    async T3 f3() => await Task.Delay(3);
+    async T4 f4() => await Task.Delay(4);
+    async T5 f5() => await Task.Delay(5);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (21,19): error CS0656: Missing compiler required member 'B0.Task'
+                //     async T0 f0() => await Task.Delay(0);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(0)").WithArguments("B0", "Task").WithLocation(21, 19),
+                // (22,19): error CS0656: Missing compiler required member 'B1.Task'
+                //     async T1 f1() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(1)").WithArguments("B1", "Task").WithLocation(22, 19),
+                // (22,19): error CS0656: Missing compiler required member 'B1.Create'
+                //     async T1 f1() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(1)").WithArguments("B1", "Create").WithLocation(22, 19),
+                // (23,19): error CS0656: Missing compiler required member 'B2.Task'
+                //     async T2 f2() => await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2", "Task").WithLocation(23, 19),
+                // (23,19): error CS0656: Missing compiler required member 'B2.Create'
+                //     async T2 f2() => await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2", "Create").WithLocation(23, 19),
+                // (24,19): error CS0656: Missing compiler required member 'B3.Task'
+                //     async T3 f3() => await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Task").WithLocation(24, 19),
+                // (24,19): error CS0656: Missing compiler required member 'B3.Create'
+                //     async T3 f3() => await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Create").WithLocation(24, 19),
+                // (25,19): error CS0656: Missing compiler required member 'B4.Task'
+                //     async T4 f4() => await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4", "Task").WithLocation(25, 19),
+                // (25,19): error CS0656: Missing compiler required member 'B4.Create'
+                //     async T4 f4() => await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4", "Create").WithLocation(25, 19),
+                // (26,19): error CS0656: Missing compiler required member 'B5.Task'
+                //     async T5 f5() => await Task.Delay(5);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(5)").WithArguments("B5", "Task").WithLocation(26, 19),
+                // (26,19): error CS0656: Missing compiler required member 'B5.Create'
+                //     async T5 f5() => await Task.Delay(5);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(5)").WithArguments("B5", "Create").WithLocation(26, 19)
+                );
+        }
+
+        [Fact]
         public void AsyncTasklikeLambdaOverloads()
         {
             var source = @"

@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (builderType?.IsErrorType() == true)
                     {
                     }
-                    else if ((object)builderType == null || builderType.IsGenericType)
+                    else if ((object)builderType == null || 
+                             builderType.SpecialType == SpecialType.System_Void ||
+                             builderType.IsGenericType)
                     {
                         // might be null if type isn't a named type, e.g. [AsyncBuilder(typeof(object[]))]
                         var diagnostic = new CSDiagnostic(
@@ -249,7 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (builderType?.IsErrorType() == true)
                     {
                     }
-                    else if ((object)builderType == null || !isBuilderGenericityOk)
+                    else if ((object)builderType == null ||
+                        builderType.SpecialType == SpecialType.System_Void ||
+                        !isBuilderGenericityOk)
                     {
                         F.Diagnostics.Add(new CSDiagnostic(
                             new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncReturn), F.Syntax.Location));
@@ -414,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.IsStatic &&
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
-                    method.ReturnType == builderType) // TODO: is this the right equality check?
+                    method.ReturnType == builderType) 
                 {
                     return method;
                 }
