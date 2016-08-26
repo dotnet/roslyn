@@ -2,17 +2,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -51,15 +46,15 @@ namespace MyNamespace
 
                 // ensure the method and #region outlining spans are marked as implementation
                 Assert.False(tags[0].IsImplementation);
-                Assert.False(tags[1].IsImplementation);
-                Assert.True(tags[2].IsImplementation);
+                Assert.True(tags[1].IsImplementation);
+                Assert.False(tags[2].IsImplementation);
                 Assert.True(tags[3].IsImplementation);
 
                 // verify line counts
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
                 Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
-                Assert.Equal(7, hints[1].TextSnapshot.LineCount); // class
-                Assert.Equal(9, hints[2].TextSnapshot.LineCount); // region
+                Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
+                Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
                 Assert.Equal(4, hints[3].TextSnapshot.LineCount); // method
                 hints.Do(v => v.Close());
             }
@@ -95,8 +90,8 @@ End Namespace";
                 // verify line counts
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
                 Assert.Equal(9, hints[0].TextSnapshot.LineCount); // namespace
-                Assert.Equal(5, hints[1].TextSnapshot.LineCount); // class
-                Assert.Equal(7, hints[2].TextSnapshot.LineCount); // region
+                Assert.Equal(7, hints[1].TextSnapshot.LineCount); // region
+                Assert.Equal(5, hints[2].TextSnapshot.LineCount); // class
                 Assert.Equal(3, hints[3].TextSnapshot.LineCount); // method
                 hints.Do(v => v.Close());
             }
