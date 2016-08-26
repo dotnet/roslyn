@@ -728,7 +728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasNaturalType)
             {
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
-                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, tupleTypeOpt, node, tupleTypeOpt.ContainingType, BinderFlags.None);
             }
             else
             {

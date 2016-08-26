@@ -336,6 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)diagnostics != null && (object)syntax != null)
             {
                 Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
             }
 
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
@@ -348,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
                     Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                    Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, chainedTupleType, syntax, chainedTupleType.ContainingType, BinderFlags.None);
                 }
 
                 do
@@ -375,7 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
             Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-
             Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
 
             if (chainLength > 1)
