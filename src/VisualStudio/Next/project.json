@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.ServiceHub.Client": "0.13.54-alpha-g315dc9a206",
+    "Microsoft.ServiceHub.Client": "1.0.42-rc",
     "StreamJsonRpc": "0.14.3-alpha",
     "Microsoft.VisualStudio.Shell.15.0": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",

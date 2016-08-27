@@ -39,9 +39,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 get { return _parentIndex == RootNodeParentIndex; }
             }
 
-            public bool IsEquivalent(Node node)
+            public void AssertEquivalentTo(Node node)
             {
-                return (node.Name == this.Name) && (node.ParentIndex == this.ParentIndex);
+                Debug.Assert(node.Name == this.Name);
+                Debug.Assert(node.ParentIndex == this.ParentIndex);
             }
 
             private string GetDebuggerDisplay()

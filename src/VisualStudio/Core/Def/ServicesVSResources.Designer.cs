@@ -373,9 +373,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to Copy to Clipboard.
         /// </summary>
-        internal static string Copy_to_clipboard {
+        internal static string Copy_to_Clipboard {
             get {
-                return ResourceManager.GetString("Copy_to_clipboard", resourceCulture);
+                return ResourceManager.GetString("Copy_to_Clipboard", resourceCulture);
             }
         }
         
@@ -711,6 +711,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string First_word_upper {
             get {
                 return ResourceManager.GetString("First_word_upper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For locals, parameters and members.
+        /// </summary>
+        internal static string For_locals_parameters_and_members {
+            get {
+                return ResourceManager.GetString("For_locals_parameters_and_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For member access expressions.
+        /// </summary>
+        internal static string For_member_access_expressions {
+            get {
+                return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
             }
         }
         

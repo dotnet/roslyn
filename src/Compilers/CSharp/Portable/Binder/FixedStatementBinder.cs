@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

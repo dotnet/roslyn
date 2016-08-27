@@ -1860,7 +1860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result.Free()
         End Sub
 
-        Friend Function AdjustAssignmentTarget(node As VisualBasicSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
+        Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
@@ -1926,7 +1926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindAssignment(node As VisualBasicSyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
+        Private Function BindAssignment(node As SyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
             op1 = AdjustAssignmentTarget(node, op1, diagnostics, isError)
@@ -1991,7 +1991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
             Dim stmtListBinder = Me.GetBinder(stmtList)
             Return BindBlock(syntax, stmtList, diagnostics, stmtListBinder)
         End Function
@@ -1999,12 +1999,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
             Dim boundStatements(stmtList.Count - 1) As BoundStatement
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
             For i = 0 To boundStatements.Length - 1
-                Dim boundStatement As boundStatement = stmtListBinder.BindStatement(stmtList(i), diagnostics)
+                Dim boundStatement As BoundStatement = stmtListBinder.BindStatement(stmtList(i), diagnostics)
                 boundStatements(i) = boundStatement
 
                 Select Case boundStatement.Kind
@@ -4141,7 +4141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="methodOrPropertyGroup">The method or property group.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         Private Function CreateBoundInvocationExpressionFromMethodOrPropertyGroup(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             methodOrPropertyGroup As BoundMethodOrPropertyGroup,
             diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -4194,7 +4194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             container As TypeSymbol,
             symbolChecker As Func(Of Symbol, Boolean),
             result As LookupResult,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As Boolean
             result.Clear()
@@ -4379,7 +4379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' There is one exception to this rule: the parent is a declarator and has multiple names then 
                     ' the identifier syntax should be used to be able to distinguish between the error locations.
                     ' e.g. dim x, y as Integer = 23
-                    Dim syntaxNodeForErrors As VisualBasicSyntaxNode
+                    Dim syntaxNodeForErrors As SyntaxNode
                     If localDeclarations.Kind <> BoundKind.AsNewLocalDeclarations Then
                         syntaxNodeForErrors = declarationSyntax.Parent
 
@@ -4447,7 +4447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             localSymbol As LocalSymbol,
             iDisposable As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
@@ -4483,7 +4483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub BuildAndVerifyUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             resourceType As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
             iDisposable As TypeSymbol,
@@ -4530,7 +4530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Check the given type of and report WRN_MutableGenericStructureInUsing if needed.</summary>
         ''' <remarks>This function should only be called for a type of a using variable.</remarks>
-        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As DiagnosticBag)
             ' Dev10 #666593: Warn if the type of the variable is not a reference type or an immutable structure.
             If Not type.IsReferenceType Then
                 If type.IsTypeParameter Then

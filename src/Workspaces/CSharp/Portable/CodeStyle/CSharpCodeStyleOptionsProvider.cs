@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
                 CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
                 CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
-                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes
+                CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes,
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()

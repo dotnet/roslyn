@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsStatementExpression(CSharpSyntaxNode syntax)
+        internal static bool IsStatementExpression(SyntaxNode syntax)
         {
             // The grammar gives:
             //
@@ -386,6 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
             return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+        }
+
+        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        {
+            return node.IsVar() || IsPredefinedType(node.Kind);
         }
 
         internal static bool IsDeconstructionType(SyntaxNode node, out SyntaxNode parent)

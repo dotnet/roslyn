@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -173,6 +171,8 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -369,7 +369,6 @@
     <Compile Include="TodoComment\TodoCommentTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
-    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
@@ -525,8 +524,6 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

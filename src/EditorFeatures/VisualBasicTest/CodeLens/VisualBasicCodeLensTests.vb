@@ -83,5 +83,31 @@ End Class
 </Workspace>
             Await RunReferenceTest(input)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        Public Async Function TestMethodReferences() As Task
+            Dim input = 
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
+        <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class A
+    {|0: Sub B()|}
+        C();
+    End Sub
+
+    {|2: Sub C()|}
+        D();
+    End Sub
+
+    {|1: Sub D()|}
+        C();
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await RunMethodReferenceTest(input)
+        End Function
     End Class
 End Namespace

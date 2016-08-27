@@ -3807,16 +3807,12 @@ class C
             var compilation = CreateCompilationWithMscorlib(text);
             var tree = compilation.SyntaxTrees[0];
             var node = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "Alias").Last().Parent;
-            var model1 = compilation.GetSemanticModel(tree);
-            var alias1 = model1.GetAliasInfo(node);
+            var modelWeakReference = ObjectReference.CreateFromFactory(() => compilation.GetSemanticModel(tree));
+            var alias1 = modelWeakReference.UseReference(sm => sm.GetAliasInfo(node));
 
             // We want the Compilation's WeakReference<BinderFactory> to be collected
             // so that the next semantic model will get a new one.
-            model1 = null; // otherwise it will keep the BinderFactory alive
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
+            modelWeakReference.AssertReleased();
 
             var model2 = compilation.GetSemanticModel(tree);
             var alias2 = model2.GetAliasInfo(node);

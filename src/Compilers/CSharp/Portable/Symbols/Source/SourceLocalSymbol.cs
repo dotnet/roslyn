@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class SourceLocalSymbol : LocalSymbol
     {
-        protected readonly Binder binder;
+        private readonly Binder _scopeBinder;
 
         /// <summary>
         /// Might not be a method symbol.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourceLocalSymbol(
             Symbol containingSymbol,
-            Binder binder,
+            Binder scopeBinder,
             bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
-            Debug.Assert(binder != null);
+            Debug.Assert(scopeBinder != null);
 
-            this.binder = binder;
+            this._scopeBinder = scopeBinder;
             this._containingSymbol = containingSymbol;
             this._identifierToken = identifierToken;
             this._typeSyntax = allowRefKind ? typeSyntax.SkipRef(out this._refKind) : typeSyntax;
@@ -67,9 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
         }
 
-        internal Binder Binder
+        /// <summary>
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </summary>
+        internal Binder ScopeBinder
         {
-            get { return binder; }
+            get { return _scopeBinder; }
+        }
+
+        /// <summary>
+        /// Binder that should be used to bind type syntax for the local.
+        /// </summary>
+        internal Binder TypeSyntaxBinder
+        {
+            get { return _scopeBinder; } // Scope binder should be good enough for this.
         }
 
         public static SourceLocalSymbol MakeForeachLocal(
@@ -82,9 +93,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ForEachLocalSymbol(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="enclosingBinderOpt">
+        /// Enclosing binder for the location where the local is declared, if different from the <paramref name="scopeBinder"/>.
+        /// It should be used to bind something at that location.
+        /// </param>
+        /// <param name="closestTypeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="kind"></param>
+        /// <param name="deconstruction"></param>
+        /// <returns></returns>
         public static SourceLocalSymbol MakeDeconstructionLocal(
             Symbol containingSymbol,
-            Binder binder,
+            Binder scopeBinder,
+            Binder enclosingBinderOpt,
             TypeSyntax closestTypeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind kind,
@@ -95,30 +120,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (closestTypeSyntax.IsVar)
             {
                 return new DeconstructionLocalSymbol(
-                    containingSymbol, binder, closestTypeSyntax, identifierToken, kind, deconstruction);
+                    containingSymbol, scopeBinder, enclosingBinderOpt, closestTypeSyntax, identifierToken, kind, deconstruction);
             }
             else
             {
-                return new SourceLocalSymbol(containingSymbol, binder, false, closestTypeSyntax, identifierToken, kind);
+                return new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
             }
         }
 
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="allowRefKind"></param>
+        /// <param name="typeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="declarationKind"></param>
+        /// <param name="initializer"></param>
+        /// <param name="initializerBinderOpt">
+        /// Binder that should be used to bind initializer, if different from the <paramref name="scopeBinder"/>.
+        /// </param>
+        /// <returns></returns>
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
-            Binder binder,
+            Binder scopeBinder,
             bool allowRefKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsValueClauseSyntax initializer = null)
+            EqualsValueClauseSyntax initializer = null,
+            Binder initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             if (initializer == null)
             {
-                return new SourceLocalSymbol(containingSymbol, binder, allowRefKind, typeSyntax, identifierToken, declarationKind);
+                return new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind, typeSyntax, identifierToken, declarationKind);
             }
 
-            return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
+            return new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt, declarationKind);
         }
 
         /// <param name="containingSymbol"></param>
@@ -249,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeSymbol declType = this.binder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
+                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
                     return isVar;
                 }
 
@@ -261,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
-            Binder typeBinder = this.binder;
+            Binder typeBinder = this.TypeSyntaxBinder;
 
             bool isVar;
             TypeSymbol declType;
@@ -427,6 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class LocalWithInitializer : SourceLocalSymbol
         {
             private readonly EqualsValueClauseSyntax _initializer;
+            private readonly Binder _initializerBinderOpt;
 
             /// <summary>
             /// Store the constant value and the corresponding diagnostics together
@@ -446,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
+                Binder initializerBinderOpt,
                 LocalDeclarationKind declarationKind) :
                     base(containingSymbol, binder, true, typeSyntax, identifierToken, declarationKind)
             {
@@ -453,6 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
+                _initializerBinderOpt = initializerBinderOpt;
 
                 // byval locals are always returnable
                 // byref locals with initializers are assumed not returnable unless proven otherwise
@@ -463,43 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                // Since initializer might use Out Variable Declarations and Pattern Variable Declarations, we need to find 
-                // the right binder to use for the initializer.
-                // Climb up the syntax tree looking for a first binder that we can find, but stop at the first statement syntax.
-                CSharpSyntaxNode currentNode = _initializer;
-                Binder initializerBinder;
-
-                do
-                {
-                    initializerBinder = this.binder.GetBinder(currentNode);
-
-                    if (initializerBinder != null || currentNode is StatementSyntax)
-                    {
-                        break;
-                    }
-
-                    currentNode = currentNode.Parent;   
-                }
-                while (currentNode != null);
-
-#if DEBUG
-                Binder parentBinder = initializerBinder;
-
-                while (parentBinder != null)
-                {
-                    if (parentBinder == this.binder)
-                    {
-                        break;
-                    }
-
-                    parentBinder = parentBinder.Next;
-                }
-
-                Debug.Assert(parentBinder != null);
-#endif 
-
-                var newBinder = initializerBinder ?? this.binder;
-                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
+                var initializerOpt = (this._initializerBinderOpt ?? this.ScopeBinder).BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 return initializerOpt?.Type;
             }
 
@@ -522,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var type = this.Type;
                     if (boundInitValue == null)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this.binder);
+                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinderOpt ?? this.ScopeBinder);
                         boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
                     }
 
@@ -590,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Normally, it would not be safe to cast to a specific binder type.  However, we verified the type
                 // in the factory method call for this symbol.
-                return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, _collection);
+                return ((ForEachLoopBinder)this.ScopeBinder).InferCollectionElementType(diagnostics, _collection);
             }
 
             internal override SyntaxNode ForbiddenZone => _collection;
@@ -630,15 +636,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.InvocationExpression:
                     case SyntaxKind.ObjectCreationExpression:
-                        (_enclosingBinderOpt ?? this.binder).BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
+                        (_enclosingBinderOpt ?? this.ScopeBinder).BindExpression((ExpressionSyntax)_containingInvocation, diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
 
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
-                        Debug.Assert(_enclosingBinderOpt == null || _enclosingBinderOpt == this.binder);
-                        (_enclosingBinderOpt ?? this.binder).BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
+                        Debug.Assert(_enclosingBinderOpt == null || _enclosingBinderOpt == this.ScopeBinder);
+                        (_enclosingBinderOpt ?? this.ScopeBinder).BindConstructorInitializer(((ConstructorInitializerSyntax)_containingInvocation).ArgumentList, (MethodSymbol)this.ScopeBinder.ContainingMember(), diagnostics);
                         result = this._type;
                         Debug.Assert((object)result != null);
                         return result;
@@ -656,17 +662,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private class DeconstructionLocalSymbol : SourceLocalSymbol
         {
             private readonly SyntaxNode _deconstruction;
+            private readonly Binder _enclosingBinderOpt;
 
             public DeconstructionLocalSymbol(
                 Symbol containingSymbol,
-                Binder binder,
+                Binder scopeBinder,
+                Binder enclosingBinderOpt,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
                 SyntaxNode deconstruction)
-            : base(containingSymbol, binder, false, typeSyntax, identifierToken, declarationKind)
+            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
                 _deconstruction = deconstruction;
+                _enclosingBinderOpt = enclosingBinderOpt;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -676,18 +685,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         var localDecl = (DeconstructionDeclarationStatementSyntax)_deconstruction;
-                        var localBinder = this.binder.GetBinder(localDecl);
+                        var localBinder = _enclosingBinderOpt ?? this.ScopeBinder;
                         localBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForStatement:
                         var forStatement = (ForStatementSyntax)_deconstruction;
-                        var forBinder = this.binder.GetBinder(forStatement);
+                        var forBinder = this.ScopeBinder.GetBinder(forStatement);
                         forBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
                         break;
 
                     case SyntaxKind.ForEachComponentStatement:
-                        var foreachBinder = this.binder.GetBinder((ForEachComponentStatementSyntax)_deconstruction);
+                        var foreachBinder = this.ScopeBinder.GetBinder((ForEachComponentStatementSyntax)_deconstruction);
                         foreachBinder.BindForEachDeconstruction(diagnostics, foreachBinder);
                         break;
 

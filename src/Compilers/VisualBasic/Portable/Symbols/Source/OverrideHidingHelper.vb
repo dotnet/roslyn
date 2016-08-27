@@ -573,8 +573,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class OverrideHidingHelper(Of TSymbol As Symbol)
         Inherits OverrideHidingHelper
 
-        ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared ReadOnly s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way.
+        ' It is not ReadOnly because it is initialized by a Shared Sub New of another instance of this class.
+        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()

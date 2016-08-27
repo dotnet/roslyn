@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -294,6 +292,7 @@
     <Compile Include="Completion\KeywordRecommenders\Statements\YieldKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\Types\BuiltInTypesKeywordRecommender.vb" />
     <Compile Include="Completion\VisualBasicCompletionService.vb" />
+    <Compile Include="Diagnostics\Analyzers\VisualBasicPreferFrameworkTypeDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
@@ -420,7 +419,5 @@
     <Compile Include="ReplaceMethodWithProperty\VisualBasicReplaceMethodWithPropertyService.vb" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

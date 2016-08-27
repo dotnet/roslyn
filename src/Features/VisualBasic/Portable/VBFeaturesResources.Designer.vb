@@ -1141,16 +1141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                         "ocedure", resourceCulture)
             End Get
         End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Implement Abstract Class.
-        '''</summary>
-        Friend ReadOnly Property Implement_Abstract_Class() As String
-            Get
-                Return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture)
-            End Get
-        End Property
-        
+
         '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>

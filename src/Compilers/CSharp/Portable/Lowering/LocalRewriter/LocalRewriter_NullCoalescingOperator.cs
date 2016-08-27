@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeNullCoalescingOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             Conversion leftConversion,

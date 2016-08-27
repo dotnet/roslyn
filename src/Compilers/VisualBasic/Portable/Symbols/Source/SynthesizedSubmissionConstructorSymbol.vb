@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim node As VisualBasicSyntaxNode = Me.Syntax
+            Dim node As SyntaxNode = Me.Syntax
             Return New BoundBlock(
                 node,
                 Nothing,
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Function MakeSubmissionInitialization(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             constructor As MethodSymbol,
             synthesizedFields As SynthesizedSubmissionFields,
             compilation As VisualBasicCompilation,

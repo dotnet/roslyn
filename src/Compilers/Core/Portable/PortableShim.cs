@@ -202,6 +202,11 @@ namespace Roslyn.Utilities
                 .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
                 .CreateDelegate<Action<string, string, System.Text.Encoding>>();
 
+            internal static readonly Action<string, string> AppendAllText = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(AppendAllText), paramTypes: new[] { typeof(string), typeof(string), })
+                .CreateDelegate<Action<string, string>>();
+
             private static readonly MethodInfo SetAttributesMethod = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(SetAttributes), paramTypes: new[] { typeof(string), FileAttributes.Type });

@@ -4,9 +4,7 @@
     <ProjectLanguage>CSharp</ProjectLanguage>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -81,6 +79,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
@@ -803,7 +802,5 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

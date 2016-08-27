@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void ReportUnassigned(
-            Symbol symbol,
-            CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             // TODO: how to handle fields of structs?
             if (RegionContains(node.Span) && !(symbol is FieldSymbol))
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassignedOutParameter(
             ParameterSymbol parameter,
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             Location location)
         {
             if (node != null && node is ReturnStatementSyntax && RegionContains(node.Span))
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
 
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             if (RegionContains(node.Span))
             {

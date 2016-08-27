@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -190,6 +188,8 @@
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
@@ -614,8 +614,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>
