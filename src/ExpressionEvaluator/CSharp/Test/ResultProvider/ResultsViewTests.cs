@@ -1440,7 +1440,7 @@ class C
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var evalResult = FormatResult("o", value);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -1489,7 +1489,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
@@ -1525,7 +1525,7 @@ class C : IEnumerable
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -1569,7 +1569,7 @@ class C
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = type.Instantiate();
+                var value = type.UnderlyingType.Instantiate();
 
                 // IEnumerable
                 var evalResult = FormatPropertyValue(runtime, value, "P");
