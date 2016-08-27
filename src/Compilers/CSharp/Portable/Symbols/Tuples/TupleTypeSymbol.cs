@@ -389,14 +389,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
         {
-            ImmutableArray<string> destinationNames = destination.TupleElementNames;
-
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
             {
                 return;
             }
 
+            ImmutableArray<string> destinationNames = destination.TupleElementNames;
             int sourceLength = sourceNames.Length;
             bool allMissing = destinationNames.IsDefault;
             Debug.Assert(allMissing || destinationNames.Length == sourceLength);
