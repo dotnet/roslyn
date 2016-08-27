@@ -9,6 +9,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
+    /// <summary>
+    /// Note: this type is for subclassing by the VB and C# provider only.
+    /// It presumes that the language supports Syntax Trees.
+    /// </summary>
     internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
     {
         private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
