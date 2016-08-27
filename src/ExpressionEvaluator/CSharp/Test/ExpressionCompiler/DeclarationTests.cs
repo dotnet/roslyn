@@ -604,27 +604,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-    @"{
-  // Code size       58 (0x3a)
+@"{
+  // Code size       62 (0x3e)
   .maxstack  7
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""d""
-  IL_000f:  ldstr      ""826d6ec1-dc4b-46af-be05-cd3f1a1fd4ac""
+  IL_000f:  ldstr      ""108766ce-df68-46ee-b761-0dcb7ac805f1""
   IL_0014:  newobj     ""System.Guid..ctor(string)""
-  IL_0019:  ldc.i4.1
+  IL_0019:  ldc.i4.2
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
   IL_0020:  ldc.i4.0
   IL_0021:  ldc.i4.1
   IL_0022:  stelem.i1
-  IL_0023:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_0028:  ldstr      ""d""
-  IL_002d:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
-  IL_0032:  ldc.i4.1
-  IL_0033:  box        ""int""
-  IL_0038:  stind.ref
-  IL_0039:  ret
+  IL_0023:  dup
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  stelem.i1
+  IL_0027:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_002c:  ldstr      ""d""
+  IL_0031:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
+  IL_0036:  ldc.i4.1
+  IL_0037:  box        ""int""
+  IL_003c:  stind.ref
+  IL_003d:  ret
 }");
             });
         }
