@@ -335,8 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)diagnostics != null && (object)syntax != null)
             {
-                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
             }
 
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
@@ -348,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
-                    Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, chainedTupleType, syntax, chainedTupleType.ContainingType, BinderFlags.None);
+                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
                 }
 
                 do
@@ -365,6 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        {
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+        }
+
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
@@ -376,14 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
-            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-            Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+            ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
-                Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, chainedTupleType, syntax, chainedTupleType.ContainingType, BinderFlags.None);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }
 
