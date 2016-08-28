@@ -171,6 +171,8 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -367,7 +369,6 @@
     <Compile Include="TodoComment\TodoCommentTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
-    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />

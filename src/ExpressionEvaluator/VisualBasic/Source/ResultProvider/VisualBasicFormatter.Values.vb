@@ -91,6 +91,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return pooled.ToStringAndFree()
         End Function
 
+        Friend Overrides Function GetTupleExpression(values() As String) As String
+            Debug.Assert(values IsNot Nothing)
+
+            Dim pooled = PooledStringBuilder.GetInstance()
+            Dim builder = pooled.Builder
+
+            builder.Append("("c)
+            Dim any As Boolean = False
+            For Each value In values
+                If any Then
+                    builder.Append(", ")
+                End If
+                builder.Append(value)
+                any = True
+            Next
+            builder.Append(")"c)
+
+            Return pooled.ToStringAndFree()
+        End Function
+
         Friend Overrides Function GetNamesForFlagsEnumValue(fields As ArrayBuilder(Of EnumField), value As Object, underlyingValue As ULong, options As ObjectDisplayOptions, typeToDisplayOpt As Type) As String
             Dim usedFields = ArrayBuilder(Of EnumField).GetInstance()
             FillUsedEnumFields(usedFields, fields, underlyingValue)

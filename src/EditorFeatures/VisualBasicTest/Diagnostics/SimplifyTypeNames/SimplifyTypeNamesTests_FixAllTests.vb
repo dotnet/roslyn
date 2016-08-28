@@ -97,7 +97,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -188,7 +188,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -279,7 +279,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>

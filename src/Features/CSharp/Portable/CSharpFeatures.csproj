@@ -259,6 +259,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\Analyzers\CSharpPreferFrameworkTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />

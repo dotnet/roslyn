@@ -310,6 +310,7 @@
     <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
     <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
+    <Compile Include="OptionExtensions.cs" />
     <Compile Include="Workspaces\TestForegroundNotificationService.cs" />
     <Compile Include="Workspaces\TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestFormattingRuleFactoryServiceFactory.cs" />

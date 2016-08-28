@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' PERF: if allocations here become nuisance, consider caching the results
             '       in the type symbols that can actually be tuple compatible
             Dim cardinality As Integer
-            If (Not type.IsTupleCompatible(cardinality)) Then
+            If Not type.IsTupleCompatible(cardinality) Then
                 ' source not a tuple or compatible
                 elementTypes = Nothing
                 Return False

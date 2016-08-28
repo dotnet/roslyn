@@ -205,24 +205,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to For locals, parameters and members.
-        /// </summary>
-        internal static string For_locals_parameters_and_members {
-            get {
-                return ResourceManager.GetString("For_locals_parameters_and_members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to For member access expressions.
-        /// </summary>
-        internal static string For_member_access_expressions {
-            get {
-                return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to _Generate XML documentation comments for ///.
         /// </summary>
         internal static string Generate_XML_documentation_comments_for {

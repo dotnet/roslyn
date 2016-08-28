@@ -292,6 +292,7 @@
     <Compile Include="Completion\KeywordRecommenders\Statements\YieldKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\Types\BuiltInTypesKeywordRecommender.vb" />
     <Compile Include="Completion\VisualBasicCompletionService.vb" />
+    <Compile Include="Diagnostics\Analyzers\VisualBasicPreferFrameworkTypeDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
