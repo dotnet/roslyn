@@ -13136,5 +13136,108 @@ public static class StaticType
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
+
+        [Fact]
+        public void ThrowExpressionForParameterValidation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (var s in new[] { ""0123"", ""foo"" })
+        {
+            Console.Write(s + "" "");
+            try
+            {
+                Console.WriteLine(Ver(s));
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine(""throws"");
+            }
+        }
+    }
+    static int Ver(string s)
+    {
+        var result = int.TryParse(s, out int k) ? k : throw new ArgumentException(nameof(s));
+        return k; // definitely assigned!
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"0123 123
+foo throws");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Exception ex = null;
+        try
+        {
+            // The ?? operator is right-associative, even under 'throw'
+            ex = ex ?? throw ex ?? throw new ArgumentException(""blue"");
+        }
+        catch (ArgumentException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"blue");
+        }
+
+        [Fact]
+        public void ThrowExpressionPrecedence02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MyException ex = null;
+        try
+        {
+            // Throw expression binds looser than +
+            ex = ex ?? throw ex + 1;
+        }
+        catch (MyException x)
+        {
+            Console.WriteLine(x.Message);
+        }
+    }
+}
+class MyException : Exception
+{
+    public MyException(string message) : base(message) {}
+    public static MyException operator +(MyException left, int right)
+    {
+        return new MyException(""green"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"green");
+        }
     }
 }

@@ -628,6 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleExpression:
                     return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.ThrowExpression:
+                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.RefType:
                     {
                         var firstToken = node.GetFirstToken();
@@ -650,6 +653,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SyntaxKind and we don't want to throw if that occurs.
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
+            }
+        }
+
+        private BoundExpression BindThrowExpression(ThrowExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = node.HasErrors;
+            if (!IsThrowExpressionInProperContext(node))
+            {
+                diagnostics.Add(ErrorCode.ERR_ThrowMisplaced, node.ThrowKeyword.GetLocation());
+                hasErrors = true;
+            }
+
+            var thrownExpression = BindThrownExpression(node.Expression, diagnostics, ref hasErrors);
+            return new BoundThrowExpression(node, thrownExpression, null, hasErrors);
+        }
+
+        private static bool IsThrowExpressionInProperContext(ThrowExpressionSyntax node)
+        {
+            if (node.Parent == null || node.HasErrors)
+            {
+                return true;
+            }
+
+            switch (node.Parent.Kind())
+            {
+                case SyntaxKind.ConditionalExpression: // ?:
+                    {
+                        var papa = (ConditionalExpressionSyntax)node.Parent;
+                        return node == papa.WhenTrue || node == papa.WhenFalse;
+                    }
+                case SyntaxKind.CoalesceExpression: // ??
+                    {
+                        var papa = (BinaryExpressionSyntax)node.Parent;
+                        return node == papa.Right;
+                    }
+                case SyntaxKind.ArrowExpressionClause: // =>
+                    {
+                        var papa = (ArrowExpressionClauseSyntax)node.Parent;
+                        return node == papa.Expression;
+                    }
+                // We do not support && and || because
+                // 1. The precedence would not syntactically allow it
+                // 2. It isn't clear what the semantics should be
+                // 3. It isn't clear what use cases would motivate us to change the precedence to support it
+                default:
+                    return false;
             }
         }
 

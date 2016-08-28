@@ -45,5 +45,89 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "args[0] is string s").WithArguments("pattern matching", "7").WithLocation(15, 18)
             );
         }
+
+        [Fact]
+        public void ThrowExpression_Good()
+        {
+            var test = @"using System;
+class C
+{
+    public static void Sample(bool b, string s)
+    {
+        void NeverReturnsFunction() => throw new NullReferenceException();
+        int x = b ? throw new NullReferenceException() : 1;
+        x = b ? 2 : throw new NullReferenceException();
+        s = s ?? throw new NullReferenceException();
+        NeverReturnsFunction();
+        throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
+    }
+    public static void NeverReturns() => throw new NullReferenceException();
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         void NeverReturnsFunction() => throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NeverReturnsFunction").WithArguments("local functions", "7").WithLocation(6, 14),
+                // (6,40): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         void NeverReturnsFunction() => throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(6, 40),
+                // (7,21): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         int x = b ? throw new NullReferenceException() : 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(7, 21),
+                // (8,21): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         x = b ? 2 : throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(8, 21),
+                // (9,18): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         s = s ?? throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(9, 18),
+                // (11,47): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException() ?? throw null").WithArguments("throw expression", "7").WithLocation(11, 47),
+                // (11,85): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //         throw new NullReferenceException() ?? throw new NullReferenceException() ?? throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw null").WithArguments("throw expression", "7").WithLocation(11, 85),
+                // (13,42): error CS8059: Feature 'throw expression' is not available in C# 6.  Please use language version 7 or greater.
+                //     public static void NeverReturns() => throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "throw new NullReferenceException()").WithArguments("throw expression", "7").WithLocation(13, 42)
+                );
+        }
+
+        [Fact]
+        public void ThrowExpression_Bad()
+        {
+            var test = @"using System;
+class C
+{
+    public static void Sample(bool b, string s)
+    {
+        // throw expression at wrong precedence
+        s = s + throw new NullReferenceException();
+        if (b || throw new NullReferenceException()) { }
+
+        // throw expression where not permitted
+        var z = from x in throw new NullReferenceException() select x;
+        M(throw new NullReferenceException());
+        throw throw null;
+    }
+    static void M(string s) {}
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,17): error CS1525: Invalid expression term 'throw'
+                //         s = s + throw new NullReferenceException();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new NullReferenceException()").WithArguments("throw").WithLocation(7, 17),
+                // (8,18): error CS1525: Invalid expression term 'throw'
+                //         if (b || throw new NullReferenceException()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new NullReferenceException()").WithArguments("throw").WithLocation(8, 18),
+                // (11,27): error CS8115: A throw expression is not allowed in this context.
+                //         var z = from x in throw new NullReferenceException() select x;
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(11, 27),
+                // (12,11): error CS8115: A throw expression is not allowed in this context.
+                //         M(throw new NullReferenceException());
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(12, 11),
+                // (13,15): error CS8115: A throw expression is not allowed in this context.
+                //         throw throw null;
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(13, 15)
+                );
+        }
     }
 }

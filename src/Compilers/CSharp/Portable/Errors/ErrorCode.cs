@@ -1345,9 +1345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsLocalFunction = 8110,
         #endregion diagnostics for local functions introduced in C# 7
 
-        // Available = 8111, 8112, 8113, 8114, 8115
+        // Available = 8111, 8112, 8113, 8114
 
         #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
         ERR_BadIsPatternExpression = 8117,
         ERR_PatternValueExpected = 8119,

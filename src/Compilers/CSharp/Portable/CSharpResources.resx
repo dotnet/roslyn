@@ -120,6 +120,9 @@
   <data name="IDS_NULL" xml:space="preserve">
     <value>&lt;null&gt;</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw expression&gt;</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>
@@ -209,6 +212,9 @@
   </data>
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
+  </data>
+  <data name="IDS_FeatureThrowExpression" xml:space="preserve">
+    <value>throw expression</value>
   </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
@@ -4940,5 +4946,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed in this context.</value>
   </data>
 </root>
