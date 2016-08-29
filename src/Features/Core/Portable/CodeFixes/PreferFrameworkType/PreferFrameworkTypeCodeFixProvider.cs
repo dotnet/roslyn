@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
             var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
             var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
 
-            return await document.ReplaceNodeAsync(node, replacementNode, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(root.ReplaceNode(node, replacementNode));
         }
 
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
