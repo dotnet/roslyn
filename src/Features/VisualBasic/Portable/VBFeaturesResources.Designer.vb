@@ -1512,7 +1512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Make_Async_Function.
+        '''  Looks up a localized string similar to Make Async Function.
         '''</summary>
         Friend ReadOnly Property Make_Async_Function() As String
             Get
@@ -1521,7 +1521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Make_Async_Sub.
+        '''  Looks up a localized string similar to Make Async Sub.
         '''</summary>
         Friend ReadOnly Property Make_Async_Sub() As String
             Get
