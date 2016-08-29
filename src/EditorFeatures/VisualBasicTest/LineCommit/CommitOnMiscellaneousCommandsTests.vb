@@ -1,11 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnMiscellaneousCommandsTests
@@ -132,11 +129,7 @@ End Module
                                                               </Workspace>)
 
                 ' Turn off pretty listing
-                Dim optionService = testData.Workspace.GetService(Of IOptionService)()
-                Dim optionSet = optionService.GetOptions()
-                Dim prettyListing = optionSet.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
-                optionService.SetOptions(prettyListing)
-
+                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())
             End Using

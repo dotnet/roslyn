@@ -255,6 +255,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Is this an event of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleEvent() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is an event of a tuple type, return corresponding underlying event from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingEvent() As EventSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_Type As ITypeSymbol Implements IEventSymbol.Type
             Get
                 Return Me.Type
@@ -313,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitEvent(Me)
         End Function
 
-        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As Object) As Boolean
             Dim other As EventSymbol = TryCast(obj, EventSymbol)
             If Nothing Is other Then
                 Return False

@@ -30,6 +30,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
+    using CodeFixGroupKey = Tuple<DiagnosticData, CodeActionPriority>;
+
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
@@ -271,7 +273,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return collections.Select(c => FilterOnUIThread(c, workspace)).WhereNotNull().ToList();
             }
 
-            private CodeFixCollection FilterOnUIThread(CodeFixCollection collection, Workspace workspace)
+            private CodeFixCollection FilterOnUIThread(
+                CodeFixCollection collection,
+                Workspace workspace)
             {
                 this.AssertIsForeground();
 
@@ -280,7 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     ? null
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
-                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, collection.FixAllContext);
+                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
+                            collection.FixAllState, 
+                            collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
             private bool IsApplicable(CodeAction action, Workspace workspace)
@@ -317,10 +323,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// </summary>
             private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, bool hasSuppressionFixes)
             {
-                var map = ImmutableDictionary.CreateBuilder<DiagnosticData, IList<SuggestedAction>>();
-                var order = ImmutableArray.CreateBuilder<DiagnosticData>();
+                var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
+                var order = ImmutableArray.CreateBuilder<CodeFixGroupKey>();
 
-                // First group fixes by issue (diagnostic).
+                // First group fixes by diagnostic and priority.
                 GroupFixes(workspace, fixCollections, map, order, hasSuppressionFixes);
 
                 // Then prioritize between the groups.
@@ -330,17 +336,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Groups fixes by the diagnostic being addressed by each fix.
             /// </summary>
-            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order, bool hasSuppressionFixes)
+            private void GroupFixes(
+                Workspace workspace,
+                IEnumerable<CodeFixCollection> fixCollections,
+                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
+                IList<CodeFixGroupKey> order,
+                bool hasSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
                 {
                     var fixes = fixCollection.Fixes;
                     var fixCount = fixes.Length;
 
-                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = codeAction =>
-                        CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllContext, workspace, _subjectBuffer,
-                            _owner._editHandler, _owner._waitIndicator, _owner._listener);
+                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
+                        codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
+                            codeAction, fixCount, fixCollection.FixAllState, 
+                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
+                            workspace, _subjectBuffer,  _owner._editHandler, 
+                            _owner._waitIndicator, _owner._listener);
 
                     foreach (var fix in fixes)
                     {
@@ -404,17 +417,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private static void AddFix(CodeFix fix, SuggestedAction suggestedAction, IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order)
+            private static void AddFix(CodeFix fix, SuggestedAction suggestedAction, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
             {
                 var diag = fix.GetPrimaryDiagnosticData();
-                if (!map.ContainsKey(diag))
+
+                var groupKey = new CodeFixGroupKey(diag, fix.Action.Priority);
+                if (!map.ContainsKey(groupKey))
                 {
-                    // Remember the order of the keys for the 'map' dictionary.
-                    order.Add(diag);
-                    map[diag] = ImmutableArray.CreateBuilder<SuggestedAction>();
+                    order.Add(groupKey);
+                    map[groupKey] = ImmutableArray.CreateBuilder<SuggestedAction>();
                 }
 
-                map[diag].Add(suggestedAction);
+                map[groupKey].Add(suggestedAction);
             }
 
             /// <summary>
@@ -427,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// the priority of such <see cref="SuggestedActionSet"/>s is set to <see cref="SuggestedActionSetPriority.None"/> so that suppression fixes
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
-            private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order)
+            private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
             {
                 var sets = ImmutableArray.CreateBuilder<SuggestedActionSet>();
 
@@ -440,8 +454,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var priority = GetSuggestedActionSetPriority(group.Key);
 
                         // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-                        Contract.Requires(diag.HasTextSpan);
-                        sets.Add(new SuggestedActionSet(group, priority, diag.TextSpan.ToSpan()));
+                        Contract.Requires(diag.Item1.HasTextSpan);
+                        sets.Add(new SuggestedActionSet(group, priority, diag.Item1.TextSpan.ToSpan()));
                     }
                 }
 
@@ -471,9 +485,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
 
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
@@ -609,9 +622,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))

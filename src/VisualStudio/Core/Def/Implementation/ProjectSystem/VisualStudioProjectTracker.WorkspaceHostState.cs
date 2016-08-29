@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -142,9 +143,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             this.Host.OnDocumentOpened(
                                 document.Id,
                                 document.GetOpenTextBuffer(),
-                                isCurrentContext: document.Project.Hierarchy == LinkedFileUtilities.GetContextHierarchy(document, _tracker._runningDocumentTable));
+                                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _tracker._runningDocumentTable));
                         }
                     }
+                }
+            }
+
+            internal void RemoveProject(AbstractProject project)
+            {
+                // If we've already told this host about it, then we need to remove it. Otherwise, this host has no
+                // further work to do.
+                if (_pushedProjects.Remove(project))
+                {
+                    this.Host.OnProjectRemoved(project.Id);
                 }
             }
         }

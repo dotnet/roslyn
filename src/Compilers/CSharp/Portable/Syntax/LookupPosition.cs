@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, filterClause.OpenParenToken, filterClause.CloseParenToken);
         }
 
-        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement, bool inRecursiveCall = false)
+        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement)
         {
             Debug.Assert(statement != null);
             switch (statement.Kind())
@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((ContinueStatementSyntax)statement).ContinueKeyword;
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                     return statement.GetFirstToken();
                 case SyntaxKind.DoStatement:
                     return ((DoStatementSyntax)statement).DoKeyword;
@@ -291,24 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return ((FixedStatementSyntax)statement).FixedKeyword;
                 case SyntaxKind.ForEachStatement:
-                    // NB: iteration variable is only in scope in body.
-                    ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forEachSyntax.ForEachKeyword;
-                    }
-                    return GetFirstIncludedToken(forEachSyntax.Statement, inRecursiveCall: true);
+                case SyntaxKind.ForEachComponentStatement:
+                    return ((CommonForEachStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.ForStatement:
-                    // Section 8.8.3 of the spec says that the scope of the loop variable starts at 
-                    // its declaration.  If it's not there, then the scope we are interested in is
-                    // the loop body.
-                    ForStatementSyntax forSyntax = (ForStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forSyntax.ForKeyword;
-                    }
-                    VariableDeclarationSyntax declOpt = forSyntax.Declaration;
-                    return declOpt == null ? GetFirstIncludedToken(forSyntax.Statement, inRecursiveCall: true) : declOpt.GetFirstToken();
+                    return ((ForStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.GotoDefaultStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.GotoStatement:
@@ -336,8 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).YieldKeyword;
-                case SyntaxKind.LetStatement:
-                    return ((LetStatementSyntax)statement).LetKeyword;
                 case SyntaxKind.LocalFunctionStatement:
                     return statement.GetFirstToken();
                 default:
@@ -361,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((ContinueStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.LocalDeclarationStatement:
                     return ((LocalDeclarationStatementSyntax)statement).SemicolonToken;
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    return ((DeconstructionDeclarationStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.DoStatement:
                     return ((DoStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.EmptyStatement:
@@ -370,7 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return GetFirstExcludedToken(((FixedStatementSyntax)statement).Statement);
                 case SyntaxKind.ForEachStatement:
-                    return GetFirstExcludedToken(((ForEachStatementSyntax)statement).Statement);
+                case SyntaxKind.ForEachComponentStatement:
+                    return GetFirstExcludedToken(((CommonForEachStatementSyntax)statement).Statement);
                 case SyntaxKind.ForStatement:
                     return GetFirstExcludedToken(((ForStatementSyntax)statement).Statement);
                 case SyntaxKind.GotoDefaultStatement:
@@ -415,17 +403,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).SemicolonToken;
-                case SyntaxKind.LetStatement:
-                    {
-                        var letStatement = (LetStatementSyntax)statement;
-                        if (letStatement.SemicolonToken != default(SyntaxToken)) return letStatement.SemicolonToken;
-                        return GetFirstExcludedToken(letStatement.ElseClause?.Statement);
-                    }
                 case SyntaxKind.LocalFunctionStatement:
                     LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
                     if (localFunctionStmt.Body != null)
                         return GetFirstExcludedToken(localFunctionStmt.Body);
-                    if (localFunctionStmt.SemicolonToken != null)
+                    if (localFunctionStmt.SemicolonToken != default(SyntaxToken))
                         return localFunctionStmt.SemicolonToken;
                     return localFunctionStmt.ParameterList.GetLastToken();
                 default:
@@ -433,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal static bool IsInAnonymousFunctionOrQuery(int position, CSharpSyntaxNode lambdaExpressionOrQueryNode)
+        internal static bool IsInAnonymousFunctionOrQuery(int position, SyntaxNode lambdaExpressionOrQueryNode)
         {
             Debug.Assert(lambdaExpressionOrQueryNode.IsAnonymousFunction() || lambdaExpressionOrQueryNode.IsQuery());
 

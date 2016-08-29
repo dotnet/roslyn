@@ -81,10 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            var compilation = this.DeclaringCompilation;
+            if (this.ReturnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+            }
+
+            if (ReturnType.ContainsTuple() &&
+                compilation.HasTupleNamesAttributes &&
+                compilation.CanEmitSpecialType(SpecialType.System_String))
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
             }
         }
 

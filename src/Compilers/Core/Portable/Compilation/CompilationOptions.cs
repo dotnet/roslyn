@@ -398,6 +398,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new options instance with the concurrent build property set accordingly.
+        /// </summary>
+        public CompilationOptions WithConcurrentBuild(bool concurrent)
+        {
+            return CommonWithConcurrentBuild(concurrent);
+        }
+
+        /// <summary>
         /// Creates a new options instance with the deterministic property set accordingly.
         /// </summary>
         public CompilationOptions WithDeterministic(bool deterministic)
@@ -459,6 +467,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
@@ -502,10 +511,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
                 {
-                    // TODO(https://github.com/dotnet/roslyn/issues/9153):
-                    // Produce better diagnostic message for passing a key file with a relative path
-                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue,
-                        Location.None, nameof(CryptoKeyFile), CryptoKeyFile));
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_OptionMustBeAbsolutePath,
+                        Location.None, nameof(CryptoKeyFile)));
                 }
 
                 if (CryptoKeyContainer != null)

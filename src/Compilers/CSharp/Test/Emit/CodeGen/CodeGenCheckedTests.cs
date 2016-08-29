@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGen_Checked : CSharpTestBase
+    public class CodeGenCheckedTests : CSharpTestBase
     {
         [Fact]
         public void CheckedExpression_Signed()
@@ -2137,7 +2137,7 @@ class Program
         }
 
         [WorkItem(648109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648109")]
-        [Fact(Skip = "648109")]
+        [Fact]
         public void CheckedExpressionWithDecimal()
         {
             var source = @"
@@ -2146,13 +2146,21 @@ class M
     void F()
     {   
         var r = checked(decimal.MaxValue + 1);
+        
+        // error should be reported regardless checked or not
+        // decimal math has not concept of ""checked""
+        var r1 = decimal.MaxValue + 1;
     }
 }";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,25): error CS0220: The operation overflows at compile time in checked mode
+                // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "decimal.MaxValue + 1"));
+                Diagnostic(ErrorCode.ERR_DecConstError, "decimal.MaxValue + 1").WithLocation(6, 25),
+                // (10,18): error CS0463: Evaluation of the decimal constant expression failed
+                //         var r1 = decimal.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_DecConstError, "decimal.MaxValue + 1").WithLocation(10, 18)
+                );
         }
 
         [WorkItem(543894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543894"), WorkItem(543924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543924")]

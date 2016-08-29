@@ -26,22 +26,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new CrefCompletionProvider();
         }
 
-        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override async Task VerifyWorkerAsync(
+            string code, int position,
+            string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
             }
         }
 
@@ -434,7 +438,8 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
             }
         }
 
@@ -450,11 +455,6 @@ class C
             }
 
             public bool ContainsInMemberBody(SyntaxNode node, TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
-
-            public SyntaxNode ConvertToSingleLine(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }
@@ -547,6 +547,11 @@ class C
             }
 
             public RefKind GetRefKindOfArgument(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDeclaration(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }
@@ -806,7 +811,7 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool IsStringLiteral(SyntaxToken token)
+            public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             {
                 throw new NotImplementedException();
             }
@@ -827,6 +832,21 @@ class C
             }
 
             public bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDocumentationComment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsUsingOrExternOrImport(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsGlobalAttribute(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }
@@ -912,6 +932,86 @@ class C
             }
 
             public string GetNameForArgument(SyntaxNode argument)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLeftSideOfDot(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetRightSideOfDot(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLeftSideOfAssignment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsOperatorOfIncrementExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsOperandOfIncrementExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsNumericLiteralExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsStringLiteral(SyntaxToken token)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node, out SyntaxNode initializedInstance)
             {
                 throw new NotImplementedException();
             }

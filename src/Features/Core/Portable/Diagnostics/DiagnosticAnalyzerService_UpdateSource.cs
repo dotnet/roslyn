@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -42,17 +43,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
+        internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            // raise serialized events
+            // all diagnostics events are serialized.
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
                 var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
-                _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(sender, args));
-                }).CompletesAsyncOperation(asyncToken);
+                _eventQueue.ScheduleTask(() => ev.RaiseEvent(handler => handler(this, args))).CompletesAsyncOperation(asyncToken);
+            }
+        }
+
+        internal void RaiseBulkDiagnosticsUpdated(Action<Action<DiagnosticsUpdatedArgs>> eventAction)
+        {
+            // all diagnostics events are serialized.
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (ev.HasHandlers)
+            {
+                // we do this bulk update to reduce number of tasks (with captured data) enqueued.
+                // we saw some "out of memory" due to us having long list of pending tasks in memory. 
+                // this is to reduce for such case to happen.
+                Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
+
+                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
+                _eventQueue.ScheduleTask(() => eventAction(raiseEvents)).CompletesAsyncOperation(asyncToken);
+            }
+        }
+
+        internal void RaiseBulkDiagnosticsUpdated(Func<Action<DiagnosticsUpdatedArgs>, Task> eventActionAsync)
+        {
+            // all diagnostics events are serialized.
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (ev.HasHandlers)
+            {
+                // we do this bulk update to reduce number of tasks (with captured data) enqueued.
+                // we saw some "out of memory" due to us having long list of pending tasks in memory. 
+                // this is to reduce for such case to happen.
+                Action<DiagnosticsUpdatedArgs> raiseEvents = args => ev.RaiseEvent(handler => handler(this, args));
+
+                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
+                _eventQueue.ScheduleTask(() => eventActionAsync(raiseEvents)).CompletesAsyncOperation(asyncToken);
             }
         }
 

@@ -39,14 +39,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Sub
         End Class
 
-        <WpfFact(Skip:="xunit wait")>
+        <WpfFact>
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim controller = New Mock(Of IController(Of Model))
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
 
-            controller.Verify(Sub(c) c.BeginAsyncOperation())
+            controller.Verify(Sub(c) c.BeginAsyncOperation(
+                                  It.IsAny(Of String),
+                                  Nothing,
+                                  It.IsAny(Of String),
+                                  It.IsAny(Of Integer)))
         End Sub
 
         <WpfFact>
@@ -81,11 +85,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
         End Sub
 
-        <WpfFact(Skip:="true")>
+        <WpfFact>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)
-            controller.Setup(Function(c) c.BeginAsyncOperation()).Returns(token.Object)
+            controller.Setup(Function(c) c.BeginAsyncOperation(
+                                 It.IsAny(Of String),
+                                 Nothing,
+                                 It.IsAny(Of String),
+                                 It.IsAny(Of Integer))).Returns(token.Object)
             Dim modelComputation = TestModelComputation.Create(controller:=controller.Object)
             Dim model = New Model()
             Dim checkpoint1 = New Checkpoint

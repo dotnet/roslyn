@@ -1,8 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementInterface
@@ -2091,33 +2088,33 @@ End Interface", index:=1, compareTokens:=False)
         Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
             Dim code = $"
 #Region ""IDisposable Support""
-    Private disposedValue As Boolean ' {FeaturesResources.ToDetectRedundantCalls}
+    Private disposedValue As Boolean ' {FeaturesResources.To_detect_redundant_calls}
 
     ' IDisposable
     Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
-                ' {FeaturesResources.DisposeManagedStateTodo}
+                ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
 
-            ' {VBFeaturesResources.FreeUnmanagedResourcesTodo}
-            ' {FeaturesResources.SetLargeFieldsToNullTodo}
+            ' {VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below}
+            ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
         End If
         disposedValue = True
     End Sub
 
-    ' {VBFeaturesResources.OverrideFinalizerTodo}
+    ' {VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources}
     'Protected Overrides Sub Finalize()
-    '    ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+    '    ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
     '    Dispose(False)
     '    MyBase.Finalize()
     'End Sub
 
-    ' {VBFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern}
     Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+        ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
         Dispose(True)
-        ' {VBFeaturesResources.UncommentTheFollowingLineIfFinalizeIsOverridden}
+        ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
         ' GC.SuppressFinalize(Me)
     End Sub
 #End Region"
@@ -2177,6 +2174,32 @@ End Class", compareTokens:=False)
             Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Class Program(Of T) \n Implements [|IList(Of Object)|] \n Private Shared innerList As List(Of Object) = New List(Of Object) \n End Class"),
 NewLines("Imports System \n Imports System.Collections \n Imports System.Collections.Generic \n Class Program(Of T) \n Implements IList(Of Object) \n Private Shared innerList As List(Of Object) = New List(Of Object) \n Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count \n Get \n Return DirectCast(innerList, IList(Of Object)).Count \n End Get \n End Property \n Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly \n Get \n Return DirectCast(innerList, IList(Of Object)).IsReadOnly \n End Get \n End Property \n Default Public Property Item(index As Integer) As Object Implements IList(Of Object).Item \n Get \n Return DirectCast(innerList, IList(Of Object))(index) \n End Get \n Set(value As Object) \n DirectCast(innerList, IList(Of Object))(index) = value \n End Set \n End Property \n Public Sub Add(item As Object) Implements ICollection(Of Object).Add \n DirectCast(innerList, IList(Of Object)).Add(item) \n End Sub \n Public Sub Clear() Implements ICollection(Of Object).Clear \n DirectCast(innerList, IList(Of Object)).Clear() \n End Sub \n Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo \n DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex) \n End Sub \n Public Sub Insert(index As Integer, item As Object) Implements IList(Of Object).Insert \n DirectCast(innerList, IList(Of Object)).Insert(index, item) \n End Sub \n Public Sub RemoveAt(index As Integer) Implements IList(Of Object).RemoveAt \n DirectCast(innerList, IList(Of Object)).RemoveAt(index) \n End Sub \n Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains \n Return DirectCast(innerList, IList(Of Object)).Contains(item) \n End Function \n Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator \n Return DirectCast(innerList, IList(Of Object)).GetEnumerator() \n End Function \n Public Function IndexOf(item As Object) As Integer Implements IList(Of Object).IndexOf \n Return DirectCast(innerList, IList(Of Object)).IndexOf(item) \n End Function \n Public Function Remove(item As Object) As Boolean Implements ICollection(Of Object).Remove \n Return DirectCast(innerList, IList(Of Object)).Remove(item) \n End Function \n Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator \n Return DirectCast(innerList, IList(Of Object)).GetEnumerator() \n End Function \n End Class"),
+index:=1)
+        End Function
+
+        <WorkItem(11444, "https://github.com/dotnet/roslyn/issues/11444")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAbstractConflictingMethod() As Task
+            Await TestAsync(
+"Friend Interface IFace
+    Sub M()
+End Interface
+
+Public MustInherit Class C
+    Implements [|IFace|]
+
+    Public MustOverride Sub M()
+End Class",
+"Friend Interface IFace
+    Sub M()
+End Interface
+
+Public MustInherit Class C
+    Implements IFace
+
+    Public MustOverride Sub IFace_M() Implements IFace.M
+    Public MustOverride Sub M()
+End Class",
 index:=1)
         End Function
     End Class

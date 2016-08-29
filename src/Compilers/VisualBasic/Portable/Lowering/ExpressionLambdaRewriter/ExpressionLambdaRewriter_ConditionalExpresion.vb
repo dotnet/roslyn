@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get real method
             helper = DirectCast(DirectCast(nullableType, SubstitutedNamedType).GetMemberForDefinition(helper), MethodSymbol)
 
-            Dim syntax As VisualBasicSyntaxNode = expression.Syntax
+            Dim syntax As SyntaxNode = expression.Syntax
             Return New BoundConversion(
                             syntax,
                             New BoundUserDefinedConversion(
@@ -140,8 +140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 New BoundCall(
                                     syntax,
                                     method:=helper,
-                                    methodGroup:=Nothing,
-                                    receiver:=Nothing,
+                                    methodGroupOpt:=Nothing,
+                                    receiverOpt:=Nothing,
                                     arguments:=ImmutableArray.Create(Of BoundExpression)(expression),
                                     constantValueOpt:=Nothing,
                                     suppressObjectClone:=True,
@@ -216,7 +216,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'End If
             End If
 
-            [call] = [call].Update(method, Nothing, Nothing, ImmutableArray.Create(Of BoundExpression)(parameter), Nothing, True, callType)
+            [call] = [call].Update(
+                method,
+                Nothing,
+                Nothing,
+                ImmutableArray.Create(Of BoundExpression)(parameter),
+                Nothing,
+                isLValue:=False,
+                suppressObjectClone:=True,
+                type:=callType)
 
             If outConv IsNot Nothing Then
                 outConv = outConv.Update([call], outConv.ConversionKind, outConv.Checked, outConv.ExplicitCastInCode, outConv.ConstantValueOpt,

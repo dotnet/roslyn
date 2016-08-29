@@ -1,10 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
     Public Class GenerateMethodTests
@@ -19,6 +17,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestAsync(
 NewLines("Class C \n Sub M() \n [|Foo|]() \n End Sub \n End Class"),
 NewLines("Imports System \n Class C \n Sub M() \n Foo() \n End Sub \n Private Sub Foo() \n Throw New NotImplementedException() \n End Sub \n End Class"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
+        Public Async Function TestNameMatchesNamespaceName() As Task
+            Await TestAsync(
+"Namespace N
+    Module Module1
+        Sub Main()
+            [|N|]()
+        End Sub
+    End Module
+End Namespace",
+"
+Imports System
+
+Namespace N
+    Module Module1
+        Sub Main()
+            N()
+        End Sub
+
+        Private Sub N()
+            Throw New NotImplementedException()
+        End Sub
+    End Module
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1337,7 +1362,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As Integer, v2() As String)
+    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2163,17 +2188,24 @@ index:=1)
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithMethodChaining() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
-NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private Function F() As Task(Of Boolean)\n        Throw New NotImplementedException()\n    End Function\nEnd Module"))
-        End Function
-
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Async Function TestGenerateMethodWithMethodChaining2() As Task
-            Await TestAsync(
-NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
-NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private ReadOnly Property F As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
-index:=1)
+"Imports System 
+Imports System.Linq 
+Module M 
+    Async Sub T() 
+        Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
+    End Sub 
+End Module",
+"Imports System 
+Imports System.Linq 
+Imports System.Threading.Tasks
+Module M 
+    Async Sub T() 
+        Dim x As Boolean = Await F().ConfigureAwait(False)
+    End Sub 
+    Private Function F() As Task(Of Boolean)
+        Throw New NotImplementedException()
+    End Function
+End Module")
         End Function
 
         <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
@@ -2198,6 +2230,84 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Module Program
             Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, [|T|]() } } \n End Sub \n End Module"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, T() } } \n End Sub \n Private Function T() As Boolean \n Throw New NotImplementedException() \n End Function \n End Module"))
+        End Function
+
+        <WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodWithMultipleOfSameGenericType() As Task
+            Await TestAsync(
+<text>
+Namespace TestClasses
+    Public Class C
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return [|a.Test(Of T, T)()|]
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Namespace TestClasses
+    Public Class C
+        Friend Function Test(Of T1 As C, T2 As C)() As T2
+        End Function
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return a.Test(Of T, T)()
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WorkItem(11461, "https://github.com/dotnet/roslyn/issues/11461")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodOffOfExistingProperty() As Task
+            Await TestAsync(
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+End Class
+
+Class C
+    Shared Sub TestError()
+        [|Repository.AgreementType.NewFunction|]("", "")
+    End Sub
+End Class
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+    Friend Sub NewFunction(v1 As String, v2 As String)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class C
+    Shared Sub TestError()
+        Repository.AgreementType.NewFunction("", "")
+    End Sub
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         Public Class GenerateConversionTests
@@ -2484,7 +2594,6 @@ Class Digit
 End Class
 </text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
             End Function
-
         End Class
     End Class
 End Namespace

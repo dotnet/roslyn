@@ -8,13 +8,19 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal class LinkedFileUtilities : ForegroundThreadAffinitizedObject
+    internal sealed class LinkedFileUtilities : ForegroundThreadAffinitizedObject
     {
         private LinkedFileUtilities()
         {
         }
 
-        private static LinkedFileUtilities s_singleton = new LinkedFileUtilities();
+        private static readonly LinkedFileUtilities s_singleton = new LinkedFileUtilities();
+
+        public static bool IsCurrentContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
+        {
+            // runningDocumentTable might be null for tests.
+            return runningDocumentTable != null && document.Project.Hierarchy == GetContextHierarchy(document, runningDocumentTable);
+        }
 
         /// <summary>
         /// Finds the current context hierarchy for the given document. If the document is in a

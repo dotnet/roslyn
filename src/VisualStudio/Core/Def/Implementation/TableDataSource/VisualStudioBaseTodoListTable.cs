@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 PopulateInitialData(workspace, _todoListProvider);
             }
 
-            public override string DisplayName => ServicesVSResources.TodoTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key == documents;
             }
 
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                return args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
             }
 
             public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)

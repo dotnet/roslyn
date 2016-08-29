@@ -44,6 +44,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TryEnqueueAfterPromisingNotTo()
+        {
+            var queue = new AsyncQueue<int>();
+            Assert.True(queue.TryEnqueue(42));
+            queue.PromiseNotToEnqueue();
+            Assert.Throws(typeof(InvalidOperationException), () => {
+                queue.TryEnqueue(42);
+            });
+        }
+
+        [Fact]
         public async Task DequeueThenEnqueue()
         {
             var queue = new AsyncQueue<int>();

@@ -4,7 +4,6 @@ Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEnumMember
     Public Class GenerateEnumMemberTests
@@ -33,6 +32,13 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n En
             Await TestAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Green|]) \n End Sub \n End Module \n Enum Color \n Red = 1 \n End Enum"),
 NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n End Sub \n End Module \n Enum Color \n Red = 1 \n Green = 2 \n End Enum"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        Public Async Function TestGenerateBinaryLiteral() As Task
+            Await TestAsync(
+NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Green|]) \n End Sub \n End Module \n Enum Color \n Red = &B01 \n End Enum"),
+NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n End Sub \n End Module \n Enum Color \n Red = &B01 \n Green = &B10 \n End Enum"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>

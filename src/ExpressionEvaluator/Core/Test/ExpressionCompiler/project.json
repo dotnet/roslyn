@@ -1,9 +1,11 @@
-﻿{
+{
   "dependencies": {
-    "Microsoft.DiaSymReader": "1.0.7",
-    "xunit": "2.1.0"
+    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239"
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   }
 }

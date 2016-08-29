@@ -25,26 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            // AllInOneCSharpCode has no pattern matching.
-            var syntaxKindsPatterns = new HashSet<SyntaxKind>();
-            syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.RecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.SubRecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
-            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
+            var syntaxKindsMissing = new HashSet<SyntaxKind>();
+
+            // AllInOneCSharpCode has no deconstruction or declaration expression
+            syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableComponent);
+            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
+            syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
+            syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsMissing);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 
@@ -81,13 +78,13 @@ public class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
         [Fact]
         public void DiagnosticAnalyzerExpressionBodiedProperty()
         {
-            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib45(@"
 public class C
 {
     public int P => 10;
@@ -100,7 +97,7 @@ public class C
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateExperimentalCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, logAnalyzerExceptionAsDiagnostics: true));
         }
@@ -114,7 +111,7 @@ public class C
                 new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
-            var compilation = CreateExperimentalCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();

@@ -17,21 +17,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly ConstantValue _switchCaseLabelConstant;
 
+        // PERF: Often we do not need this, so we make this lazy
+        private string _lazyName;
+
         public SourceLabelSymbol(
             MethodSymbol containingMethod,
             SyntaxNodeOrToken identifierNodeOrToken,
             ConstantValue switchCaseLabelConstant = null)
-            : base(identifierNodeOrToken.IsToken ? identifierNodeOrToken.AsToken().ValueText : identifierNodeOrToken.ToString())
         {
             _containingMethod = containingMethod;
             _identifierNodeOrToken = identifierNodeOrToken;
             _switchCaseLabelConstant = switchCaseLabelConstant;
         }
 
+        public override string Name
+        {
+            get
+            {
+                return _lazyName ??
+                    (_lazyName = MakeLabelName());
+            }
+        }
+
+        private string MakeLabelName()
+        {
+            var node = _identifierNodeOrToken.AsNode();
+            if (node != null)
+            {
+                return node.ToString();
+            }
+
+            var tk = _identifierNodeOrToken.AsToken();
+            if (tk.Kind() != SyntaxKind.None)
+            {
+                return tk.ValueText;
+            }
+
+            return _switchCaseLabelConstant?.ToString() ?? "";
+        }
+
         public SourceLabelSymbol(
             MethodSymbol containingMethod,
-            ConstantValue switchCaseLabelConstant = null)
-            : base(switchCaseLabelConstant.ToString())
+            ConstantValue switchCaseLabelConstant)
         {
             _containingMethod = containingMethod;
             _identifierNodeOrToken = default(SyntaxToken);

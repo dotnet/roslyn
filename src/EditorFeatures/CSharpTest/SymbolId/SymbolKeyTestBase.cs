@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         internal enum SymbolKeyComparison
         {
             None = 0x0,
-            CaseSensitive = 0x1,
+            IgnoreCase = 0x1,
             IgnoreAssemblyIds = 0x2
         }
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         #region "Verification"
 
-        internal static void ResolveAndVerifySymbolList(IEnumerable<ISymbol> newSymbols, Compilation newCompilation, IEnumerable<ISymbol> originalSymbols, CSharpCompilation originalComp)
+        internal static void ResolveAndVerifySymbolList(IEnumerable<ISymbol> newSymbols, IEnumerable<ISymbol> originalSymbols, CSharpCompilation originalComp)
         {
             var newlist = newSymbols.OrderBy(s => s.Name).ToList();
             var origlist = originalSymbols.OrderBy(s => s.Name).ToList();
@@ -44,28 +43,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
             for (int i = 0; i < newlist.Count; i++)
             {
-                ResolveAndVerifySymbol(newlist[i], newCompilation, origlist[i], originalComp);
+                ResolveAndVerifySymbol(newlist[i], origlist[i], originalComp);
             }
         }
 
         internal static void ResolveAndVerifyTypeSymbol(ExpressionSyntax node, ITypeSymbol sourceSymbol, SemanticModel model, CSharpCompilation sourceComp)
         {
             var typeinfo = model.GetTypeInfo(node);
-            ResolveAndVerifySymbol(typeinfo.Type ?? typeinfo.ConvertedType, model.Compilation, sourceSymbol, sourceComp);
+            ResolveAndVerifySymbol(typeinfo.Type ?? typeinfo.ConvertedType, sourceSymbol, sourceComp);
         }
 
         internal static void ResolveAndVerifySymbol(ExpressionSyntax node, ISymbol sourceSymbol, SemanticModel model, CSharpCompilation sourceComp, SymbolKeyComparison comparison = SymbolKeyComparison.None)
         {
             var syminfo = model.GetSymbolInfo(node);
-            ResolveAndVerifySymbol(syminfo.Symbol, model.Compilation, sourceSymbol, sourceComp, comparison);
+            ResolveAndVerifySymbol(syminfo.Symbol, sourceSymbol, sourceComp, comparison);
         }
 
-        internal static void ResolveAndVerifySymbol(ISymbol symbol1, Compilation compilation1, ISymbol symbol2, Compilation compilation2, SymbolKeyComparison comparison = SymbolKeyComparison.None)
+        internal static void ResolveAndVerifySymbol(ISymbol symbol1, ISymbol symbol2, Compilation compilation2, SymbolKeyComparison comparison = SymbolKeyComparison.None)
         {
             // same ID
-            AssertSymbolKeysEqual(symbol1, compilation1, symbol2, compilation2, comparison);
+            AssertSymbolKeysEqual(symbol1, symbol2, comparison);
 
-            var resolvedSymbol = ResolveSymbol(symbol1, compilation1, compilation2, comparison);
+            var resolvedSymbol = ResolveSymbol(symbol1, compilation2, comparison);
 
             Assert.NotNull(resolvedSymbol);
 
@@ -74,30 +73,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             Assert.Equal(symbol2.GetHashCode(), resolvedSymbol.GetHashCode());
         }
 
-        internal static ISymbol ResolveSymbol(ISymbol originalSymbol, Compilation originalCompilation, Compilation targetCompilation, SymbolKeyComparison comparison)
+        internal static ISymbol ResolveSymbol(ISymbol originalSymbol, Compilation targetCompilation, SymbolKeyComparison comparison)
         {
-            var sid = SymbolKey.Create(originalSymbol, originalCompilation, CancellationToken.None);
-            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
+            var sid = SymbolKey.Create(originalSymbol, CancellationToken.None);
 
+            // Verify that serialization works.
+            var serialized = sid.ToString();
+            var deserialized = new SymbolKey(serialized);
+            var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+            Assert.True(comparer.Equals(sid, deserialized));
+
+            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
             return symInfo.Symbol;
         }
 
-        internal static void AssertSymbolKeysEqual(ISymbol symbol1, Compilation compilation1, ISymbol symbol2, Compilation compilation2, SymbolKeyComparison comparison, bool expectEqual = true)
+        internal static void AssertSymbolKeysEqual(ISymbol symbol1, ISymbol symbol2, SymbolKeyComparison comparison, bool expectEqual = true)
         {
-            var sid1 = SymbolKey.Create(symbol1, compilation1, CancellationToken.None);
-            var sid2 = SymbolKey.Create(symbol2, compilation2, CancellationToken.None);
+            var sid1 = SymbolKey.Create(symbol1, CancellationToken.None);
+            var sid2 = SymbolKey.Create(symbol2, CancellationToken.None);
 
             // default is Insensitive
-            var isCaseSensitive = (comparison & SymbolKeyComparison.CaseSensitive) == SymbolKeyComparison.CaseSensitive;
+            var ignoreCase = (comparison & SymbolKeyComparison.IgnoreCase) == SymbolKeyComparison.IgnoreCase;
 
             // default is NOT ignore
             var ignoreAssemblyIds = (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds;
             var message = string.Concat(
-                isCaseSensitive ? "SymbolID CaseSensitive" : "SymbolID CaseInsensitive",
+                ignoreCase ? "SymbolID IgnoreCase" : "SymbolID",
                 ignoreAssemblyIds ? " IgnoreAssemblyIds " : " ",
                 "Compare");
 
-            var ret = CodeAnalysis.SymbolKey.GetComparer(isCaseSensitive, ignoreAssemblyIds).Equals(sid2, sid1);
+            var ret = CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1);
             if (expectEqual)
             {
                 Assert.True(ret, message);

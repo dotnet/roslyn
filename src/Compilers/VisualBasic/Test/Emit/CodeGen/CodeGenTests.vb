@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -13247,33 +13248,47 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6077")>
+        <Fact>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
-            Dim source =
+
+            Dim diagnostics = ImmutableArray(Of Diagnostic).Empty
+
+            Const start = 8192
+            Const [step] = 4096
+            Const limit = start * 4
+
+            For count As Integer = start To limit Step [step]
+                Dim source =
 $"
 Class Test
     Shared Sub Main()
     End Sub
 
     Shared Function Calculate(a As Boolean(), f As Boolean()) As Boolean
-        Return {BuildSequenceOfBinaryExpressions_03()}
+        Return {BuildSequenceOfBinaryExpressions_03(count)}
     End Function
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+                Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+                diagnostics = compilation.GetEmitDiagnostics()
 
-            compilation.VerifyEmitDiagnostics(
+                If Not diagnostics.IsEmpty Then
+                    Exit For
+                End If
+            Next
+
+            diagnostics.Verify(
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
         End Sub
 
-        Private Shared Function BuildSequenceOfBinaryExpressions_03() As String
+        Private Shared Function BuildSequenceOfBinaryExpressions_03(Optional count As Integer = 8192) As String
             Dim builder = New System.Text.StringBuilder()
             Dim i As Integer
 
-            For i = 0 To 8192 - 1
+            For i = 0 To count - 1
                 builder.Append("a(")
                 builder.Append(i)
                 builder.Append(")")

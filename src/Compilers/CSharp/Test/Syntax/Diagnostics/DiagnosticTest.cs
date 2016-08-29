@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,6 +14,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticTest : CSharpTestBase
     {
+        /// <summary>
+        /// Ensure string resources are included.
+        /// </summary>
+        [Fact]
+        public void Resources()
+        {
+            var excludedErrorCodes = new[]
+            {
+                ErrorCode.Void,
+                ErrorCode.Unknown,
+                ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+            };
+            foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if (Array.IndexOf(excludedErrorCodes, code) >= 0)
+                {
+                    continue;
+                }
+                var message = ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture);
+                Assert.False(string.IsNullOrEmpty(message));
+            }
+        }
+
         [Fact]
         public void TestDiagnostic()
         {
@@ -180,15 +204,8 @@ class X
                     Assert.True(ErrorFacts.IsWarning(errorCode));
                     switch (errorCode)
                     {
-                        case ErrorCode.WRN_MainIgnored:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_DelaySignButNoKey:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_InvalidVersionFormat:
-                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
+                        case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
@@ -196,25 +213,26 @@ class X
                         case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                         case ErrorCode.WRN_RefCultureMismatch:
                         case ErrorCode.WRN_ConflictingMachineAssembly:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_NubExprIsConstBool2:
-                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
-                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_FilterIsConstant:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_PdbLocalNameTooLong:
-                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
                         case ErrorCode.WRN_AnalyzerCannotBeCreated:
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
+                        case ErrorCode.WRN_TupleLiteralNameMismatch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_MainIgnored:
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
+                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
+                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PdbLocalNameTooLong:
+                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_InvalidVersionFormat:
+                            Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -2226,11 +2244,50 @@ public class A
                 }
             }
 
-            public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
+            public override string GetErrorDisplayString(ISymbol symbol)
             {
-                return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol);
+                return MessageProvider.Instance.GetErrorDisplayString(symbol);
             }
         }
+
+        #endregion
+
+        #region CoreCLR Signing Tests
+        // These aren't actually syntax tests, but this is in one of only two assemblies tested on linux
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        public void Bug9288_keyfile()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+            var snkPath = snk.Path;
+
+            const string source = "";
+
+            var ca = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath));
+
+            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(snkPath, "Assembly signing not supported.").WithLocation(1, 1)
+            );
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        public void Bug9288_keycontainer()
+        {
+            const string source = "";
+
+            var ca = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
+
+            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                // error CS7028: Error signing output with public key from container 'bogus' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Assembly signing not supported.").WithLocation(1, 1)
+            );
+        }
+
+        // There are three places where we catch a ClrStrongNameMissingException,
+        // but the third cannot happen - only if a key is successfully retrieved
+        // from a keycontainer, and then we fail to get IClrStrongName afterwards
+        // for the actual signing. However, we error on the key read, and can never
+        // get to the third case (but there's still error handling if that changes)
 
         #endregion
     }

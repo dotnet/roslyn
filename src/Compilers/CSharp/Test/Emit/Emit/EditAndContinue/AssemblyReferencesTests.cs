@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -18,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class AssemblyReferencesTests : EditAndContinueTestBase
     {
+        private static readonly CSharpCompilationOptions s_signedDll =
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
         /// <summary>
         /// The baseline metadata might have less (or even different) references than
         /// the current compilation. We shouldn't assume that the reference sets are the same.
@@ -223,6 +230,394 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f1, f2)));
 
             diff2.EmitResult.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void DependencyVersionWildcards_Compilation()
+        {
+            TestDependencyVersionWildcards(
+                "1.0.0.*",
+                new Version(1, 0, 2000, 1001),
+                new Version(1, 0, 2000, 1001),
+                new Version(1, 0, 2000, 1002));
+
+            TestDependencyVersionWildcards(
+                "1.0.0.*",
+                new Version(1, 0, 2000, 1001),
+                new Version(1, 0, 2000, 1002),
+                new Version(1, 0, 2000, 1002));
+
+            TestDependencyVersionWildcards(
+                "1.0.0.*",
+                new Version(1, 0, 2000, 1003),
+                new Version(1, 0, 2000, 1002),
+                new Version(1, 0, 2000, 1001));
+
+            TestDependencyVersionWildcards(
+                "1.0.*",
+                new Version(1, 0, 2000, 1001),
+                new Version(1, 0, 2000, 1002),
+                new Version(1, 0, 2000, 1003));
+
+            TestDependencyVersionWildcards(
+                "1.0.*",
+                new Version(1, 0, 2000, 1001),
+                new Version(1, 0, 2000, 1005),
+                new Version(1, 0, 2000, 1002));
+        }
+
+        private void TestDependencyVersionWildcards(string sourceVersion, Version version0, Version version1, Version version2)
+        {
+            string srcLib = $@"
+[assembly: System.Reflection.AssemblyVersion(""{sourceVersion}"")]
+
+public class D {{ }}
+";
+
+            string src0 = @"
+class C 
+{ 
+    public static int F(D a) { return 1; }
+}
+";
+            string src1 = @"
+class C 
+{ 
+    public static int F(D a) { return 2; }
+}
+";
+            string src2 = @"
+class C 
+{ 
+    public static int F(D a) { return 3; }
+    public static int G(D a) { return 4; }
+}
+";
+            var lib0 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+
+            ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version0);
+            lib0.VerifyDiagnostics();
+
+            var lib1 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version1);
+            lib1.VerifyDiagnostics();
+
+            var lib2 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version2);
+
+            lib2.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
+            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
+
+            var v0 = CompileAndVerify(compilation0);
+            var v1 = CompileAndVerify(compilation1);
+            var v2 = CompileAndVerify(compilation2);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2),
+                    new SemanticEdit(SemanticEditKind.Insert, null, g2)));
+
+            var md1 = diff1.GetMetadata();
+            var md2 = diff2.GetMetadata();
+
+            var aggReader = new AggregatedMetadataReader(md0.MetadataReader, md1.Reader, md2.Reader);
+
+            // all references to Lib should be to the baseline version:
+            VerifyAssemblyReferences(aggReader, new[]
+            {
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+                "mscorlib, 4.0.0.0",
+                "Lib, " + lib0.Assembly.Identity.Version,
+            });
+        }
+
+        [Fact]
+        public void DependencyVersionWildcards_Metadata()
+        {
+            string srcLib = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.*"")]
+
+public class D { }
+";
+
+            string src0 = @"
+class C 
+{ 
+    public static int F(D a) { return 1; }
+}
+";
+            string src1 = @"
+class C 
+{ 
+    public static int F(D a) { return 2; }
+}
+";
+            string src2 = @"
+class C 
+{ 
+    public static int F(D a) { return 3; }
+    public static int G(D a) { return 4; }
+}
+";
+            var lib0 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1001));
+            lib0.VerifyDiagnostics();
+
+            var lib1 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1002));
+            lib1.VerifyDiagnostics();
+
+            var lib2 = CreateCompilationWithMscorlib(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1003));
+            lib2.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
+            var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
+
+            var v0 = CompileAndVerify(compilation0);
+            var v1 = CompileAndVerify(compilation1);
+            var v2 = CompileAndVerify(compilation2);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7038: Failed to emit module 'C'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+        }
+
+        [Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        public void DependencyVersionWildcardsCollisions()
+        {
+            string srcLib01 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.1"")]
+
+public class D { }
+";
+            string srcLib02 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.2"")]
+
+public class D { }
+";
+
+            string srcLib11 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.1.1"")]
+
+public class D { }
+";
+            string srcLib12 = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.1.2"")]
+
+public class D { }
+";
+
+            string src0 = @"
+extern alias L0;
+extern alias L1;
+
+class C 
+{ 
+    public static int F(L0::D a, L1::D b) => 1;
+}
+";
+            string src1 = @"
+extern alias L0;
+extern alias L1;
+
+class C 
+{ 
+    public static int F(L0::D a, L1::D b) => 2;
+}
+";
+            var lib01 = CreateCompilationWithMscorlib(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
+
+            var lib02 = CreateCompilationWithMscorlib(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
+
+            var lib11 = CreateCompilationWithMscorlib(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
+
+            var lib12 = CreateCompilationWithMscorlib(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
+
+            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
+
+            var v0 = CompileAndVerify(compilation0);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+
+            // TODO: message should be: Changing the version of an assembly reference is not allowed during debugging
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS7038: Failed to emit module 'C'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+        }
+
+        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        {
+            AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
+        }
+
+        [Fact]
+        [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
+        public void CurrentComplationVersionWildcards()
+        {
+            var source0 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+    }
+
+    static void F()
+    {
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+    }
+
+    static void F()
+    {
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+    }
+
+    static void F()
+    {
+        Console.WriteLine(1);
+    }
+}");
+            var source3 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+        new Action(<N:2>() => { Console.WriteLine(3); }</N:2>).Invoke();
+        new Action(<N:3>() => { Console.WriteLine(4); }</N:3>).Invoke();
+    }
+
+    static void F()
+    {
+        Console.WriteLine(1);
+    }
+}");
+
+            var options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
+            var compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
+            var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
+            var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+            var m3 = compilation3.GetMember<MethodSymbol>("C.M");
+
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // First update adds some new synthesized members (lambda related)
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
+
+            // Second update is to a method that doesn't produce any synthesized members 
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
+
+            // Last update again adds some new synthesized members (lambdas).
+            // Synthesized members added in the first update need to be mapped to the current compilation.
+            // Their containing assembly version is different than the version of the previous assembly and 
+            // hence we need to account for wildcards when comparing the versions.
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+
+            diff3.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#3, <>9__0_3#3, <M>b__0_0, <M>b__0_1#1, <M>b__0_2#3, <M>b__0_3#3}");
         }
     }
 }

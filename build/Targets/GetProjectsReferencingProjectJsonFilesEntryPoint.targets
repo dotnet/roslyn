@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Target Name="NuGet_GetProjectsReferencingProjectJson">
+        <ItemGroup>
+            <NuGet_ProjectReferenceToResolveItems Include="$(NuGet_ProjectReferenceToResolve)" />
+        </ItemGroup>
+        <MsBuild
+            Projects="@(NuGet_ProjectReferenceToResolveItems)"
+            Targets="_NuGet_GetProjectsReferencingProjectJsonInternal"
+            BuildInParallel="false"
+            Properties="
+                %(_MSBuildProjectReferenceExistent.SetConfiguration);
+                %(_MSBuildProjectReferenceExistent.SetPlatform);
+                CustomAfterMicrosoftCommonTargets=$(NuGetCustomAfterBuildTargetPath);
+                NuGetWriteEntryPoint=true"
+            RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+            <Output
+                TaskParameter="TargetOutputs"
+                ItemName="_ProjectReferencingProjectJsonFile" />
+        </MsBuild>
+
+        <WriteLinesToFile
+            File="$(ResultsFile)"
+            Lines="@(_ProjectReferencingProjectJsonFile)"
+            Overwrite="true" />
+    </Target>
+</Project>

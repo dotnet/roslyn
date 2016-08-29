@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -25,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public virtual void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
+        }
+
+        internal virtual void Apply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            this.Apply(workspace, cancellationToken);
         }
 
         /// <summary>

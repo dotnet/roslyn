@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -88,7 +89,27 @@ namespace Microsoft.CodeAnalysis.Text
                 var text = strongBox.Value;
                 if (text != null && text._reiteratedVersion == editorSnapshot.Version.ReiteratedVersionNumber)
                 {
-                    return text;
+                    if (text.Length == editorSnapshot.Length)
+                    {
+                        return text;
+                    }
+                    else
+                    {
+                        // In editors with non-compliant Undo/Redo implementations, you can end up
+                        // with two Versions with the same ReiteratedVersionNumber but with very
+                        // different text. We've never provably seen this problem occur in Visual 
+                        // Studio, but we have seen crashes that look like they could have been
+                        // caused by incorrect results being returned from this cache. 
+                        try
+                        {
+                            throw new InvalidOperationException(
+                                $"The matching cached SnapshotSourceText with <Reiterated Version, Length> = <{text._reiteratedVersion}, {text.Length}> " +
+                                $"does not match the given editorSnapshot with <{editorSnapshot.Version.ReiteratedVersionNumber}, {editorSnapshot.Length}>");
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                        {
+                        }
+                    }
                 }
 
                 text = new SnapshotSourceText(editorSnapshot, editorSnapshot.TextBuffer.GetEncodingOrUTF8());

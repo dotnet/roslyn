@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         protected DocumentInfo info;
 
         /// <summary>
-        /// A direct reference to our source text.  This is only kept around in speicalized scenarios.
+        /// A direct reference to our source text.  This is only kept around in specialized scenarios.
         /// Specifically, we keep this around when a document is opened.  By providing this we can allow
         /// clients to easily get to the text of the document in a non-blocking fashion if that's all
         /// that they need.
@@ -155,6 +156,20 @@ namespace Microsoft.CodeAnalysis
 
                 // try again after a delay
                 await Task.Delay(RetryDelay).ConfigureAwait(false);
+            }
+        }
+
+        public ITemporaryTextStorage Storage
+        {
+            get
+            {
+                var recoverableText = this.textAndVersionSource as RecoverableTextAndVersion;
+                if (recoverableText == null)
+                {
+                    return null;
+                }
+
+                return recoverableText.Storage;
             }
         }
 

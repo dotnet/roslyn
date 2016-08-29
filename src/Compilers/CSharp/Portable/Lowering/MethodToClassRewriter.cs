@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract TypeMap TypeMap { get; }
 
         // Subclasses override this method to fetch a frame pointer.
-        protected abstract BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass);
+        protected abstract BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass);
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
@@ -109,15 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            if ((object)node.LocalOpt != null)
+            if (!node.Locals.IsDefaultOrEmpty)
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
-                // of the variable owned by the catch block. Note that this variable might be a closure frame reference.
-                LocalSymbol newLocal;
-                TryRewriteLocal(node.LocalOpt, out newLocal);
+                // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
+                var newLocals = RewriteLocals(node.Locals);
 
                 return node.Update(
-                    newLocal,
+                    newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
@@ -147,10 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
             var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 rewrittenType);
         }
 
-        private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, CSharpSyntaxNode syntax)
+        private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, SyntaxNode syntax)
         {
             var newMethod = GetOrCreateBaseFunctionWrapper(methodBeingCalled, syntax);
             if (!newMethod.IsGenericMethod)
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newMethod.Construct(visitedTypeArgs.AsImmutableOrNull());
         }
 
-        private MethodSymbol GetOrCreateBaseFunctionWrapper(MethodSymbol methodBeingWrapped, CSharpSyntaxNode syntax)
+        private MethodSymbol GetOrCreateBaseFunctionWrapper(MethodSymbol methodBeingWrapped, SyntaxNode syntax)
         {
             methodBeingWrapped = methodBeingWrapped.ConstructedFrom;
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return wrapper;
         }
 
-        private bool TryReplaceWithProxy(Symbol parameterOrLocal, CSharpSyntaxNode syntax, out BoundNode replacement)
+        private bool TryReplaceWithProxy(Symbol parameterOrLocal, SyntaxNode syntax, out BoundNode replacement)
         {
             CapturedSymbolReplacement proxy;
             if (proxies.TryGetValue(parameterOrLocal, out proxy))
@@ -490,6 +490,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
         }
 
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
+            BoundExpression whenNullOpt = (BoundExpression)this.Visit(node.WhenNullOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(receiver, VisitMethodSymbol(node.HasValueMethodOpt), whenNotNull, whenNullOpt, node.Id, type);
+        }
+
         protected MethodSymbol VisitMethodSymbol(MethodSymbol method)
         {
             if ((object)method == null)
@@ -497,32 +506,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (!method.ContainingType.IsAnonymousType)
+            if (method.IsTupleMethod)
+            {
+                //  Method of a tuple type
+                var oldType = method.ContainingType;
+                var constructedFrom = method.ConstructedFrom;
+                Debug.Assert(oldType.IsTupleType);
+
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
+                if ((object)newType == oldType)
+                {
+                    //  tuple type symbol was not rewritten
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                }
+
+                Debug.Assert(newType.IsTupleType);
+                Debug.Assert(oldType.TupleElementTypes.Length == newType.TupleElementTypes.Length);
+
+                //  get a new method by position
+                var oldMembers = oldType.GetMembers();
+                var newMembers = newType.GetMembers();
+                Debug.Assert(oldMembers.Length == newMembers.Length);
+
+                for (int i = 0; i < oldMembers.Length; i++)
+                {
+                    if ((object)constructedFrom == oldMembers[i])
+                    {
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else if (method.ContainingType.IsAnonymousType)
+            {
+                //  Method of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, method.ContainingType))
+                {
+                    //  Anonymous type symbol was not rewritten
+                    return method;
+                }
+
+                //  get a new method by name
+                foreach (var member in newType.GetMembers(method.Name))
+                {
+                    if (member.Kind == SymbolKind.Method)
+                    {
+                        return (MethodSymbol)member;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else
             {
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
                     .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
             }
-
-            //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
-            if (ReferenceEquals(newType, method.ContainingType))
-            {
-                //  Anonymous type symbol was not rewritten
-                return method;
-            }
-
-            //  get a new method by name
-            foreach (var member in newType.GetMembers(method.Name))
-            {
-                if (member.Kind == SymbolKind.Method)
-                {
-                    return (MethodSymbol)member;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         private PropertySymbol VisitPropertySymbol(PropertySymbol property)
@@ -634,16 +677,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 receiverOpt,
                 operand.ResultKind);
 
+            var conversionInfo = conversion.Conversion;
+            if (conversionInfo.Method != (object)method)
+            {
+                conversionInfo = conversionInfo.SetConversionMethod(method);
+            }
+
             return conversion.Update(
                 operand,
-                conversion.ConversionKind,
-                resultKind: conversion.ResultKind,
+                conversionInfo,
                 isBaseConversion: conversion.IsBaseConversion,
-                symbolOpt: method,
                 @checked: conversion.Checked,
                 explicitCastInCode: conversion.ExplicitCastInCode,
-                isExtensionMethod: conversion.IsExtensionMethod,
-                isArrayIndex: conversion.IsArrayIndex,
                 constantValueOpt: conversion.ConstantValueOpt,
                 type: type);
         }
@@ -654,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
-            internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, CSharpSyntaxNode syntax, string name)
+            internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
                 : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), null, syntax.GetLocation(), name, DeclarationModifiers.Private)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);
@@ -684,6 +729,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 base.AddSynthesizedAttributes(compilationState, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+            }
+
+            internal override TypeSymbol IteratorElementType
+            {
+                get
+                {
+                    // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
+                    return null;
+                }
             }
         }
     }

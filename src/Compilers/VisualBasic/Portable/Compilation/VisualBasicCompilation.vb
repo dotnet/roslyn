@@ -192,6 +192,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend ReadOnly Property MergedRootDeclaration As MergedNamespaceDeclaration
+            Get
+                Return Declarations.GetMergedRoot(Me)
+            End Get
+        End Property
+
         Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return _options
@@ -246,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' The My template regularly makes use of more recent language features.  Care is
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
-                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic14)
+                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
                             tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
 
                             If tree.GetDiagnostics().Any() Then
@@ -448,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(_lazyAssemblySymbol Is Nothing)
             If Me.EventQueue IsNot Nothing Then
-                Me.EventQueue.Enqueue(New CompilationStartedEvent(Me))
+                Me.EventQueue.TryEnqueue(New CompilationStartedEvent(Me))
             End If
         End Sub
 
@@ -475,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return If(result, VisualBasicParseOptions.Default.LanguageVersion)
+            Return If(result, LanguageVersion.Default.MapSpecifiedToEffectiveVersion)
         End Function
 
         ''' <summary>
@@ -1561,7 +1567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
             If _lazyImportInfos IsNot Nothing Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
@@ -1610,6 +1616,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            CompleteTrees(filterTree)
+        End Sub
+
+        Friend Overrides Sub CompleteTrees(filterTree As SyntaxTree)
             ' By definition, a tree Is complete when all of its compiler diagnostics have been reported.
             ' Since unused imports are the last thing we compute And report, a tree Is complete when
             ' the unused imports have been reported.
@@ -1632,8 +1642,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Debug.Assert(AllSyntaxTrees.Contains(tree))
-            Dim completedCompilationUnit As Boolean = False
-            Dim completedCompilation As Boolean = False
 
             If _lazyCompilationUnitCompletedTrees Is Nothing Then
                 Interlocked.CompareExchange(_lazyCompilationUnitCompletedTrees, New HashSet(Of SyntaxTree)(), Nothing)
@@ -1641,21 +1649,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             SyncLock _lazyCompilationUnitCompletedTrees
                 If _lazyCompilationUnitCompletedTrees.Add(tree) Then
-                    completedCompilationUnit = True
+                    ' signal the end of the compilation unit
+                    EventQueue.TryEnqueue(New CompilationUnitCompletedEvent(Me, tree))
+
                     If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
-                        completedCompilation = True
+                        ' if that was the last tree, signal the end of compilation
+                        CompleteCompilationEventQueue_NoLock()
                     End If
                 End If
             End SyncLock
-
-            If completedCompilationUnit Then
-                EventQueue.Enqueue(New CompilationUnitCompletedEvent(Me, tree))
-            End If
-
-            If completedCompilation Then
-                EventQueue.Enqueue(New CompilationCompletedEvent(Me))
-                EventQueue.Complete() ' signal the End Of compilation events
-            End If
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
@@ -1675,7 +1677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
             If ShouldAddEvent(symbol) Then
-                EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
 
@@ -1931,6 +1933,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
                 builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+
+                If EventQueue IsNot Nothing AndAlso SyntaxTrees.Length = 0 Then
+                    EnsureCompilationEventQueueCompleted()
+                End If
             End If
 
             ' Add method body compilation errors.
@@ -2052,35 +2058,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function FilterAndAppendAndFreeDiagnostics(accumulator As DiagnosticBag, ByRef incoming As DiagnosticBag) As Boolean
-            Dim result As Boolean = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution())
-            incoming.Free()
-            incoming = Nothing
-            Return result
-        End Function
-
-        ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
-        Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
-            Dim hasError As Boolean = False
-            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
-
-            For Each diagnostic As Diagnostic In incoming
-                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
-                If filtered Is Nothing OrElse
-                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
-                    Continue For
-                End If
-
-                If filtered.Severity = DiagnosticSeverity.Error Then
-                    hasError = True
-                End If
-
-                accumulator.Add(filtered)
-            Next
-
-            Return Not hasError
-        End Function
-
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
@@ -2133,6 +2110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
+            sourceLinkStream As Stream,
+            embeddedTexts As IEnumerable(Of EmbeddedText),
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2141,6 +2120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateModuleBuilder(
                 emitOptions,
                 debugEntryPoint,
+                sourceLinkStream,
+                embeddedTexts,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -2151,6 +2132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,
+            sourceLinkStream As Stream,
+            embeddedTexts As IEnumerable(Of EmbeddedText),
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
@@ -2193,6 +2176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 moduleBeingBuilt.SetDebugEntryPoint(DirectCast(debugEntryPoint, MethodSymbol), diagnostics)
             End If
 
+            moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream
+
+            If embeddedTexts IsNot Nothing Then
+                moduleBeingBuilt.EmbeddedTexts = embeddedTexts
+            End If
+
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
                 testData.Module = moduleBeingBuilt
@@ -2201,10 +2190,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return moduleBeingBuilt
         End Function
 
-        Friend Overrides Function CompileImpl(
+        Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
-            win32Resources As Stream,
-            xmlDocStream As Stream,
             emittingPdb As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
@@ -2239,7 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
+                If emittingPdb AndAlso Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
 
@@ -2258,22 +2245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
-
-                DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
-                Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
-
-                SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
-
-                ' give the name of any added modules, but not the name of the primary module.
-                ReportManifestResourceDuplicates(
-                    moduleBeingBuilt.ManifestResources,
-                    SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
-                    AddedModulesResourceNames(methodBodyDiagnosticBag),
-                    methodBodyDiagnosticBag)
-
                 Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
-
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2285,41 +2257,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Function StartSourceChecksumCalculation(moduleBeingBuilt As PEModuleBuilder, diagnostics As DiagnosticBag) As Boolean
-            ' Check that all syntax trees are debuggable
-            Dim allTreesDebuggable = True
-            For Each tree In Me.SyntaxTrees
-                If Not String.IsNullOrEmpty(tree.FilePath) AndAlso tree.GetText().Encoding Is Nothing Then
-                    diagnostics.Add(ERRID.ERR_EncodinglessSyntaxTree, tree.GetRoot().GetLocation())
-                    allTreesDebuggable = False
-                End If
-            Next
+        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+            moduleBuilder As CommonPEModuleBuilder,
+            xmlDocStream As Stream,
+            win32Resources As Stream,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
 
-            If Not allTreesDebuggable Then
+            Debug.Assert(Not moduleBuilder.EmitOptions.EmitMetadataOnly)
+
+            ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            Dim resourceDiagnostics = DiagnosticBag.GetInstance()
+
+            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics)
+
+            ' give the name of any added modules, but not the name of the primary module.
+            ReportManifestResourceDuplicates(
+                moduleBuilder.ManifestResources,
+                SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
+                AddedModulesResourceNames(resourceDiagnostics),
+                resourceDiagnostics)
+
+            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics) Then
                 Return False
             End If
 
-            ' Add debug documents for all trees with distinct paths.
-            For Each tree In Me.SyntaxTrees
-                If Not String.IsNullOrEmpty(tree.FilePath) Then
-                    ' compilation does not guarantee that all trees will have distinct paths.
-                    ' Do not attempt adding a document for a particular path if we already added one.
-                    Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(tree.FilePath, basePath:=Nothing)
-                    Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
-                    If existingDoc Is Nothing Then
-                        moduleBeingBuilt.AddDebugDocument(MakeDebugSourceDocumentForTree(normalizedPath, tree))
-                    End If
-                End If
-            Next
+            cancellationToken.ThrowIfCancellationRequested()
 
-            ' Add debug documents for all directives. 
-            ' If there are clashes with already processed directives, report warnings.
-            ' If there are clashes with debug documents that came from actual trees, ignore the directive.
-            For Each tree In Me.SyntaxTrees
-                AddDebugSourceDocumentsForChecksumDirectives(moduleBeingBuilt, tree, diagnostics)
-            Next
+            ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            Dim xmlDiagnostics = DiagnosticBag.GetInstance()
 
-            Return True
+            Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBuilder.EmitOptions.OutputNameOverride, extension:=Nothing)
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken)
+
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)
         End Function
 
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
@@ -2367,8 +2338,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(corLibrary Is Nothing, String.Empty, corLibrary.Assembly.ManifestModule.MetadataVersion)
         End Function
 
-        Private Shared Sub AddDebugSourceDocumentsForChecksumDirectives(
-            moduleBeingBuilt As PEModuleBuilder,
+        Friend Overrides Sub AddDebugSourceDocumentsForChecksumDirectives(
+            documentsBuilder As DebugDocumentsBuilder,
             tree As SyntaxTree,
             diagnosticBag As DiagnosticBag)
 
@@ -2380,21 +2351,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim path = checksumDirective.ExternalSource.ValueText
 
                 Dim checkSumText = checksumDirective.Checksum.ValueText
-                Dim normalizedPath = moduleBeingBuilt.NormalizeDebugDocumentPath(path, basePath:=tree.FilePath)
-                Dim existingDoc = moduleBeingBuilt.TryGetDebugDocumentForNormalizedPath(normalizedPath)
+                Dim normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(path, basePath:=tree.FilePath)
+                Dim existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath)
 
                 If existingDoc IsNot Nothing Then
                     ' directive matches a file path on an actual tree.
                     ' Dev12 compiler just ignores the directive in this case which means that
                     ' checksum of the actual tree always wins and no warning is given.
                     ' We will continue doing the same.
-                    If (existingDoc.IsComputedChecksum) Then
+                    If existingDoc.IsComputedChecksum Then
                         Continue For
                     End If
 
-                    If CheckSumMatches(checkSumText, existingDoc.ChecksumAndAlgorithm.Item1) Then
+                    Dim sourceInfo = existingDoc.GetSourceInfo()
+
+                    If CheckSumMatches(checkSumText, sourceInfo.Checksum) Then
                         Dim guid As Guid = Guid.Parse(checksumDirective.Guid.ValueText)
-                        If guid = existingDoc.ChecksumAndAlgorithm.Item2 Then
+                        If guid = sourceInfo.ChecksumAlgorithmId Then
                             ' all parts match, nothing to do
                             Continue For
                         End If
@@ -2411,7 +2384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         MakeCheckSumBytes(checksumDirective.Checksum.ValueText),
                         Guid.Parse(checksumDirective.Guid.ValueText))
 
-                    moduleBeingBuilt.AddDebugDocument(newDocument)
+                    documentsBuilder.AddDebugDocument(newDocument)
                 End If
             Next
         End Sub
@@ -2448,25 +2421,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function MakeDebugSourceDocumentForTree(normalizedPath As String, tree As SyntaxTree) As DebugSourceDocument
-            Return New DebugSourceDocument(normalizedPath, DebugSourceDocument.CorSymLanguageTypeBasic, Function() tree.GetChecksumAndAlgorithm())
-        End Function
-
-        Private Sub SetupWin32Resources(moduleBeingBuilt As PEModuleBuilder, win32Resources As Stream, diagnostics As DiagnosticBag)
-            If (win32Resources Is Nothing) Then Return
-
-            Select Case DetectWin32ResourceForm(win32Resources)
-                Case Win32ResourceForm.COFF
-                    moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics)
-                Case Win32ResourceForm.RES
-                    moduleBeingBuilt.Win32Resources = MakeWin32ResourceList(win32Resources, diagnostics)
-                Case Else
-                    diagnostics.Add(ERRID.ERR_ErrorCreatingWin32ResourceFile, NoLocation.Singleton, New LocalizableErrorArgument(ERRID.IDS_UnrecognizedFileFormat))
-            End Select
-        End Sub
+        Friend Overrides ReadOnly Property DebugSourceDocumentLanguageId As Guid
+            Get
+                Return DebugSourceDocument.CorSymLanguageTypeBasic
+            End Get
+        End Property
 
         Friend Overrides Function HasCodeToEmit() As Boolean
-            ' TODO (tomat):
             For Each syntaxTree In SyntaxTrees
                 Dim unit = syntaxTree.GetCompilationUnitRoot()
                 If unit.Members.Count > 0 Then
@@ -2603,8 +2564,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
+        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            If elementTypes.IsDefault Then
+                Throw New ArgumentNullException(NameOf(elementTypes))
+            End If
+
+            If elementTypes.Length <= 1 Then
+                Throw New ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, NameOf(elementNames))
+            End If
+
+            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames)
+
+            Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
+            For i As Integer = 0 To elementTypes.Length - 1
+                If elementTypes(i) Is Nothing Then
+                    Throw New ArgumentNullException($"{NameOf(elementTypes)}[{i}]")
+                End If
+
+                typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
+            Next
+
+            'no location for the type declaration
+            Return TupleTypeSymbol.Create(locationOpt:=Nothing, elementTypes:=typesBuilder.ToImmutableAndFree(), elementLocations:=Nothing, elementNames:=elementNames, compilation:=Me)
+        End Function
+
+        ''' <summary>
+        ''' Check that if any names are provided, their number matches the expected cardinality and they are not null.
+        ''' </summary>
+        Private Shared Function CheckTupleElementNames(cardinality As Integer, elementNames As ImmutableArray(Of String)) As ImmutableArray(Of String)
+            If Not elementNames.IsDefault Then
+                If elementNames.Length <> cardinality Then
+                    Throw New ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, NameOf(elementNames))
+                End If
+
+                If elementNames.All(Function(n As String) n Is Nothing) Then
+                    Return Nothing
+                End If
+            End If
+
+            Return elementNames
+        End Function
+
+        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            If underlyingType Is Nothing Then
+                Throw New ArgumentNullException(NameOf(underlyingType))
+            End If
+
+            Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
+
+            Dim cardinality As Integer
+            If Not csharpUnderlyingTuple.IsTupleCompatible(cardinality) Then
+                Throw New ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, NameOf(underlyingType))
+            End If
+
+            elementNames = CheckTupleElementNames(cardinality, elementNames)
+
+            Return TupleTypeSymbol.Create(
+                locationOpt:=Nothing,
+                tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
+                elementLocations:=Nothing,
+                elementNames:=elementNames)
+        End Function
+
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateAnonymousTypeSymbol(
+                memberTypes As ImmutableArray(Of ITypeSymbol),
+                memberNames As ImmutableArray(Of String)) As INamedTypeSymbol
+
+            Dim i = 0
+            For Each t In memberTypes
+                t.EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(memberTypes)}({i})")
+
+                i = i + 1
+            Next
+
+            Dim fields = memberTypes.ZipAsArray(
+                memberNames,
+                Function(type, name) New AnonymousTypeField(name, DirectCast(type, TypeSymbol), Location.None))
+
+            Dim descriptor = New AnonymousTypeDescriptor(fields, Location.None, isImplicitlyDeclared:=False)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
         End Function
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
@@ -2635,7 +2677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
-            Return Me.Declarations.ContainsName(predicate, filter, cancellationToken)
+            Return DeclarationTable.ContainsName(MergedRootDeclaration, predicate, filter, cancellationToken)
         End Function
 
         ''' <summary>
@@ -2651,6 +2693,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
+        End Function
+
+        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
+            Dim tree = Me.SyntaxTrees.FirstOrDefault()
+            If tree Is Nothing Then
+                Return False
+            End If
+
+            Dim options = DirectCast(tree.Options, VisualBasicParseOptions)
+            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
+
+            Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
 #End Region
 
@@ -2668,7 +2722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result = New HashSet(Of ISymbol)()
                 Dim spine = New List(Of MergedNamespaceOrTypeDeclaration)()
 
-                AppendSymbolsWithName(spine, Me._compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken)
 
                 Return result
             End Function

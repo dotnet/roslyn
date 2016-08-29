@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -48,9 +45,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // we need to add a project reference, or we need to rename) is low
                 // priority.
 
-                return document.Project.Id == _project.Id && !SearchResult.ShouldRenameNode()
-                    ? CodeActionPriority.Medium
-                    : CodeActionPriority.Low;
+                if (document.Project.Id == _project.Id)
+                {
+                    if (SearchResult.DesiredNameMatchesSourceName(document))
+                    {
+                        // The name doesn't change.  This is a normal priority action.
+                        return CodeActionPriority.Medium;
+                    }
+                }
+
+                // This is a weaker match.  This should be lower than all other fixes.
+                return CodeActionPriority.Low;
             }
 
             protected override Solution UpdateSolution(Document newDocument)
@@ -70,9 +75,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newProject.Solution;
             }
 
-            protected override string GetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
+            protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
             {
-                var description = base.GetDescription(project, node, semanticModel);
+                var description = base.TryGetDescription(project, node, semanticModel);
+                if (description == null)
+                {
+                    return null;
+                }
+
                 return project.Id == _project.Id
                     ? description
                     : $"{description} ({string.Format(FeaturesResources.from_0, _project.Name)})";

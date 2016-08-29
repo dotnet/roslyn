@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService
+    internal sealed partial class NavigateToSearchResultProvider
     {
         private class SearchResult : INavigateToSearchResult
         {
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
-                            return EditorFeaturesResources.Project + document.Project.Name;
+                            return EditorFeaturesResources.project + document.Project.Name;
                         default:
-                            return EditorFeaturesResources.Type + declaredSymbolInfo.ContainerDisplayName;
+                            return EditorFeaturesResources.type + declaredSymbolInfo.ContainerDisplayName;
                     }
                 });
             }

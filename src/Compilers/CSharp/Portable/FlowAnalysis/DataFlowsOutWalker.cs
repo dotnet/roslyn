@@ -143,14 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.CatchBlock:
                         {
-                            var local = ((BoundCatchBlock)node).LocalOpt;
-                            Debug.Assert((object)local == null || local.DeclarationKind == LocalDeclarationKind.CatchVariable);
-                            return (object)local != null ? local : null;
+                            var local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
+                            return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
                         }
 
                     case BoundKind.ForEachStatement:
                         {
-                            return ((BoundForEachStatement)node).IterationVariable;
+                            return ((BoundForEachStatement)node).IterationVariableOpt;
                         }
 
                     case BoundKind.RangeVariable:
@@ -238,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitQueryClause(node);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             if (!_dataFlowsOut.Contains(symbol) && !(symbol is FieldSymbol) && !IsInside)
             {
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.ReportUnassigned(symbol, node);
         }
 
-        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
+        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
             if (!_dataFlowsOut.Contains(parameter) && (node == null || node is ReturnStatementSyntax))
             {
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
 
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             if (!IsInside)
             {

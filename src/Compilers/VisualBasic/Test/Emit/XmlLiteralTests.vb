@@ -4325,9 +4325,29 @@ End Class
         End Sub
 
         <WorkItem(531445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531445")>
-        <Fact(Skip:="531445")>
+        <WorkItem(101597, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=101597")>
+        <Fact>
         Public Sub SameNamespaceDifferentPrefixes()
             Dim options = TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:r=""http://roslyn/"">", "<xmlns:s=""http://roslyn/"">"}))
+
+            Dim expectedOutput As Xml.Linq.XCData
+
+            Const bug101597IsFixed = False
+
+            If bug101597IsFixed Then
+                expectedOutput = <![CDATA[
+<p:x xmlns:s="http://roslyn/" xmlns:r="http://roslyn/" xmlns:q="http://roslyn/" xmlns:p="http://roslyn/">
+  <p:y p:a="" p:b="" />
+</p:x>
+]]>
+            Else
+                expectedOutput = <![CDATA[
+<q:x xmlns:p="http://roslyn/" xmlns:s="http://roslyn/" xmlns:r="http://roslyn/" xmlns:q="http://roslyn/">
+  <q:y q:a="" q:b="" />
+</q:x>
+]]>
+            End If
+
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4342,11 +4362,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, options:=options, expectedOutput:=<![CDATA[
-<p:x xmlns:s="http://roslyn/" xmlns:r="http://roslyn/" xmlns:q="http://roslyn/" xmlns:p="http://roslyn/">
-  <p:y p:a="" p:b="" />
-</p:x>
-]]>)
+</compilation>, additionalRefs:=XmlReferences, options:=options, expectedOutput:=expectedOutput)
         End Sub
 
         <WorkItem(623035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623035")>

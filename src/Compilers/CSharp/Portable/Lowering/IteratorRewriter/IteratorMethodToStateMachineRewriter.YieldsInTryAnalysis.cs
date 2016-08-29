@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class IteratorMethodToStateMachineRewriter
     {
         /// <summary>
-        /// Analyses method body for yields in try blocks and labels that they contain.
+        /// Analyzes method body for yields in try blocks and labels that they contain.
         /// </summary>
         private sealed class YieldsInTryAnalysis : LabelCollector
         {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Analyses method body for labels.
+    /// Analyzes method body for labels.
     /// </summary>
     internal abstract class LabelCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {

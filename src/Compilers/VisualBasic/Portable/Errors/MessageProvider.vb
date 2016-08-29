@@ -95,7 +95,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VBDiagnostic(ErrorFactory.ErrorInfo(CType(code, ERRID), args), location)
         End Function
 
-        Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
+        Public Overrides Function CreateDiagnostic(info As DiagnosticInfo) As Diagnostic
+            Return New VBDiagnostic(info, Location.None)
+        End Function
+
+        Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
             ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
                 Return symbol.ToString()
@@ -357,6 +361,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_OptionMustBeAbsolutePath As Integer
+            Get
+                Return ERRID.ERR_OptionMustBeAbsolutePath
+            End Get
+        End Property
+
         ' resources:
         Public Overrides ReadOnly Property ERR_CantOpenWin32Resource As Integer
             Get
@@ -450,6 +460,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' PDB Writer
+        Public Overrides ReadOnly Property ERR_EncodinglessSyntaxTree As Integer
+            Get
+                Return ERRID.ERR_EncodinglessSyntaxTree
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property WRN_PdbUsingNameTooLong As Integer
             Get
                 Return ERRID.WRN_PdbUsingNameTooLong
@@ -496,6 +512,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer
             Get
                 Return ERRID.ERR_ModuleEmitFailure
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer
+            Get
+                Return ERRID.ERR_EncUpdateFailedMissingAttribute
             End Get
         End Property
     End Class

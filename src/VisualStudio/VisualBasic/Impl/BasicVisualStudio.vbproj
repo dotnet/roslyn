@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>VB</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -131,6 +129,7 @@
     <Compile Include="ObjectBrowser\VisualBasicSyncClassViewCommandHandler.vb" />
     <Compile Include="Options\AdvancedOptionPageStrings.vb" />
     <Compile Include="Options\AutomationObject.vb" />
+    <Compile Include="Options\Formatting\CodeStylePage.vb" />
     <Compile Include="Options\NamingStylesOptionPage.vb" />
     <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
     <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
@@ -142,7 +141,7 @@
     <Compile Include="Options\StyleViewModel.vb" />
     <Compile Include="Progression\VisualBasicGraphProvider.vb" />
     <Compile Include="Progression\VisualBasicProgressionLanguageService.vb" />
-    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptions.vb" />
+    <Compile Include="ProjectSystemShim\VisualBasicProjectOptionsHelper.vb" />
     <Compile Include="ProjectSystemShim\EntryPointFinder.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbBuildStatusCallback.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbCompiler.vb" />
@@ -166,7 +165,6 @@
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.CodeModel.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.vb" />
     <Compile Include="Snippets\SnippetCommandHandler.vb" />
-    <Compile Include="Snippets\SnippetCompletionProvider.ItemRules.vb" />
     <Compile Include="Snippets\SnippetCompletionProvider.vb" />
     <Compile Include="Snippets\SnippetExpansionClient.vb" />
     <Compile Include="Snippets\SnippetFunctions\SnippetFunctionClassName.vb" />
@@ -187,65 +185,6 @@
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Utilities, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -260,6 +199,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
@@ -283,6 +223,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Options\IntelliSenseOptionPageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -291,9 +235,12 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Options\IntelliSenseOptionPage.vb" />
+    <Compile Include="Options\IntelliSenseOptionPageControl.xaml.vb">
+      <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Options\IntelliSenseOptionPageStrings.vb" />
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

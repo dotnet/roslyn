@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
@@ -28,6 +26,35 @@ NewLines("Module Program \n Sub Main(args As String(), f As System.IO.FileMode) 
             Await TestAsync(
 NewLines("Class Class1 \n Dim v As [|SomeClass1|] \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"),
 NewLines("Class Class1 \n Dim v As SomeNamespace.SomeClass1 \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"))
+        End Function
+
+        Public Async Function TestOrdering() As Task
+            Dim code = "
+namespace System.Windows.Controls
+    public class TextBox
+    end class
+end namespace
+
+namespace System.Windows.Forms
+    public class TextBox
+    end class
+end namespace
+
+namespace System.Windows.Forms.VisualStyles.VisualStyleElement
+    public class TextBox
+    end class
+end namespace
+
+Public Class TextBoxEx
+    Inherits TextBox
+
+End Class"
+
+            Await TestExactActionSetOfferedAsync(
+                code,
+                {"System.Windows.Controls.TextBox",
+                 "System.Windows.Forms.TextBox",
+                 "System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
@@ -271,7 +298,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As OUTER.INNER.F
         End Function
 
         <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/7369"), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestAsync(
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim x As [|stream|] \n End Sub \n End Module"),

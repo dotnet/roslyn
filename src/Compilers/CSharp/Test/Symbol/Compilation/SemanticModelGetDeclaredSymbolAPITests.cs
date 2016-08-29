@@ -939,6 +939,29 @@ namespace N1.N2
             Assert.Equal("p1", psym.Name);
         }
 
+        [Fact]
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        public void TestGetDeclaredSymbolWithIncompleteDeclaration()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C0 { }
+
+class 
+
+class C1 { }
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (ClassDeclarationSyntax)root.Members[1];
+            var model = compilation.GetSemanticModel(tree);
+
+            var symbol = model.GetDeclaredSymbol(typeDecl);
+
+            Assert.NotNull(symbol);
+            Assert.Equal(string.Empty, symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, symbol.TypeKind);
+        }
+
         [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
         [Fact]
         public void TestLookupUnresolvableNamespaceUsing()
@@ -3784,16 +3807,12 @@ class C
             var compilation = CreateCompilationWithMscorlib(text);
             var tree = compilation.SyntaxTrees[0];
             var node = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "Alias").Last().Parent;
-            var model1 = compilation.GetSemanticModel(tree);
-            var alias1 = model1.GetAliasInfo(node);
+            var modelWeakReference = ObjectReference.CreateFromFactory(() => compilation.GetSemanticModel(tree));
+            var alias1 = modelWeakReference.UseReference(sm => sm.GetAliasInfo(node));
 
             // We want the Compilation's WeakReference<BinderFactory> to be collected
             // so that the next semantic model will get a new one.
-            model1 = null; // otherwise it will keep the BinderFactory alive
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
-            GC.Collect(GC.MaxGeneration);
-            GC.WaitForPendingFinalizers();
+            modelWeakReference.AssertReleased();
 
             var model2 = compilation.GetSemanticModel(tree);
             var alias2 = model2.GetAliasInfo(node);

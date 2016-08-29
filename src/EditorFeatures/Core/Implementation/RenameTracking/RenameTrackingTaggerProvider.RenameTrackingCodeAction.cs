@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                if (!_document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.RenameTrackingPreview, _document.Project.Language) ||
+                if (!_document.Options.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
                             _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
-                                ?.SendNotification(EditorFeaturesResources.TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable, severity: NotificationSeverity.Error);
+                                ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
 
                         var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
                         var newName = snapshotSpan.GetText();
-                        var displayText = string.Format(EditorFeaturesResources.RenameTo, stateMachine.TrackingSession.OriginalName, newName);
+                        var displayText = string.Format(EditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
                         _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _refactorNotifyServices, _undoHistoryRegistry, displayText);
                         return true;
                     }

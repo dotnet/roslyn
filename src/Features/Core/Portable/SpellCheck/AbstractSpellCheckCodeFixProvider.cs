@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -52,18 +52,18 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            var completionList = await CompletionService.GetCompletionListAsync(
-                document, nameNode.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var service = CompletionService.GetService(document);
+            var completionList = await service.GetCompletionsAsync(
+                document, nameNode.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList == null)
             {
                 return;
             }
 
-            var completionRules = CompletionService.GetCompletionRules(document);
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            using (var similarityChecker = new WordSimilarityChecker(nameText))
+            using (var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true))
             {
                 foreach (var item in completionList.Items)
                 {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                         continue;
                     }
 
-                    var insertionText = completionRules.GetTextChange(item).NewText;
+                    var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                     results.Add(matchCost, insertionText);
                 }
             }
@@ -92,10 +92,18 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             context.RegisterFixes(matches, context.Diagnostics);
         }
 
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var service = CompletionService.GetService(document);
+            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+
+            return change.TextChange.NewText;
+        }
+
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo, oldName, newName),
+                string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }

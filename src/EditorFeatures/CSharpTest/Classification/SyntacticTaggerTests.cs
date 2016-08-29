@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -35,21 +36,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     null,
                     new SyntacticClassificationTaggerProvider(null, null, null));
 
-                SnapshotSpan span = default(SnapshotSpan);
+                // Capture the expected value before the await, in case it changes.
+                var expectedLength = subjectBuffer.CurrentSnapshot.Length;
+                int? actualVersionNumber = null;
+                int? actualLength = null;
+                List<string> callstacks = new List<string>();
                 tagComputer.TagsChanged += (s, e) =>
                 {
-                    span = e.Span;
+                    actualVersionNumber = e.Span.Snapshot.Version.VersionNumber;
+                    actualLength = e.Span.Length;
+                    callstacks.Add(StackTrace.GetString());
                     checkpoint.Release();
                 };
 
                 await checkpoint.Task;
+                Assert.Equal(1, actualVersionNumber);
+                Assert.Equal(expectedLength, actualLength);
+                Assert.Equal(1, callstacks.Count);
+
                 checkpoint = new Checkpoint();
 
                 // Now apply an edit that require us to reclassify more that just the current line
-                subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+                var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+                expectedLength = snapshot.Length;
 
+                // NOTE: TagsChanged is raised on the UI thread, so there is no race between
+                // assigning expected here and verifying in the event handler, because the
+                // event handler can't run until we await.
                 await checkpoint.Task;
-                Assert.Equal(subjectBuffer.CurrentSnapshot.Length, span.Length);
+                Assert.Equal(2, actualVersionNumber);
+                Assert.Equal(expectedLength, actualLength);
+                Assert.Equal(2, callstacks.Count);
             }
         }
     }

@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function AdviseFileChange(pszMkDocument As String, grfFilter As UInteger, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseFileChange
-            If grfFilter <> _VSFILECHANGEFLAGS.VSFILECHG_Time Then
+            If (grfFilter And _VSFILECHANGEFLAGS.VSFILECHG_Time) <> _VSFILECHANGEFLAGS.VSFILECHG_Time Then
                 Throw New NotImplementedException()
             End If
 

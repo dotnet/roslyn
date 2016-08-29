@@ -3,6 +3,8 @@
   DefaultTargets="BuildAndTest"
   ToolsVersion="12.0">
 
+  <Import Project="$(MSBuildThisFileDirectory)build\Targets\Dependencies.props" />
+
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
@@ -16,7 +18,6 @@
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <XunitVersion>2.1.0</XunitVersion>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
@@ -63,8 +64,8 @@
 
   <Target Name="Test">
     <ItemGroup>
-      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(XunitVersion)\*.dll
-        ;$(NuGetPackageRoot)\xunit.assert\$(XunitVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll
+        ;$(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
     </ItemGroup>
     <!-- Copy xunit stuff to output directory -->
     <Copy SourceFiles="@(AssembliesToCopyLocal)"
@@ -94,9 +95,36 @@
         Text="Found test assemblies outside a well-known test directory: 
 @(MisplacedTestAssemblies, '%0a')" />
 
-    <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml" />
+    <PropertyGroup>
+      <CoreRunExe>$(CoreClrTestDirectory)\CoreRun.exe</CoreRunExe>
+      <CoreRunArgs>$(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml</CoreRunArgs>
+      <RunTestsExe>Binaries\$(Configuration)\RunTests\RunTests.exe</RunTestsExe>
+      <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
+    </PropertyGroup>
+    
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
-    <Exec Command="Binaries\$(Configuration)\RunTests\RunTests.exe &quot;$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools&quot; $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+
+    <PropertyGroup Condition="'$(RunProcessWatchdog)' == 'true'">
+      <ProcessWatchDogExe>$(OutputDirectory)\ProcessWatchdog\ProcessWatchdog.exe</ProcessWatchDogExe>
+      <ProcessWatchdogOutputDirectory Condition="'$(ProcessWatchdogOutputDirectory)' == ''">$(OutputDirectory)\ProcessWatchdogOutput</ProcessWatchdogOutputDirectory>
+      <ProcDumpExe Condition="'$(ProcDumpExe)' == ''">C:\Sysinternals\Procdump.exe</ProcDumpExe>
+
+      <!--
+      The time reserved for the process watchdog to kill all test processes and obtain crash
+      dumps from them, measure in seconds.
+      -->
+      <BufferTime>300</BufferTime>
+
+      <!--
+      The fully constructed command line which runs a PowerShell script that runs both the
+      Core CLR unit tests and the desktop unit tests under the control of the process watchdog.
+      -->
+      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
+    </PropertyGroup>
+
+    <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command="$(RunProcessWatchdogScriptCommand)" />
 
   </Target>
 

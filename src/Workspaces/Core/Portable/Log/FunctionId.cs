@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
+        CommandHandler_FormatCommand,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -324,5 +325,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SymbolTreeInfo_ExceptionInCacheRead,
         SpellChecker_ExceptionInCacheRead,
         BKTree_ExceptionInCacheRead,
+        IntellisenseBuild_Failed,
+
+        // Generic performance measurement action IDs
+        MeasurePerformance_StartAction,
+        MeasurePerformance_StopAction,
+
+        RemoteHostClientService_AddGlobalAssetsAsync,
+        RemoteHostClientService_RemoveGlobalAssets,
+        RemoteHostClientService_Enabled,
+        ServiceHubRemoteHostClient_CreateAsync,
+        SolutionChecksumServiceFactory_CreateChecksumAsync,
+        SolutionChecksumServiceFactory_GetChecksumObject,
+        ChecksumTreeNode_GetOrCreateChecksumObjectAsync,
+        Serializer_Deserialize,
+        CodeAnalysisService_CalculateDiagnosticsAsync,
+        CodeAnalysisService_SerializeDiagnosticResultAsync,
+        AssetService_CleanAssets,
+        AssetService_GetAssetAsync,
+        SnapshotService_RequestAssetAsync,
+        CompilationService_GetCompilationAsync,
     }
 }

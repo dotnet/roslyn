@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);
             }
 
-            private static bool CompareParts(SymbolDisplayPart p1, SymbolDisplayPart p2)
+            private static bool CompareParts(TaggedText p1, TaggedText p2)
             {
                 return p1.ToString() == p2.ToString();
             }

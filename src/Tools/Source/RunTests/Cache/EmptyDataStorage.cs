@@ -12,7 +12,7 @@ namespace RunTests.Cache
 
         public string Name => "none";
 
-        public Task AddCachedTestResult(string assemblyName, ContentFile conentFile, CachedTestResult testResult)
+        public Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile conentFile, CachedTestResult testResult)
         {
             var source = new TaskCompletionSource<bool>();
             source.SetResult(true);

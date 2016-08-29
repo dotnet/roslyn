@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -133,9 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As ArgumentListSyntax,
-                                               Optional reservedNames As IEnumerable(Of String) = Nothing) As IList(Of String)
+                                               Optional reservedNames As IEnumerable(Of String) = Nothing) As IList(Of ParameterName)
             If arguments Is Nothing Then
-                Return SpecializedCollections.EmptyList(Of String)()
+                Return SpecializedCollections.EmptyList(Of ParameterName)()
             End If
 
             Return GenerateParameterNames(semanticModel, arguments.Arguments.ToList(), reservedNames)
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As IList(Of ArgumentSyntax),
-                                               Optional reservedNames As IEnumerable(Of String) = Nothing) As IList(Of String)
+                                               Optional reservedNames As IEnumerable(Of String) = Nothing) As IList(Of ParameterName)
             reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
             Return semanticModel.GenerateParameterNames(
                 arguments,
@@ -154,9 +155,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As IList(Of ArgumentSyntax),
-                                               canUse As Func(Of String, Boolean)) As IList(Of String)
+                                               canUse As Func(Of String, Boolean)) As IList(Of ParameterName)
             If arguments.Count = 0 Then
-                Return SpecializedCollections.EmptyList(Of String)()
+                Return SpecializedCollections.EmptyList(Of ParameterName)()
             End If
 
             ' We can't change the names of named parameters.  Any other names we're flexible on.
@@ -166,7 +167,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                           Into ToList()
 
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a)).ToList()
-            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse)
+            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
+                                 Select(Function(name, index) New ParameterName(name, isFixed(index))).
+                                 ToList()
         End Function
 
         Private Function SetEquals(array1 As ImmutableArray(Of ISymbol), array2 As ImmutableArray(Of ISymbol)) As Boolean

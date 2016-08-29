@@ -6,11 +6,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class CallSiteConflictResolutionTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact(Skip:="535068")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
@@ -43,7 +43,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact(Skip:="535068")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
@@ -76,7 +76,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact(Skip:="535068")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>

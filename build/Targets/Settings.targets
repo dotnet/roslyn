@@ -9,25 +9,29 @@
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
                                  '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
-                                 '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+                                 '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
 
     <!-- 
         $(OS) is only specific enough for windows builds.  For non-windows builds the identifier
         is specified on the command line of MSBuild
     -->
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-
-    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
-    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta1-20160202-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
-    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.MSBuild.Util\0.9.1\lib\net45\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
+    <ToolsetCompilerPackageVersion>1.3.2</ToolsetCompilerPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
+       Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
+  <PropertyGroup>
+    <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
   </PropertyGroup>
 
   <!-- 
@@ -39,8 +43,7 @@
     Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
   -->
   <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
-             AssemblyFile="$(RoslynBuildUtilFilePath)"
-             Condition="'$(OS)' == 'Windows_NT'" />
+             AssemblyFile="$(RoslynBuildUtilFilePath)" />
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
@@ -51,6 +54,11 @@
   <!-- Prevent vsix manifests from being copied to the shared output directory, makes build more deterministic -->
   <PropertyGroup>
     <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+  </PropertyGroup>
+
+  <!-- Point to the reference assemblies on unix -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+      <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
   </PropertyGroup>
 
   <!-- This file is imported by all projects at the beginning of the project files -->
@@ -68,18 +76,11 @@
        to all unix compilations. This shouldn't present a problem as it's impossible to
        fully sign on unix at the moment anyway. Tracked by #7756. -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\scripts\extra_unix_args.rsp</CompilerResponseFile>
+      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
   </PropertyGroup>
 
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
-    <DevEnvDir>$(VSINSTALLDIR)\Common7\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '12.0'">$(VS120COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir Condition="'$(VisualStudioVersion)' == '14.0'">$(VS140COMNTOOLS)\..\IDE</DevEnvDir>
-    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -87,7 +88,6 @@
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
 
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
     <VSLToolsPath Condition="'$(VSLToolsPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..'))</VSLToolsPath>
@@ -100,8 +100,21 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <Deterministic>True</Deterministic>
+
+    <!-- Only portable PDBs are supported xplat -->
+    <DebugType Condition="'$(OS)' != 'Windows_NT'">portable</DebugType>
+    <DebugType Condition="'$(OS)' == 'Windows_NT'">pdbonly</DebugType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(VSCOMNTOOLS)' == ''">
+    <VSCOMNTOOLS>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</VSCOMNTOOLS>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
+    <DevEnvDir>$(VSCOMNTOOLS)\..\IDE</DevEnvDir>
+    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
+  </PropertyGroup>
+  
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '12.0'">
       <PropertyGroup>
@@ -115,6 +128,42 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+  
+  <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
+       Basically, we check for a registry key that will only exist in legacy VS installs, and assume
+       we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
+  <PropertyGroup>
+    <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '15.0'">
+      <Choose>
+        <When Condition="'$(IsVSBeforeDev15Preview4)' == 'true'">
+          <PropertyGroup>
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
+          </PropertyGroup>
+        </When>
+
+        <Otherwise>
+          <PropertyGroup>
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+
+    <Otherwise>
+      <PropertyGroup>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25420</VisualStudioBuildToolsNuGetPackagePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.props" Condition="'$(OS)' == 'Windows_NT'" />
 
   <!-- Build reliability -->
   <PropertyGroup>
@@ -136,7 +185,7 @@
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
   <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
     <Import Project="$(ToolsetCompilerPropsFilePath)"
-            Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+            Condition="Exists('$(ToolsetCompilerPropsFilePath)') And '$(OS)' == 'Windows_NT'" />
   </ImportGroup>
 
   <ImportGroup>
@@ -165,6 +214,7 @@
     <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
     <FileAlignment>512</FileAlignment>
     <HighEntropyVA>true</HighEntropyVA>
+    <Features>strict</Features>
   </PropertyGroup>
 
   <!--
@@ -192,6 +242,10 @@
   <PropertyGroup>
     <!-- Capture the root, so we'll always have it even if we're building to a sub-folder -->
     <VSLOutDir>$(OutDir)</VSLOutDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+      <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
@@ -231,12 +285,10 @@
         <DebugSymbols>true</DebugSymbols>
         <DefineDebug>true</DefineDebug>
         <DefineTrace>true</DefineTrace>
-        <DebugType>full</DebugType>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DefineTrace>true</DefineTrace>
         <Optimize>true</Optimize>
-        <DebugType>pdbonly</DebugType>
       </PropertyGroup>
     </When>
 
@@ -251,17 +303,14 @@
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
-
         -->
-        <NoWarn>1591</NoWarn>
+        <NoWarn>$(NoWarn);1591</NoWarn>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <DebugType>pdbonly</DebugType>
         <DefineConstants>TRACE</DefineConstants>
         <Optimize>true</Optimize>
       </PropertyGroup>
@@ -280,18 +329,7 @@
   </Choose>
 
   <PropertyGroup>
-    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
-    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
-
-    <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
-
-  </PropertyGroup>
-
-  <PropertyGroup>
     <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
-    <AuthenticodeCertificateName>Microsoft402</AuthenticodeCertificateName>
-    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
 
   <!-- 

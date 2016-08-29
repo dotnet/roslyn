@@ -53,7 +53,7 @@ End Class
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
-                Dim methods = diff1.TestData.Methods
+                Dim methods = diff1.TestData.GetMethodsByName()
                 Assert.Equal(methods.Count, 1)
                 Assert.True(methods.ContainsKey("C.M2()"))
 
@@ -797,7 +797,8 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
+
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
             Assert.Equal(members.Length, 2)
             For Each member In members
@@ -823,7 +824,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
             Assert.NotNull(other)
@@ -858,7 +859,7 @@ End Class
             Const nModifiers As Integer = 1
             Assert.Equal(nModifiers, DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1, Cci.IMethodDefinition)), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
@@ -4390,7 +4391,8 @@ End Class
         ''' <summary>
         ''' Should not re-use locals with custom modifiers.
         ''' </summary>
-        <Fact(Skip:="TODO")>
+        <Fact(Skip:="9854")>
+        <WorkItem(9854, "https://github.com/dotnet/roslyn/issues/9854")>
         Public Sub LocalType_CustomModifiers()
             ' Equivalent method signature to VB, but
             ' with optional modifiers on locals.
@@ -4435,7 +4437,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadata(), AssemblyMetadata).GetModules(0)
+            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadataNoCopy(), AssemblyMetadata).GetModules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
 
             Dim generation0 = EmitBaseline.CreateInitialBaseline(

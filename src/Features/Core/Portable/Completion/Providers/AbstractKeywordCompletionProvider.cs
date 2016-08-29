@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractKeywordCompletionProvider<TContext> : CompletionListProvider
+    internal abstract partial class AbstractKeywordCompletionProvider<TContext> : CommonCompletionProvider
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
-        protected abstract TextSpan GetTextChangeSpan(SourceText text, int position);
 
         private class Comparer : IEqualityComparer<RecommendedKeyword>
         {
@@ -40,17 +39,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly Comparer s_comparer = new Comparer();
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-
-            if (!options.GetOption(CompletionOptions.IncludeKeywords, document.Project.Language))
-            {
-                return;
-            }
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
@@ -60,25 +54,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cancellationToken).ConfigureAwait(false);
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var filterSpan = this.GetTextChangeSpan(text, position);
 
                 foreach (var keyword in keywords)
                 {
-                    context.AddItem(CreateItem(keyword, filterSpan));
+                    context.AddItem(CreateItem(keyword));
                 }
             }
         }
 
-        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan filterSpan)
+        private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);
+
+        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword)
         {
-            return new KeywordCompletionItem(
-                this,
+            return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                filterSpan: filterSpan,
-                descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
+                description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
-                isIntrinsic: keyword.IsIntrinsic,
-                preselect: keyword.ShouldPreselect);
+                tags: s_Tags,
+                matchPriority: keyword.MatchPriority);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
@@ -109,5 +102,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return set;
         }
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+        {
+            return Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
+        }
+
+        internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }
 }

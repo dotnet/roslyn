@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New CrefCompletionProvider()
         End Function
 
@@ -429,10 +428,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 ' This verifies that the provider is asking for a speculative SemanticModel
                 ' by walking to the node the documentation is attached to. 
 
-                Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim completionList = Await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
             End Using
         End Function
 
@@ -451,10 +450,6 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Sub
 
             Public Function ContainsInMemberBody(node As SyntaxNode, span As TextSpan) As Boolean Implements ISyntaxFactsService.ContainsInMemberBody
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function ConvertToSingleLine(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
                 Throw New NotImplementedException()
             End Function
 
@@ -527,6 +522,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
 
             Public Function GetRefKindOfArgument(node As SyntaxNode) As RefKind Implements ISyntaxFactsService.GetRefKindOfArgument
                 Throw New NotImplementedException()
+            End Function
+
+            Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaration
+                Throw New NotImplementedException
             End Function
 
             Public Function GetText(kind As Integer) As String Implements ISyntaxFactsService.GetText
@@ -685,6 +684,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
+            Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode, ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
+                Throw New NotImplementedException()
+            End Function
+
             Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
                 Throw New NotImplementedException()
             End Function
@@ -733,7 +736,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
-            Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+            Public Function IsStringLiteralOrInterpolatedStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteralOrInterpolatedStringLiteral
                 Throw New NotImplementedException()
             End Function
 
@@ -751,6 +754,18 @@ End Class]]></a>.Value.NormalizeLineEndings()
 
             Public Function IsTypeNamedDynamic(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedDynamic
                 Throw New NotImplementedException()
+            End Function
+
+            Public Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
+                Throw New NotImplementedException
+            End Function
+
+            Public Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingOrExternOrImport
+                Throw New NotImplementedException
+            End Function
+
+            Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGlobalAttribute
+                Throw New NotImplementedException
             End Function
 
             Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration
@@ -818,6 +833,62 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Function
 
             Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfDot
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsNumericLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNumericLiteralExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInterpolation
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetContentsOfInterpolatedString(interpolatedString As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetContentsOfInterpolatedString
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
                 Throw New NotImplementedException()
             End Function
         End Class

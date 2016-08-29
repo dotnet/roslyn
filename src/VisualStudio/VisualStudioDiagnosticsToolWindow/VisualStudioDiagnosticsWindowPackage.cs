@@ -4,6 +4,10 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -39,8 +43,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     [ProvideToolWindow(typeof(DiagnosticsWindow))]
     [Guid(GuidList.guidVisualStudioDiagnosticsWindowPkgString)]
     [Description("Roslyn Diagnostics Window")]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class VisualStudioDiagnosticsWindowPackage : Package
     {
+        private ForceLowMemoryMode _forceLowMemoryMode;
+
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
         /// tool window. See the Initialize method to see how the menu item is associated to 
@@ -71,6 +78,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         protected override void Initialize()
         {
             base.Initialize();
+
+            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;

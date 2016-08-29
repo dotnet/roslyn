@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -8,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     Public Class VisualBasicBraceMatcherTests
         Inherits AbstractBraceMatcherTests
 
-        Protected Overrides Function CreateWorkspaceFromCodeAsync(code As String) As Task(Of TestWorkspace)
+        Protected Overrides Function CreateWorkspaceFromCodeAsync(code As String, options As ParseOptions) As Task(Of TestWorkspace)
             Return TestWorkspace.CreateVisualBasicAsync(code)
         End Function
 
@@ -658,6 +657,5 @@ End Class
 
             Await TestAsync(code, expected)
         End Function
-
     End Class
 End Namespace

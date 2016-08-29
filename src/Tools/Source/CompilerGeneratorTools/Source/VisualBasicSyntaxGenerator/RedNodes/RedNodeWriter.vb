@@ -14,18 +14,17 @@ Friend Class RedNodeWriter
     End Sub
 
     ' Write out the code defining the tree to the give file.
-    Public Sub WriteTreeAsCode(writer As TextWriter)
+    Public Sub WriteMainTreeAsCode(writer As TextWriter)
         _writer = writer
-
-        GenerateFile()
+        GenerateMainNamespace()
     End Sub
 
-    Private Sub GenerateFile()
-        GenerateNamespace()
+    Public Sub WriteSyntaxTreeAsCode(writer As TextWriter)
+        _writer = writer
+        GenerateSyntaxNamespace()
     End Sub
 
-    Private Sub GenerateNamespace()
-
+    Private Sub GenerateMainNamespace()
         If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
             _writer.WriteLine()
             _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
@@ -49,9 +48,11 @@ Friend Class RedNodeWriter
         If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
             _writer.WriteLine("End Namespace")
         End If
+    End Sub
 
-        _writer.WriteLine()
+    Private Sub GenerateSyntaxNamespace()
         If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
+            _writer.WriteLine()
             _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName & ".Syntax"))
             _writer.WriteLine()
         End If
@@ -1135,7 +1136,7 @@ Friend Class RedNodeWriter
         For Each child In allChildren
             If child.IsList Then
                 If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VisualBasicSyntaxNode)", ChildNewVarName(child))
+                    _writer.Write(", {0}.Node", ChildNewVarName(child))
                 Else
                     _writer.Write(", {0}.Node", ChildNewVarName(child))
                 End If

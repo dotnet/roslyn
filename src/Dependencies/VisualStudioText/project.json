@@ -1,0 +1,13 @@
+{
+  "supports": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.Text.Data": "14.3.25407",
+    "Microsoft.VisualStudio.Text.Logic": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407",
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": "14.3.25407"
+  },
+  "frameworks": {
+    ".NETFramework,Version=v4.6": { }
+  }
+}

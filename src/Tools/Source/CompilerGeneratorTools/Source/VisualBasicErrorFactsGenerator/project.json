@@ -1,14 +1,16 @@
 ﻿{
-  "dependencies": {},
+  "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "NETStandard.Library": "1.6.0"
+  },
   "frameworks": {
-    "net45": {}
+    // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+    "netstandard1.6": { },
+    "NETCoreApp1.0": { }
   },
   "runtimes": {
-    "win7": { },
-    "win7-anycpu": { },
-    "ubuntu.14.04": { },
-    "ubuntu.14.04-anycpu": { },
-    "osx.10.10": { },
-    "osx.10.10-anycpu": { }
+    "win7-x64": {},
+    "ubuntu.14.04-x64": {},
+    "osx.10.10-x64": {}
   }
 }

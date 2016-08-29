@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -462,12 +461,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
-            For Each variable In variables
-                Yield variable.Expression
-            Next
-        End Function
-
         Private Shared Iterator Function EnumerateJoinClauseLeftExpressions(clause As JoinClauseSyntax) As IEnumerable(Of SyntaxNode)
             For Each condition As JoinConditionSyntax In clause.JoinConditions
                 Yield condition.Left
@@ -682,6 +675,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
                     ' lambda expression body closure
+                    Return True
+
+                Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.ModuleBlock
+                    ' With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                    ' with the analysis payload local of a synthesized constructor.
+                    ' If the synthesized constructor includes an initializer with a lambda,
+                    ' that lambda needs a closure that captures the analysis payload of the constructor.
                     Return True
 
                 Case Else

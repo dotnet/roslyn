@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="TAssemblySymbol">Language specific representation for an assembly symbol.</typeparam>
     internal abstract partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
         where TCompilation : Compilation
-        where TAssemblySymbol : class, IAssemblySymbol
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         protected abstract CommonMessageProvider MessageProvider { get; }
 
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(index >= 0);
                 _index = index + 1;
                 _kind = kind;
+                _aliasesOpt = default(ImmutableArray<string>);
+                _recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
             // initialized aliases
@@ -465,7 +467,7 @@ namespace Microsoft.CodeAnalysis
             Diagnostic newDiagnostic = null;
             try
             {
-                newMetadata = peReference.GetMetadata();
+                newMetadata = peReference.GetMetadataNoCopy();
 
                 // make sure basic structure of the PE image is valid:
                 var assemblyMetadata = newMetadata as AssemblyMetadata;

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 get
                 {
-                    var text = FeaturesResources.GenerateLocal;
+                    var text = FeaturesResources.Generate_local_0;
 
                     return string.Format(
                         text,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Project.Solution.Workspace.Options, semanticModel, cancellationToken, out newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Options, semanticModel, cancellationToken, out newRoot))
                 {
                     return newRoot;
                 }

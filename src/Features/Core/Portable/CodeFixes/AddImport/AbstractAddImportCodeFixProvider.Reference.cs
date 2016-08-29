@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -16,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private abstract class Reference : IComparable<Reference>, IEquatable<Reference>
+        private abstract class Reference : IEquatable<Reference>
         {
             protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
             public readonly SearchResult SearchResult;
@@ -27,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SearchResult = searchResult;
             }
 
-            public virtual int CompareTo(Reference other)
+            public int CompareTo(Document document, Reference other)
             {
                 // If references have different weights, order by the ones with lower weight (i.e.
                 // they are better matches).
@@ -41,7 +38,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return 1;
                 }
 
-                // If the weight are the same, just order them based on their names.
+                if (this.SearchResult.DesiredNameMatchesSourceName(document))
+                {
+                    if (!other.SearchResult.DesiredNameMatchesSourceName(document))
+                    {
+                        // Prefer us as our name doesn't need to change.
+                        return -1;
+                    }
+                }
+                else
+                {
+                    if (other.SearchResult.DesiredNameMatchesSourceName(document))
+                    {
+                        // Prefer them as their name doesn't need to change.
+                        return 1;
+                    }
+                    else
+                    {
+                        // Both our names need to change.  Sort by the name we're 
+                        // changing to.
+                        var diff = StringComparer.OrdinalIgnoreCase.Compare(
+                            this.SearchResult.DesiredName, other.SearchResult.DesiredName);
+                        if (diff != 0)
+                        {
+                            return diff;
+                        }
+                    }
+                }
+
+                // If the weights are the same and no names changed, just order 
+                // them based on the namespace we're adding an import for.
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
                     this.SearchResult.NameParts, other.SearchResult.NameParts);
             }
@@ -66,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected void ReplaceNameNode(
                 ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
             {
-                if (!this.SearchResult.ShouldRenameNode())
+                if (!this.SearchResult.DesiredNameDiffersFromSourceName())
                 {
                     return;
                 }

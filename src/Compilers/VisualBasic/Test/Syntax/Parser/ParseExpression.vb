@@ -206,7 +206,7 @@ Public Class ParseExpressionTest
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
         Assert.Equal("?", unexp(0).ToString())
-        Assert.Equal(36637, unexp(0).Errors(0).Code)
+        Assert.Equal(36637, unexp(0).Errors.First().Code)
     End Sub
 
     <Fact>
@@ -310,6 +310,89 @@ ToString]]>.Value)
     End Sub
 
     <Fact>
+    Public Sub ParseTuple1()
+        Dim expr = ParseExpression("(A, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+(
+42, 
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple2()
+        Dim expr = ParseExpression("(A, )", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, ), ).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple3()
+        Dim expr = ParseExpression("(A:=1, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=(A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+A:=
+(
+A:=
+42, 
+A:=
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple4()
+        Dim expr = ParseExpression("(A:=1)", expectsErrors:=False)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=, C).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        Dim missingArg = expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1)
+        Assert.Equal(SyntaxKind.IdentifierName, missingArg.Kind)
+        Assert.Equal(True, missingArg.IsMissing)
+    End Sub
+
+    <Fact>
     Public Sub ParseIIF()
         Dim expr = ParseExpression("if(true,A,B)")
         Assert.Equal(SyntaxKind.TernaryConditionalExpression, expr.Kind)
@@ -340,6 +423,12 @@ ToString]]>.Value)
         Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, expr.Kind)
 
         expr = ParseExpression("New Moo() From{1,2,3}")
+        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+
+        expr = ParseExpression("New (A, B)")
+        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+
+        expr = ParseExpression("New (A as Integer, B as integer)(1, 2)")
         Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
     End Sub
 

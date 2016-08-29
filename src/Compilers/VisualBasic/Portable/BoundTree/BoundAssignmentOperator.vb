@@ -1,24 +1,22 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class BoundAssignmentOperator
         Inherits BoundExpression
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, left, leftOnTheRightOpt:=Nothing, right:=right, suppressObjectClone:=suppressObjectClone, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression, suppressObjectClone As Boolean, Optional hasErrors As Boolean = False)
             Me.New(syntax, left, leftOnTheRightOpt:=Nothing, right:=right, suppressObjectClone:=suppressObjectClone, hasErrors:=hasErrors)
         End Sub
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             left As BoundExpression,
             leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder,
             right As BoundExpression,
@@ -51,28 +49,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not HasErrors Then
                 Debug.Assert(Left.IsLValue OrElse Left.IsPropertyOrXmlPropertyAccess() OrElse Left.IsLateBound)
 
-                If Left.IsPropertyOrXmlPropertyAccess() Then
-                    Debug.Assert(Left.GetAccessKind() = If(LeftOnTheRightOpt Is Nothing, PropertyAccessKind.Set, PropertyAccessKind.Set Or PropertyAccessKind.Get))
-                    Debug.Assert(Type.IsVoidType())
-                Else
-                    Select Case Left.Kind
-                        Case BoundKind.LateMemberAccess
-                            Debug.Assert(Left.GetLateBoundAccessKind() = If(LeftOnTheRightOpt Is Nothing, LateBoundAccessKind.Set, LateBoundAccessKind.Set Or LateBoundAccessKind.Get))
+                Select Case Left.Kind
+                    Case BoundKind.PropertyAccess
+                        Dim propertyAccess = DirectCast(Left, BoundPropertyAccess)
+                        Debug.Assert(propertyAccess.AccessKind = If(DirectCast(Left, BoundPropertyAccess).PropertySymbol.ReturnsByRef,
+                                     PropertyAccessKind.Get,
+                                     If(LeftOnTheRightOpt Is Nothing, PropertyAccessKind.Set, PropertyAccessKind.Set Or PropertyAccessKind.Get)))
+                        Debug.Assert(Type.IsVoidType())
 
-                        Case BoundKind.LateInvocation
-                            Dim invocation = DirectCast(Left, BoundLateInvocation)
-                            Debug.Assert(invocation.AccessKind = If(LeftOnTheRightOpt Is Nothing, LateBoundAccessKind.Set, LateBoundAccessKind.Set Or LateBoundAccessKind.Get))
+                    Case BoundKind.XmlMemberAccess
+                        Debug.Assert(Left.GetAccessKind() = If(LeftOnTheRightOpt Is Nothing, PropertyAccessKind.Set, PropertyAccessKind.Set Or PropertyAccessKind.Get))
+                        Debug.Assert(Type.IsVoidType())
 
-                            If Not invocation.ArgumentsOpt.IsDefault Then
-                                For Each arg In invocation.ArgumentsOpt
-                                    Debug.Assert(Not arg.IsSupportingAssignment())
-                                Next
-                            End If
+                    Case BoundKind.LateMemberAccess
+                        Debug.Assert(Left.GetLateBoundAccessKind() = If(LeftOnTheRightOpt Is Nothing, LateBoundAccessKind.Set, LateBoundAccessKind.Set Or LateBoundAccessKind.Get))
 
-                        Case Else
-                            Debug.Assert(Not Left.IsLateBound)
-                    End Select
-                End If
+                    Case BoundKind.LateInvocation
+                        Dim invocation = DirectCast(Left, BoundLateInvocation)
+                        Debug.Assert(invocation.AccessKind = If(LeftOnTheRightOpt Is Nothing, LateBoundAccessKind.Set, LateBoundAccessKind.Set Or LateBoundAccessKind.Get))
+
+                        If Not invocation.ArgumentsOpt.IsDefault Then
+                            For Each arg In invocation.ArgumentsOpt
+                                Debug.Assert(Not arg.IsSupportingAssignment())
+                            Next
+                        End If
+
+                    Case Else
+                        Debug.Assert(Not Left.IsLateBound)
+                End Select
 
                 Debug.Assert(Left.Type.IsSameTypeIgnoringCustomModifiers(Right.Type))
             End If
@@ -80,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Right.AssertRValue()
             Debug.Assert(Left.IsPropertyOrXmlPropertyAccess() OrElse
                          Left.IsLateBound OrElse
+                         IsByRefPropertyGet(Left) OrElse
                          Left.Type.IsSameTypeIgnoringCustomModifiers(Type) OrElse
                          (Type.IsVoidType() AndAlso Syntax.Kind = SyntaxKind.MidAssignmentStatement) OrElse
                          (Left.Kind = BoundKind.FieldAccess AndAlso
@@ -87,8 +92,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Type.IsVoidType()))
 
         End Sub
+
+        Private Shared Function IsByRefPropertyGet(node As BoundExpression) As Boolean
+            Dim value = TryCast(TryCast(node, BoundCall)?.Method?.AssociatedSymbol, PropertySymbol)?.ReturnsByRef
+            Return value.HasValue AndAlso value.Value = True
+        End Function
 #End If
 
     End Class
-
 End Namespace

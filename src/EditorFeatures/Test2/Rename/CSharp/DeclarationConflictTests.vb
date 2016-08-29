@@ -7,11 +7,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class DeclarationConflictTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact(Skip:="917043")>
+        <WpfFact>
         <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictForDelegate()

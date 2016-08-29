@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+Imports Microsoft.CodeAnalysis.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend MustInherit Class VisualBasicGenerateParameterizedMemberService(Of TService As AbstractGenerateParameterizedMemberService(Of TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax))
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Me.InvocationExpression = state.InvocationExpressionOpt
             End Sub
 
-            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As IList(Of String)
+            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As IList(Of ParameterName)
                 Dim typeParametersNames = Me.DetermineTypeParameters(cancellationToken).Select(Function(t) t.Name).ToList()
                 Return Me.Document.SemanticModel.GenerateParameterNames(
                     Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames)
@@ -156,6 +157,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Protected Overrides Function IsImplicitReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
                 Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
                 Return conversion.IsWidening AndAlso conversion.IsReference
+            End Function
+
+            Protected Overrides Function DetermineTypeArguments(cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
+                Dim Result = New List(Of ITypeSymbol)()
+
+                If TypeOf State.SimpleNameOpt Is GenericNameSyntax Then
+                    For Each typeArgument In DirectCast(State.SimpleNameOpt, GenericNameSyntax).TypeArgumentList.Arguments
+                        Dim Type = Me.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type
+                        Result.Add(Type)
+                    Next
+                End If
+
+                Return Result
             End Function
         End Class
     End Class

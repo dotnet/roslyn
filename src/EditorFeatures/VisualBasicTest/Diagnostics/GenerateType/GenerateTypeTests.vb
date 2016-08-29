@@ -1,9 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
@@ -473,7 +473,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -492,9 +492,9 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
-String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.GlobalNamespace),
-String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace),
+String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.Global_Namespace),
+String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -650,7 +650,7 @@ End Class
 </text>.NormalizedValue,
 index:=1,
 compareTokens:=False,
-options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
         <WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")>

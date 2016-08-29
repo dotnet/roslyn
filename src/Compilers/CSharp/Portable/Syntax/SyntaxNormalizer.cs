@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
+        private static bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
         {
             if (token.Parent == null || next.Parent == null)
             {

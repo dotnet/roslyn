@@ -2,9 +2,11 @@
 
 Option Strict Off
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -17,6 +19,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New SimplifyTypeNamesCodeFixProvider())
         End Function
+
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey, Object)
+            Dim language = GetLanguage()
+
+            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error).With(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language)
+        End Function
+
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey, Object)
+            Dim language = GetLanguage()
+
+            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error).With(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithNone, language)
+        End Function
+
+        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey, Object)
+            Dim language = GetLanguage()
+
+            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption.Error).With(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language)
+        End Function
+
+        Private ReadOnly onWithError = New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
+        Private ReadOnly offWithNone = New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task
@@ -60,7 +86,7 @@ End Class
             Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As [|System.String|]()) \n End Sub \n End Module"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"),
-index:=0)
+index:=0, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
@@ -119,7 +145,7 @@ fixAllActionEquivalenceKey:=actionId)
         End Function
 
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
             Await TestAsync(
@@ -276,7 +302,7 @@ index:=1)
         index:=0)
         End Function
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
             Await TestAsync(
@@ -361,7 +387,7 @@ index:=1)
         NewLines("[|Module M \n Sub Main() \n Dim x = (System.String).Equals("", "") \n End Sub \n End Module|]"))
         End Function
 
-        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9877"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
             Await TestAsync(
@@ -1304,7 +1330,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1328,7 +1354,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1350,7 +1376,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1370,7 +1396,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -1384,7 +1410,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingAsync(source.Value)
+            Await TestMissingAsync(source.Value, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1399,7 +1425,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1414,7 +1440,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1429,7 +1455,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1455,7 +1481,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1477,7 +1503,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestAsync(source.Value, expected.Value, compareTokens:=False)
+            Await TestAsync(source.Value, expected.Value, compareTokens:=False, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
@@ -1512,7 +1538,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1527,7 +1553,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -1540,7 +1566,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -1560,7 +1586,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+            Await TestAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -1573,7 +1599,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingAsync(source.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic), False}})
+            Await TestMissingAsync(source.Value, options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -1593,7 +1619,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestAsync(source.Value, expected.Value, options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+            Await TestAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
@@ -1625,7 +1651,8 @@ End Module
 </Code>
 
             Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyNamesDiagnosticId)
+                workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
 
@@ -1703,5 +1730,16 @@ End Module")
 NewLines("Class C \n Dim x = 7 \n Sub M() \n [|Me|].x = Nothing \n End Sub \n End Class"),
 NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
+            Await TestDiagnosticSeverityAndCountAsync(
+                "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
+                options:=OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                diagnosticCount:=1,
+                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity:=DiagnosticSeverity.Error)
+        End Function
+
     End Class
 End Namespace

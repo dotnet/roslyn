@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(cyrusn): This code needs to see if type is an attribute and if it can be shown 
             // in simplified form here.
 
-            if (!symbol.IsAnonymousType)
+            if (!(symbol.IsAnonymousType || symbol.IsTupleType))
             {
                 if (!NameBoundSuccessfullyToSameSymbol(symbol))
                 {

@@ -10,8 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
-            var result = new BoundGotoStatement(node.Syntax, node.Label, node.HasErrors);
-            return AddSequencePoint(result);
+            BoundStatement result = new BoundGotoStatement(node.Syntax, node.Label, node.HasErrors);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentContinueStatement(node, result);
+            }
+
+            return result;
         }
     }
 }

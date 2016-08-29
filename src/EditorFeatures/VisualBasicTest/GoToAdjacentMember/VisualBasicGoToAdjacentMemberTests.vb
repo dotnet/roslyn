@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GoToAdjacentMember
@@ -413,6 +412,23 @@ Class C
 End Class"
 
             Await AssertNavigatedAsync(code, next:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
+        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")>
+        Public Async Function PreviousFromInsideCurrent() As Task
+            Dim code = "
+class C
+    [||]Sub M1()
+        Console.WriteLine($$)
+    End Sub
+
+    Sub M2()
+    End Sub
+End Class"
+
+            Await AssertNavigatedAsync(code, next:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>

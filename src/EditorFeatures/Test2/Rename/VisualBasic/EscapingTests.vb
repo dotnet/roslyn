@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class EscapingTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
@@ -571,7 +571,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact(Skip:="668158"), Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIdentifierBracketed()
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>

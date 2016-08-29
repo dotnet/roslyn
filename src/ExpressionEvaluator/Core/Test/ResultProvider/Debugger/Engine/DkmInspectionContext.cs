@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         public string GetTypeName(DkmClrType ClrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> FormatSpecifiers)
         {
-            return InspectionSession.InvokeFormatter(MethodId.GetTypeName, f => f.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers));
+            return InspectionSession.InvokeFormatter(this, MethodId.GetTypeName, f => f.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers));
         }
     }
 

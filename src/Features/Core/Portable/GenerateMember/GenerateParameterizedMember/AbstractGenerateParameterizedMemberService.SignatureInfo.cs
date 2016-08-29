@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         {
             protected readonly SemanticDocument Document;
             protected readonly State State;
+            private IList<ITypeParameterSymbol> _typeParameters;
+            private IDictionary<ITypeSymbol, ITypeParameterSymbol> _typeArgumentToTypeParameterMap;
 
             public SignatureInfo(
                 SemanticDocument document,
@@ -30,17 +33,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 this.State = state;
             }
 
-            public abstract IList<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken);
+            public IList<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
+            {
+                return _typeParameters ?? (_typeParameters = DetermineTypeParametersWorker(cancellationToken));
+            }
+
+            protected abstract IList<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
+
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
                 return FixType(DetermineReturnTypeWorker(cancellationToken), cancellationToken);
             }
 
+            protected abstract IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken);
             protected abstract ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken);
             protected abstract IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken);
             protected abstract IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken);
             protected abstract IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken);
-            protected abstract IList<string> DetermineParameterNames(CancellationToken cancellationToken);
+            protected abstract IList<ParameterName> DetermineParameterNames(CancellationToken cancellationToken);
 
             internal IPropertySymbol GenerateProperty(
                 SyntaxGenerator factory,
@@ -96,7 +106,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
                 var equalityComparer = syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-                var reservedParameterNames = this.DetermineParameterNames(cancellationToken).ToSet(equalityComparer);
+                var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
+                                                 .Select(p => p.BestNameForParameter)
+                                                 .ToSet(equalityComparer);
                 var newTypeParameterNames = NameGenerator.EnsureUniqueness(
                     method.TypeParameters.Select(t => t.Name).ToList(), n => !reservedParameterNames.Contains(n));
 
@@ -115,10 +127,38 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var compilation = this.Document.SemanticModel.Compilation;
                 var allTypeParameters = availableMethodTypeParameters.Concat(availableTypeParameters);
 
+                var typeArgumentToTypeParameterMap = this.GetTypeArgumentToTypeParameterMap(cancellationToken);
+
                 return typeSymbol.RemoveAnonymousTypes(compilation)
                                  .ReplaceTypeParametersBasedOnTypeConstraints(compilation, allTypeParameters, this.Document.Document.Project.Solution, cancellationToken)
                                  .RemoveUnavailableTypeParameters(compilation, allTypeParameters)
-                                 .RemoveUnnamedErrorTypes(compilation);
+                                 .RemoveUnnamedErrorTypes(compilation)
+                                 .SubstituteTypes(typeArgumentToTypeParameterMap, new TypeGenerator());
+            }
+
+            private IDictionary<ITypeSymbol, ITypeParameterSymbol> GetTypeArgumentToTypeParameterMap(
+                CancellationToken cancellationToken)
+            {
+                return _typeArgumentToTypeParameterMap ?? (_typeArgumentToTypeParameterMap = CreateTypeArgumentToTypeParameterMap(cancellationToken));
+            }
+
+            private IDictionary<ITypeSymbol, ITypeParameterSymbol> CreateTypeArgumentToTypeParameterMap(
+                CancellationToken cancellationToken)
+            {
+                var typeArguments = this.DetermineTypeArguments(cancellationToken);
+                var typeParameters = this.DetermineTypeParameters(cancellationToken);
+
+                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>();
+
+                for(var i = 0; i < typeArguments.Count; i++)
+                {
+                    if (typeArguments[i] != null)
+                    {
+                        result[typeArguments[i]] = typeParameters[i];
+                    }
+                }
+
+                return result;
             }
 
             private IList<SyntaxNode> GenerateStatements(
@@ -149,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         isParams: false,
                         isOptional: optionality[i],
                         type: types[i],
-                        name: names[i]));
+                        name: names[i].BestNameForParameter));
                 }
 
                 return result;

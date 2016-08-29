@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MethodBlockTests
@@ -49,10 +48,10 @@ End Class",
 Class c1
     Sub New()
 
-        ' {ThisCallIsRequiredByTheDesigner}
+        ' {VBEditorResources.This_call_is_required_by_the_designer}
         InitializeComponent()
 
-        ' {AddAnyInitializationAfter}
+        ' {VBEditorResources.Add_any_initialization_after_the_InitializeComponent_call}
 
     End Sub
 

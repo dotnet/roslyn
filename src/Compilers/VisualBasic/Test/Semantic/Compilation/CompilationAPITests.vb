@@ -22,14 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
         <Fact>
         Public Sub PublicSignWithRelativeKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                     WithPublicSign(True).WithCryptoKeyFile("test.snk")
             AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
 <errors>
-BC2014: the value 'test.snk' is invalid for option 'CryptoKeyFile'
 BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
         End Sub
 
@@ -235,6 +236,60 @@ End Namespace
                     End Using
                 End Using
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub Emit_BadArgs()
+            Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
+
+            Assert.Throws(Of ArgumentNullException)("peStream", Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)("peStream", Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
+
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                sourceLinkStream:=New MemoryStream()))
+
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New MemoryStream()))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
+
+            ' we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                xmlDocumentationStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)).Success)
         End Sub
 
         <Fact>
@@ -1205,6 +1260,84 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
         End Sub
 
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_NoNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.True(tupleWithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
+            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_WithNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Alice", "Bob"))
+
+            Assert.True(tupleWithNames.IsTupleType)
+            Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_IncorrectLengths()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_NothingArgument()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentNullException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType2()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Boolean>", type.ToDisplayString())
+        End Sub
+
         <Fact()>
         Public Sub GetEntryPoint_Exe()
             Dim source = <compilation name="Name1">
@@ -1294,6 +1427,32 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.AssemblyName)
             Assert.Equal("ModuleAssemblyName", c.Assembly.Name)
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
+        End Sub
+
+        <WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")>
+        <Fact()>
+        Public Sub CrossCorlibSystemObjectReturnType_Script()
+            ' MinAsyncCorlibRef corlib Is used since it provides just enough corlib type definitions
+            ' And Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            ' `System.Object, mscorlib, Version=4.0.0.0` will Not be provided (since it's unversioned).
+            '
+            ' In the original bug, Xamarin iOS, Android, And Mac Mobile profile corlibs were
+            ' realistic cross-compilation targets.
+            Dim compilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references:={MinAsyncCorlibRef},
+                syntaxTree:=Parse("? True", options:=TestOptions.Script)
+            ).VerifyDiagnostics()
+
+            Assert.True(compilation.IsSubmission)
+
+            Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+            Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
+            Dim entryPoint = compilation.GetEntryPoint(Nothing)
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
+            Assert.Equal(taskOfObject, entryPoint.ReturnType)
         End Sub
 
         <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>

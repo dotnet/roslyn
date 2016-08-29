@@ -8,6 +8,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.MetadataUtilities
@@ -259,6 +260,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 "Handle({0}, TableIndex.{1})",
                 MetadataTokens.GetRowNumber(handle),
                 index)
+        End Function
+
+        Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
+            Return New VisualBasicSymbolMatcher(
+                Nothing,
+                fromCompilation.SourceAssembly,
+                Nothing,
+                toCompilation.SourceAssembly,
+                Nothing,
+                Nothing)
         End Function
     End Class
 

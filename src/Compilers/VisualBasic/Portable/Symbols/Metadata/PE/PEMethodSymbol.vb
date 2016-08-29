@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         access = Accessibility.Protected
 
                     Case Else
-                        Debug.Assert(False, "Unexpected!!!")
+                        access = Accessibility.Private
                 End Select
 
                 Return access
@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, AccessUncommonFields()._lazyDocComment)
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get

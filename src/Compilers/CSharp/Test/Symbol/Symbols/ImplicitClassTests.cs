@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -46,6 +47,7 @@ namespace N
         public void ScriptClassSymbol()
         {
             var c = CreateCompilationWithMscorlib(@"
+base.ToString();
 void Foo()
 {
 }
@@ -54,12 +56,20 @@ void Foo()
             var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, scriptClass.BaseType);
+            Assert.Null(scriptClass.BaseType);
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(scriptClass.IsSubmissionClass);
             Assert.True(scriptClass.IsScriptClass);
+
+            var tree = c.SyntaxTrees.Single();
+            var model = c.GetSemanticModel(tree);
+
+            IEnumerable<IdentifierNameSyntax> identifiers = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
+            var toStringIdentifier = identifiers.Where(node => node.Identifier.ValueText.Equals("ToString")).Single();
+
+            Assert.Null(model.GetSymbolInfo(toStringIdentifier).Symbol);
         }
 
         [Fact, WorkItem(531535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]

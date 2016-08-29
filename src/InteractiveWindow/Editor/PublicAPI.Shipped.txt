@@ -58,6 +58,8 @@ Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow.Write(string text) -
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow.WriteError(string text) -> Microsoft.VisualStudio.Text.Span
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow.WriteErrorLine(string text) -> Microsoft.VisualStudio.Text.Span
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow.WriteLine(string text) -> Microsoft.VisualStudio.Text.Span
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2.AddToHistory(string input) -> void
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowEditorFactoryService
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow window) -> Microsoft.VisualStudio.Text.ITextBuffer
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowEditorFactoryService.CreateTextView(Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow window, Microsoft.VisualStudio.Text.ITextBuffer buffer, Microsoft.VisualStudio.Text.Editor.ITextViewRoleSet roles) -> Microsoft.VisualStudio.Text.Editor.IWpfTextView
@@ -85,8 +87,10 @@ Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations.SelectAll(
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations.TrySubmitStandardInput() -> bool
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.Copy() -> void
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CopyCode() -> void
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CutLine() -> void
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.DeleteLine() -> void
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.TypeChar(char typedChar) -> void
 Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowExtensions
 Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowOptions
 Microsoft.VisualStudio.InteractiveWindow.PredefinedInteractiveContentTypes

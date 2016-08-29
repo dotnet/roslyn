@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class NormalPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class NormalPriorityProcessor : AbstractPriorityProcessor
                 {
                     private const int MaxHighPriorityQueueCache = 29;
 
@@ -222,6 +221,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
@@ -472,15 +473,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
 
                             // no request to re-run syntax change analysis. run it here
-                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                            var reasons = workItem.InvocationReasons;
+                            if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
 
                             // no request to re-run semantic change analysis. run it here
                             if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

@@ -6,12 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, analyzerLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, assemblyLoader)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out string normalizedFilePath)
         {
             var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = ReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
+            var content = TryReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {
@@ -272,9 +273,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles)
+        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, touchedFiles, AnalyzerLoader);
+            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+        }
+
+        protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
+            SyntaxTree tree,
+            SourceReferenceResolver resolver,
+            OrderedSet<string> embeddedFiles,
+            IList<Diagnostic> diagnostics)
+        {
+            foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
+                d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
+            {
+                string path = (string)directive.File.Value;
+                if (path == null)
+                {
+                    continue;
+                }
+
+                string resolvedPath = resolver.ResolveReference(path, tree.FilePath);
+                if (resolvedPath == null)
+                {
+                    diagnostics.Add(
+                        MessageProvider.CreateDiagnostic(
+                            (int)ErrorCode.ERR_NoSourceFile,
+                            directive.File.GetLocation(),
+                            path,
+                            CSharpResources.CouldNotFindFile));
+
+                    continue;
+                }
+
+                embeddedFiles.Add(resolvedPath);
+            }
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
@@ -15,7 +13,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CompilerServer.Program</StartupObject>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <OutDir>$(OutDir)core-clr\</OutDir>
+    <OutDir>$(OutDir)VBCSCompilerPortable\</OutDir>
     <RestorePackages>true</RestorePackages>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -47,7 +45,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -55,7 +52,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -65,15 +61,17 @@
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="CoreClrCompilerServerHost.cs" />
+    <Compile Include="PortableBuildServerController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TcpClientConnection.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="VBCSCompilerPortable">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

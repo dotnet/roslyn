@@ -1,13 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Tests
     Public Class OverrideCompletionProviderTests
@@ -17,8 +14,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
-            Return New OverrideCompletionProvider(TestWaitIndicator.Default)
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
+            Return New OverrideCompletionProvider()
         End Function
 
 #Region "CompletionItem tests"
@@ -519,21 +516,19 @@ End Class</a>
         End Function
 
         <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
-        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestGenericMethodTypeParametersRenamed() As Task
-            Dim text = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericMethodTypeParametersNotRenamed() As Task
+            Dim text = <a>Class CFoo    
+    Overridable Function Something(Of X)(arg As X) As X    
+    End Function    
+    End Class    
+   
+    Class Derived(Of X)    
+     Inherits CFoo    
+     Overrides $$    
+     End Class</a>
 
-Class Derived(Of X)
-    Inherits CFoo
-
-    Overrides $$
-End Class</a>
-
-            Await VerifyItemExistsAsync(text.Value, "Something(Of X1)(arg As X1)")
-            Await VerifyItemIsAbsentAsync(text.Value, "Something(Of X)(arg As X)")
+            Await VerifyItemExistsAsync(text.Value, "Something(Of X)(arg As X)")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -571,7 +566,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -590,7 +585,9 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
+            Await BaseVerifyWorkerAsync(
+                code, position, "[Class]", "Property CBase.Class As Integer",
+                SourceCodeKind.Regular, False, False, Nothing, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1372,33 +1369,30 @@ End Class</a>
         End Function
 
         <WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")>
-        <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitGenericMethodTypeParametersRenamed() As Task
-            Dim markupBeforeCommit = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
-
-Class Derived(Of X)
-    Inherits CFoo
-
-    Overrides $$
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitGenericMethodTypeParametersNotRenamed() As Task
+            Dim markupBeforeCommit = <a>Class CFoo    
+    Overridable Function Something(Of X)(arg As X) As X    
+    End Function    
+End Class    
+    
+Class Derived(Of X)    
+    Inherits CFoo    
+      Overrides $$    
 End Class</a>
 
-            Dim expectedCode = <a>Class CFoo
-    Overridable Function Something(Of X)(arg As X) As X
-    End Function
-End Class
-
-Class Derived(Of X)
+            Dim expectedCode = <a>Class CFoo    
+    Overridable Function Something(Of X)(arg As X) As X    
+    End Function    
+End Class    
+    
+Class Derived(Of X)    
     Inherits CFoo
-
-    Public Overrides Function Something(Of X1)(arg As X1) As X1
-        Return MyBase.Something(Of X1)(arg)$$
+    Public Overrides Function Something(Of X)(arg As X) As X
+        Return MyBase.Something(arg)$$
     End Function
 End Class</a>
-
-            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X1)(arg As X1)", expectedCode.Value.Replace(vbLf, vbCrLf))
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X)(arg As X)", expectedCode.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1750,9 +1744,9 @@ public class C
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
 
-                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function

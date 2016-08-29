@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,7 +10,7 @@
     <RootNamespace>RunTests</RootNamespace>
     <AssemblyName>RunTests</AssemblyName>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>
     <OutDir>$(OutDir)RunTests\</OutDir>
   </PropertyGroup>
@@ -27,10 +25,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyScheduler.cs" />
     <Compile Include="Cache\ContentUtil.cs" />
     <Compile Include="Cache\CachingTestExecutor.cs" />
-    <Compile Include="Cache\ConentFile.cs" />
+    <Compile Include="Cache\ContentFile.cs" />
     <Compile Include="Cache\EmptyDataStorage.cs" />
+    <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CrashDumps.cs" />
@@ -47,9 +47,8 @@
     <Compile Include="ConsoleUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Program..Json.cs" />
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

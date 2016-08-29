@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 
@@ -5808,7 +5807,7 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
                     leftType.IsReferenceType && rightType.IsReferenceType &&
-                    (leftType == rightType || compilation.Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                    (leftType == rightType || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
                 {
                     if (leftType.IsDelegateType() && rightType.IsDelegateType())
                     {
@@ -5986,7 +5985,7 @@ class Module1
                  (leftType.SpecialType == SpecialType.System_Decimal && (rightType.SpecialType == SpecialType.System_Double || rightType.SpecialType == SpecialType.System_Single)) ||
                  (rightType.SpecialType == SpecialType.System_Decimal && (leftType.SpecialType == SpecialType.System_Double || leftType.SpecialType == SpecialType.System_Single))) &&
                 (!leftType.IsReferenceType || !rightType.IsReferenceType ||
-                 !compilation.Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                 !compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
             {
                 Assert.Null(symbol1);
                 Assert.Null(symbol2);
@@ -8613,61 +8612,6 @@ False
   IL_0019:  call       ""void Test.Print<S>(S)""
   IL_001e:  ret
 }");
-        }
-
-        [Fact(Skip = "This test can cause other tests running in parallel to fail because they might not have enough memory to succeed."), WorkItem(529600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529600")]
-        public void Bug529600()
-        {
-            string source = $@"
-class M
-{{
-    static void Main()
-    {{}}
-
-    const string C0 = ""{new string('0', 65000)}"";
-
-    const string C1 = C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 +
-                      C0;
-
-     const string C2 = C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
-                      C1;
-
-}}
-";
-            var compilation = CreateCompilationWithMscorlib(source);
-
-            var err = compilation.GetDiagnostics().Single();
-
-            Assert.Equal((int)ErrorCode.ERR_ConstantStringTooLong, err.Code);
-            Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [Fact, WorkItem(2075, "https://github.com/dotnet/roslyn/issues/2075")]

@@ -2,19 +2,16 @@
 
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
-    // https://github.com/dotnet/roslyn/issues/5408
-    //[Export]
-    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [Export]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)

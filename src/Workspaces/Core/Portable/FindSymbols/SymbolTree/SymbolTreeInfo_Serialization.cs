@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
@@ -12,16 +13,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo : IObjectWritable
+    internal partial class SymbolTreeInfo
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "10";
+        private const string SerializationFormat = "14";
 
         /// <summary>
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSymbolTreeInfoAsync(
+        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
             Solution solution,
             IAssemblySymbol assembly,
             string filePath,
@@ -30,13 +31,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return LoadOrCreateAsync(
                 solution,
-                assembly,
                 filePath,
                 loadOnly,
-                create: version => CreateSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
+                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, assembly, filePath, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -47,13 +47,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             Func<VersionStamp, SpellChecker> create)
         {
             return LoadOrCreateAsync(
                 solution,
-                assembly,
                 filePath,
                 loadOnly: false,
                 create: create,
@@ -70,7 +68,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static async Task<T> LoadOrCreateAsync<T>(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             bool loadOnly,
             Func<VersionStamp, T> create,
@@ -84,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // from scratch.
             string prefix;
             VersionStamp version;
-            if (ShouldCreateFromScratch(solution, assembly, filePath, out prefix, out version, cancellationToken))
+            if (ShouldCreateFromScratch(solution, filePath, out prefix, out version, cancellationToken))
             {
                 return loadOnly ? null : create(VersionStamp.Default);
             }
@@ -145,7 +142,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool ShouldCreateFromScratch(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             out string prefix,
             out VersionStamp version,
@@ -179,11 +175,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteString(SerializationFormat);
             _version.WriteTo(writer);
 
-            writer.WriteInt32(_nodes.Count);
+            writer.WriteInt32(_nodes.Length);
             foreach (var node in _nodes)
             {
                 writer.WriteString(node.Name);
                 writer.WriteInt32(node.ParentIndex);
+            }
+
+            writer.WriteInt32(_inheritanceMap.Keys.Count);
+            foreach (var kvp in _inheritanceMap)
+            {
+                writer.WriteInt32(kvp.Key);
+                writer.WriteInt32(kvp.Value.Count);
+
+                foreach (var v in kvp.Value)
+                {
+                    writer.WriteInt32(v);
+                }
             }
         }
 
@@ -194,7 +202,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
-            ObjectReader reader, Func<VersionStamp, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            ObjectReader reader,
+            Func<VersionStamp, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -203,24 +212,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var version = VersionStamp.ReadFrom(reader);
 
-                    var count = reader.ReadInt32();
-                    if (count == 0)
-                    {
-                        return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty,
-                            Task.FromResult(new SpellChecker(version, BKTree.Empty)));
-                    }
+                    var nodeCount = reader.ReadInt32();
 
-                    var nodes = new Node[count];
-                    for (var i = 0; i < count; i++)
+                    var nodeBuilder = ImmutableArray.CreateBuilder<Node>(nodeCount);
+                    for (var i = 0; i < nodeCount; i++)
                     {
                         var name = reader.ReadString();
                         var parentIndex = reader.ReadInt32();
 
-                        nodes[i] = new Node(name, parentIndex);
+                        nodeBuilder.Add(new Node(name, parentIndex));
+                    }
+
+                    var nodes = nodeBuilder.MoveToImmutable();
+
+                    var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
+                    var inheritanceMapKeyCount = reader.ReadInt32();
+                    for (var i = 0; i < inheritanceMapKeyCount; i++)
+                    {
+                        var key = reader.ReadInt32();
+                        var valueCount = reader.ReadInt32();
+
+                        for (var j = 0; j < valueCount; j++)
+                        {
+                            var value = reader.ReadInt32();
+                            inheritanceMap.Add(key, value);
+                        }
                     }
 
                     var spellCheckerTask = createSpellCheckerTask(version, nodes);
-                    return new SymbolTreeInfo(version, nodes, spellCheckerTask);
+                    return new SymbolTreeInfo(version, nodes, inheritanceMap, spellCheckerTask);
                 }
             }
             catch

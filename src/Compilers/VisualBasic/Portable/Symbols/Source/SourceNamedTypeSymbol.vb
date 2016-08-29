@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check that the node's fully qualified name is not too long. Only check declarations that create types.
 
             Dim id As SyntaxToken = GetTypeIdentifierToken(node)
-            binder.DisallowTypeCharacter(id, diagBag)
+            Binder.DisallowTypeCharacter(id, diagBag)
 
             Dim thisTypeIsEmbedded As Boolean = Me.IsEmbedded
 
@@ -816,7 +816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Handle type parameter identifier.
             Dim identSymbol = typeParamSyntax.Identifier
-            binder.DisallowTypeCharacter(identSymbol, diagBag, ERRID.ERR_TypeCharOnGenericParam)
+            Binder.DisallowTypeCharacter(identSymbol, diagBag, ERRID.ERR_TypeCharOnGenericParam)
             Dim name As String = identSymbol.ValueText
 
             ' Handle type parameter variance.
@@ -824,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim variance As VarianceKind = VarianceKind.None
             If varianceKeyword.Kind <> SyntaxKind.None Then
                 If allowVarianceSpecifier Then
-                    variance = binder.DecodeVariance(varianceKeyword)
+                    variance = Binder.DecodeVariance(varianceKeyword)
                 Else
                     Binder.ReportDiagnostic(diagBag, varianceKeyword, ERRID.ERR_VarianceDisallowedHere)
                 End If
@@ -2029,7 +2029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Not attrdata.HasErrors Then
                         Dim interfaceType As ComInterfaceType = Nothing
                         If attrdata.DecodeInterfaceTypeAttribute(interfaceType) AndAlso
-                            (interfaceType And ComInterfaceType.InterfaceIsIDispatch) <> 0 Then
+                            (interfaceType And Cci.Constants.ComInterfaceType_InterfaceIsIDispatch) <> 0 Then
 
                             arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData).HasAttributeForExtensibleInterface = True
                         End If

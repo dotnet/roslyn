@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return nextHandler();
         }
 
-        void ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(CommitUniqueCompletionListItemCommandArgs args, Action nextHandler)
+        void ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(
+            CommitUniqueCompletionListItemCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return;
                 }
 
-                if (!StartNewModelComputation(completionService, filterItems: true))
+                if (!StartNewModelComputation(completionService, filterItems: true, dismissIfEmptyAllowed: true))
                 {
                     return;
                 }
@@ -51,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model.IsUnique)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.
-
-                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-                var textChange = GetCompletionRules().GetTextChange(selectedItem);
-                this.Commit(selectedItem, textChange, model, null);
+                this.CommitOnNonTypeChar(model.SelectedItem, model);
             }
         }
     }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -87,11 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
-        protected override Task InvokeAsync(CancellationToken cancellationToken)
+        protected override Task InvokeAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             // The top-level action cannot be invoked.
             // However, the nested sub-actions returned above can be.
-            throw new NotSupportedException(string.Format(EditorFeaturesResources.OperationNotSupported,
+            throw new NotSupportedException(string.Format(EditorFeaturesResources._0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation,
                 nameof(SuppressionSuggestedAction),
                 nameof(Invoke),
                 nameof(ISuggestedAction),

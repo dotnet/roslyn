@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Threading;
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             internal ITextUndoTransaction CreateUndoTransaction()
             {
-                return _undoHistory.CreateTransaction(EditorFeaturesResources.BraceCompletion);
+                return _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
             }
 
             private void MoveCaretToClosingPoint()

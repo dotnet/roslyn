@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
@@ -319,48 +318,6 @@ Class C
         Dim c = New C()
         Dim x = c(2, 1)
         c(4, 3) = x
-    End Sub
-End Class]]></Text>.NormalizedValue()
-
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Function
-
-        <WpfFact(Skip:="908023"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestReorderCollectionInitializerAddMethodParametersAndArguments() As Task
-
-            Dim markup = <Text><![CDATA[
-Imports System.Collections
-
-Class C
-    Implements IEnumerable
-
-    Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New NotImplementedException()
-    End Function
-
-    $$Sub Add(x As Integer, y As Integer)
-    End Sub
-
-    Sub M()
-        Dim c = New C From {{1, 2}, {3, 4}}
-    End Sub
-End Class]]></Text>.NormalizedValue()
-            Dim permutation = {1, 0}
-            Dim updatedCode = <Text><![CDATA[
-Imports System.Collections
-
-Class C
-    Implements IEnumerable
-
-    Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New NotImplementedException()
-    End Function
-
-    Sub Add(y As Integer, x As Integer)
-    End Sub
-
-    Sub M()
-        Dim c = New C From {{2, 1}, {4, 3}}
     End Sub
 End Class]]></Text>.NormalizedValue()
 

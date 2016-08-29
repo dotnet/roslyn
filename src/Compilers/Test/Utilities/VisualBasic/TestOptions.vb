@@ -1,10 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
+
+    Public Shared ReadOnly RegularWithIOperationFeature As VisualBasicParseOptions = Regular.WithIOperationFeature()
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
@@ -17,11 +20,6 @@ Public Class TestOptions
         WithExtendedCustomDebugInformation(True).
         WithDebugPlusMode(True)
 
-    Private Shared ReadOnly s_features As New Dictionary(Of String, String) ' No experimental features to enable at this time
-    Public Shared ReadOnly ExperimentalReleaseExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
-                                                                                       optimizationLevel:=OptimizationLevel.Release,
-                                                                                       parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular).WithFeatures(s_features))
-
     Public Shared ReadOnly DebugDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly DebugExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
 
@@ -32,17 +30,31 @@ End Class
 
 Friend Module TestOptionExtensions
     <Extension()>
-    Public Function WithFeature(options As VisualBasicParseOptions, feature As String, value As String) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat({New KeyValuePair(Of String, String)(feature, value)}))
-    End Function
-
-    <Extension()>
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeature("Strict", "true")
+        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("Strict", "true")}))
     End Function
 
     <Extension()>
-    Public Function WithDeterministicFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeature("Deterministic", "true")
+    Friend Function WithExperimental(options As VisualBasicParseOptions, ParamArray features As Feature()) As VisualBasicParseOptions
+        If features.Length = 0 Then
+            Throw New InvalidOperationException("Need at least one feature to enable")
+        End If
+
+        Dim list As New List(Of KeyValuePair(Of String, String))
+        For Each feature In features
+            Dim flagName = feature.GetFeatureFlag()
+            If flagName Is Nothing Then
+                Throw New InvalidOperationException($"{feature} is not an experimental feature")
+            End If
+
+            list.Add(New KeyValuePair(Of String, String)(flagName, "True"))
+        Next
+
+        Return options.WithFeatures(options.Features.Concat(list))
+    End Function
+
+    <Extension()>
+    Public Function WithIOperationFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("IOperation", "true")}))
     End Function
 End Module

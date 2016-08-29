@@ -288,7 +288,7 @@ public interface A {
 }
 ";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
@@ -471,7 +471,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(new[] { text, text1, text2 });
+            var comp = CreateCompilationWithMscorlib45(new[] { text, text1, text2 });
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -642,16 +642,16 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp1 = CreateCompilationWithMscorlib45(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateExperimentalCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
@@ -1638,7 +1638,7 @@ class C : I
 }
 ";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2066,10 +2066,11 @@ static class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,12): error CS8088: Void-returning methods cannot return by reference
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,16): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref void M() { }
-                Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "ref").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
+                );
         }
 
         [Fact]
@@ -2085,13 +2086,15 @@ static class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (6,18): error CS8898: Void-returning methods cannot return by reference
-    //         ref void M() { }
-    Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "M").WithLocation(6, 18),
-    // (6,18): warning CS0168: The variable 'M' is declared but never used
-    //         ref void M() { }
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18));
+            var parseOptions = TestOptions.Regular;
+            CreateCompilationWithMscorlib45(source, parseOptions: parseOptions).VerifyDiagnostics(
+                // (6,13): error CS1547: Keyword 'void' cannot be used in this context
+                //         ref void M() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
+                // (6,18): warning CS0168: The variable 'M' is declared but never used
+                //         ref void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -2104,16 +2107,17 @@ static class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,18): error CS1519: Invalid token 'ref' in class, struct, or interface member declaration
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): error CS0708: 'M': cannot declare instance members in a static class
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(4, 26),
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26));
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
+                );
         }
     }
 }

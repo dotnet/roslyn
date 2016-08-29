@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -1173,7 +1173,7 @@ namespace Roslyn.Collections.Immutable
             {
                 get
                 {
-                    return Microsoft.CodeAnalysis.WorkspacesResources.DuplicateKey;
+                    return Microsoft.CodeAnalysis.WorkspacesResources.An_element_with_the_same_key_but_a_different_value_already_exists;
                 }
             }
         }

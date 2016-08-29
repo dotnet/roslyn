@@ -9,6 +9,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.Win32
 Imports Roslyn.Test.Utilities
 
+Imports System.FormattableString
+
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AnalyzerDependencyCheckerTests
         Inherits TestBase
@@ -17,7 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private Shared ReadOnly Property MSBuildDirectory As String
             Get
                 If s_msbuildDirectory Is Nothing Then
-                    Dim key = Registry.LocalMachine.OpenSubKey("SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", False)
+                    Dim vsVersion = If(Environment.GetEnvironmentVariable("VisualStudioVersion"), "14.0")
+                    Dim key = Registry.LocalMachine.OpenSubKey(Invariant($"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), False)
 
                     If key IsNot Nothing Then
                         Dim toolsPath = key.GetValue("MSBuildToolsPath")

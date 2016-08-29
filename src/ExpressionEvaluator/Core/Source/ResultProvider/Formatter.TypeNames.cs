@@ -8,7 +8,7 @@ using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    // Implementation for "displaying type name as string" aspect of default (C#) Formatter component
+    // Implementation for "displaying type name as string" aspect of the Formatter component
     internal abstract partial class Formatter
     {
         /// <returns>The qualified name (i.e. including containing types and namespaces) of a named,
@@ -84,9 +84,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             Debug.Assert(pointerCount == 0 || nullableCount == 0, "Benign: pointer to nullable?");
 
-            int oldLength = builder.Length;
             AppendQualifiedTypeNameInternal(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, out sawInvalidIdentifier);
-            string name = builder.ToString(oldLength, builder.Length - oldLength);
 
             builder.Append('?', nullableCount);
             builder.Append('*', pointerCount);
@@ -134,9 +132,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
+            int cardinality;
+            if (type.IsTupleCompatible(out cardinality))
+            {
+                AppendTupleFields(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, out sawInvalidIdentifier);
+                return;
+            }
+
             // Note: in the Reflection/LMR object model, all type arguments are on the most nested type.
             var hasTypeArguments = type.IsGenericType;
-            var typeArguments = type.IsGenericType
+            var typeArguments = hasTypeArguments
                 ? type.GetGenericArguments()
                 : null;
             Debug.Assert(hasTypeArguments == (typeArguments != null));
@@ -145,6 +150,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             sawInvalidIdentifier = false;
             bool sawSingleInvalidIdentifier;
+            var typeArgumentOffset = 0;
+
             if (type.IsNested)
             {
                 // Push from inside, out.
@@ -163,8 +170,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 AppendNamespacePrefix(builder, stack[lastContainingTypeIndex], escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
                 sawInvalidIdentifier |= sawSingleInvalidIdentifier;
 
-                var typeArgumentOffset = 0;
-
                 // Pop from outside, in.
                 for (int i = lastContainingTypeIndex; i >= 0; i--)
                 {
@@ -181,17 +186,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
 
                 stack.Free();
-
-                AppendUnqualifiedTypeName(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, typeArgumentOffset, numTypeArguments - typeArgumentOffset, out sawSingleInvalidIdentifier);
-                sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
             else
             {
                 AppendNamespacePrefix(builder, type, escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
                 sawInvalidIdentifier |= sawSingleInvalidIdentifier;
-                AppendUnqualifiedTypeName(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, 0, numTypeArguments, out sawSingleInvalidIdentifier);
-                sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
+
+            AppendUnqualifiedTypeName(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, typeArgumentOffset, numTypeArguments - typeArgumentOffset, out sawSingleInvalidIdentifier);
+            sawInvalidIdentifier |= sawSingleInvalidIdentifier;
         }
 
         /// <summary>
@@ -284,8 +287,48 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendIdentifier(builder, escapeKeywordIdentifiers, unmangledName, out sawInvalidIdentifier);
 
             bool argumentsSawInvalidIdentifier;
-            AppendGenericTypeArgumentList(builder, typeArguments, typeArgumentOffset, dynamicFlags, ref index, arity, escapeKeywordIdentifiers, out argumentsSawInvalidIdentifier);
+            AppendGenericTypeArguments(builder, typeArguments, typeArgumentOffset, dynamicFlags, ref index, arity, escapeKeywordIdentifiers, out argumentsSawInvalidIdentifier);
             sawInvalidIdentifier |= argumentsSawInvalidIdentifier;
+        }
+
+        private void AppendTupleFields(
+            StringBuilder builder,
+            Type type,
+            DynamicFlagsCustomTypeInfo dynamicFlags,
+            ref int index,
+            bool escapeKeywordIdentifiers,
+            out bool sawInvalidIdentifier)
+        {
+            sawInvalidIdentifier = false;
+            builder.Append('(');
+            bool any = false;
+            while (true)
+            {
+                var typeArguments = type.GetGenericArguments();
+                int nTypeArgs = typeArguments.Length;
+                Debug.Assert(nTypeArgs > 0);
+                Debug.Assert(nTypeArgs <= TypeHelpers.TupleFieldRestPosition);
+                int nFields = Math.Min(nTypeArgs, TypeHelpers.TupleFieldRestPosition - 1);
+                for (int i = 0; i < nFields; i++)
+                {
+                    if (any)
+                    {
+                        builder.Append(", ");
+                    }
+                    bool sawSingleInvalidIdentifier;
+                    AppendQualifiedTypeName(builder, typeArguments[i], dynamicFlags, ref index, escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
+                    sawInvalidIdentifier |= sawSingleInvalidIdentifier;
+                    any = true;
+                }
+                if (nTypeArgs < TypeHelpers.TupleFieldRestPosition)
+                {
+                    break;
+                }
+                Debug.Assert(!dynamicFlags[index]);
+                index++;
+                type = typeArguments[nTypeArgs - 1];
+            }
+            builder.Append(')');
         }
 
         protected void AppendIdentifier(StringBuilder builder, bool escapeKeywordIdentifiers, string identifier, out bool sawInvalidIdentifier)
@@ -305,7 +348,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected abstract void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier);
 
-        protected abstract void AppendGenericTypeArgumentList(
+        protected abstract void AppendGenericTypeArguments(
             StringBuilder builder,
             Type[] typeArguments,
             int typeArgumentOffset,

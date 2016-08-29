@@ -345,10 +345,10 @@ public class Class1
     void Test(int i) {{ }}
     void M()
     {{
-{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.UnmergedChangeFromProject, "CSharpAssembly1")}
-{WorkspacesResources.BeforeHeader}
+{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.Unmerged_change_from_project_0, "CSharpAssembly1")}
+{WorkspacesResources.Before_colon}
         Test(5);
-{WorkspacesResources.AfterHeader}
+{WorkspacesResources.After_colon}
         Test((long)5);
 *|}}|}}/
         Test((double)5);
@@ -1352,6 +1352,7 @@ namespace N
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -1397,7 +1398,7 @@ class C
 {
     C Bar(int tag)
     {
-        {|Complexified:return E.{|Resolved:[|Bar|]|}(E.{|Resolved:[|Bar|]|}(this,1),2);|}
+        {|Complexified:return E.{|Resolved:[|Bar|]|}(E.{|Resolved:[|Bar|]|}(this, 1), 2);|}
     }
 }
                             </Document>

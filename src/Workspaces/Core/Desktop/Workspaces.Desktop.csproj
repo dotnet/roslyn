@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -14,7 +12,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -27,19 +25,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
-    <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -50,24 +36,23 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
+      <Link>InternalUtilities\EncodingExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
       <Link>InternalUtilities\CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\CommandLine\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
+    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
+    <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
+    <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
@@ -116,23 +101,29 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
@@ -156,7 +147,5 @@
       <LastGenOutput>WorkspaceDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

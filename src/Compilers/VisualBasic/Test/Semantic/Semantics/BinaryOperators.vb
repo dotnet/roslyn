@@ -1382,64 +1382,6 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
             Next
         End Sub
 
-        <Fact(Skip:="This test can cause other tests running in parallel to fail because they might not have enough memory to succeed."), WorkItem(529600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529600")>
-        Public Sub Bug529600()
-
-            Dim compilationDef =
-<compilation>
-    <file name="a.vb">
-Module M
-    Sub Main()
-    End Sub
-
-    Const c0 = "<%= New String("0"c, 65000) %>"
-
-    Const C1=C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + C0 + 
-             C0
-
-    Const C2=C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + 
-             C1
-
-    End Module
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-
-            Dim err = compilation.GetDiagnostics().Single()
-
-            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
-            Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
-        End Sub
-
     End Class
 
 End Namespace

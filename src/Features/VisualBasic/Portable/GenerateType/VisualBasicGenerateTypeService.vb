@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End Get
         End Property
 
-        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax)) As IList(Of String)
+        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax)) As IList(Of ParameterName)
             Return semanticModel.GenerateParameterNames(arguments)
         End Function
 
@@ -628,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return updatedSolution
             End If
 
-            Dim placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language)
+            Dim placeSystemNamespaceFirst = document.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst)
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
@@ -706,14 +707,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
             propertySymbol = Nothing
+
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)
-                Return True
+                Return propertySymbol IsNot Nothing
             End If
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
-            Return True
+            Return propertySymbol IsNot Nothing
         End Function
 
         Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,

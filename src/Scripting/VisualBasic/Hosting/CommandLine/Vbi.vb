@@ -5,15 +5,14 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
     Friend NotInheritable Class VisualBasicInteractiveCompiler
         Inherits VisualBasicCompiler
 
-        Friend Sub New(responseFile As String, baseDirectory As String, sdkDirectoryOpt As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, sdkDirectoryOpt, Nothing, analyzerLoader)
+        Friend Sub New(responseFile As String, baseDirectory As String, sdkDirectoryOpt As String, clientDirectory As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
+            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
@@ -29,14 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
             consoleOutput.Write(VBScriptingResources.InteractiveHelp)
-        End Sub
-
-        Protected Overrides Function GetSqmAppID() As UInteger
-            Return SqmServiceProvider.BASIC_APPID
-        End Function
-
-        Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Interactive, UInteger))
         End Sub
     End Class
 

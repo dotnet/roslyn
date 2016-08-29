@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 responseFile,
                 If(workingDirectory, AppContext.BaseDirectory),
                 CorLightup.Desktop.TryGetRuntimeDirectory(),
+                AppContext.BaseDirectory,
                 If(args, s_defaultArgs),
                 New NotImplementedAnalyzerLoader())
 

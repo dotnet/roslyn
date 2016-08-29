@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -87,27 +85,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -143,16 +120,25 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
+    <Compile Include="CodeActions\MoveType\BasicMoveTypeTestsBase.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.vb" />
+    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />
     <Compile Include="CodeActions\Preview\PreviewTests.vb" />
+    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
+    <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
+    <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
@@ -179,7 +165,7 @@
     <Compile Include="Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests.vb" />
     <Compile Include="Diagnostics\Async\AddAwaitTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.vb" />
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.vb" />
     <Compile Include="Diagnostics\CorrectNextControlVariable\CorrectNextControlVariableTests.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
@@ -202,17 +188,21 @@
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
+    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
-    <Compile Include="Diagnostics\Spellcheck\SpellcheckTests.vb" />
+    <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentTests.vb" />
     <Compile Include="DocumentationComments\XmlTagCompletionTests.vb" />
     <Compile Include="EditAndContinue\ActiveStatementTests.vb" />
@@ -344,6 +334,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\EraseKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\PreserveKeywordRecommenderTests.vb" />
@@ -516,10 +508,10 @@
     <None Include="PerfTests\BasicPerfGoldilocksTyping.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingDiagnostics.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnostics.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingDiagnosticsMultipliedDelay.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsMultipliedDelay.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PerfTests\BasicPerfNavigateTo.xml" />
@@ -598,14 +590,11 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PerfTests\BasicPerfGoldilocksTypingAnalyzers.xml">
+    <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\BasicPerfDiagnosticInsideMethodBody.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\BasicPerfDiagnosticTopLevel.xml">
+    <None Include="PerfTests\BasicPerfFullSolutionDiagnostics.xml">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -613,12 +602,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.vb" />
+    <None Include="PerfTests\BasicPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PerfTests\BasicPerfBuildWithThirdPartyAnalyzers.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

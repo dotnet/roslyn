@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ImmutableArray.Create(
                                 New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Int16),
                                                         TypedConstantKind.Primitive,
-                                                        CShort(ComInterfaceType.InterfaceIsIDispatch)))))
+                                                        CShort(Cci.Constants.ComInterfaceType_InterfaceIsIDispatch)))))
                     End If
 
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
@@ -1262,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+                Friend Overrides ReadOnly Property Syntax As SyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get

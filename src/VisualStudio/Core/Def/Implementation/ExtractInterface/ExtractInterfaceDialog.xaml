@@ -8,6 +8,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -37,28 +38,34 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <Label x:Uid="InterfaceNameLabel" 
+                   x:Name="InterfaceNameLabel"
                    Content="{Binding ElementName=dialog, Path=NewInterfaceName}"
                    Padding="{StaticResource ResourceKey=labelPadding}"
                    Target="{Binding ElementName=interfaceNameTextBox}"/>
-            <TextBox x:Uid="InterfaceNameTextBox" 
+            <TextBox x:Uid="InterfaceNameTextBox"
+                     AutomationProperties.LabeledBy="{Binding ElementName=InterfaceNameLabel}"
                      Text="{Binding InterfaceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Name="interfaceNameTextBox"
                      Padding="{StaticResource ResourceKey=textboxPadding}"
                      GotFocus="SelectAllInTextBox"/>
             <Label x:Uid="GeneratedNameLabel" 
+                   x:Name="GeneratedNameLabel" 
                    Content="{Binding ElementName=dialog, Path=GeneratedName}" 
                    Padding="{StaticResource ResourceKey=labelPadding}"/>
             <TextBox x:Uid="GeneratedNameTextBox" 
+                     AutomationProperties.LabeledBy="{Binding ElementName=GeneratedNameLabel}"
                      Text="{Binding GeneratedName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                      IsReadOnly="True"
                      Background="{DynamicResource {x:Static SystemColors.ControlBrush}}"
                      Padding="{StaticResource ResourceKey=textboxPadding}"
                      GotFocus="SelectAllInTextBox"/>
             <Label x:Uid="FileNameLabel" 
+                   x:Name="FileNameLabel"
                    Content="{Binding ElementName=dialog, Path=NewFileName}" 
                    Padding="{StaticResource ResourceKey=labelPadding}"
                    Target="{Binding ElementName=fileNameTextBox}"/>
             <TextBox x:Uid="FileNameTextBox" 
+                     AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}"
                      Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Padding="{StaticResource ResourceKey=textboxPadding}"
                      Name="fileNameTextBox"
@@ -73,7 +80,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ListView x:Uid="MemberSelectionList"
+                <u:AutomationDelegatingListView x:Uid="MemberSelectionList"
                           x:Name="Members"
                           Grid.Column="0"
                           Margin="9"
@@ -81,10 +88,11 @@
                           PreviewKeyDown="OnListViewPreviewKeyDown"
                           MouseDoubleClick="OnListViewDoubleClick"
                           ItemsSource="{Binding MemberContainers, Mode=TwoWay}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
+                    <u:AutomationDelegatingListView.ItemTemplate x:Uid="SelectableMemberListItem">
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
+                                <CheckBox x:Uid="SelectableMemberCheckBox"
+                                          AutomationProperties.Name="{Binding MemberAutomationText}"
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
                                           Focusable="False"
@@ -97,8 +105,8 @@
                                                    Text="{Binding MemberName}"/>
                             </StackPanel>
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </u:AutomationDelegatingListView.ItemTemplate>
+                </u:AutomationDelegatingListView>
                 <StackPanel Grid.Column="1">
                     <Button x:Uid="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 

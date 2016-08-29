@@ -109,7 +109,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// file names to debug documents with the given mapping function.
         /// </summary>
         /// <param name="documentProvider">Function that maps file paths to CCI debug documents</param>
-        public ImmutableArray<Cci.SequencePoint> GetSequencePoints(DebugDocumentProvider documentProvider)
+        /// <param name="builder">where sequence points should be deposited</param>
+        public void GetSequencePoints(
+            DebugDocumentProvider documentProvider,
+            ArrayBuilder<Cci.SequencePoint> builder)
         {
             bool lastPathIsMapped = false;
             string lastPath = null;
@@ -124,12 +127,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 current = current._next;
             }
 
-            ArrayBuilder<Cci.SequencePoint> result = ArrayBuilder<Cci.SequencePoint>.GetInstance(count);
-
-            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint(documentProvider);
+            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
-                return result.ToImmutableAndFree();
+                return;
             }
             lastPath = firstReal.Value.Path;
             lastPathIsMapped = firstReal.Value.HasMappedPath;
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (lastDebugDocument != null)
                         {
-                            result.Add(new Cci.SequencePoint(
+                            builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
                                 startLine: HiddenSequencePointLine,
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (lastDebugDocument != null)
                         {
-                            result.Add(new Cci.SequencePoint(
+                            builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
                                 startLine: (fileLinePositionSpan.StartLinePosition.Line == -1) ? 0 : fileLinePositionSpan.StartLinePosition.Line + 1,
@@ -199,13 +200,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 current = current._next;
             }
-
-            return result.ToImmutableAndFree();
         }
 
         // Find the document for the first non-hidden sequence point (issue #4370)
-        // Returns null if a real sequence point was found.
-        private FileLinePositionSpan? FindFirstRealSequencePoint(DebugDocumentProvider documentProvider)
+        // Returns null if a real sequence point was not found.
+        private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
             
@@ -217,10 +216,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
                     if (!isHidden)
                     {
-                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        FileLinePositionSpan fileLinePositionSpan = current._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
                         if (!isHidden)
                         {
-
                             return fileLinePositionSpan;
                         }
                     }

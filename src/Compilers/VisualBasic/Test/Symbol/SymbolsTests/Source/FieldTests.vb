@@ -45,6 +45,26 @@ End Structure
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
+        <Fact>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub TupleAPIs()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation name="AAA">
+    <file name="a.vb">
+Public Class C
+    Shared ch1 as C
+End Class
+    </file>
+</compilation>)
+            Dim globalNS = compilation.SourceModule.GlobalNamespace
+            Dim structC = DirectCast(globalNS.GetMembers().Single(), NamedTypeSymbol)
+            Dim field = DirectCast(structC.GetMembers()(1), FieldSymbol)
+            Dim fieldType = DirectCast(field.Type, INamedTypeSymbol)
+
+            Assert.False(fieldType.IsTupleType)
+            Assert.True(fieldType.TupleElementTypes.IsDefault)
+            Assert.True(fieldType.TupleElementNames.IsDefault)
+        End Sub
 
         <Fact>
         Public Sub Fields1()
@@ -431,7 +451,8 @@ End Class]]>,
         ''' Fields named "value__" should be marked rtspecialname.
         ''' </summary>
         <WorkItem(546185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190")>
+        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
+        <Fact>
         Public Sub RTSpecialName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

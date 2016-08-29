@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -138,9 +139,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return map;
         }
 
-        protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements)
+        protected ImmutableArray<LocalSymbol> BuildLocals(SyntaxList<StatementSyntax> statements, Binder enclosingBinder)
         {
-            ArrayBuilder<LocalSymbol> locals = null;
+#if DEBUG
+            Binder currentBinder = enclosingBinder;
+
+            while (true)
+            {
+                if (this == currentBinder)
+                {
+                    break;
+                }
+
+                currentBinder = currentBinder.Next;
+            }
+#endif
+
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var statement in statements)
             {
                 var innerStatement = statement;
@@ -154,60 +169,131 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (innerStatement.Kind())
                 {
+                    case SyntaxKind.DeconstructionDeclarationStatement:
+                        {
+                            var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
+                            Binder deconstructionDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
+
+                            CollectLocalsFromDeconstruction(
+                                decl.Assignment.VariableComponent,
+                                LocalDeclarationKind.RegularVariable,
+                                locals,
+                                innerStatement,
+                                deconstructionDeclarationBinder);
+
+                            ExpressionVariableFinder.FindExpressionVariables(this, locals, decl.Assignment.Value, deconstructionDeclarationBinder);
+                            break;
+                        }
                     case SyntaxKind.LocalDeclarationStatement:
                         {
-                    var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                    if (locals == null)
-                    {
-                        locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                    }
-
-                    RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
-                    LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
-                    foreach (var vdecl in decl.Declaration.Variables)
-                    {
-                        var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
-                        locals.Add(localSymbol);
-                    }
-                        }
-                        break;
-                    case SyntaxKind.LetStatement:
-                        {
-                            var decl = (LetStatementSyntax)innerStatement;
-                            if (locals == null)
+                            Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
+                            var decl = (LocalDeclarationStatementSyntax)innerStatement;
+                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+                            foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                            }
-
-                            if (decl.Pattern != null)
-                            {
-                                // Patterns from the let statement introduce bindings into the enclosing scope.
-                                var patterns = PatternVariableFinder.FindPatternVariables(decl.Pattern);
-                                foreach (var pattern in patterns)
-                                {
-                                    var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable);
-                                    locals.Add(localSymbol);
-                                }
-                                patterns.Free();
-                            }
-                            else
-                            {
-                                TypeSyntax type = null; // in the syntax "var x = 1", there is no syntax for the variable's type.
-                                var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, type, decl.Identifier, LocalDeclarationKind.PatternVariable);
+                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
                                 locals.Add(localSymbol);
+                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl.Initializer?.Value, localDeclarationBinder); 
                             }
                         }
                         break;
+
+                    case SyntaxKind.ExpressionStatement:
+                    case SyntaxKind.IfStatement:
+                    case SyntaxKind.YieldReturnStatement:
+                    case SyntaxKind.ReturnStatement:
+                    case SyntaxKind.ThrowStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.SwitchStatement:
+                        var switchStatement = (SwitchStatementSyntax)innerStatement;
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(switchStatement.Expression) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
+                        Binder statementBinder = enclosingBinder.GetBinder(innerStatement);
+                        Debug.Assert(statementBinder != null); // Lock, Do and while loops always have binders.
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, statementBinder);
+                        break;
+
                     default:
                         // no other statement introduces local variables into the enclosing scope
                         break;
                 }
             }
 
-            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
+            return locals.ToImmutableAndFree();
         }
 
+        internal void CollectLocalsFromDeconstruction(
+            VariableComponentSyntax declaration,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt = null)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    {
+                        var component = (ParenthesizedVariableComponentSyntax)declaration;
+                        foreach (var decl in component.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(decl, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                case SyntaxKind.TypedVariableComponent:
+                    {
+                        var component = (TypedVariableComponentSyntax)declaration;
+                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+            }
+        }
+
+        internal void CollectLocalsFromDeconstruction(
+            VariableDesignationSyntax designation,
+            TypeSyntax closestTypeSyntax,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    enclosingBinderOpt,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind,
+                                                                    deconstructionStatement);
+                        locals.Add(localSymbol);
+                        break;
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
 
         protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {
@@ -244,23 +330,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(RefKind refKind, VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, Binder initializerBinderOpt = null)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
                 this,
-                refKind,
+                true,
                 declaration.Type,
                 declarator.Identifier,
                 kind,
-                declarator.Initializer);
+                declarator.Initializer,
+                initializerBinderOpt);
         }
 
         protected LocalFunctionSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
         {
             return new LocalFunctionSymbol(
                 this,
-                this.ContainingType,
                 this.ContainingMemberOrLambda,
                 declaration);
         }
@@ -477,16 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-        }
-
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
-        {
-            return ImmutableArray<LocalSymbol>.Empty;
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
-        {
-            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
     }
 }

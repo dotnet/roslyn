@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly SimpleTaskQueue _eventQueue;
 
         private readonly object _gate;
-        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>> _map;
+        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
         [ImportingConstructor]
         public DiagnosticService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) : this()
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 
             _gate = new object();
-            _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<object, Data>>();
+            _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -57,49 +57,96 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (ev.HasHandlers)
-            {
-                var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-                _eventQueue.ScheduleTask(() =>
-                {
-                    UpdateDataMap(sender, args);
-                    ev.RaiseEvent(handler => handler(sender, args));
-                }).CompletesAsyncOperation(eventToken);
-            }
-        }
+            Contract.ThrowIfNull(sender);
+            var source = (IDiagnosticUpdateSource)sender;
 
-        private void UpdateDataMap(object sender, DiagnosticsUpdatedArgs args)
-        {
-            var updateSource = sender as IDiagnosticUpdateSource;
-            if (updateSource == null)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (!RequireRunningEventTasks(source, ev))
             {
                 return;
             }
 
-            Contract.Requires(_updateSources.Contains(updateSource));
+            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+            _eventQueue.ScheduleTask(() =>
+            {
+                if (!UpdateDataMap(source, args))
+                {
+                    // there is no change, nothing to raise events for.
+                    return;
+                }
 
-            // we expect someone who uses this ability to small.
+                ev.RaiseEvent(handler => handler(sender, args));
+            }).CompletesAsyncOperation(eventToken);
+        }
+
+        private bool RequireRunningEventTasks(
+            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
+        {
+            // basically there are 2 cases when there is no event handler registered. 
+            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
+            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
+            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
+            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
+            // work to process given data regardless whether there is event handler registered or not.
+            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
+            // so I merged it to one. 
+
+            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
+            if (!source.SupportGetDiagnostics)
+            {
+                return true;
+            }
+
+            return ev.HasHandlers;
+        }
+
+        private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
+        {
+            // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
             {
+                Contract.Requires(_updateSources.Contains(source));
+
                 // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(updateSource))
+                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
-                    return;
+                    return false;
                 }
 
-                var list = _map.GetOrAdd(updateSource, _ => new Dictionary<object, Data>());
-                var data = updateSource.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                // 2 different workspaces (ex, PreviewWorkspaces) can return same Args.Id, we need to
+                // distinguish them. so we separate diagnostics per workspace map.
+                var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
 
-                list.Remove(data.Id);
-                if (list.Count == 0 && args.Diagnostics.Length == 0)
+                if (args.Diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
                 {
-                    _map.Remove(updateSource);
-                    return;
+                    // no new diagnostic, and we don't have workspace for it.
+                    return false;
                 }
 
-                list.Add(args.Id, data);
+                var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
+
+                diagnosticDataMap.Remove(args.Id);
+                if (diagnosticDataMap.Count == 0 && args.Diagnostics.Length == 0)
+                {
+                    workspaceMap.Remove(args.Workspace);
+
+                    if (workspaceMap.Count == 0)
+                    {
+                        _map.Remove(source);
+                    }
+
+                    return true;
+                }
+
+                if (args.Diagnostics.Length > 0)
+                {
+                    // save data only if there is a diagnostic
+                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                    diagnosticDataMap.Add(args.Id, data);
+                }
+
+                return true;
             }
         }
 
@@ -227,10 +274,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void AppendMatchingData(
             IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, List<Data> list)
         {
+            Contract.ThrowIfNull(workspace);
+
             lock (_gate)
             {
                 Dictionary<object, Data> current;
-                if (!_map.TryGetValue(source, out current))
+                Dictionary<Workspace, Dictionary<object, Data>> workspaceMap;
+                if (!_map.TryGetValue(source, out workspaceMap) ||
+                    !workspaceMap.TryGetValue(workspace, out current))
                 {
                     return;
                 }
@@ -248,9 +299,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 foreach (var data in current.Values)
                 {
-                    if (TryAddData(documentId, data, d => d.DocumentId, list) ||
-                        TryAddData(projectId, data, d => d.ProjectId, list) ||
-                        TryAddData(workspace, data, d => d.Workspace, list))
+                    if (TryAddData(workspace, documentId, data, d => d.DocumentId, list) ||
+                        TryAddData(workspace, projectId, data, d => d.ProjectId, list) ||
+                        TryAddData(workspace, workspace, data, d => d.Workspace, list))
                     {
                         continue;
                     }
@@ -258,9 +309,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryAddData<T>(T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
         {
             if (key == null)
+            {
+                return false;
+            }
+
+            // make sure data is from same workspace. project/documentId can be shared between 2 different workspace
+            if (workspace != data.Workspace)
             {
                 return false;
             }
@@ -283,15 +340,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull(DiagnosticData diagnostic)
+        private void AssertIfNull<T>(T obj) where T : class
         {
-            if (diagnostic == null)
+            if (obj == null)
             {
                 Contract.Requires(false, "who returns invalid data?");
             }
         }
 
-        private struct Data : IEquatable<Data>
+        private struct Data
         {
             public readonly Workspace Workspace;
             public readonly ProjectId ProjectId;
@@ -311,27 +368,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DocumentId = args.DocumentId;
                 this.Id = args.Id;
                 this.Diagnostics = diagnostics;
-            }
-
-            public bool Equals(Data other)
-            {
-                return this.Workspace == other.Workspace &&
-                       this.ProjectId == other.ProjectId &&
-                       this.DocumentId == other.DocumentId &&
-                       this.Id == other.Id;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return (obj is Data) && Equals((Data)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(Workspace,
-                       Hash.Combine(ProjectId,
-                       Hash.Combine(DocumentId,
-                       Hash.Combine(Id, 1))));
             }
         }
     }

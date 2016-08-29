@@ -9,9 +9,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.MSBuild.Util</RootNamespace>
     <AssemblyName>Roslyn.MSBuild.Util</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NuGetTargetMoniker>.NETPlatform,Version=v5.0</NuGetTargetMoniker>
+    <!-- Remove when the Microsoft.Build.Framework package is updated. See issue #6986. -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,31 +42,19 @@
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build" />
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Tasks.v4.0" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <NuSpecFile Include="$(MSBuildThisFileDirectory)\BuildUtil.nuspec">
+      <Visible>False</Visible>
+    </NuSpecFile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="WriteCodeFragmentEx.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
+    <None Include="project.json" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>

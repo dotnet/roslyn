@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -198,7 +198,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
                 throw new ArgumentException(CodeAnalysisResources.ValueTooLargeToBeRepresented);
 #else
-                throw new ArgumentException(WorkspacesResources.ValueTooLargeToBeRepresented);
+                throw new ArgumentException(WorkspacesResources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
 #endif
             }
         }
@@ -446,7 +446,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
                 throw new InvalidOperationException(CodeAnalysisResources.ArraysWithMoreThanOneDimensionCannotBeSerialized);
 #else
-                throw new InvalidOperationException(WorkspacesResources.ArraysWithMoreThanOneDimensionCannotBeSerialized);
+                throw new InvalidOperationException(WorkspacesResources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
 #endif
             }
 
@@ -472,12 +472,125 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            this.WriteType(instance.GetType().GetElementType());
+            // get type of array
+            var elementType = instance.GetType().GetElementType();
 
-            for (int i = 0; i < length; i++)
+            // optimization for primitive type array
+            DataKind elementKind;
+            if (s_typeMap.TryGetValue(elementType, out elementKind))
             {
-                this.WriteValue(instance.GetValue(i));
+                this.WritePrimitiveType(elementType, elementKind);
+                this.WritePrimitiveTypeArrayElements(elementType, elementKind, instance);
+
+                return;
             }
+
+            // custom type case
+            this.WriteType(elementType);
+            foreach (var value in instance)
+            {
+                this.WriteValue(value);
+            }
+        }
+
+        private void WritePrimitiveTypeArrayElements(Type type, DataKind kind, Array instance)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+
+            // optimization for type underlying binary writer knows about
+            if (type == typeof(byte))
+            {
+                _writer.Write((byte[])instance);
+                return;
+            }
+
+            if (type == typeof(char))
+            {
+                _writer.Write((char[])instance);
+                return;
+            }
+
+            // optimization for string which object writer has
+            // its own optimization to reduce repeated string
+            if (type == typeof(string))
+            {
+                WritePrimitiveTypeArrayElements((string[])instance, WriteString);
+                return;
+            }
+
+            // optimization for bool array
+            if (type == typeof(bool))
+            {
+                WriteBooleanArray((bool[])instance);
+                return;
+            }
+
+            // otherwise, write elements directly to underlying binary writer
+            switch (kind)
+            {
+                case DataKind.Int8:
+                    WritePrimitiveTypeArrayElements((sbyte[])instance, _writer.Write);
+                    return;
+                case DataKind.Int16:
+                    WritePrimitiveTypeArrayElements((short[])instance, _writer.Write);
+                    return;
+                case DataKind.Int32:
+                    WritePrimitiveTypeArrayElements((int[])instance, _writer.Write);
+                    return;
+                case DataKind.Int64:
+                    WritePrimitiveTypeArrayElements((long[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt16:
+                    WritePrimitiveTypeArrayElements((ushort[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt32:
+                    WritePrimitiveTypeArrayElements((uint[])instance, _writer.Write);
+                    return;
+                case DataKind.UInt64:
+                    WritePrimitiveTypeArrayElements((ulong[])instance, _writer.Write);
+                    return;
+                case DataKind.Float4:
+                    WritePrimitiveTypeArrayElements((float[])instance, _writer.Write);
+                    return;
+                case DataKind.Float8:
+                    WritePrimitiveTypeArrayElements((double[])instance, _writer.Write);
+                    return;
+                case DataKind.Decimal:
+                    WritePrimitiveTypeArrayElements((decimal[])instance, _writer.Write);
+                    return;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private void WriteBooleanArray(bool[] array)
+        {
+            // convert bool array to bit array
+            var bits = BitVector.Create(array.Length);
+            for (var i = 0; i < array.Length; i++)
+            {
+                bits[i] = array[i];
+            }
+
+            // send over bit array
+            foreach (var word in bits.Words())
+            {
+                _writer.Write(word);
+            }
+        }
+
+        private static void WritePrimitiveTypeArrayElements<T>(T[] array, Action<T> write)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                write(array[i]);
+            }
+        }
+
+        private void WritePrimitiveType(Type type, DataKind kind)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+            _writer.Write((byte)kind);
         }
 
         private void WriteType(Type type)
@@ -579,7 +692,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NotWritableException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(WorkspacesResources.NotWritableException, typeName));
+            throw new InvalidOperationException(string.Format(WorkspacesResources.The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable, typeName));
 #endif
         }
     }

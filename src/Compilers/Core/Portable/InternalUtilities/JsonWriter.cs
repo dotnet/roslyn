@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.Runtime.Serialization.Json;
+using System.Text;
 
 namespace Roslyn.Utilities
 {
@@ -14,25 +17,21 @@ namespace Roslyn.Utilities
     /// to balance array/object start/end, to only write key-value pairs to objects and
     /// elements to arrays, etc.
     /// 
-    /// Takes ownership of the given StreamWriter at construction and handles its disposal.
+    /// Takes ownership of the given <see cref="TextWriter" /> at construction and handles its disposal.
     /// </summary>
     internal sealed class JsonWriter : IDisposable
     {
-        private readonly StreamWriter _outptut;
-        private readonly DataContractJsonSerializer _stringWriter;
+        private readonly TextWriter _output;
         private int _indent;
-        private string _pending;
+        private Pending _pending;
 
-        private static readonly string s_newLine = Environment.NewLine;
-        private static readonly string s_commaNewLine = "," + Environment.NewLine;
-
+        private enum Pending { None, NewLineAndIndent, CommaNewLineAndIndent };
         private const string Indentation = "  ";
 
-        public JsonWriter(StreamWriter output)
+        public JsonWriter(TextWriter output)
         {
-            _outptut = output;
-            _stringWriter = new DataContractJsonSerializer(typeof(string));
-            _pending = "";
+            _output = output;
+            _pending = Pending.None;
         }
 
         public void WriteObjectStart()
@@ -70,8 +69,8 @@ namespace Roslyn.Utilities
         public void WriteKey(string key)
         {
             Write(key);
-            _outptut.Write(": ");
-            _pending = "";
+            _output.Write(": ");
+            _pending = Pending.None;
         }
 
         public void Write(string key, string value)
@@ -94,65 +93,161 @@ namespace Roslyn.Utilities
 
         public void Write(string value)
         {
-            // Consider switching to custom escaping logic here. Flushing all the time (in
-            // order to borrow DataContractJsonSerializer escaping) is expensive. 
-            //
-            // Also, it would be nicer not to escape the forward slashes in URIs (which is
-            // optional in JSON.)
-
             WritePending();
-            _outptut.Flush();
-            _stringWriter.WriteObject(_outptut.BaseStream, value);
-            _pending = s_commaNewLine;
+            _output.Write('"');
+            _output.Write(EscapeString(value));
+            _output.Write('"');
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Write(int value)
         {
             WritePending();
-            _outptut.Write(value);
-            _pending = s_commaNewLine;
+            _output.Write(value.ToString(CultureInfo.InvariantCulture));
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Write(bool value)
         {
             WritePending();
-            _outptut.Write(value ? "true" : "false");
-            _pending = s_commaNewLine;
+            _output.Write(value ? "true" : "false");
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         private void WritePending()
         {
-            if (_pending.Length > 0)
+            if (_pending == Pending.None)
             {
-                _outptut.Write(_pending);
+                return;
+            }
 
-                for (int i = 0; i < _indent; i++)
-                {
-                    _outptut.Write(Indentation);
-                }
+            Debug.Assert(_pending == Pending.NewLineAndIndent || _pending == Pending.CommaNewLineAndIndent);
+            if (_pending == Pending.CommaNewLineAndIndent)
+            {
+                _output.Write(',');
+            }
+
+            _output.WriteLine();
+
+            for (int i = 0; i < _indent; i++)
+            {
+                _output.Write(Indentation);
             }
         }
 
         private void WriteStart(char c)
         {
             WritePending();
-            _outptut.Write(c);
-            _pending = s_newLine;
+            _output.Write(c);
+            _pending = Pending.NewLineAndIndent;
             _indent++;
         }
 
         private void WriteEnd(char c)
         {
-            _pending = s_newLine;
+            _pending = Pending.NewLineAndIndent;
             _indent--;
             WritePending();
-            _outptut.Write(c);
-            _pending = s_commaNewLine;
+            _output.Write(c);
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Dispose()
         {
-            _outptut.Dispose();
+            _output.Dispose();
+        }
+
+        // String escaping implementation forked from System.Runtime.Serialization.Json to 
+        // avoid a large dependency graph for this small amount of code:
+        //
+        // https://github.com/dotnet/corefx/blob/master/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
+        //
+        private static string EscapeString(string value)
+        {
+            PooledStringBuilder pooledBuilder = null;
+            StringBuilder b = null;
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            int startIndex = 0;
+            int count = 0;
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+
+                if (c == '\"' || c == '\\' || ShouldAppendAsUnicode(c))
+                {
+                    if (b == null)
+                    {
+                        Debug.Assert(pooledBuilder == null);
+                        pooledBuilder = PooledStringBuilder.GetInstance();
+                        b = pooledBuilder.Builder;
+                    }
+
+                    if (count > 0)
+                    {
+                        b.Append(value, startIndex, count);
+                    }
+
+                    startIndex = i + 1;
+                    count = 0;
+                }
+
+                switch (c)
+                {
+                    case '\"':
+                        b.Append("\\\"");
+                        break;
+                    case '\\':
+                        b.Append("\\\\");
+                        break;
+                    default:
+                        if (ShouldAppendAsUnicode(c))
+                        {
+                            AppendCharAsUnicode(b, c);
+                        }
+                        else
+                        {
+                            count++;
+                        }
+                        break;
+                }
+            }
+
+            if (b == null)
+            {
+                return value;
+            }
+
+            if (count > 0)
+            {
+                b.Append(value, startIndex, count);
+            }
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendCharAsUnicode(StringBuilder builder, char c)
+        {
+            builder.Append("\\u");
+            builder.AppendFormat(CultureInfo.InvariantCulture, "{0:x4}", (int)c);
+        }
+
+        private static bool ShouldAppendAsUnicode(char c)
+        {
+            // Note on newline characters: Newline characters in JSON strings need to be encoded on the way out 
+            // See Unicode 6.2, Table 5-1 (http://www.unicode.org/versions/Unicode6.2.0/ch05.pdf]) for the full list. 
+
+            // We only care about NEL, LS, and PS, since the other newline characters are all 
+            // control characters so are already encoded. 
+
+            return c < ' ' ||
+                c >= (char)0xfffe || // max char 
+                (c >= (char)0xd800 && c <= (char)0xdfff) || // between high and low surrogate 
+                (c == '\u0085' || c == '\u2028' || c == '\u2029'); // Unicode new line characters 
         }
     }
 }

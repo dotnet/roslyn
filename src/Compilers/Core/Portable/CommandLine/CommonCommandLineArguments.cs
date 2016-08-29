@@ -91,7 +91,13 @@ namespace Microsoft.CodeAnalysis
         public string PdbPath { get; internal set; }
 
         /// <summary>
-        /// True to emit PDB file.
+        /// Path of the file containing information linking the compilation to source server that stores 
+        /// a snapshot of the source code included in the compilation.
+        /// </summary>
+        public string SourceLink { get; internal set; }
+
+        /// <summary>
+        /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
         /// </summary>
         public bool EmitPdb { get; internal set; }
 
@@ -135,6 +141,11 @@ namespace Microsoft.CodeAnalysis
         /// A set of additional non-code text files that can be used by analyzers.
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
+
+        /// <summary>
+        /// A set of files to embed in the PDB.
+        /// </summary>
+        public ImmutableArray<CommandLineSourceFile> EmbeddedFiles { get; internal set; }
 
         /// <value>
         /// Report additional information related to analyzers, such as analyzer execution time.
@@ -246,8 +257,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal Guid SqmSessionGuid { get; set; }
-
         internal CommandLineArguments()
         {
         }
@@ -358,14 +367,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+            string language,
+            List<DiagnosticInfo> diagnostics,
+            CommonMessageProvider messageProvider,
+            IAnalyzerAssemblyLoader analyzerLoader)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
                 var analyzerReference = o as AnalyzerFileReference;
-                DiagnosticInfo diagnostic = null;
+                DiagnosticInfo diagnostic;
                 switch (e.ErrorCode)
                 {
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
@@ -391,14 +404,16 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
+            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReference.AnalyzerLoadFailed += errorHandler;
-                    resolvedReference.AddAnalyzers(builder, language);
-                    resolvedReference.AnalyzerLoadFailed -= errorHandler;
+                    resolvedReferences.Add(resolvedReference);
+
+                    // register the reference to the analyzer loader:
+                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
                 }
                 else
                 {
@@ -406,7 +421,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            // All analyzer references are registered now, we can start loading them:
+            foreach (var resolvedReference in resolvedReferences)
+            {
+                resolvedReference.AnalyzerLoadFailed += errorHandler;
+                resolvedReference.AddAnalyzers(analyzerBuilder, language);
+                resolvedReference.AnalyzerLoadFailed -= errorHandler;
+            }
+
+            resolvedReferences.Free();
+
+            return analyzerBuilder.ToImmutable();
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

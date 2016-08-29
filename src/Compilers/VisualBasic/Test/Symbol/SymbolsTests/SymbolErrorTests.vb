@@ -6840,7 +6840,7 @@ BC30651: property parameters cannot be declared 'ByRef'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(Skip:="NeedRro_diff")>
+        <Fact>
         Public Sub BC30652ERR_UnreferencedAssembly3()
             Dim Lib1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="Lib1">
@@ -6870,8 +6870,9 @@ BC30651: property parameters cannot be declared 'ByRef'.
             Dim ref2 = New VisualBasicCompilationReference(Lib2)
             compilation1 = compilation1.AddReferences(ref2)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30652: 
-                                ~~~~~
+BC30002: Type 'C1' is not defined.
+                Dim s as C1
+                         ~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -22239,9 +22240,7 @@ End Class
             Assert.Equal(ImmutableArray.Create(Of Location)(), errTypeSym.Locations)
             Assert.Equal(ImmutableArray.Create(Of SyntaxReference)(), errTypeSym.DeclaringSyntaxReferences)
             Assert.Equal(0, errTypeSym.Arity)
-            Assert.Throws(Of InvalidOperationException)(Sub()
-                                                            Dim tmp = errTypeSym.EnumUnderlyingType
-                                                        End Sub)
+            Assert.Null(errTypeSym.EnumUnderlyingType)
             Assert.Equal("B", errTypeSym.Name)
             Assert.Equal(0, errTypeSym.TypeArguments.Length)
             Assert.Equal(0, errTypeSym.TypeParameters.Length)

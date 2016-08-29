@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal bool EarlyDecodeDeprecatedOrObsoleteAttribute(
+        internal static bool EarlyDecodeDeprecatedOrObsoleteAttribute(
             ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments,
             out CSharpAttributeData attributeData,
             out ObsoleteAttributeData obsoleteData)
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(bindersBuilder != null);
 
                         var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder((CSharpSyntaxNode)attributeDeclarationSyntaxList.Node);
+                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
                         Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");

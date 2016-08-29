@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
 
-        private AwaitExpressionSpiller(MethodSymbol method, CSharpSyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
+        private AwaitExpressionSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _tempSubstitution = tempSubstitution;
@@ -164,14 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _statements.Add(statement);
-            }
-
-            internal void AddStatements(ImmutableArray<BoundStatement> statements)
-            {
-                foreach (var statement in statements)
-                {
-                    AddStatement(statement);
-                }
             }
 
             internal void AddExpressions(ImmutableArray<BoundExpression> expressions)
@@ -518,9 +510,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnterStatement(node);
 
             BoundSpillSequenceBuilder builder = null;
+            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
             var boundExpression = VisitExpression(ref builder, node.Expression);
             var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -853,14 +846,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder,
                 node.Update(
                     operand,
-                    node.ConversionKind,
-                    node.ResultKind,
+                    node.Conversion,
                     isBaseConversion: node.IsBaseConversion,
-                    symbolOpt: node.SymbolOpt,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
-                    isExtensionMethod: node.IsExtensionMethod,
-                    isArrayIndex: node.IsArrayIndex,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }

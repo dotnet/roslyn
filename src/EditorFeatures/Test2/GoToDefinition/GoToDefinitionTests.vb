@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Private Function TestAsync(workspaceDefinition As XElement, Optional expectedResult As Boolean = True) As Tasks.Task
             Return GoToTestHelpers.TestAsync(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters))
+                        DirectCast(New CSharpGoToDefinitionService(presenters, externalDefinitionProviders), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters, externalDefinitionProviders))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -1594,6 +1594,7 @@ End Module
             Await TestAsync(workspace)
         End Function
 
+        <WorkItem(10132, "https://github.com/dotnet/roslyn/issues/10132")>
         <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCrossLanguageParameterizedPropertyOverride() As Task

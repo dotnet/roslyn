@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -141,17 +142,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (newNode is ReturnStatementSyntax)
                 {
                     var newReturnStatement = (ReturnStatementSyntax)newNode;
-
-                    var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
-                    if (parentLambda != null)
+                    if (newReturnStatement.Expression != null)
                     {
-                        var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
-                        if (returnType != null)
+                        var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+                        if (parentLambda != null)
                         {
-                            ExpressionSyntax newExpressionWithCast;
-                            if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                            var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
+                            if (returnType != null)
                             {
-                                newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                ExpressionSyntax newExpressionWithCast;
+                                if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                                {
+                                    newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                                }
                             }
                         }
                     }
@@ -195,7 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                                     var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
-                                    newParameters = newParameters.Replace(parameters[i], newParameter);
+
+                                    var currentParameter = newParameters[i];
+                                    newParameters = newParameters.Replace(currentParameter, newParameter);
                                 }
 
                                 var newParameterList = parameterList.WithParameters(newParameters);
@@ -242,7 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,
-                                simpleLambda.RefKeyword,
                                 simpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
                             return SimplificationHelpers.CopyAnnotations(from: simpleLambda, to: parenthesizedLambda);
@@ -263,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&
-                    !IsPassedToDelegateCreationExpression(node, argumentType))
+                    !IsPassedToDelegateCreationExpression(node, argumentType) &&
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
                 {
                     ExpressionSyntax newArgumentExpressionWithCast;
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
@@ -759,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         foreach (var argument in invocationExpression.ArgumentList.Arguments)
                         {
-                            if (argument != null && argument.Expression != null)
+                            if (argument != null)
                             {
                                 var typeinfo = semanticModel.GetTypeInfo(argument.Expression);
                                 if (typeinfo.Type != null && typeinfo.Type.TypeKind == TypeKind.Dynamic)
@@ -1081,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     originalNode.ArgumentList.WithArguments(arguments));
 
                 // This Annotation copy is for the InvocationExpression
-                return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation);
+                return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
             }
         }
     }

@@ -6734,7 +6734,8 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="1104815")>
+        <Fact>
+        <WorkItem(4719, "https://github.com/dotnet/roslyn/issues/4719")>
         Public Sub CrefLookup()
             Dim source =
                 <compilation name="AssemblyName">
@@ -6763,7 +6764,14 @@ End Class
             Dim inner = outer.GetMember(Of NamedTypeSymbol)("Inner")
 
             Dim position = syntaxTree.ToString().IndexOf("(Of U)", StringComparison.Ordinal)
-            Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+
+            Const bug4719IsFixed = False
+
+            If bug4719IsFixed Then
+                Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+            Else
+                Assert.False(model.LookupSymbols(position, outer, inner.Name).Any())
+            End If
         End Sub
 
         <Fact()>

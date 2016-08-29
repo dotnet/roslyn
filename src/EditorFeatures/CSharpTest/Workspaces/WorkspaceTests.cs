@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -365,10 +364,9 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project1.Id));
-
-                workspace.OnDocumentClosed(document.Id);
                 workspace.OnProjectRemoved(project1.Id);
+                Assert.False(workspace.IsDocumentOpen(document.Id));
+                Assert.Empty(workspace.CurrentSolution.Projects);
             }
         }
 

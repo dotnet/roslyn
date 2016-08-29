@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
-            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken: cancellationToken);
+            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Options, cancellationToken: cancellationToken);
         }
 
         private void AddFormattingSpans(

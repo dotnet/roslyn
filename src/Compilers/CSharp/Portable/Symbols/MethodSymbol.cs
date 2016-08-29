@@ -1193,12 +1193,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        /// <summary>
+        /// Is this a method of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleMethod
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a method of a tuple type, return corresponding underlying method from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual MethodSymbol TupleUnderlyingMethod
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         #region IMethodSymbolInternal
 
-        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            return CalculateLocalSyntaxOffset(localPosition, localTree);
-        }
+        bool IMethodSymbolInternal.IsIterator => IsIterator;
+
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
         #endregion
 

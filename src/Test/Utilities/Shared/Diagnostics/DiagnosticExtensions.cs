@@ -235,9 +235,18 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
-            c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options).Diagnostics.Verify(expected);
+            c.GetEmitDiagnostics(options: options).Verify(expected);
             return c;
+        }
+
+        public static ImmutableArray<Diagnostic> GetEmitDiagnostics<TCompilation>(
+            this TCompilation c,
+            EmitOptions options = null,
+            IEnumerable<ResourceDescription> manifestResources = null)
+            where TCompilation : Compilation
+        {
+            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            return c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics;
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
@@ -246,11 +255,16 @@ namespace Microsoft.CodeAnalysis
             return VerifyEmitDiagnostics(c, EmitOptions.Default, expected);
         }
 
+        public static ImmutableArray<Diagnostic> GetEmitDiagnostics<TCompilation>(this TCompilation c)
+            where TCompilation : Compilation
+        {
+            return GetEmitDiagnostics(c, EmitOptions.Default);
+        }
+
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
-            c.Emit(new MemoryStream(), pdbStream: pdbStream, manifestResources: manifestResources).Diagnostics.Verify(expected);
+            c.GetEmitDiagnostics(manifestResources: manifestResources).Verify(expected);
             return c;
         }
 
@@ -291,18 +305,23 @@ namespace Microsoft.CodeAnalysis
         internal static string GetExpectedErrorLogHeader(string actualOutput, CommonCompiler compiler)
         {
             var expectedToolName = compiler.GetToolName();
-            var expectedProductVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
+            var expectedVersion = compiler.GetAssemblyVersion();
+            var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
             var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{
-  ""version"": ""{0}"",
-  ""runLogs"": [
+  ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
+  ""version"": ""1.0.0"",
+  ""runs"": [
     {{
-      ""toolInfo"": {{
-        ""name"": ""{1}"",
-        ""version"": ""{2}"",
-        ""fileVersion"": ""{3}""
-      }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+      ""tool"": {{
+        ""name"": ""{0}"",
+        ""version"": ""{1}"",
+        ""fileVersion"": ""{2}"",
+        ""semanticVersion"": ""{3}"",
+        ""language"": ""{4}""
+      }},", expectedToolName, expectedVersion, expectedFileVersion, expectedSemanticVersion, expectedLanguage);
         }
 
         public static string Stringize(this Diagnostic e)

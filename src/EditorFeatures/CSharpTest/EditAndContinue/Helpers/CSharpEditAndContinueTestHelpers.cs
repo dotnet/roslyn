@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue;

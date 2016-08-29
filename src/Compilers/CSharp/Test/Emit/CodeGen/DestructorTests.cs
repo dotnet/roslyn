@@ -517,7 +517,7 @@ public class M<T> : L<T>
         }
 
         [WorkItem(528903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528903")] // Won't fix - test just captures behavior.
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void DestructorOverridesPublicFinalize()
         {
             var text = @"
@@ -539,8 +539,26 @@ public class B : A
                 //     public virtual void Finalize() { }
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"));
 
-            // PeVerify fails
-            Assert.Throws<PeVerifyException>(() => CompileAndVerify(compilation));
+            // We produce unverifiable code here as per bug resolution (compat concerns, not common case).
+            CompileAndVerify(compilation, verify: false).VerifyIL("B.Finalize",
+
+                @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  leave.s    IL_0009
+  }
+  finally
+  {
+    IL_0002:  ldarg.0
+    IL_0003:  call       ""void object.Finalize()""
+    IL_0008:  endfinally
+  }
+  IL_0009:  ret
+}
+");
         }
 
         [WorkItem(528907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528907")]

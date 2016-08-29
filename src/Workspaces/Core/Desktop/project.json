@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "Microsoft.Composition": "1.0.27"
+    "Roslyn.Microsoft.Build": "0.0.2"
   },
   "frameworks": {
-    "net452": { }
+    "net46": { }
   }
 }

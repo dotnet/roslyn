@@ -1,14 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class EndConstructCommandHandlerTests

@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -546,10 +547,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 nodeKeyValidation.AddProject(project);
             }
 
-            var optionSet = workspace.Services.GetService<IOptionService>().GetOptions();
-
             // Rename symbol.
-            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, optionSet).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, solution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
             var changedDocuments = newSolution.GetChangedDocuments(solution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -732,6 +731,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node);
         public abstract SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind);
+        public abstract EnvDTE80.vsCMParameterKind UpdateParameterKind(EnvDTE80.vsCMParameterKind parameterKind, PARAMETER_PASSING_MODE passingMode);
+
         public abstract SyntaxNode CreateParameterNode(string name, string type);
 
         public abstract EnvDTE.vsCMFunction ValidateFunctionKind(SyntaxNode containerNode, EnvDTE.vsCMFunction kind, string name);
@@ -830,7 +831,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                throw new ArgumentException(ServicesVSResources.InvalidAccess, "access");
+                throw new ArgumentException(ServicesVSResources.Invalid_access, nameof(access));
             }
         }
 
@@ -1151,7 +1152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<IFormattingRule> additionalRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var annotatedNode = root.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
             var formattingSpan = GetSpanToFormat(root, annotatedNode.FullSpan);
 
@@ -1179,7 +1180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             CancellationToken cancellationToken,
             out Document newDocument)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             // Annotate the member we're inserting so we can get back to it.
             var annotation = new SyntaxAnnotation();
@@ -1209,7 +1210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // new node
             return document
-                .GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken)
+                .GetSyntaxRootSynchronously(cancellationToken)
                 .GetAnnotatedNodesAndTokens(annotation)
                 .Single()
                 .AsNode();
@@ -1233,7 +1234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // REVIEW: how simplifier ever worked for code model? nobody added simplifier.Annotation before?
             var annotatedNode = newNode.WithAdditionalAnnotations(annotation, Simplifier.Annotation);
 
-            var oldRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+            var oldRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var newRoot = oldRoot.ReplaceNode(node, annotatedNode);
 
             document = document.WithSyntaxRoot(newRoot);

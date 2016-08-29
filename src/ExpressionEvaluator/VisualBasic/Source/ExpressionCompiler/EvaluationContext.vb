@@ -9,6 +9,7 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -191,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim metadataDecoder = New MetadataDecoder(DirectCast(currentFrame.ContainingModule, PEModuleSymbol), currentFrame)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle)
 
-            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader)
+            Dim typedSymReader = DirectCast(symReader, ISymUnmanagedReader3)
             Dim debugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
 
             If IsDteeEntryPoint(currentFrame) Then
@@ -276,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             For Each readers In assemblyReaders
                 Dim metadataReader = readers.MetadataReader
-                Dim symReader = DirectCast(readers.SymReader, ISymUnmanagedReader)
+                Dim symReader = DirectCast(readers.SymReader, ISymUnmanagedReader3)
 
                 ' Ignore assemblies for which we don't have PDBs.
                 If symReader Is Nothing Then Continue For
@@ -390,14 +391,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(DirectCast(moduleBuilder, Cci.IModule), Nothing, diagnostics),
+                        New EmitContext(moduleBuilder, Nothing, diagnostics),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -435,14 +436,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -480,14 +481,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
                 Using stream As New MemoryStream()
                     Cci.PeWriter.WritePeToStream(
-                        New EmitContext(DirectCast(modulebuilder, Cci.IModule), Nothing, diagnostics),
+                        New EmitContext(modulebuilder, Nothing, diagnostics),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then

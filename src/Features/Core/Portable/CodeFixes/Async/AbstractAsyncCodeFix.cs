@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
     {
-        protected abstract Task<CodeAction> GetCodeFix(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
+        protected abstract Task<CodeAction> GetCodeActionAsync(
+            SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -25,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 
             var diagnostic = context.Diagnostics.FirstOrDefault();
 
-            var codeAction = await GetCodeFix(root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
-
+            var codeAction = await GetCodeActionAsync(
+                root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
             if (codeAction != null)
             {
-                context.RegisterCodeFix(codeAction, diagnostic);
+                context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 

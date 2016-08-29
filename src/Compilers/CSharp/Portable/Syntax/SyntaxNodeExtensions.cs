@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TNode)node.Green.SetAnnotations(annotations).CreateRed();
         }
 
-        public static bool IsAnonymousFunction(this CSharpSyntaxNode syntax)
+        public static bool IsAnonymousFunction(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsQuery(this CSharpSyntaxNode syntax)
+        public static bool IsQuery(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
         /// created by LocalBinderFactory.
         /// </summary>
-        internal static bool CanHaveAssociatedLocalBinder(this CSharpSyntaxNode syntax)
+        internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
             SyntaxKind kind;
             return syntax.IsAnonymousFunction() ||
@@ -66,7 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
                 kind == SyntaxKind.CatchFilterClause ||
                 kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.ArrowExpressionClause;
+                kind == SyntaxKind.EqualsValueClause ||
+                kind == SyntaxKind.Attribute ||
+                kind == SyntaxKind.ArgumentList ||
+                kind == SyntaxKind.ArrowExpressionClause ||
+                (syntax is ExpressionSyntax && 
+                    // All these nodes are valid scope designators due to the pattern matching feature.
+                    ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
+                     (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as CommonForEachStatementSyntax)?.Expression == syntax));
         }
 
         /// <summary>
@@ -99,6 +107,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return default(SyntaxToken);
                 }
             }
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefExpressionSyntax)syntax).Expression;
+            }
+
+            return syntax;
         }
     }
 }

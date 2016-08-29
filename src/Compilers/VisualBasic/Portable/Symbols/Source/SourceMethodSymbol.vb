@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
@@ -277,20 +278,20 @@ lReportErrorOnTwoTokens:
             Return New SourceDeclareMethodSymbol(container, name, flags, binder, syntax, importData)
         End Function
 
-        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As PInvokeAttributes
-            Dim result As PInvokeAttributes
+        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As MethodImportAttributes
+            Dim result As MethodImportAttributes
             Select Case syntax.CharsetKeyword.Kind
                 Case SyntaxKind.None, SyntaxKind.AnsiKeyword
-                    result = PInvokeAttributes.CharSetAnsi Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetAnsi Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.UnicodeKeyword
-                    result = PInvokeAttributes.CharSetUnicode Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetUnicode Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.AutoKeyword
-                    result = PInvokeAttributes.CharSetAuto
+                    result = MethodImportAttributes.CharSetAuto
             End Select
 
-            Return result Or PInvokeAttributes.CallConvWinapi Or PInvokeAttributes.SupportsLastError
+            Return result Or MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
         End Function
 
         Friend Shared Function CreateOperator(
@@ -752,7 +753,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
@@ -1174,7 +1175,7 @@ lReportErrorOnTwoTokens:
             Return If(Locations.FirstOrDefault(), NoLocation.Singleton)
         End Function
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
 
             Dim syntaxTree As SyntaxTree = Me.SyntaxTree
 
@@ -2257,7 +2258,7 @@ lReportErrorOnTwoTokens:
                             SyntaxKind.DeclareSubStatement
 
                             Debug.Assert(Me.IsSub)
-                            binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
+                            Binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
                             retType = binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
                             errorLocation = methodStatement.DeclarationKeyword
 

@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -15,7 +13,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -34,23 +33,14 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MSBuildTask\Desktop\MSBuildTask.Desktop.csproj">
-      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask.Desktop</Name>
+    <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
+      <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
+      <Name>MSBuildTask</Name>
     </ProjectReference>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="Microsoft.Build.Framework">
-      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Build.Utilities.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Utilities.Core.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -67,7 +57,6 @@
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -76,7 +65,6 @@
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -98,8 +86,6 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

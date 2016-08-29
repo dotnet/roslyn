@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <DeployToSamplesSubfolder>true</DeployToSamplesSubfolder>
@@ -60,14 +58,14 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
@@ -123,7 +121,5 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="RemoveByValVB.UnitTests" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

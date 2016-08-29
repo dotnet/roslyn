@@ -1089,7 +1089,7 @@ End Interface
         <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
         <WorkItem(545182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545182")>
         <WorkItem(545184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545184")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
+        <Fact>
         Public Sub TestHandlesForWithEventsFromBaseFromADifferentAssembly()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestHandlesForWithEventsFromBaseFromADifferentAssembly_Assembly1",
             <![CDATA[Public Class c1
@@ -1137,7 +1137,7 @@ End Module]]>,
 
         <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
         <WorkItem(545185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545185")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
+        <Fact>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
             <![CDATA[Public Class c1

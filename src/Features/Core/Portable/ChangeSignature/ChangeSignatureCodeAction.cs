@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override string Title
         {
-            get { return FeaturesResources.ChangeSignature; }
+            get { return FeaturesResources.Change_signature; }
         }
 
         public override object GetOptions(CancellationToken cancellationToken)

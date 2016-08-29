@@ -1276,7 +1276,9 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
             errs.AssertNoErrors()
         End Sub
 
-        <Fact(Skip:="529405"), WorkItem(529405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529405")>
+        <Fact>
+        <WorkItem(100475, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=100475")>
+        <WorkItem(529405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529405")>
         Public Sub TestThrowDoNotReportUnreachable()
             Dim program =
 <compilation>

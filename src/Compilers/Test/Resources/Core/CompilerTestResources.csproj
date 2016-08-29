@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -136,7 +134,10 @@
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
+    <EmbeddedResource Include="NetFX\Minimal\minasynccorlib.dll" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
@@ -417,14 +418,15 @@
     <EmbeddedResource Include="PerfTests\VBPerfTest.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
     <Compile Include="ResourceLoader.cs" />
+    <None Include="SymbolsTests\Metadata\public-and-private.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

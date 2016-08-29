@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return ReferenceEquals(this, obj);
+                return (object)this == obj;
             }
 
             public override int GetHashCode()

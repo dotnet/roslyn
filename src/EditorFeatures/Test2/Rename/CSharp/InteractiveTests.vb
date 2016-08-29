@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class InteractiveTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 

@@ -223,9 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode()
             {
-                return Hash.Combine(
-                    _distinguisher._compilation.GetHashCode(),
-                    GetSymbol().GetHashCode());
+                int result = GetSymbol().GetHashCode();
+                var compilation = _distinguisher._compilation;
+                if (compilation != null)
+                {
+                    result = Hash.Combine(result, compilation.GetHashCode());
+                }
+                return result;
             }
 
             public override string ToString()

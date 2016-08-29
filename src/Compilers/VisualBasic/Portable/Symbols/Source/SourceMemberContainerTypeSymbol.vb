@@ -2230,8 +2230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
+            ' We can not get the relative order of a declaration without a source location
+            If typeToTest.Locations.IsEmpty Then
+                Return True
+            End If
+
             ' We use simple comparison based on source location 
-            Debug.Assert(typeToTest.Locations.Length > 0)
             Dim typeToTestLocation = typeToTest.Locations(0)
 
             Debug.Assert(Me.Locations.Length > 0)
@@ -3252,6 +3256,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim syntaxOffset As Integer
             If TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, isShared, syntaxOffset:=syntaxOffset) Then
                 Return syntaxOffset
+            End If
+
+            If Me._declaration.Declarations.Length >= 1 AndAlso position = Me._declaration.Declarations(0).Location.SourceSpan.Start Then
+                ' With dynamic analysis instrumentation, the introducing declaration of a type can provide
+                ' the syntax associated with both the analysis payload local of a synthesized constructor
+                ' and with the constructor itself. If the synthesized constructor includes an initializer with a lambda,
+                ' that lambda needs a closure that captures the analysis payload of the constructor,
+                ' and the offset of the syntax for the local within the constructor is by definition zero.
+                Return 0
             End If
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,

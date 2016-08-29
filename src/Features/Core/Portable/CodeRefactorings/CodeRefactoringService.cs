@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
-                    (a) =>
+                    a =>
                     {
                         // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
                         lock (actions)

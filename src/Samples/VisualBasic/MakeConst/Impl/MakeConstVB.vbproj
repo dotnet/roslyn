@@ -3,9 +3,7 @@
   <PropertyGroup>
     <UseRoslynAnalyzers>false</UseRoslynAnalyzers>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <FileUpgradeFlags>
@@ -41,7 +39,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>MakeConstVB</RootNamespace>
     <AssemblyName>MakeConstVB</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -55,7 +53,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -63,7 +61,7 @@
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
@@ -122,7 +120,5 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="MakeConstVB.UnitTests" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

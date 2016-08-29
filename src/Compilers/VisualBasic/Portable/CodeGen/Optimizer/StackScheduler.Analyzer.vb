@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Enum
 
         ''' <summary>
-        ''' Analyses the tree trying to figure which locals may live on stack. It is 
+        ''' Analyzes the tree trying to figure which locals may live on stack. It is 
         ''' a fairly delicate process and must be very familiar with how CodeGen works. 
         ''' It is essentially a part of CodeGen.
         ''' 
@@ -677,7 +677,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = VisitArguments(node.Arguments, method.Parameters)
 
                 Debug.Assert(node.MethodGroupOpt Is Nothing)
-                Return node.Update(method, node.MethodGroupOpt, receiver, rewrittenArguments, node.ConstantValueOpt, node.SuppressObjectClone, node.Type)
+                Return node.Update(
+                    method,
+                    node.MethodGroupOpt,
+                    receiver,
+                    rewrittenArguments,
+                    node.ConstantValueOpt,
+                    isLValue:=node.IsLValue,
+                    suppressObjectClone:=node.SuppressObjectClone,
+                    type:=node.Type)
             End Function
 
             Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of BoundExpression)

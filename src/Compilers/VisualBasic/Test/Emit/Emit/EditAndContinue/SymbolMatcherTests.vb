@@ -57,7 +57,7 @@ End Class"
             Assert.True(members.Length > 10)
 
             For i = 0 To 10 - 1
-                Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+                Dim matcher = CreateMatcher(compilation1, compilation0)
 
                 Dim tasks(10) As Task
 
@@ -105,7 +105,7 @@ End Class
 
             compilation0.VerifyDiagnostics()
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
 
             Assert.Equal(members.Length, 2)
@@ -128,7 +128,7 @@ End Class
 "
             Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim other = matcher.MapDefinition(member)
             Assert.NotNull(other)
@@ -161,7 +161,7 @@ End Class
             Dim member1 = compilation1.GetMember(Of MethodSymbol)("B.F")
             Assert.Equal(DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim other = DirectCast(matcher.MapDefinition(member1), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length, 1)
@@ -185,7 +185,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib({source}, {lib0.ToMetadataReference()}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference())
 
-            Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -220,13 +220,7 @@ End Class
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                Nothing,
-                compilation0.SourceAssembly,
-                Nothing,
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
             Dim member = compilation1.CreateArrayTypeSymbol(elementType)
             Dim other = matcher.MapReference(member)
@@ -258,13 +252,7 @@ End Class
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                Nothing,
-                compilation0.SourceAssembly,
-                Nothing,
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
             Dim member = compilation1.CreateArrayTypeSymbol(elementType)
             Dim other = matcher.MapReference(member)
@@ -300,13 +288,7 @@ End Class
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                Nothing,
-                compilation0.SourceAssembly,
-                Nothing,
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.y")
             Dim other = matcher.MapReference(DirectCast(member.Type, Cci.ITypeReference))
             ' For a newly added type, there is no match in the previous generation.
@@ -370,7 +352,11 @@ End Class
             Assert.Equal("$VB$Local_x1", x1.Name)
             Assert.Equal("$VB$Local_x2", x2.Name)
 
-            Dim matcher = New VisualBasicSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0)
+            Dim matcher = New VisualBasicSymbolMatcher(
+                anonymousTypeMap0,
+                compilation1.SourceAssembly,
+                emitContext,
+                peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -437,7 +423,11 @@ End Class
             Assert.Equal("$VB$Local_x1", x1.Name)
             Assert.Equal("$VB$Local_x2", x2.Name)
 
-            Dim matcher = New VisualBasicSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0)
+            Dim matcher = New VisualBasicSymbolMatcher(
+                anonymousTypeMap0,
+                compilation1.SourceAssembly,
+                emitContext,
+                peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -510,7 +500,11 @@ End Class
             Assert.Equal("$VB$Local_x1", x1.Name)
             Assert.Equal("$VB$Local_x2", x2.Name)
 
-            Dim matcher = New VisualBasicSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0)
+            Dim matcher = New VisualBasicSymbolMatcher(
+                anonymousTypeMap0,
+                compilation1.SourceAssembly,
+                emitContext,
+                peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class MiscellaneousFilesWorkspace
     {
-        private class HostProject : IVisualStudioHostProject
+        private sealed class HostProject : IVisualStudioHostProject
         {
             public ProjectId Id { get; }
             public string Language { get; }
@@ -46,10 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public ProjectInfo CreateProjectInfoForCurrentState()
             {
-                return ProjectInfo.Create(
+                var info = ProjectInfo.Create(
                     this.Id,
                     _version,
-                    name: ServicesVSResources.MiscellaneousFiles,
+                    name: ServicesVSResources.Miscellaneous_Files,
                     assemblyName: _assemblyName,
                     language: this.Language,
                     filePath: null,
@@ -60,6 +61,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     metadataReferences: _metadataReferences,
                     isSubmission: false,
                     hostObjectType: null);
+
+                // misc project will never be fully loaded since, by defintion, it won't know
+                // what the full set of information is.
+                return info.WithHasAllInformation(hasAllInformation: false);
             }
 
             public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;
@@ -103,11 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return moniker.Equals(Document.Key.Moniker, StringComparison.OrdinalIgnoreCase);
-            }
-
-            public IReadOnlyList<string> GetFolderNames(uint documentItemID)
-            {
-                return SpecializedCollections.EmptyReadOnlyList<string>();
             }
         }
     }

@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
-    internal sealed class CSharpSyntaxContext : AbstractSyntaxContext
+    internal sealed class CSharpSyntaxContext : SyntaxContext
     {
         public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
         public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLabelContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
 
-        public readonly bool IsNamespaceDeclarationNameContext;
         public readonly bool IsIsOrAsContext;
         public readonly bool IsObjectCreationTypeContext;
         public readonly bool IsDefiniteCastTypeContext;
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isPreProcessorExpressionContext,
             bool isTypeContext,
             bool isNamespaceContext,
+            bool isNamespaceDeclarationNameContext,
             bool isStatementContext,
             bool isGlobalStatementContext,
             bool isAnyExpressionContext,
@@ -75,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
-            bool isNamespaceDeclarationNameContext,
             bool isRightOfDotOrArrowOrColonColon,
             bool isIsOrAsContext,
             bool isObjectCreationTypeContext,
@@ -96,13 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isInstanceContext,
             bool isCrefContext,
             bool isCatchFilterContext,
-            bool isDestructorTypeContext)
+            bool isDestructorTypeContext,
+            CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
-                   isTypeContext, isNamespaceContext,
+                   isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective)
+                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -114,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
-            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsIsOrAsContext = isIsOrAsContext;
             this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return CreateContextWorker(workspace, semanticModel, position, cancellationToken);
+        }
+
+        private static CSharpSyntaxContext CreateContextWorker(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -201,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPreProcessorExpressionContext,
                 syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt: semanticModel),
                 syntaxTree.IsNamespaceContext(position, cancellationToken, semanticModelOpt: semanticModel),
+                syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 isStatementContext,
                 isGlobalStatementContext,
                 isAnyExpressionContext,
@@ -213,7 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 syntaxTree.IsLabelContext(position, cancellationToken),
                 syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
-                syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
                 syntaxTree.IsIsOrAsContext(position, leftToken, cancellationToken),
                 syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
@@ -234,12 +239,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsInstanceContext(position, leftToken, cancellationToken),
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
-                isDestructorTypeContext);
+                isDestructorTypeContext,
+                cancellationToken);
         }
 
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            return CreateContext(/*workspace*/null, semanticModel, position, cancellationToken);
+            var inferenceService = new CSharpTypeInferenceService();
+            var types = inferenceService.InferTypes(semanticModel, position, cancellationToken);
+            return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
+        }
+
+        private new static bool IsWithinAsyncMethod()
+        {
+            // TODO: Implement this if any C# completion code needs to know if it is in an async 
+            // method or not.
+            return false;
         }
 
         public bool IsTypeAttributeContext(CancellationToken cancellationToken)
@@ -314,6 +329,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
+        {
+            return new CSharpTypeInferenceService();
         }
     }
 }

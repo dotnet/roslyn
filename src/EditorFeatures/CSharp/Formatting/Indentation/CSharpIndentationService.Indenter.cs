@@ -11,10 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
@@ -23,8 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     {
         internal class Indenter : AbstractIndenter
         {
-            public Indenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine line, CancellationToken cancellationToken) :
-                base(document, rules, optionSet, line, cancellationToken)
+            public Indenter(
+                ISyntaxFactsService syntaxFacts,
+                SyntaxTree syntaxTree,
+                IEnumerable<IFormattingRule> rules,
+                OptionSet optionSet,
+                TextLine line,
+                CancellationToken cancellationToken) :
+                base(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             {
             }
 
@@ -48,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // okay, now see whether previous line has anything meaningful
-                var lastNonWhitespacePosition = previousLine.GetLastNonWhitespacePosition();
+                var lastNonWhitespacePosition = previousLine.Value.GetLastNonWhitespacePosition();
                 if (!lastNonWhitespacePosition.HasValue)
                 {
                     return null;
@@ -59,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 var token = Tree.GetRoot(CancellationToken).FindToken(lastNonWhitespacePosition.Value);
                 if (token.IsKind(SyntaxKind.None) || indentStyle == FormattingOptions.IndentStyle.Block)
                 {
-                    return GetIndentationOfLine(previousLine);
+                    return GetIndentationOfLine(previousLine.Value);
                 }
 
                 // okay, now check whether the text we found is trivia or actual token.
@@ -74,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     Contract.Assert(token.FullSpan.Contains(lastNonWhitespacePosition.Value));
 
                     // okay, now check whether the trivia is at the beginning of the line
-                    var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
+                    var firstNonWhitespacePosition = previousLine.Value.GetFirstNonWhitespacePosition();
                     if (!firstNonWhitespacePosition.HasValue)
                     {
                         return IndentFromStartOfLine(0);
                     }
 
                     var trivia = Tree.GetRoot(CancellationToken).FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
-                    if (trivia.Kind() == SyntaxKind.None || this.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
+                    if (trivia.Kind() == SyntaxKind.None || this.LineToBeIndented.LineNumber > previousLine.Value.LineNumber + 1)
                     {
                         // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants
                         // to start type a new statement. So get indentation from the start of the line but not based on the token.
@@ -126,13 +133,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                     // this case we will keep the indentation of this trivia line
                     // this trivia can't be preprocessor by the way.
-                    return GetIndentationOfLine(previousLine);
+                    return GetIndentationOfLine(previousLine.Value);
                 }
             }
 
             private IndentationResult? GetIndentationBasedOnToken(SyntaxToken token)
             {
-                Contract.ThrowIfNull(LineToBeIndented);
                 Contract.ThrowIfNull(Tree);
                 Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
 
@@ -172,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // if we couldn't determine indentation from the service, use heuristic to find indentation.
-                var snapshot = LineToBeIndented.Snapshot;
+                var sourceText = LineToBeIndented.Text;
 
                 // If this is the last token of an embedded statement, walk up to the top-most parenting embedded
                 // statement owner and use its indentation.
@@ -198,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         embeddedStatementOwner = embeddedStatementOwner.Parent;
                     }
 
-                    return GetIndentationOfLine(snapshot.GetLineFromPosition(embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).SpanStart));
+                    return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).SpanStart));
                 }
 
                 switch (token.Kind())
@@ -240,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                             if (nonTerminalNode is SwitchLabelSyntax)
                             {
-                                return GetIndentationOfLine(snapshot.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
+                                return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
                             }
 
                             // default case
@@ -255,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                             // if this is closing an attribute, we shouldn't indent.
                             if (nonTerminalNode is AttributeListSyntax)
                             {
-                                return GetIndentationOfLine(snapshot.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
+                                return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                             }
 
                             // default case
@@ -264,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                     case SyntaxKind.XmlTextLiteralToken:
                         {
-                            return GetIndentationOfLine(snapshot.GetLineFromPosition(token.SpanStart));
+                            return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(token.SpanStart));
                         }
 
                     case SyntaxKind.CommaToken:
@@ -331,15 +337,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // find node that starts at the beginning of a line
-                var snapshot = LineToBeIndented.Snapshot;
+                var sourceText = LineToBeIndented.Text;
                 for (int i = (index - 1) / 2; i >= 0; i--)
                 {
                     var node = list[i];
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
 
-                    if (firstToken.IsFirstTokenOnLine(snapshot))
+                    if (firstToken.IsFirstTokenOnLine(sourceText))
                     {
-                        return GetIndentationOfLine(snapshot.GetLineFromPosition(firstToken.SpanStart));
+                        return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(firstToken.SpanStart));
                     }
                 }
 
@@ -368,12 +374,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // find line where first token of the node is
-                var snapshot = LineToBeIndented.Snapshot;
+                var sourceText = LineToBeIndented.Text;
                 var firstToken = queryExpressionClause.GetFirstToken(includeZeroWidth: true);
-                var firstTokenLine = snapshot.GetLineFromPosition(firstToken.SpanStart);
+                var firstTokenLine = sourceText.Lines.GetLineFromPosition(firstToken.SpanStart);
 
                 // find line where given token is
-                var givenTokenLine = snapshot.GetLineFromPosition(token.SpanStart);
+                var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
 
                 if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
                 {
@@ -383,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
                 // okay, we are right under the query expression.
                 // align caret to query expression
-                if (firstToken.IsFirstTokenOnLine(snapshot))
+                if (firstToken.IsFirstTokenOnLine(sourceText))
                 {
                     return GetIndentationOfToken(firstToken);
                 }
@@ -406,9 +412,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     }
 
                     var clauseToken = clause.GetFirstToken(includeZeroWidth: true);
-                    if (clauseToken.IsFirstTokenOnLine(snapshot))
+                    if (clauseToken.IsFirstTokenOnLine(sourceText))
                     {
-                        var tokenSpan = clauseToken.Span.ToSnapshotSpan(snapshot);
                         return GetIndentationOfToken(clauseToken);
                     }
                 }
@@ -453,10 +458,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
                 var spaceToAdd = additionalSpace ?? this.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language);
 
-                var snapshot = LineToBeIndented.Snapshot;
+                var sourceText = LineToBeIndented.Text;
 
                 // find line where given token is
-                var givenTokenLine = snapshot.GetLineFromPosition(token.SpanStart);
+                var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
 
                 // find right position
                 var position = GetCurrentPositionNotBelongToEndOfFileToken(LineToBeIndented.Start);
@@ -470,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // find line where first token of the node is
-                var firstTokenLine = snapshot.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
+                var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
 
                 // single line expression
                 if (firstTokenLine.LineNumber == givenTokenLine.LineNumber)
@@ -482,14 +487,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 return GetIndentationOfLine(givenTokenLine);
             }
 
-            protected override bool HasPreprocessorCharacter(ITextSnapshotLine currentLine)
+            protected override bool HasPreprocessorCharacter(TextLine currentLine)
             {
-                if (currentLine == null)
-                {
-                    throw new ArgumentNullException(nameof(currentLine));
-                }
-
-                var text = currentLine.GetText();
+                var text = currentLine.ToString();
                 Contract.Requires(!string.IsNullOrWhiteSpace(text));
 
                 var trimmedText = text.Trim();
