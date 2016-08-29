@@ -62,11 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            string tagName, attributeName;
-
-            if (IsAttributeValueContext(token, out tagName, out attributeName))
+            string elementName, attributeName;
+            ISet<string> existingAttributes;
+            if (IsAttributeNameContext(token, position, out elementName, out existingAttributes))
             {
-                return GetAttributeValueItems(declaredSymbol, tagName, attributeName);
+                return GetAttributeItems(elementName, existingAttributes);
+            }
+            else if (IsAttributeValueContext(token, out elementName, out attributeName))
+            {
+                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
             }
 
             if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
@@ -125,6 +129,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             items.AddRange(GetAlwaysVisibleItems());
             return items;
+        }
+
+        private bool IsAttributeNameContext(SyntaxToken token, int position, out string elementName, out ISet<string> attributeNames)
+        {
+            if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && string.IsNullOrWhiteSpace(token.Text))
+            {
+                // Unlike VB, the C# lexer has a preference for leading trivia so, in the following text...
+                //
+                //     <exception          $$
+                //
+                // ...the trailing whitespace will not be attached as trivia to any node. Instead it will
+                // be treated as an independent XmlTextLiteralToken, so we skip backwards by one token.
+                token = token.GetPreviousToken();
+            }
+
+            // Handle the <elem$$ case by going back one token (some of the subsequent checks need to account for this)
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.IdentifierToken) && token.IsParentKind(SyntaxKind.XmlName))
+            {
+                // <elem $$
+                // <elem attr$$
+                return TryGetAttributeNameContext(token.Parent.Parent, out elementName, out attributeNames);
+            }
+            else if (token.IsParentKind(SyntaxKind.XmlCrefAttribute) ||
+                     token.IsParentKind(SyntaxKind.XmlNameAttribute) ||
+                     token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            {
+                // <elem attr="" $$
+                // <elem attr="" $$attr	
+                // <elem attr="" attr$$
+                var attributeSyntax = (XmlAttributeSyntax)token.Parent;
+
+                if (token == attributeSyntax.EndQuoteToken)
+                {
+                    return TryGetAttributeNameContext(attributeSyntax.Parent, out elementName, out attributeNames);
+                }
+            }
+
+            elementName = null;
+            attributeNames = null;
+            return false;
+        }
+
+        private bool TryGetAttributeNameContext(SyntaxNode node, out string elementName, out ISet<string> attributeNames)
+        {
+            XmlNameSyntax elementNameSyntax = null;
+            var attributeSyntax = default(SyntaxList<XmlAttributeSyntax>);
+
+            if (node.IsKind(SyntaxKind.XmlEmptyElement))
+            {
+                var emptyElementSyntax = (XmlEmptyElementSyntax)node;
+                elementNameSyntax = emptyElementSyntax.Name;
+                attributeSyntax = emptyElementSyntax.Attributes;
+            }
+            else if (node.IsKind(SyntaxKind.XmlElementStartTag))
+            {
+                var startTagSyntax = (XmlElementStartTagSyntax)node;
+                elementNameSyntax = startTagSyntax.Name;
+                attributeSyntax = startTagSyntax.Attributes;
+            }
+
+            elementName = elementNameSyntax?.LocalName.ValueText;
+            attributeNames = attributeSyntax.Select(a => a.Name.LocalName.ValueText)
+                                            .ToSet();
+
+            return elementName != null;
         }
 
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
