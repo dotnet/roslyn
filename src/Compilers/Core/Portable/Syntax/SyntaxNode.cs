@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis
             this._syntaxTree = syntaxTree;
         }
 
-        internal abstract AbstractSyntaxNavigator Navigator { get; }
-
         private string GetDebuggerDisplay()
         {
             return GetType().Name + " " + KindText + " " + ToString();
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int RawKind => Green.RawKind;
 
-        protected abstract string KindText { get; }
+        protected string KindText => Green.KindText;
 
         /// <summary>
         /// The language name that this node is syntax of.
@@ -281,25 +279,33 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-
         /// <summary>
         /// Returns the string representation of this node, not including its leading and trailing trivia.
         /// </summary>
         /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        public abstract override string ToString();
+        public override string ToString()
+        {
+            return this.Green.ToString();
+        }
 
         /// <summary>
         /// Returns full string representation of this node including its leading and trailing trivia.
         /// </summary>
         /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public abstract string ToFullString();
+        public virtual string ToFullString()
+        {
+            return this.Green.ToFullString();
+        }
 
         /// <summary>
         /// Writes the full text of this node to the specified <see cref="TextWriter"/>.
         /// </summary>
-        public abstract void WriteTo(TextWriter writer);
+        public virtual void WriteTo(TextWriter writer)
+        {
+            this.Green.WriteTo(writer, leading: true, trailing: true);
+        }
 
         /// <summary>
         /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
@@ -326,7 +332,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsEquivalentTo(SyntaxNode other)
         {
-            return EquivalentToCore(other);
+            if (this == other)
+            {
+                return true;
+            }
+
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.Green.IsEquivalentTo(other.Green);
         }
 
         /// <summary>
@@ -531,6 +547,25 @@ namespace Microsoft.CodeAnalysis
             return this.SyntaxTree.GetLocation(this.Span);
         }
 
+        internal Location Location
+        {
+            get
+            {
+                // SyntaxNodes always has a non-null SyntaxTree, however the tree might be rooted at a node which is not a CompilationUnit.
+                // These kind of nodes may be seen during binding in couple of scenarios:
+                //   (a) Compiler synthesized syntax nodes (e.g. missing nodes, qualified names for command line using directives, etc.)
+                //   (b) Speculatively binding syntax nodes through the semantic model.
+                //
+                // For scenario (a), we need to ensure that we return NoLocation for generating location agnostic compiler diagnostics.
+                // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
+                // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
+
+                var tree = this.SyntaxTree;
+                Debug.Assert(tree != null);
+                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
+            }
+        }
+
         /// <summary>
         /// Gets a list of all the diagnostics in the sub tree that has this node as its root.
         /// This method does not filter diagnostics based on #pragmas and compiler options
@@ -550,18 +585,6 @@ namespace Microsoft.CodeAnalysis
         {
             return this.SyntaxTree.GetReference(this);
         }
-
-        /// <summary>
-        /// When invoked on a node that represents an anonymous function or a query clause [1]
-        /// with a <paramref name="body"/> of another anonymous function or a query clause of the same kind [2], 
-        /// returns the body of the [1] that positionally corresponds to the specified <paramref name="body"/>.
-        /// 
-        /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
-        /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
-        /// </summary>
-        internal abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body);
-
-        internal abstract SyntaxNode GetLambda();
 
         #region Node Lookup
 
@@ -600,7 +623,19 @@ namespace Microsoft.CodeAnalysis
             return new ChildSyntaxList(this);
         }
 
-        public abstract SyntaxNodeOrToken ChildThatContainsPosition(int position);
+        public virtual SyntaxNodeOrToken ChildThatContainsPosition(int position)
+        {
+            //PERF: it is very important to keep this method fast.
+
+            if (!FullSpan.Contains(position))
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
+            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
+            return childNodeOrToken;
+        }
 
         /// <summary>
         /// Gets node at given node index. 
@@ -822,7 +857,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The first token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetFirstToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return this.Navigator.GetFirstToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetFirstToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -831,7 +866,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The last token or <c>default(SyntaxToken)</c> if it doesn't exist.</returns>
         public SyntaxToken GetLastToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return this.Navigator.GetLastToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetLastToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -919,7 +954,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
-recurse:
+            recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -1199,14 +1234,37 @@ recurse:
             return IsEquivalentToCore(node, topLevel);
         }
 
-        public abstract void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        internal static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
+
+        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (!stream.CanWrite)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
+            }
+
+            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            {
+                writer.WriteValue(this.Green);
+            }
+        }
+
+        internal abstract ObjectWriterData GetDefaultObjectWriterData();
 
         #region Core Methods
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
         /// </summary>
-        protected abstract bool EquivalentToCore(SyntaxNode other);
+        protected virtual bool EquivalentToCore(SyntaxNode other)
+        {
+            return IsEquivalentTo(other);
+        }
 
         /// <summary>
         /// Returns SyntaxTree that owns the node or null if node does not belong to a
@@ -1396,6 +1454,37 @@ recurse:
         /// nodes and tokens must be equivalent. 
         /// </param>
         protected abstract bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false);
+
         #endregion
+
+        /// <summary>
+        /// Whether or not this parent node wants its child SyntaxList node to be 
+        /// converted to a Weak-SyntaxList when creating the red-node equivalent.
+        /// For example, in C# the statements of a Block-Node that is parented by a 
+        /// MethodDeclaration will be held weakly.
+        /// </summary>
+        internal virtual bool ShouldCreateWeakList()
+        {
+            return false;
+        }
+
+        internal bool HasErrors
+        {
+            get
+            {
+                if (!this.ContainsDiagnostics)
+                {
+                    return false;
+                }
+
+                return HasErrorsSlow();
+            }
+        }
+
+        private bool HasErrorsSlow()
+        {
+            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any(
+                info => info.Severity == DiagnosticSeverity.Error);
+        }
     }
 }

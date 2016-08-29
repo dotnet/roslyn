@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
-        private readonly CSharpSyntaxNode _syntax;
+        private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
         private TypeSymbol _returnType;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             TypeSymbol returnType,
             MessageID messageID,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             bool isSynthesized)
         {
             _containingSymbol = containingSymbol;

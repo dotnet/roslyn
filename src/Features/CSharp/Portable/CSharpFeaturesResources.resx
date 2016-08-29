@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Implement_Abstract_Class" xml:space="preserve">
-    <value>Implement Abstract Class</value>
-  </data>
   <data name="Inline_temporary_variable" xml:space="preserve">
     <value>Inline temporary variable</value>
   </data>
@@ -254,9 +251,6 @@
   </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
-  </data>
-  <data name="Make_the_containing_scope_async" xml:space="preserve">
-    <value>Make the containing scope 'async'.</value>
   </data>
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>

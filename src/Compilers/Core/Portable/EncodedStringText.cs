@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Text
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Encoding s_fallbackEncoding = GetFallbackEncoding();
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
 
         private static Encoding GetFallbackEncoding()
         {
@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be Encoding.Default.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
+        /// <param name="canBeEmbedded">Indicates if the file can be embedded in the PDB.</param>
         /// <param name="checksumAlgorithm">Hash algorithm used to calculate document checksum.</param>
         /// <exception cref="InvalidDataException">
         /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
@@ -69,18 +70,21 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         internal static SourceText Create(Stream stream,
             Encoding defaultEncoding = null,
-            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
+            bool canBeEmbedded = false)
         {
             return Create(stream,
-                () => s_fallbackEncoding,
+                s_fallbackEncoding,
                 defaultEncoding: defaultEncoding,
-                checksumAlgorithm: checksumAlgorithm);
+                checksumAlgorithm: checksumAlgorithm,
+                canBeEmbedded: canBeEmbedded);
         }
 
         // internal for testing
-        internal static SourceText Create(Stream stream, Func<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
             Encoding defaultEncoding = null,
-            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
+            bool canBeEmbedded = false)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 try
                 {
-                    return Decode(stream, s_utf8Encoding, checksumAlgorithm, throwIfBinaryDetected: false);
+                    return Decode(stream, s_utf8Encoding, checksumAlgorithm, throwIfBinaryDetected: false, canBeEmbedded: canBeEmbedded);
                 }
                 catch (DecoderFallbackException)
                 {
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? getEncoding(), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {
@@ -115,12 +119,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="encoding">The expected encoding of the stream. The actual encoding used may be different if byte order marks are detected.</param>
         /// <param name="checksumAlgorithm">The checksum algorithm to use.</param>
         /// <param name="throwIfBinaryDetected">Throw <see cref="InvalidDataException"/> if binary (non-text) data is detected.</param>
+        /// <param name="canBeEmbedded">Indicates if the text can be embedded in the PDB.</param>
         /// <returns>The <see cref="SourceText"/> decoded from the stream.</returns>
         /// <exception cref="DecoderFallbackException">The decoder was unable to decode the stream with the given encoding.</exception>
+        /// <exception cref="IOException">Error reading from stream.</exception> 
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal static SourceText Decode(Stream data, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected = false)
+        internal static SourceText Decode(
+            Stream data,
+            Encoding encoding,
+            SourceHashAlgorithm checksumAlgorithm, 
+            bool throwIfBinaryDetected = false,
+            bool canBeEmbedded = false)
         {
             Debug.Assert(data != null);
             Debug.Assert(encoding != null);
@@ -128,16 +139,16 @@ namespace Microsoft.CodeAnalysis.Text
             data.Seek(0, SeekOrigin.Begin);
 
             // For small streams, see if we can read the byte buffer directly.
-            if (encoding.GetMaxCharCount((int)data.Length) < LargeObjectHeapLimitInChars)
+            if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
             {
                 byte[] buffer = TryGetByteArrayFromStream(data);
                 if (buffer != null)
                 {
-                    return SourceText.From(buffer, (int)data.Length, encoding, checksumAlgorithm, throwIfBinaryDetected);
+                    return SourceText.From(buffer, (int)data.Length, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
                 }
             }
 
-            return SourceText.From(data, encoding, checksumAlgorithm, throwIfBinaryDetected);
+            return SourceText.From(data, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
         }
 
         /// <summary>
@@ -148,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// The contents of <paramref name="data"/> as a byte array or null if the stream can't easily
         /// be read into a byte array.
         /// </returns>
-        private static byte[] TryGetByteArrayFromStream(Stream data)
+        internal static byte[] TryGetByteArrayFromStream(Stream data)
         {
             byte[] buffer;
 

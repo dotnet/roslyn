@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 
@@ -27,9 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-
-        // TODO: solution snapshot tracking for current solution should be its own service
-        private ChecksumScope _lastSnapshot;
 
         [ImportingConstructor]
         public OutOfProcDiagnosticAnalyzerExecutor(
@@ -78,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
             var snapshotService = solution.Workspace.Services.GetService<ISolutionChecksumService>();
 
-            // TODO: incremental build of solution snapshot should be its own service
-            await UpdateLastSolutionSnapshotAsync(snapshotService, solution).ConfigureAwait(false);
-
             // TODO: this should be moved out
             var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
             var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProcess()));
@@ -106,16 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
                 return result;
             }
-        }
-
-        private async Task UpdateLastSolutionSnapshotAsync(ISolutionChecksumService snapshotService, Solution solution)
-        {
-            // TODO: actual incremental build of solution snapshot should be its own service
-            // this is needed to make sure we incrementally update solution checksums. otherwise, we will always create from
-            // scratch which can be quite expansive for big solution
-            var lastSnapshot = _lastSnapshot;
-            _lastSnapshot = await snapshotService.CreateChecksumAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            lastSnapshot?.Dispose();
         }
 
         private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)

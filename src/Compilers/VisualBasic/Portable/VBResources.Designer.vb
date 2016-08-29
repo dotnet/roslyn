@@ -946,6 +946,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Algorithm &apos;{0}&apos; is not supported.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadChecksumAlgorithm() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadChecksumAlgorithm", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Classes cannot be declared &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadClassFlags1() As String
@@ -1735,6 +1744,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_CannotEmbedInterfaceWithGeneric() As String
             Get
                 Return ResourceManager.GetString("ERR_CannotEmbedInterfaceWithGeneric", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        '''</summary>
+        Friend ReadOnly Property ERR_CannotEmbedWithoutPdb() As String
+            Get
+                Return ResourceManager.GetString("ERR_CannotEmbedWithoutPdb", resourceCulture)
             End Get
         End Property
         
@@ -9817,6 +9835,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_SourceInterfaceMustBeInterface() As String
             Get
                 Return ResourceManager.GetString("ERR_SourceInterfaceMustBeInterface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        '''</summary>
+        Friend ReadOnly Property ERR_SourceLinkRequiresPortablePdb() As String
+            Get
+                Return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture)
             End Get
         End Property
         

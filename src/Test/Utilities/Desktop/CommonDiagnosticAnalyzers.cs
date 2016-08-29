@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -499,6 +500,52 @@ namespace Microsoft.CodeAnalysis
 
                 context.RegisterSyntaxTreeAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.SyntaxTree));
                 context.RegisterCompilationAction(cc => ReportDiagnostic(cc.ReportDiagnostic, ActionKind.Compilation));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithAsyncMethodRegistration : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(AsyncAction);
+            }
+
+            private async void AsyncAction(CompilationAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
+                await Task.FromResult(true);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithAsyncLambdaRegistration : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(async (compilationContext) =>
+                {
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
+                    await Task.FromResult(true);
+                });
             }
         }
 

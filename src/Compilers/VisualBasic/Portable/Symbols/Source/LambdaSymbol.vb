@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Shared ReadOnly ErrorRecoveryInferenceError As TypeSymbol = New ErrorTypeSymbol()
 
-        Private ReadOnly _syntaxNode As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxNode As SyntaxNode
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
         ''' <summary>
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _binder As Binder
 
         Protected Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             parameters As ImmutableArray(Of BoundLambdaParameterSymbol),
             returnType As TypeSymbol,
             binder As Binder
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _syntaxNode
             End Get

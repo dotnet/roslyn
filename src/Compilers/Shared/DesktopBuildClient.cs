@@ -7,13 +7,15 @@ using System.IO;
 using System.Linq;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -46,12 +48,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static int Run(IEnumerable<string> arguments, IEnumerable<string> extraArguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
-            var clientDir = AppDomain.CurrentDomain.BaseDirectory;
-            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
+            var clientDir = AppContext.BaseDirectory;
+            var sdkDir = GetRuntimeDirectoryOpt();
             var workingDir = Directory.GetCurrentDirectory();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
+        }
+
+        internal static string GetRuntimeDirectoryOpt()
+        {
+            Type runtimeEnvironmentType = Roslyn.Utilities.ReflectionUtilities.TryGetType(
+                "System.Runtime.InteropServices.RuntimeEnvironment, " +
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+            return (string)runtimeEnvironmentType
+                ?.GetTypeInfo()
+                .GetDeclaredMethod("GetRuntimeDirectory")
+                ?.Invoke(obj: null, parameters: null);
         }
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
@@ -444,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var currentOwner = currentIdentity.Owner;
-                var remotePipeSecurity = pipeStream.GetAccessControl();
+                ObjectSecurity remotePipeSecurity = GetPipeSecurity(pipeStream);
                 var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                 return currentOwner.Equals(remoteOwner);
             }
@@ -454,6 +468,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
         }
+
+        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream) =>
+            (ObjectSecurity)typeof(PipeStream)
+            .GetTypeInfo()
+            .GetDeclaredMethod("GetAccessControl")
+            .Invoke(pipeStream, parameters: null);
+
+        private static string GetUserName() =>
+            (string)typeof(Environment)
+            .GetTypeInfo()
+            .GetDeclaredProperty("UserName")
+            .GetMethod.Invoke(null, parameters: null);
 
         /// <summary>
         /// Given the full path to the directory containing the compiler exes,
@@ -470,10 +496,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
             // Prefix with username and elevation
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
+            var currentIdentity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(currentIdentity);
             var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            var userName = Environment.UserName;
+            var userName = GetUserName();
             return $"{userName}.{isAdmin}.{basePipeName}";
         }
 

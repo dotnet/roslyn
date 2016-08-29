@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal abstract DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-        internal abstract BoundExpression ToBoundExpression(CSharpSyntaxNode syntax);
+        internal abstract BoundExpression ToBoundExpression(SyntaxNode syntax);
     }
 
     internal sealed class DisplayClassInstanceFromLocal : DisplayClassInstance
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new DisplayClassInstanceFromLocal(otherInstance);
         }
 
-        internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
+        internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
             return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
         }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new DisplayClassInstanceFromParameter(otherParameter);
         }
 
-        internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
+        internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
             return new BoundParameter(syntax, this.Parameter) { WasCompilerGenerated = true };
         }

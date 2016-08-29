@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IEnumerable<CommandLineSourceFile> ParseAdditionalFileArgument(string value, string baseDirectory, IList<Diagnostic> errors)
+        internal IEnumerable<CommandLineSourceFile> ParseSeparatedFileArgument(string value, string baseDirectory, IList<Diagnostic> errors)
         {
             foreach (string path in ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)))
             {

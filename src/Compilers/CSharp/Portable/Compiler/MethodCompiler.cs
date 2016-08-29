@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
-                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
+                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
         }
 
@@ -888,6 +888,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || instrumentForDynamicAnalysis))
                         {
+                            if (instrumentForDynamicAnalysis && methodSymbol.IsImplicitConstructor)
+                            {
+                                // Flow analysis over the initializers is necessary in order to find assignments to fields.
+                                // Bodies of implicit constructors do not get flow analysis later, so the initializers
+                                // are analyzed here.
+                                DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            }
+
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
                             includeInitializersInBody = false;

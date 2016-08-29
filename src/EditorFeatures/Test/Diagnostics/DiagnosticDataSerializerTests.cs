@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
                 var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
 
-                AssertDiagnostics(diagnostics, recovered);
+                AssertDiagnostics(diagnostics, recovered.Value);
             }
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
                 var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
 
-                AssertDiagnostics(diagnostics, recovered);
+                AssertDiagnostics(diagnostics, recovered.Value);
             }
         }
 

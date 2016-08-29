@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxTokenWithTrivia : SyntaxToken
         {
-            protected readonly CSharpSyntaxNode LeadingField;
-            protected readonly CSharpSyntaxNode TrailingField;
+            protected readonly GreenNode LeadingField;
+            protected readonly GreenNode TrailingField;
 
-            internal SyntaxTokenWithTrivia(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
+            internal SyntaxTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing)
                 : base(kind)
             {
                 if (leading != null)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            internal SyntaxTokenWithTrivia(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+            internal SyntaxTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
                 : base(kind, diagnostics, annotations)
             {
                 if (leading != null)
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal SyntaxTokenWithTrivia(ObjectReader reader)
                 : base(reader)
             {
-                var leading = (CSharpSyntaxNode)reader.ReadValue();
+                var leading = (GreenNode)reader.ReadValue();
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
                     this.LeadingField = leading;
                 }
-                var trailing = (CSharpSyntaxNode)reader.ReadValue();
+                var trailing = (GreenNode)reader.ReadValue();
                 if (trailing != null)
                 {
                     this.AdjustFlagsAndWidth(trailing);
@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 writer.WriteValue(this.TrailingField);
             }
 
-            public override CSharpSyntaxNode GetLeadingTrivia()
+            public override GreenNode GetLeadingTrivia()
             {
                 return this.LeadingField;
             }
 
-            public override CSharpSyntaxNode GetTrailingTrivia()
+            public override GreenNode GetTrailingTrivia()
             {
                 return this.TrailingField;
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithTrivia(this.Kind, trivia, this.TrailingField, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new SyntaxTokenWithTrivia(this.Kind, this.LeadingField, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

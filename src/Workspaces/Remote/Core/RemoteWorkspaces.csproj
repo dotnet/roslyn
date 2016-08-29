@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -49,6 +47,7 @@
   <ItemGroup />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticComputer.cs" />
@@ -57,8 +56,7 @@
     <Compile Include="Services\CompilationService.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
+    <Compile Include="TestImpact\EmitHelper.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -118,7 +118,8 @@ namespace Microsoft.Cci
             DefineKickoffMethod,
             OpenMapTokensToSourceSpans,
             MapTokenToSourceSpan,
-            CloseMapTokensToSourceSpans
+            CloseMapTokensToSourceSpans,
+            SetSource
         }
 
         public bool LogOperation(PdbWriterOperation op)
@@ -289,7 +290,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IModule Module => Context.Module;
+        private CommonPEModuleBuilder Module => Context.Module;
         private EmitContext Context => _metadataWriter.Context;
 
         public void SerializeDebugInfo(IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, CustomDebugInfoWriter customDebugInfoWriter)
@@ -353,7 +354,7 @@ namespace Microsoft.Cci
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var compilationOptions = Context.ModuleBuilder.CommonCompilation.Options;
+            var compilationOptions = Context.Module.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
@@ -956,13 +957,13 @@ namespace Microsoft.Cci
 
                 _documentMap.Add(document, writer);
 
-                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
-                if (!checksumAndAlgorithm.Item1.IsDefault)
+                DebugSourceInfo info = document.GetSourceInfo();
+                if (!info.Checksum.IsDefault)
                 {
                     try
                     {
-                        var algorithmId = checksumAndAlgorithm.Item2;
-                        var checksum = checksumAndAlgorithm.Item1.ToArray();
+                        var algorithmId = info.ChecksumAlgorithmId;
+                        var checksum = info.Checksum.ToArray();
                         var checksumSize = (uint)checksum.Length;
                         writer.SetCheckSum(algorithmId, checksumSize, checksum);
                         if (_callLogger.LogOperation(OP.SetCheckSum))
@@ -977,6 +978,9 @@ namespace Microsoft.Cci
                         throw new PdbWritingException(ex);
                     }
                 }
+
+                // embedded text not currently supported for native PDB and we should have validated that
+                Debug.Assert(info.EmbeddedTextBlob.IsDefault);
             }
 
             return writer;

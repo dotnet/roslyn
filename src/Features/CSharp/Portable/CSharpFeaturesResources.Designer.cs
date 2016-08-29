@@ -396,15 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implement Abstract Class.
-        /// </summary>
-        internal static string Implement_Abstract_Class {
-            get {
-                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
         /// </summary>
         internal static string implicit_array_creation {
@@ -545,15 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Make_0_return_Task_instead_of_void {
             get {
                 return ResourceManager.GetString("Make_0_return_Task_instead_of_void", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make the containing scope &apos;async&apos;..
-        /// </summary>
-        internal static string Make_the_containing_scope_async {
-            get {
-                return ResourceManager.GetString("Make_the_containing_scope_async", resourceCulture);
             }
         }
         

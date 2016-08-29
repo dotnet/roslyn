@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _filterOpt = filter
 
             If emittingPdb OrElse moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData Then
-                _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
+                _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
             If compilation.Options.ConcurrentBuild Then
@@ -1924,7 +1924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: we can ignore use site errors in this place because they should have already be reported 
             '       either in real or synthesized constructor
 
-            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
+            Dim syntaxNode As SyntaxNode = constructor.Syntax
 
             Dim thisRef As New BoundMeReference(syntaxNode, constructor.ContainingType)
             thisRef.SetWasCompilerGenerated()

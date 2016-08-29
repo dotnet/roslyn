@@ -366,9 +366,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             UpdateProjectBinPath_Foreground(project, project.BinOutputPath, null);
 
-            if (project.PushingChangesToWorkspaceHosts)
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                NotifyWorkspaceHosts_Foreground(host => host.OnProjectRemoved(project.Id));
+                foreach (var hostState in _workspaceHosts)
+                {
+                    hostState.RemoveProject(project);
+                }
             }
         }
 

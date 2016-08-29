@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return _semanticModel.Compilation.GetCompilationNamespace(containingNamespace) ?? containingNamespace;
             }
 
-            internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
-                Project project, bool exact, CancellationToken cancellationToken)
+            internal Task<List<SymbolReference>> FindInAllSymbolsInStartingProjectAsync(
+                bool exact, CancellationToken cancellationToken)
             {
-                var searchScope = new AllSymbolsProjectSearchScope(_owner, project, exact, cancellationToken);
+                var searchScope = new AllSymbolsProjectSearchScope(_owner, _document.Project, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal Task<List<SymbolReference>> FindInMetadataSymbolsAsync(
-                Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference,
+                IAssemblySymbol assembly, PortableExecutableReference metadataReference,
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, solution, assembly, metadataReference, exact, cancellationToken);
+                    _owner, _document.Project.Solution, assembly, metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .Distinct()
                     .Where(NotNull)
                     .Where(NotGlobalNamespace)
-                    .Order()
+                    .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
                     .ToList();
             }
 

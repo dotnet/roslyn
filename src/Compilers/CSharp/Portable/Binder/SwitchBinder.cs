@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
         {
             var switchGoverningDiagnostics = new DiagnosticBag();
-            var boundSwitchExpression = BindSwitchExpression(SwitchSyntax.Expression, switchGoverningDiagnostics);
+            var boundSwitchExpression = BindSwitchExpression(switchGoverningDiagnostics);
             _switchGoverningDiagnostics = switchGoverningDiagnostics;
             Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchExpression, null);
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var section in SwitchSyntax.Sections)
             {
-                builder.AddRange(BuildLocals(section.Statements));
+                builder.AddRange(BuildLocals(section.Statements, GetBinder(section)));
             }
 
             return builder.ToImmutableAndFree();
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (SwitchSyntax == scopeDesignator)
             {
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Bind the switch expression
-        private BoundExpression BindSwitchExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindSwitchExpression(DiagnosticBag diagnostics)
         {
             // We are at present inside the switch binder, but the switch expression is not
             // bound in the context of the switch binder; it's bound in the context of the
@@ -395,7 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // The "x" in "switch(x)" refers to this.x, not the local x that is in scope inside the switch block.
 
-            Debug.Assert(node == SwitchSyntax.Expression);
+            Debug.Assert(ScopeDesignator == SwitchSyntax);
+            ExpressionSyntax node = SwitchSyntax.Expression;
             var binder = this.GetBinder(node);
             Debug.Assert(binder != null);
 

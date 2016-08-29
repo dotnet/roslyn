@@ -331,6 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _exceptionRegions = null;
                 _committedBaseline = null;
                 _activeStatementIds = null;
+                _projectBeingEmitted = null;
 
                 Debug.Assert((_pdbReaderObjAsStream == IntPtr.Zero) || (_pdbReader == null));
 
@@ -986,7 +987,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
 
                 var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
-                
+
                 // Clear diagnostics, in case the project was built before and failed due to errors.
                 _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 

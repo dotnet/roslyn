@@ -88,13 +88,13 @@ public class X
         var s = nameof(Main);
         if (s is string t) Console.WriteLine(""1. {0}"", t);
         s = null;
-        Console.WriteLine(""2. {0}"", s is string t ? t : nameof(X));
+        Console.WriteLine(""2. {0}"", s is string w ? w : nameof(X));
         int? x = 12;
-        if (x is var y) Console.WriteLine(""3. {0}"", y);
-        if (x is int y) Console.WriteLine(""4. {0}"", y);
+        {if (x is var y) Console.WriteLine(""3. {0}"", y);}
+        {if (x is int y) Console.WriteLine(""4. {0}"", y);}
         x = null;
-        if (x is var y) Console.WriteLine(""5. {0}"", y);
-        if (x is int y) Console.WriteLine(""6. {0}"", y);
+        {if (x is var y) Console.WriteLine(""5. {0}"", y);}
+        {if (x is int y) Console.WriteLine(""6. {0}"", y);}
         Console.WriteLine(""7. {0}"", (x is bool is bool));
     }
 }";
@@ -198,7 +198,7 @@ public class X
     {
         var s = nameof(Main);
         byte b = 1;
-        if (s is string t) { } else Console.WriteLine(t); // t not in scope
+        if (s is string t) { } else Console.WriteLine(t); 
         if (null is dynamic t) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
@@ -207,12 +207,12 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,55): error CS0103: The name 't' does not exist in the current context
-                //         if (s is string t) { } else Console.WriteLine(t); // t not in scope
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(9, 55),
                 // (10,13): error CS8117: Invalid operand for pattern match.
                 //         if (null is dynamic t) { } // null not allowed
                 Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(10, 13),
+                // (10,29): error CS0128: A local variable named 't' is already defined in this scope
+                //         if (null is dynamic t) { } // null not allowed
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
@@ -221,7 +221,10 @@ public class X
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
                 // (13,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //         if (b is 1000) { } // error: cannot convert 1000 to byte
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(13, 18),
+                // (9,55): error CS0165: Use of unassigned local variable 't'
+                //         if (s is string t) { } else Console.WriteLine(t); 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "t").WithArguments("t").WithLocation(9, 55)
                 );
         }
 
@@ -734,27 +737,33 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
+    // (14,31): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(14, 31),
+    // (16,27): error CS0128: A local variable named 'x1' is already defined in this scope
+    //         Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(16, 27),
     // (21,15): error CS0841: Cannot use local variable 'x2' before it is declared
     //         Dummy(x2, true is var x2);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(21, 15),
     // (26,27): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         Dummy(true is var x3);
+    //         Dummy(true is var x3, x3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 27),
-    // (33,27): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         Dummy(true is var x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 27),
-    // (38,27): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         Dummy(true is var x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(38, 27),
+    // (33,27): error CS0128: A local variable named 'x4' is already defined in this scope
+    //         Dummy(true is var x4, x4);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 27),
+    // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
+    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,48): error CS0128: A local variable named 'x8' is already defined in this scope
     //         Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 48),
-    // (79,15): error CS0103: The name 'x11' does not exist in the current context
+    // (79,15): error CS0841: Cannot use local variable 'x11' before it is declared
     //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(79, 15),
-    // (86,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(86, 15)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(79, 15)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -764,10 +773,9 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
@@ -781,13 +789,13 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
+            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref);
 
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
@@ -810,14 +818,171 @@ public class X
             var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
             var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref);
 
             var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
             var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ExpressionStatement_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(2 is var x1);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Test1(bool x)
+    {
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ExpressionStatement_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test0();
+    }
+
+    static object Test0()
+    {
+        bool test = true;
+
+        if (test)
+            Test2(1 is var x1, x1);
+
+        if (test)
+        {
+            Test2(2 is var x1, x1);
+        }
+
+        return null;
+    }
+
+    static object Test2(object x, object y)
+    {
+        System.Console.Write(y);
+        return x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ExpressionStatement_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        if (true)
+            Dummy(true is var x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ExpressionStatement_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
+Dummy(11 is var x1, x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart, 
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
         [Fact, WorkItem(9258, "https://github.com/dotnet/roslyn/issues/9258")]
@@ -854,11 +1019,25 @@ public class X
 
         private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)
         {
+            VerifyModelForDeclarationPattern(model, decl, false, references);
+        }
+
+        private static void VerifyModelForDeclarationPattern(SemanticModel model, DeclarationPatternSyntax decl, bool isShadowed, params IdentifierNameSyntax[] references)
+        {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)decl));
-            Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+
+            if (isShadowed)
+            {
+                Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            }
+            else
+            {
+                Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            }
+
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
 
             var type = ((LocalSymbol)symbol).Type;
@@ -1007,6 +1186,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
+    // (14,38): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             return Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(14, 38),
+    // (16,34): error CS0128: A local variable named 'x1' is already defined in this scope
+    //         return Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(16, 34),
     // (14,13): warning CS0162: Unreachable code detected
     //             return Dummy(true is var x1, x1);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(14, 13),
@@ -1016,24 +1201,24 @@ public class X
     // (26,34): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         return Dummy(true is var x3, x3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 34),
-    // (33,34): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (33,34): error CS0128: A local variable named 'x4' is already defined in this scope
     //         return Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 34),
-    // (38,34): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return Dummy(true is var x5, x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(38, 34),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 34),
+    // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
     // (39,9): warning CS0162: Unreachable code detected
     //         var x5 = 11;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
+    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,55): error CS0128: A local variable named 'x8' is already defined in this scope
     //         return Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 55),
-    // (79,15): error CS0103: The name 'x11' does not exist in the current context
+    // (79,15): error CS0841: Cannot use local variable 'x11' before it is declared
     //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(79, 15),
-    // (86,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(86, 15),
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(79, 15),
     // (86,9): warning CS0162: Unreachable code detected
     //         Dummy(x12);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(86, 9)
@@ -1046,10 +1231,9 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
@@ -1063,13 +1247,13 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
+            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref);
 
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
@@ -1089,14 +1273,94 @@ public class X
             var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
             var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref);
 
             var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
             var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ReturnStatement_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    int Dummy(params object[] x) {return 0;}
+
+    int Test1(bool val)
+    {
+        if (val)
+            return Dummy(true is var x1);
+
+        x1++;
+        return 0;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ReturnStatement_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (ReturnStatementSyntax)SyntaxFactory.ParseStatement(@"
+return Dummy(11 is var x1, x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -1195,30 +1459,36 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
+    // (14,37): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             throw Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(14, 37),
+    // (16,33): error CS0128: A local variable named 'x1' is already defined in this scope
+    //         throw Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(16, 33),
     // (21,21): error CS0841: Cannot use local variable 'x2' before it is declared
     //         throw Dummy(x2, true is var x2);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(21, 21),
     // (26,33): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         throw Dummy(true is var x3, x3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 33),
-    // (33,33): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (33,33): error CS0128: A local variable named 'x4' is already defined in this scope
     //         throw Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 33),
-    // (38,33): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         throw Dummy(true is var x5, x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(38, 33),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 33),
+    // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
     // (39,9): warning CS0162: Unreachable code detected
     //         var x5 = 11;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
+    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,54): error CS0128: A local variable named 'x8' is already defined in this scope
     //         throw Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 54),
-    // (79,15): error CS0103: The name 'x11' does not exist in the current context
+    // (79,15): error CS0841: Cannot use local variable 'x11' before it is declared
     //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(79, 15),
-    // (86,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(86, 15),
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(79, 15),
     // (86,9): warning CS0162: Unreachable code detected
     //         Dummy(x12);
     Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(86, 9)
@@ -1231,10 +1501,9 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
@@ -1248,13 +1517,13 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
+            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref);
 
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
@@ -1274,14 +1543,93 @@ public class X
             var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
             var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref);
 
             var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
             var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ThrowStatement_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    System.Exception Dummy(params object[] x) { return null;}
+
+    void Test1(bool val)
+    {
+        if (val)
+            throw Dummy(true is var x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_TrowStatement_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (ThrowStatementSyntax)SyntaxFactory.ParseStatement(@"
+throw Dummy(11 is var x1, x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -1412,30 +1760,24 @@ public class X
     // (110,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var y12 = 12;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(110, 13),
-    // (18,38): error CS0103: The name 'x1' does not exist in the current context
-    //             System.Console.WriteLine(x1);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 38),
-    // (27,38): error CS0103: The name 'x2' does not exist in the current context
-    //             System.Console.WriteLine(x2);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(27, 38),
-    // (46,25): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (36,17): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             var x3 = 12;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(36, 17),
+    // (46,25): error CS0128: A local variable named 'x4' is already defined in this scope
     //         if (true is var x4)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(46, 25),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(46, 25),
     // (52,25): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         if (true is var x5)
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(52, 25),
     // (58,13): error CS0841: Cannot use local variable 'x6' before it is declared
     //         if (x6 && true is var x6)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(58, 13),
-    // (59,19): error CS0165: Use of unassigned local variable 'x6'
-    //             Dummy(x6);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(59, 19),
     // (66,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             var x7 = 12;
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(66, 17),
-    // (76,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(76, 34),
+    // (83,19): error CS0841: Cannot use local variable 'x9' before it is declared
+    //             Dummy(x9);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(83, 19),
     // (84,29): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             if (true is var x9) // 2
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(84, 29),
@@ -1444,7 +1786,10 @@ public class X
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(91, 13),
     // (109,13): error CS0103: The name 'y12' does not exist in the current context
     //         if (y12 is var x12)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(109, 13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(109, 13),
+    // (110,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(110, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -1453,14 +1798,12 @@ public class X
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref[0]);
-            VerifyNotInScope(model, x1Ref[1]);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref[0]);
-            VerifyNotInScope(model, x2Ref[1]);
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
@@ -1471,8 +1814,9 @@ public class X
             var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
             VerifyNotAPatternLocal(model, x4Ref[0]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").Single();
@@ -1492,15 +1836,14 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0]);
-            VerifyNotInScope(model, x8Ref[1]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").ToArray();
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(2, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[1]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref);
 
             var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -1509,6 +1852,190 @@ public class X
 
             var y12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y12").Single();
             VerifyNotInScope(model, y12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_If_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        if (true)
+            if (true is var x1)
+            {
+            }
+        
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (17,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_If_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (IfStatementSyntax)SyntaxFactory.ParseStatement(@"
+if (Dummy(11 is var x1, x1));
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void If_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        Test(1);
+        Test(2);
+    }
+
+    public static void Test(int val)
+    {
+        if (Dummy(val == 1, val is var x1, x1))
+        {
+            System.Console.WriteLine(""true"");
+            System.Console.WriteLine(x1);
+        }
+        else
+        {
+            System.Console.WriteLine(""false"");
+            System.Console.WriteLine(x1);
+        }
+
+        System.Console.WriteLine(x1);
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+true
+1
+1
+2
+false
+2
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(4, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void If_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        if (f)
+            if (Dummy(f, (f ? 1 : 2) is var x1, x1))
+                ;
+
+        if (f)
+        {
+            if (Dummy(f, (f ? 3 : 4) is var x1, x1))
+                ;
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1910,9 +2437,6 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (17,15): error CS0103: The name 'y1' does not exist in the current context
-    //         Dummy(y1); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y1").WithArguments("y1").WithLocation(17, 15),
     // (25,26): error CS0103: The name 'z2' does not exist in the current context
     //                          z2;
     Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
@@ -1937,9 +2461,6 @@ public class X
     // (49,36): error CS0103: The name 'v4' does not exist in the current context
     //                                u4, v4 };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(49, 36),
-    // (51,15): error CS0103: The name 'z4' does not exist in the current context
-    //         Dummy(z4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(51, 15),
     // (52,15): error CS0103: The name 'u4' does not exist in the current context
     //         Dummy(u4); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(52, 15),
@@ -1958,9 +2479,6 @@ public class X
     // (66,36): error CS0103: The name 'v5' does not exist in the current context
     //                                u5, v5 };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(66, 36),
-    // (68,15): error CS0103: The name 'z5' does not exist in the current context
-    //         Dummy(z5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(68, 15),
     // (69,15): error CS0103: The name 'u5' does not exist in the current context
     //         Dummy(u5); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(69, 15),
@@ -2026,8 +2544,7 @@ public class X
             var y1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y1").Single();
             var y1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").ToArray();
             Assert.Equal(4, y1Ref.Length);
-            VerifyModelForDeclarationPattern(model, y1Decl, y1Ref[0], y1Ref[1], y1Ref[2]);
-            VerifyNotInScope(model, y1Ref[3]);
+            VerifyModelForDeclarationPattern(model, y1Decl, y1Ref);
 
             var y2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "y2").Single();
             var y2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y2").ToArray();
@@ -2061,8 +2578,7 @@ public class X
             var z4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z4").Single();
             var z4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z4").ToArray();
             Assert.Equal(6, z4Ref.Length);
-            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref[0], z4Ref[1], z4Ref[2], z4Ref[3], z4Ref[4]);
-            VerifyNotInScope(model, z4Ref[5]);
+            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref);
 
             var u4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u4").Single();
             var u4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u4").ToArray();
@@ -2088,8 +2604,7 @@ public class X
             var z5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z5").Single();
             var z5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z5").ToArray();
             Assert.Equal(6, z5Ref.Length);
-            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref[0], z5Ref[1], z5Ref[2], z5Ref[3], z5Ref[4]);
-            VerifyNotInScope(model, z5Ref[5]);
+            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref);
 
             var u5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u5").Single();
             var u5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u5").ToArray();
@@ -2248,9 +2763,6 @@ public class X
     // (22,36): error CS0103: The name 'v4' does not exist in the current context
     //                                u4, v4 };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(22, 36),
-    // (24,15): error CS0103: The name 'z4' does not exist in the current context
-    //         Dummy(z4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(24, 15),
     // (25,15): error CS0103: The name 'u4' does not exist in the current context
     //         Dummy(u4); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(25, 15),
@@ -2269,9 +2781,6 @@ public class X
     // (40,36): error CS0103: The name 'v5' does not exist in the current context
     //                                u5, v5 };
     Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(40, 36),
-    // (42,15): error CS0103: The name 'z5' does not exist in the current context
-    //         Dummy(z5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(42, 15),
     // (43,15): error CS0103: The name 'u5' does not exist in the current context
     //         Dummy(u5); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(43, 15),
@@ -2291,8 +2800,7 @@ public class X
             var z4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z4").Single();
             var z4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z4").ToArray();
             Assert.Equal(6, z4Ref.Length);
-            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref[0], z4Ref[1], z4Ref[2], z4Ref[3], z4Ref[4]);
-            VerifyNotInScope(model, z4Ref[5]);
+            VerifyModelForDeclarationPattern(model, z4Decl, z4Ref);
 
             var u4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u4").Single();
             var u4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u4").ToArray();
@@ -2318,8 +2826,7 @@ public class X
             var z5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "z5").Single();
             var z5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z5").ToArray();
             Assert.Equal(6, z5Ref.Length);
-            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref[0], z5Ref[1], z5Ref[2], z5Ref[3], z5Ref[4]);
-            VerifyNotInScope(model, z5Ref[5]);
+            VerifyModelForDeclarationPattern(model, z5Decl, z5Ref);
 
             var u5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "u5").Single();
             var u5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "u5").ToArray();
@@ -2380,15 +2887,15 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (16,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (16,47): error CS0128: A local variable named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(16, 47),
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
                 // (17,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 47),
-                // (18,47): error CS0136: A local or parameter named 'y3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (18,47): error CS0128: A local variable named 'y3' is already defined in this scope
                 //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y3").WithArguments("y3").WithLocation(18, 47),
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 47),
                 // (19,36): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on 4 is var y4 ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(19, 36),
@@ -2427,7 +2934,19 @@ public class X
                 var yDecl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == id).Single();
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
                 Assert.Equal(3, yRef.Length);
-                VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+
+                switch (i)
+                {
+                    case 1:
+                    case 3:
+                        VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl);
+                        VerifyNotAPatternLocal(model, yRef[0]);
+                        break;
+                    default:
+                        VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
+                        break;
+                }
+
                 VerifyNotAPatternLocal(model, yRef[2]);
 
                 switch (i)
@@ -2442,7 +2961,6 @@ public class X
                         VerifyNotAPatternLocal(model, yRef[1]);
                         break;
                 }
-
             }
         }
 
@@ -4753,9 +5271,9 @@ public class X
     // (175,43): error CS0136: A local or parameter named 'x13' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             case 1 when Dummy(true is var x13, x13):
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x13").WithArguments("x13").WithLocation(175, 43),
-    // (187,35): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 Dummy(true is var x14, x14);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(187, 35),
+    // (185,43): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             case 1 when Dummy(true is var x14, x14):
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(185, 43),
     // (198,43): error CS0128: A local variable named 'x15' is already defined in this scope
     //             case 1 when Dummy(true is var x15, x15):
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(198, 43),
@@ -4845,8 +5363,8 @@ public class X
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
-            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref[0], x14Ref[1], x14Ref[3]);
-            VerifyModelForDeclarationPattern(model, x14Decl[1], x14Ref[2]);
+            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
+            VerifyModelForDeclarationPattern(model, x14Decl[1], true);
 
             var x15Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x15").ToArray();
             var x15Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x15").ToArray();
@@ -5141,9 +5659,9 @@ public class X
                 // (179,22): error CS0136: A local or parameter named 'x13' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             case int x13 when Dummy(x13):
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x13").WithArguments("x13").WithLocation(179, 22),
-                // (191,35): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 Dummy(true is var x14, x14);
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(191, 35),
+                // (189,22): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case int x14 when Dummy(x14):
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(189, 22),
                 // (202,23): error CS0128: A local variable named 'x15' is already defined in this scope
                 //             case long x15 when Dummy(x15):
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(202, 23),
@@ -5245,8 +5763,8 @@ public class X
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
-            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref[0], x14Ref[1], x14Ref[3]);
-            VerifyModelForDeclarationPattern(model, x14Decl[1], x14Ref[2]);
+            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
+            VerifyModelForDeclarationPattern(model, x14Decl[1], true);
 
             var x15Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x15").ToArray();
             var x15Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x15").ToArray();
@@ -5432,12 +5950,9 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (19,15): error CS0103: The name 'x1' does not exist in the current context
-                //         Dummy(x1, 1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
-                // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (27,26): error CS0128: A local variable named 'x4' is already defined in this scope
                 //         switch (4 is var x4 ? x4 : 0)
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(27, 26),
                 // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         switch (5 is var x5 ? x5 : 0)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
@@ -5447,6 +5962,9 @@ public class X
                 // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                 var x7 = 12;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
+                // (71,23): error CS0841: Cannot use local variable 'x9' before it is declared
+                //                 Dummy(x9, 0);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(71, 23),
                 // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                 switch (9 is var x9 ? x9 : 0)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
@@ -5476,14 +5994,15 @@ public class X
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref[0], x1Ref[1]);
-            VerifyNotInScope(model, x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
             var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
             VerifyNotAPatternLocal(model, x4Ref[0]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[2]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
@@ -5505,8 +6024,8 @@ public class X
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
 
             var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
             Assert.Equal(4, y10Ref.Length);
@@ -5527,6 +6046,90 @@ public class X
             VerifyNotAPatternLocal(model, y15Ref[0]);
             VerifyNotAPatternLocal(model, y15Ref[1]);
             VerifyNotAPatternLocal(model, y15Ref[2]);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Switch_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        if (true)
+            switch (1 is var x1 ? 1 : 0)
+            {
+                case 0:
+                    break;
+            }
+
+        Dummy(x1, 1);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (19,15): error CS0103: The name 'x1' does not exist in the current context
+                //         Dummy(x1, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Switch_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (SwitchStatementSyntax)SyntaxFactory.ParseStatement(@"
+switch (Dummy(11 is var x1, x1)) {}
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5556,13 +6159,71 @@ public class X
                 System.Console.WriteLine(x1, z1);
                 break;
         }
+
+        System.Console.WriteLine(x1);
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
-Test1 1");
+Test1 {0}
+Test1 1
+Test1 {0}");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Switch_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        if (f)
+            switch (Dummy(f, (f ? 1 : 2) is var x1, x1))
+            {}
+
+        if (f)
+        {
+            switch (Dummy(f, (f ? 3 : 4) is var x1, x1))
+            {}
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -5701,6 +6362,9 @@ public class X
     // (86,22): error CS0103: The name 'y12' does not exist in the current context
     //         using (Dummy(y12 is var x12, x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 22),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,31): error CS0128: A local variable named 'x14' is already defined in this scope
     //                      2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 31)
@@ -5905,6 +6569,9 @@ public class X
     // (86,30): error CS0103: The name 'y12' does not exist in the current context
     //         using (var d = Dummy(y12 is var x12, x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 30),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,39): error CS0128: A local variable named 'x14' is already defined in this scope
     //                              2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 39)
@@ -6109,6 +6776,9 @@ public class X
     // (86,45): error CS0103: The name 'y12' does not exist in the current context
     //         using (System.IDisposable d = Dummy(y12 is var x12, x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 45),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,54): error CS0128: A local variable named 'x14' is already defined in this scope
     //                                             2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 54)
@@ -6432,15 +7102,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (19,35): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (19,35): error CS0128: A local variable named 'x4' is already defined in this scope
     //         var d = Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(19, 35),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 35),
     // (24,23): error CS0841: Cannot use local variable 'x6' before it is declared
     //         var d = Dummy(x6 && true is var x6);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 23),
-    // (30,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(30, 34),
     // (36,32): error CS0128: A local variable named 'x14' is already defined in this scope
     //                       2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 32)
@@ -6457,7 +7124,8 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
@@ -6466,8 +7134,7 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0]);
-            VerifyNotInScope(model, x8Ref[1]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x14Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x14").ToArray();
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
@@ -6522,15 +7189,12 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (19,38): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (19,38): error CS0128: A local variable named 'x4' is already defined in this scope
     //         object d = Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(19, 38),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 38),
     // (24,26): error CS0841: Cannot use local variable 'x6' before it is declared
     //         object d = Dummy(x6 && true is var x6);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 26),
-    // (30,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(30, 34),
     // (36,35): error CS0128: A local variable named 'x14' is already defined in this scope
     //                          2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 35)
@@ -6547,7 +7211,8 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
@@ -6556,8 +7221,7 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(2, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0]);
-            VerifyNotInScope(model, x8Ref[1]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x14Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x14").ToArray();
             var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
@@ -6596,12 +7260,21 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (13,36): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (13,36): error CS0128: A local variable named 'x1' is already defined in this scope
     //                  Dummy(true is var x1, x1);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(13, 36),
-    // (20,39): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 36),
+    // (13,40): error CS0841: Cannot use local variable 'x1' before it is declared
+    //                  Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 40),
+    // (13,40): error CS0165: Use of unassigned local variable 'x1'
+    //                  Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 40),
+    // (20,39): error CS0128: A local variable named 'x2' is already defined in this scope
     //                     Dummy(true is var x2, x2);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(20, 39)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 39),
+    // (20,43): error CS0165: Use of unassigned local variable 'x2'
+    //                     Dummy(true is var x2, x2);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 43)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6610,14 +7283,16 @@ public class X
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref[0]);
+            VerifyNotAPatternLocal(model, x1Ref[0]);
             VerifyNotAPatternLocal(model, x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref[0]);
+            VerifyNotAPatternLocal(model, x2Ref[0]);
             VerifyNotAPatternLocal(model, x2Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
         }
 
         [Fact]
@@ -6661,9 +7336,9 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (12,38): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         object d = Dummy(true is var x1, x1), 
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(12, 38),
+    // (13,16): error CS0128: A local variable named 'x1' is already defined in this scope
+    //                x1 = Dummy(x1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 16),
     // (20,39): error CS0128: A local variable named 'x2' is already defined in this scope
     //                d2 = Dummy(true is var x2, x2);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 39),
@@ -6678,8 +7353,7 @@ public class X
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref[0], x1Ref[1]);
-            VerifyNotAPatternLocal(model, x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
@@ -6700,6 +7374,92 @@ public class X
         }
 
         [Fact]
+        public void ScopeOfPatternVariables_LocalDeclarationStmt_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    long Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+var y1 = Dummy(11 is var x1, x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 y1", model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_LocalDeclarationStmt_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        if (true)
+            var d = true is var x1;
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var d = true is var x1;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var d = true is var x1;").WithLocation(11, 13),
+                // (13,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+
+            var d = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
+            Assert.Equal("System.Boolean d", model.GetDeclaredSymbol(d).ToTestDisplayString());
+        }
+
+        [Fact]
         public void LocalDeclarationStmt_01()
         {
             var source =
@@ -6712,6 +7472,7 @@ public class X
                d2 = Dummy(new C(""c""), new C(""d"") is var x2, x2);
         System.Console.WriteLine(d1);
         System.Console.WriteLine(d2);
+        System.Console.WriteLine(x1);
     }
 
     static object Dummy(object x, object y, object z) 
@@ -6741,7 +7502,751 @@ class C
 @"b
 d
 a
-c");
+c
+b");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void LocalDeclarationStmt_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        if (true)
+        {
+            object d1 = Dummy(new C(""a""), new C(""b"") is var x1, x1);
+        }
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"b");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        var (d, dd) = ((true is var x1), x1);
+    }
+    void Test4()
+    {
+        var x4 = 11;
+        Dummy(x4);
+
+        var (d, dd) = ((true is var x4), x4);
+    }
+
+    void Test6()
+    {
+        var (d, dd) = (x6 && (true is var x6), 1);
+    }
+
+    void Test8()
+    {
+        var (d, dd) = ((true is var x8), x8);
+        System.Console.WriteLine(x8);
+    }
+
+    void Test14()
+    {
+        var (d, dd, ddd) = ((1 is var x14), 
+                      (2 is var x14), 
+                      x14);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (19,37): error CS0128: A local variable named 'x4' is already defined in this scope
+                //         var (d, dd) = ((true is var x4), x4);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 37),
+                // (24,24): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         var (d, dd) = (x6 && (true is var x6), 1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 24),
+                // (36,33): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                       (2 is var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 33)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyNotAPatternLocal(model, x4Ref[0]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+
+            var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
+            var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
+            VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
+
+            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
+            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
+            Assert.Equal(2, x8Ref.Length);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
+
+            var x14Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x14").ToArray();
+            var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
+            Assert.Equal(2, x14Decl.Length);
+            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        (object d, object dd) = ((true is var x1), x1);
+    }
+    void Test4()
+    {
+        var x4 = 11;
+        Dummy(x4);
+
+        (object d, object dd) = ((true is var x4), x4);
+    }
+
+    void Test6()
+    {
+        (object d, object dd) = (x6 && (true is var x6), 1);
+    }
+
+    void Test8()
+    {
+        (object d, object dd) = ((true is var x8), x8);
+        System.Console.WriteLine(x8);
+    }
+
+    void Test14()
+    {
+        (object d, object dd, object ddd) = ((1 is var x14), 
+                      (2 is var x14), 
+                      x14);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (19,47): error CS0128: A local variable named 'x4' is already defined in this scope
+                //         (object d, object dd) = ((true is var x4), x4);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 47),
+                // (24,34): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         (object d, object dd) = (x6 && (true is var x6), 1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 34),
+                // (36,33): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                       (2 is var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 33)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyNotAPatternLocal(model, x4Ref[0]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+
+            var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
+            var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").Single();
+            VerifyModelForDeclarationPattern(model, x6Decl, x6Ref);
+
+            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
+            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
+            Assert.Equal(2, x8Ref.Length);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
+
+            var x14Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x14").ToArray();
+            var x14Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x14").Single();
+            Assert.Equal(2, x14Decl.Length);
+            VerifyModelForDeclarationPattern(model, x14Decl[0], x14Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x14Decl[1]);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        var (x1, dd) = 
+                      ((true is var x1), x1);
+        Dummy(x1);
+    }
+
+    void Test2()
+    {
+        (object x2, object dd) = 
+                         ((true is var x2), x2);
+        Dummy(x2);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (13,37): error CS0128: A local variable named 'x1' is already defined in this scope
+                //                       ((true is var x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 37),
+                // (13,42): error CS0841: Cannot use local variable 'x1' before it is declared
+                //                       ((true is var x1), x1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 42),
+                // (13,42): error CS0165: Use of unassigned local variable 'x1'
+                //                       ((true is var x1), x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 42),
+                // (20,40): error CS0128: A local variable named 'x2' is already defined in this scope
+                //                          ((true is var x2), x2);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 40),
+                // (20,45): error CS0165: Use of unassigned local variable 'x2'
+                //                          ((true is var x2), x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 45)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyNotAPatternLocal(model, x1Ref[0]);
+            VerifyNotAPatternLocal(model, x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
+            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyNotAPatternLocal(model, x2Ref[0]);
+            VerifyNotAPatternLocal(model, x2Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        (object d, object x1) = (Dummy((true is var x1), x1), 
+                                Dummy(x1));
+        Dummy(x1);
+    }
+
+    void Test2()
+    {
+        (object d1, object d2) = (Dummy((true is var x2), x2), 
+                    Dummy((true is var x2), x2));
+    }
+
+    void Test3()
+    {
+        (object d1, object d2) = (Dummy((true is var x3), x3), 
+                    Dummy(x3));
+    }
+
+    void Test4()
+    {
+        (object d1, object d2) = (Dummy(x4), 
+                    Dummy((true is var x4), x4));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (12,53): error CS0128: A local variable named 'x1' is already defined in this scope
+                //         (object d, object x1) = (Dummy((true is var x1), x1), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 53),
+                // (12,58): error CS0165: Use of unassigned local variable 'x1'
+                //         (object d, object x1) = (Dummy((true is var x1), x1), 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 58),
+                // (20,40): error CS0128: A local variable named 'x2' is already defined in this scope
+                //                     Dummy((true is var x2), x2));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 40),
+                // (31,41): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         (object d1, object d2) = (Dummy(x4), 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 41)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyNotAPatternLocal(model, x1Ref[0]);
+            VerifyNotAPatternLocal(model, x1Ref[1]);
+            VerifyNotAPatternLocal(model, x1Ref[2]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            Assert.Equal(2, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x2Decl[1]);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (DeconstructionDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+var (y1, dd) = ((123 is var x1), x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart, statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+
+            Assert.Equal("System.Boolean y1", model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single().ToTestDisplayString());
+        }
+        
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void ScopeOfPatternVariables_DeconstructionDeclarationStmt_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        if (true)
+            var (d, dd) = ((true is var x1), x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (d, dd) = ((true is var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = ((true is var x1), x1);").WithLocation(11, 13),
+                // (13,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref[0]);
+            VerifyNotInScope(model, x1Ref[1]);
+
+            var d = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
+            Assert.Equal("System.Boolean d", model.GetDeclaredSymbol(d).ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        (object d1, object d2) = (Dummy(new C(""a""), (new C(""b"") is var x1), x1),
+                                 Dummy(new C(""c""), (new C(""d"") is var x2), x2));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+a
+c
+b");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        if (true)
+        {
+            (object d1, object d2) = (Dummy(new C(""a""), (new C(""b"") is var x1), x1), x1);
+        }
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var (d1, (d2, d3)) = (Dummy(new C(""a""), (new C(""b"") is var x1), x1),
+                              (Dummy(new C(""c""), (new C(""d"") is var x2), x2),
+                               Dummy(new C(""e""), (new C(""f"") is var x3), x3)));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(d3);
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+        System.Console.WriteLine(x3);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+f
+a
+c
+e
+b
+d
+f");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        (var d1, (var d2, var d3)) = (Dummy(new C(""a""), (new C(""b"") is var x1), x1),
+                              (Dummy(new C(""c""), (new C(""d"") is var x2), x2),
+                               Dummy(new C(""e""), (new C(""f"") is var x3), x3)));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(d3);
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+        System.Console.WriteLine(x3);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+f
+a
+c
+e
+b
+d
+f");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -6776,7 +8281,7 @@ public class X
         var x4 = 11;
         Dummy(x4);
 
-        while (true is var x4 && x4)
+        while (true is var x4 && x4 > 0)
             Dummy(x4);
     }
 
@@ -6859,18 +8364,18 @@ public class X
     // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var y12 = 12;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(87, 13),
-    // (29,28): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         while (true is var x4 && x4)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(29, 28),
+    // (29,28): error CS0128: A local variable named 'x4' is already defined in this scope
+    //         while (true is var x4 && x4 > 0)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(29, 28),
     // (35,16): error CS0841: Cannot use local variable 'x6' before it is declared
     //         while (x6 && true is var x6)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(35, 16),
     // (43,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             var x7 = 12;
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(43, 17),
-    // (53,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(53, 34),
+    // (60,19): error CS0841: Cannot use local variable 'x9' before it is declared
+    //             Dummy(x9);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(60, 19),
     // (61,32): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             while (true is var x9 && x9) // 2
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(61, 32),
@@ -6880,6 +8385,9 @@ public class X
     // (86,16): error CS0103: The name 'y12' does not exist in the current context
     //         while (y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 16),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,31): error CS0128: A local variable named 'x14' is already defined in this scope
     //                      2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 31)
@@ -6902,7 +8410,9 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[2]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
@@ -6918,15 +8428,14 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
-            VerifyNotInScope(model, x8Ref[2]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").ToArray();
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
 
             var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -6945,6 +8454,88 @@ public class X
         }
 
         [Fact]
+        public void ScopeOfPatternVariables_While_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        if (true)
+            while (true is var x1)
+            {
+            }
+        
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (17,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_While_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (WhileStatementSyntax)SyntaxFactory.ParseStatement(@"
+while (Dummy(11 is var x1, x1)) ;
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         public void While_01()
         {
             var source =
@@ -6960,6 +8551,8 @@ public class X
             System.Console.WriteLine(x1);
             f = false;
         }
+
+        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -6973,7 +8566,62 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
+2
 2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        if (f)
+            while (Dummy(f, (f ? 1 : 2) is var x1, x1))
+                break;
+
+        if (f)
+        {
+            while (Dummy(f, (f ? 3 : 4) is var x1, x1))
+                break;
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -7012,7 +8660,7 @@ public class X
 
         do
             Dummy(x4);
-        while (true is var x4 && x4);
+        while (true is var x4 && x4 > 0);
     }
 
     void Test6()
@@ -7110,12 +8758,9 @@ public class X
     // (22,19): error CS0841: Cannot use local variable 'x2' before it is declared
     //             Dummy(x2);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(22, 19),
-    // (33,28): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         while (true is var x4 && x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 28),
-    // (32,19): error CS0841: Cannot use local variable 'x4' before it is declared
-    //             Dummy(x4);
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(32, 19),
+    // (33,28): error CS0128: A local variable named 'x4' is already defined in this scope
+    //         while (true is var x4 && x4 > 0);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 28),
     // (40,16): error CS0841: Cannot use local variable 'x6' before it is declared
     //         while (x6 && true is var x6);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(40, 16),
@@ -7128,9 +8773,6 @@ public class X
     // (56,19): error CS0841: Cannot use local variable 'x8' before it is declared
     //             Dummy(x8);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x8").WithArguments("x8").WithLocation(56, 19),
-    // (59,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(59, 34),
     // (66,19): error CS0841: Cannot use local variable 'x9' before it is declared
     //             Dummy(x9);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(66, 19),
@@ -7146,6 +8788,9 @@ public class X
     // (98,16): error CS0103: The name 'y12' does not exist in the current context
     //         while (y12 is var x12);
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(98, 16),
+    // (97,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(97, 17),
     // (115,31): error CS0128: A local variable named 'x14' is already defined in this scope
     //                      2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(115, 31),
@@ -7171,7 +8816,9 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[2]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
@@ -7187,15 +8834,14 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
-            VerifyNotInScope(model, x8Ref[2]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").ToArray();
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[0], x9Ref[3]);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[1], x9Ref[2]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1], x9Ref[2]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[3]);
 
             var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -7214,6 +8860,89 @@ public class X
         }
 
         [Fact]
+        public void ScopeOfPatternVariables_Do_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        if (true)
+            do
+            {
+            }
+            while (true is var x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (18,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(18, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Do_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (DoStatementSyntax)SyntaxFactory.ParseStatement(@"
+do {} while (Dummy(11 is var x1, x1));
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         public void Do_01()
         {
             var source =
@@ -7229,6 +8958,8 @@ public class X
             f = false;
         }
         while (Dummy(f, (f ? 1 : 2) is var x1, x1));
+
+        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -7239,7 +8970,64 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:@"2");
+            CompileAndVerify(compilation, expectedOutput:@"2
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Do_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        if (f)
+            do
+                ;
+            while (Dummy(f, (f ? 1 : 2) is var x1, x1) && false);
+
+        if (f)
+        {
+            do
+                ;
+            while (Dummy(f, (f ? 3 : 4) is var x1, x1) && false);
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -7407,6 +9195,9 @@ public class X
     // (107,20): error CS0103: The name 'y12' does not exist in the current context
     //              Dummy(y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+    // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
     // (124,29): error CS0128: A local variable named 'x14' is already defined in this scope
     //                    2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29)
@@ -7633,6 +9424,9 @@ public class X
     // (107,20): error CS0103: The name 'y12' does not exist in the current context
     //              Dummy(y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+    // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
     // (124,29): error CS0128: A local variable named 'x14' is already defined in this scope
     //                    2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29)
@@ -7862,6 +9656,9 @@ public class X
     // (107,20): error CS0103: The name 'y12' does not exist in the current context
     //              Dummy(y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+    // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
     // (124,29): error CS0128: A local variable named 'x14' is already defined in this scope
     //                    2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29),
@@ -8118,6 +9915,9 @@ public class X
     // (107,20): error CS0103: The name 'y12' does not exist in the current context
     //              Dummy(y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+    // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
     // (124,29): error CS0128: A local variable named 'x14' is already defined in this scope
     //                    2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29)
@@ -8347,6 +10147,9 @@ public class X
     // (107,20): error CS0103: The name 'y12' does not exist in the current context
     //              Dummy(y12 is var x12)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+    // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
     // (124,29): error CS0128: A local variable named 'x14' is already defined in this scope
     //                    2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29)
@@ -8940,6 +10743,9 @@ public class X
     // (86,33): error CS0103: The name 'y12' does not exist in the current context
     //         foreach (var i in Dummy(y12 is var x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 33),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,42): error CS0128: A local variable named 'x14' is already defined in this scope
     //                                 2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 42),
@@ -9158,18 +10964,18 @@ public class X
     // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var y12 = 12;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(87, 13),
-    // (29,33): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (29,33): error CS0128: A local variable named 'x4' is already defined in this scope
     //         lock (Dummy(true is var x4 && x4))
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(29, 33),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(29, 33),
     // (35,21): error CS0841: Cannot use local variable 'x6' before it is declared
     //         lock (Dummy(x6 && true is var x6))
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(35, 21),
     // (43,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             var x7 = 12;
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(43, 17),
-    // (53,34): error CS0103: The name 'x8' does not exist in the current context
-    //         System.Console.WriteLine(x8);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(53, 34),
+    // (60,19): error CS0841: Cannot use local variable 'x9' before it is declared
+    //             Dummy(x9);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(60, 19),
     // (61,37): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             lock (Dummy(true is var x9 && x9)) // 2
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(61, 37),
@@ -9179,6 +10985,9 @@ public class X
     // (86,21): error CS0103: The name 'y12' does not exist in the current context
     //         lock (Dummy(y12 is var x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 21),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,30): error CS0128: A local variable named 'x14' is already defined in this scope
     //                     2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 30)
@@ -9201,7 +11010,9 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[2]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x6Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x6").Single();
             var x6Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x6").ToArray();
@@ -9217,15 +11028,14 @@ public class X
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").Single();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
-            VerifyNotInScope(model, x8Ref[2]);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
 
             var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").ToArray();
             var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
 
             var y10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -9244,6 +11054,88 @@ public class X
         }
 
         [Fact]
+        public void ScopeOfPatternVariables_Lock_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        if (true)
+            lock (Dummy(true is var x1))
+            {
+            }
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (17,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Lock_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (LockStatementSyntax)SyntaxFactory.ParseStatement(@"
+lock (Dummy(11 is var x1, x1));
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         public void Lock_01()
         {
             var source =
@@ -9256,6 +11148,8 @@ public class X
         {
             System.Console.WriteLine(x1);
         }
+
+        System.Console.WriteLine(x1);
     }
 
     static object Dummy(object y, object z) 
@@ -9268,7 +11162,62 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
+lock
 lock");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Lock_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        if (f)
+            lock (Dummy(f, (f ? 1 : 2) is var x1, x1))
+                {}
+
+        if (f)
+        {
+            lock (Dummy(f, (f ? 3 : 4) is var x1, x1))
+                {}
+        }
+    }
+
+    static object Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -9407,6 +11356,9 @@ public unsafe class X
     // (86,31): error CS0103: The name 'y12' does not exist in the current context
     //         fixed (int* p = Dummy(y12 is var x12))
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(86, 31),
+    // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
+    //             var y12 = 12;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
     // (99,40): error CS0128: A local variable named 'x14' is already defined in this scope
     //                               2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 40)
@@ -9688,27 +11640,33 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
+    // (16,44): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //             yield return Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(16, 44),
+    // (18,40): error CS0128: A local variable named 'x1' is already defined in this scope
+    //         yield return Dummy(true is var x1, x1);
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(18, 40),
     // (23,28): error CS0841: Cannot use local variable 'x2' before it is declared
     //         yield return Dummy(x2, true is var x2);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(23, 28),
     // (28,40): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         yield return Dummy(true is var x3, x3);
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(28, 40),
-    // (35,40): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    // (35,40): error CS0128: A local variable named 'x4' is already defined in this scope
     //         yield return Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(35, 40),
-    // (40,40): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         yield return Dummy(true is var x5, x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(40, 40),
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(35, 40),
+    // (41,13): error CS0128: A local variable named 'x5' is already defined in this scope
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(41, 13),
+    // (41,13): warning CS0219: The variable 'x5' is assigned but its value is never used
+    //         var x5 = 11;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(41, 13),
     // (61,61): error CS0128: A local variable named 'x8' is already defined in this scope
     //         yield return Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(61, 61),
-    // (72,15): error CS0103: The name 'x11' does not exist in the current context
+    // (72,15): error CS0841: Cannot use local variable 'x11' before it is declared
     //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(72, 15),
-    // (79,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(79, 15)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(72, 15)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -9718,10 +11676,9 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(3, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
@@ -9735,13 +11692,13 @@ public class X
             var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
             Assert.Equal(2, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
 
             var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
             var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
             Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
+            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref);
 
             var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
             var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
@@ -9760,14 +11717,98 @@ public class X
             var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
             var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref);
 
             var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
             var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Yield_02()
+        {
+            var source =
+@"
+using System.Collections;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) { return null;}
+
+    IEnumerable Test1()
+    {
+        if (true)
+            yield return Dummy(true is var x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (17,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(17, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_Yield_03()
+        {
+            var source =
+@"
+using System.Collections;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) { return null;}
+
+    IEnumerable Test1()
+    {
+        SpeculateHere();
+        yield 0;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (YieldStatementSyntax)SyntaxFactory.ParseStatement(@"
+yield return (Dummy(11 is var x1, x1));
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -9786,7 +11827,57 @@ public class X
     static System.Collections.IEnumerable Test()
     {
         yield return Dummy(""yield1"" is var x1, x1);
-        yield return Dummy(""yield2"" is var x1, x1);
+        yield return Dummy(""yield2"" is var x2, x2);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Dummy(object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return new object();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"yield1
+yield2
+yield1");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Yield_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        foreach (var o in Test())
+        {}
+    }
+
+    static System.Collections.IEnumerable Test()
+    {
+        bool f = true;
+
+        if (f)
+            yield return Dummy(""yield1"" is var x1, x1);
+
+        if (f)
+        {
+            yield return Dummy(""yield2"" is var x1, x1);
+        }
     }
 
     static object Dummy(object y, object z) 
@@ -9800,186 +11891,16 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
-        }
-
-        [Fact]
-        public void ScopeOfPatternVariables_Return_01()
-        {
-            var source =
-@"
-public class X
-{
-    public static void Main()
-    {
-    }
-
-    object Dummy(params object[] x) { return null;}
-
-    object Test1()
-    {
-        return Dummy(true is var x1, x1);
-        {
-            return Dummy(true is var x1, x1);
-        }
-        return Dummy(true is var x1, x1);
-    }
-
-    object Test2()
-    {
-        return Dummy(x2, true is var x2);
-    }
-
-    object Test3(int x3)
-    {
-        return Dummy(true is var x3, x3);
-    }
-
-    object Test4()
-    {
-        var x4 = 11;
-        Dummy(x4);
-        return Dummy(true is var x4, x4);
-    }
-
-    object Test5()
-    {
-        return Dummy(true is var x5, x5);
-        var x5 = 11;
-        Dummy(x5);
-    }
-
-    //object Test6()
-    //{
-    //    let x6 = 11;
-    //    Dummy(x6);
-    //    return Dummy(true is var x6, x6);
-    //}
-
-    //object Test7()
-    //{
-    //    return Dummy(true is var x7, x7);
-    //    let x7 = 11;
-    //    Dummy(x7);
-    //}
-
-    object Test8()
-    {
-        return Dummy(true is var x8, x8, false is var x8, x8);
-    }
-
-    object Test9(bool y9)
-    {
-        if (y9)
-            return Dummy(true is var x9, x9);
-
-        return null;
-    }
-
-    object Test11()
-    {
-        Dummy(x11);
-        return Dummy(true is var x11, x11);
-    }
-
-    object Test12()
-    {
-        return Dummy(true is var x12, x12);
-        Dummy(x12);
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (14,13): warning CS0162: Unreachable code detected
-    //             return Dummy(true is var x1, x1);
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(14, 13),
-    // (21,22): error CS0841: Cannot use local variable 'x2' before it is declared
-    //         return Dummy(x2, true is var x2);
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(21, 22),
-    // (26,34): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return Dummy(true is var x3, x3);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 34),
-    // (33,34): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 34),
-    // (38,34): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         return Dummy(true is var x5, x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(38, 34),
-    // (39,9): warning CS0162: Unreachable code detected
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-    // (59,55): error CS0128: A local variable named 'x8' is already defined in this scope
-    //         return Dummy(true is var x8, x8, false is var x8, x8);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 55),
-    // (72,15): error CS0103: The name 'x11' does not exist in the current context
-    //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(72, 15),
-    // (79,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(79, 15),
-    // (79,9): warning CS0162: Unreachable code detected
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(79, 9)
-                );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
-            Assert.Equal(3, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
-
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
-
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
-            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
-            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
-
-            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
-            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
-            Assert.Equal(2, x4Ref.Length);
-            VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
-
-            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
-            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
-            Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
-
-            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
-            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
-            Assert.Equal(2, x8Decl.Length);
-            Assert.Equal(2, x8Ref.Length);
-            for (int i = 0; i < x8Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref[i]);
-            }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
-
-            var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
-            var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").Single();
-            VerifyModelForDeclarationPattern(model, x9Decl, x9Ref);
-
-            var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
-            var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
-            Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
-
-            var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
-            var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
-            Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -10008,181 +11929,61 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:@"return");
-        }
-
-        [Fact]
-        public void ScopeOfPatternVariables_Throw_01()
-        {
-            var source =
-@"
-public class X
-{
-    public static void Main()
-    {
-    }
-
-    System.Exception Dummy(params object[] x) { return null;}
-
-    void Test1()
-    {
-        throw Dummy(true is var x1, x1);
-        {
-            throw Dummy(true is var x1, x1);
-        }
-        throw Dummy(true is var x1, x1);
-    }
-
-    void Test2()
-    {
-        throw Dummy(x2, true is var x2);
-    }
-
-    void Test3(int x3)
-    {
-        throw Dummy(true is var x3, x3);
-    }
-
-    void Test4()
-    {
-        var x4 = 11;
-        Dummy(x4);
-        throw Dummy(true is var x4, x4);
-    }
-
-    void Test5()
-    {
-        throw Dummy(true is var x5, x5);
-        var x5 = 11;
-        Dummy(x5);
-    }
-
-    //void Test6()
-    //{
-    //    let x6 = 11;
-    //    Dummy(x6);
-    //    throw Dummy(true is var x6, x6);
-    //}
-
-    //void Test7()
-    //{
-    //    throw Dummy(true is var x7, x7);
-    //    let x7 = 11;
-    //    Dummy(x7);
-    //}
-
-    void Test8()
-    {
-        throw Dummy(true is var x8, x8, false is var x8, x8);
-    }
-
-    void Test9(bool y9)
-    {
-        if (y9)
-            throw Dummy(true is var x9, x9);
-    }
-
-    void Test11()
-    {
-        Dummy(x11);
-        throw Dummy(true is var x11, x11);
-    }
-
-    void Test12()
-    {
-        throw Dummy(true is var x12, x12);
-        Dummy(x12);
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
-    // (21,21): error CS0841: Cannot use local variable 'x2' before it is declared
-    //         throw Dummy(x2, true is var x2);
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(21, 21),
-    // (26,33): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         throw Dummy(true is var x3, x3);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 33),
-    // (33,33): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         throw Dummy(true is var x4, x4);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 33),
-    // (38,33): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         throw Dummy(true is var x5, x5);
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(38, 33),
-    // (39,9): warning CS0162: Unreachable code detected
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-    // (59,54): error CS0128: A local variable named 'x8' is already defined in this scope
-    //         throw Dummy(true is var x8, x8, false is var x8, x8);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 54),
-    // (70,15): error CS0103: The name 'x11' does not exist in the current context
-    //         Dummy(x11);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x11").WithArguments("x11").WithLocation(70, 15),
-    // (77,15): error CS0103: The name 'x12' does not exist in the current context
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x12").WithArguments("x12").WithLocation(77, 15),
-    // (77,9): warning CS0162: Unreachable code detected
-    //         Dummy(x12);
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "Dummy").WithLocation(77, 9)
-                );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
-            Assert.Equal(3, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            for (int i = 0; i < x1Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x1Decl[i], x1Ref[i]);
-            }
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+        [Fact]
+        public void Return_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test0(true);
+        Test0(false);
+    }
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
-            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
-            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+    static object Test0(bool val)
+    {
+        if (val)
+            return Test2(1 is var x1, x1);
 
-            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
-            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
-            Assert.Equal(2, x4Ref.Length);
-            VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1]);
+        if (!val)
+        {
+            return Test2(2 is var x1, x1);
+        }
 
-            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
-            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
-            Assert.Equal(2, x5Ref.Length);
-            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref[0]);
-            VerifyNotAPatternLocal(model, x5Ref[1]);
+        return null;
+    }
 
-            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
-            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
-            Assert.Equal(2, x8Decl.Length);
-            Assert.Equal(2, x8Ref.Length);
-            for (int i = 0; i < x8Decl.Length; i++)
-            {
-                VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref[i]);
-            }
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+    static object Test2(object x, object y)
+    {
+        System.Console.Write(y);
+        return x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
-            var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
-            var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").Single();
-            VerifyModelForDeclarationPattern(model, x9Decl, x9Ref);
+            CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
-            var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
-            var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
-            Assert.Equal(2, x11Ref.Length);
-            VerifyNotInScope(model, x11Ref[0]);
-            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref[1]);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-            var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
-            var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
-            Assert.Equal(2, x12Ref.Length);
-            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref[0]);
-            VerifyNotInScope(model, x12Ref[1]);
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -10217,6 +12018,68 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"throw");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Throw_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        Test(true);
+        Test(false);
+    }
+
+    static void Test(bool val)
+    {
+        try
+        {
+            if (val)
+                throw Dummy(""throw 1"" is var x1, x1);
+
+            if (!val)
+            {
+                throw Dummy(""throw 2"" is var x1, x1);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    static System.Exception Dummy(object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return new System.ArgumentException();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"throw 1
+throw 2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -10578,6 +12441,399 @@ System.InvalidOperationException
 System.NullReferenceException");
         }
 
+        [Fact]
+        public void ScopeOfPatternVariables_LabeledStatement_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+a:      Dummy(true is var x1, x1);
+        {
+b:          Dummy(true is var x1, x1);
+        }
+c:      Dummy(true is var x1, x1);
+    }
+
+    void Test2()
+    {
+        Dummy(x2, true is var x2);
+    }
+
+    void Test3(int x3)
+    {
+a:      Dummy(true is var x3, x3);
+    }
+
+    void Test4()
+    {
+        var x4 = 11;
+        Dummy(x4);
+a:      Dummy(true is var x4, x4);
+    }
+
+    void Test5()
+    {
+a:      Dummy(true is var x5, x5);
+        var x5 = 11;
+        Dummy(x5);
+    }
+
+    //void Test6()
+    //{
+    //    let x6 = 11;
+    //    Dummy(x6);
+    //a:  Dummy(true is var x6, x6);
+    //}
+
+    //void Test7()
+    //{
+    //a:  Dummy(true is var x7, x7);
+    //    let x7 = 11;
+    //    Dummy(x7);
+    //}
+
+    void Test8()
+    {
+a:      Dummy(true is var x8, x8, false is var x8, x8);
+    }
+
+    void Test9(bool y9)
+    {
+        if (y9)
+a:          Dummy(true is var x9, x9);
+    }
+
+    System.Action Test10(bool y10)
+    {
+        return () =>
+                {
+                    if (y10)
+a:                      Dummy(true is var x10, x10);
+                };
+    }
+
+    void Test11()
+    {
+        Dummy(x11);
+a:      Dummy(true is var x11, x11);
+    }
+
+    void Test12()
+    {
+a:      Dummy(true is var x12, x12);
+        Dummy(x12);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (65,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // a:          Dummy(true is var x9, x9);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "a:          Dummy(true is var x9, x9);").WithLocation(65, 1),
+                // (73,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // a:                      Dummy(true is var x10, x10);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "a:                      Dummy(true is var x10, x10);").WithLocation(73, 1),
+                // (14,31): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // b:          Dummy(true is var x1, x1);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(14, 31),
+                // (16,27): error CS0128: A local variable named 'x1' is already defined in this scope
+                // c:      Dummy(true is var x1, x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(16, 27),
+                // (12,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x1, x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(12, 1),
+                // (14,1): warning CS0164: This label has not been referenced
+                // b:          Dummy(true is var x1, x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(14, 1),
+                // (16,1): warning CS0164: This label has not been referenced
+                // c:      Dummy(true is var x1, x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(16, 1),
+                // (21,15): error CS0841: Cannot use local variable 'x2' before it is declared
+                //         Dummy(x2, true is var x2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(21, 15),
+                // (26,27): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // a:      Dummy(true is var x3, x3);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(26, 27),
+                // (26,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x3, x3);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(26, 1),
+                // (33,27): error CS0128: A local variable named 'x4' is already defined in this scope
+                // a:      Dummy(true is var x4, x4);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 27),
+                // (33,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x4, x4);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(33, 1),
+                // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
+                //         var x5 = 11;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
+                // (38,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x5, x5);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(38, 1),
+                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
+                //         var x5 = 11;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
+                // (59,48): error CS0128: A local variable named 'x8' is already defined in this scope
+                // a:      Dummy(true is var x8, x8, false is var x8, x8);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 48),
+                // (59,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x8, x8, false is var x8, x8);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(59, 1),
+                // (65,1): warning CS0164: This label has not been referenced
+                // a:          Dummy(true is var x9, x9);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(65, 1),
+                // (73,1): warning CS0164: This label has not been referenced
+                // a:                      Dummy(true is var x10, x10);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(73, 1),
+                // (79,15): error CS0841: Cannot use local variable 'x11' before it is declared
+                //         Dummy(x11);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x11").WithArguments("x11").WithLocation(79, 15),
+                // (80,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x11, x11);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(80, 1),
+                // (85,1): warning CS0164: This label has not been referenced
+                // a:      Dummy(true is var x12, x12);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(85, 1)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(3, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0], x1Ref[2]);
+            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x1Decl[2]);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
+            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").Single();
+            var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").Single();
+            VerifyModelForDeclarationPattern(model, x3Decl, x3Ref);
+
+            var x4Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x4").Single();
+            var x4Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyNotAPatternLocal(model, x4Ref[0]);
+            VerifyNotAPatternLocal(model, x4Ref[1]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+
+            var x5Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x5").Single();
+            var x5Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x5").ToArray();
+            Assert.Equal(2, x5Ref.Length);
+            VerifyModelForDeclarationPattern(model, x5Decl, x5Ref);
+
+            var x8Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x8").ToArray();
+            var x8Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x8").ToArray();
+            Assert.Equal(2, x8Decl.Length);
+            Assert.Equal(2, x8Ref.Length);
+            for (int i = 0; i < x8Decl.Length; i++)
+            {
+                VerifyModelForDeclarationPattern(model, x8Decl[0], x8Ref[i]);
+            }
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x8Decl[1]);
+
+            var x9Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x9").Single();
+            var x9Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x9").Single();
+            VerifyModelForDeclarationPattern(model, x9Decl, x9Ref);
+
+            var x10Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x10").Single();
+            var x10Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x10").Single();
+            VerifyModelForDeclarationPattern(model, x10Decl, x10Ref);
+
+            var x11Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x11").Single();
+            var x11Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x11").ToArray();
+            Assert.Equal(2, x11Ref.Length);
+            VerifyModelForDeclarationPattern(model, x11Decl, x11Ref);
+
+            var x12Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x12").Single();
+            var x12Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x12").ToArray();
+            Assert.Equal(2, x12Ref.Length);
+            VerifyModelForDeclarationPattern(model, x12Decl, x12Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_LabeledStatement_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        if (true)
+a:          Dummy(true is var x1);
+
+        x1++;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (13,1): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // a:          Dummy(true is var x1);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "a:          Dummy(true is var x1);").WithLocation(13, 1),
+                // (15,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(15, 9),
+                // (13,1): warning CS0164: This label has not been referenced
+                // a:          Dummy(true is var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(13, 1)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl);
+            VerifyNotInScope(model, x1Ref);
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_LabeledStatement_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Dummy(params object[] x) {}
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (LabeledStatementSyntax)SyntaxFactory.ParseStatement(@"
+a: b: c:Dummy(11 is var x1, x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(
+                tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "SpeculateHere").Single().SpanStart,
+                statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Labeled_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+a:      Test1(2 is var x1);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Test1(bool x)
+    {
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
+                // (6,1): warning CS0164: This label has not been referenced
+                // a:      Test1(2 is var x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(6, 1)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void Labeled_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test0();
+    }
+
+    static object Test0()
+    {
+        bool test = true;
+
+        if (test)
+        {
+a:          Test2(2 is var x1, x1);
+        }
+
+        return null;
+    }
+
+    static object Test2(object x, object y)
+    {
+        System.Console.Write(y);
+        return x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
+                // (15,1): warning CS0164: This label has not been referenced
+                // a:          Test2(2 is var x1, x1);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(15, 1)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
         [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
         public void Constants_Fail()
         {
@@ -10633,7 +12889,7 @@ public class X
         object o = null;
         switch (o)
         {
-            case int[] a:
+            case int[] b:
                 break;
             case int.MaxValue: // constant, not a type
                 break;

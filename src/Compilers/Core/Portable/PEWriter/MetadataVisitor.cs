@@ -25,8 +25,6 @@ namespace Microsoft.Cci
             this.Visit(arrayTypeReference.GetElementType(Context));
         }
 
-        public abstract void Visit(IAssembly assembly);
-
         public void Visit(IEnumerable<IAssemblyReference> assemblyReferences)
         {
             foreach (IAssemblyReference assemblyReference in assemblyReferences)
@@ -333,7 +331,7 @@ namespace Microsoft.Cci
             this.Visit(modifiedTypeReference.UnmodifiedType);
         }
 
-        public abstract void Visit(IModule module);
+        public abstract void Visit(CommonPEModuleBuilder module);
 
         public void Visit(IEnumerable<IModuleReference> moduleReferences)
         {

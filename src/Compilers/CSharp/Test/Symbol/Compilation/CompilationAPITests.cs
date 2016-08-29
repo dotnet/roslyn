@@ -274,34 +274,46 @@ namespace A.B {
         {
             var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
 
-            Assert.Throws<ArgumentNullException>(() => comp.Emit(peStream: null));
-            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
-            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
-            Assert.Throws<ArgumentException>(() => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+            Assert.Throws<ArgumentNullException>("peStream", () => comp.Emit(peStream: null));
+            Assert.Throws<ArgumentException>("peStream", () => comp.Emit(peStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new TestStream(canRead: true, canWrite: false, canSeek: true)));
+            Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
 
-            Assert.Throws<ArgumentException>(() => comp.Emit(
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
                 peStream: new MemoryStream(), 
                 pdbStream: new MemoryStream(), 
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
-            Assert.Throws<ArgumentException>(() => comp.Emit(
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
                peStream: new MemoryStream(),
                pdbStream: new MemoryStream(),
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                sourceLinkStream: new MemoryStream()));
 
-            Assert.Throws<ArgumentException>(() => comp.Emit(
+            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
                peStream: new MemoryStream(),
                pdbStream: null,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                sourceLinkStream: new MemoryStream()));
 
-            Assert.Throws<ArgumentException>(() => comp.Emit(
+            Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
+
+            Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
+                peStream: new MemoryStream(),
+                pdbStream: null,
+                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
+
+            Assert.Throws<ArgumentException>("win32Resources", () => comp.Emit(
                 peStream: new MemoryStream(),
                 win32Resources: new TestStream(canRead: true, canWrite: false, canSeek: false)));
 
-            Assert.Throws<ArgumentException>(() => comp.Emit(
+            Assert.Throws<ArgumentException>("win32Resources", () => comp.Emit(
                 peStream: new MemoryStream(),
                 win32Resources: new TestStream(canRead: false, canWrite: false, canSeek: true)));
 
