@@ -55,8 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-
             Dim items = New List(Of CompletionItem)()
 
             Dim attachedToken = parent.ParentTrivia.Token
@@ -277,9 +275,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             For Each node In parent.ChildNodes
                 Dim element = TryCast(node, XmlElementSyntax)
                 If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim startTag = element.StartTag
+                    Dim name = TryCast(element.StartTag.Name, XmlNameSyntax)
 
-                    If startTag.ToString() = ValueTagName Then
+                    If name?.LocalName.ValueText = ValueTagName Then
                         value = False
                     End If
                 End If
@@ -313,9 +311,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             For Each node In parent.ChildNodes
                 Dim element = TryCast(node, XmlElementSyntax)
                 If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim startTag = element.StartTag
+                    Dim name = TryCast(element.StartTag.Name, XmlNameSyntax)
 
-                    If startTag.ToString() = ReturnsTagName Then
+                    If name?.LocalName.ValueText = ReturnsTagName Then
                         returns = False
                     End If
                 End If
@@ -363,8 +361,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Sub
 
         Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
-            Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull()
-            Return GetAttributeItem(tagName).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
+            Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
+            Return GetAttributeItems(tagName, existingAttributeNames)
         End Function
 
         Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
