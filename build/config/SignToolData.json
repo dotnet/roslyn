@@ -117,6 +117,7 @@
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
         "System.AppContext.dll",
+        "System.Collections.Immutable.dll",
         "System.Composition.AttributedModel.dll",
         "System.Composition.Convention.dll",
         "System.Composition.Hosting.dll",
