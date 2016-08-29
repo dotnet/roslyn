@@ -1196,5 +1196,44 @@ static void Goo()
 }
 ", "await", "class");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterElementName()
+        {
+            var text = @"
+class C
+{
+    /// <exception $$
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartiallyTypedAttributeName()
+        {
+            var text = @"
+class C
+{
+    /// <exception c$$
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AttributeNameAfterAttribute()
+        {
+            var text = @"
+class C
+{
+    /// <exception name="""" $$
+    void Goo() { }
+}
+";
+            await VerifyItemExistsAsync(text, "cref");
+        }
     }
 }

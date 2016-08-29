@@ -544,6 +544,34 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestReturnsAlreadyOnMethod() As Task
+            Dim text = "
+Class C
+    ''' <returns></returns>
+    ''' <$$
+    Function M() As Integer
+    End Function
+End Class
+"
+
+            Await VerifyItemsAbsentAsync(text, "returns")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestValueAlreadyOnProperty() As Task
+            Dim text = "
+Class C
+    ''' <value></value>
+    ''' <$$
+    Property P() As Integer
+    End Property
+End Class
+"
+
+            Await VerifyItemsAbsentAsync(text, "value")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestListTypes() As Task
             Dim text = "
 Class C

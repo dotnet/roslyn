@@ -111,11 +111,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateCompletionItem(n);
         }
 
-        protected IEnumerable<CompletionItem> GetAttributeItem(string n)
+        protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(x[1], x[2], x[3]));
-
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(n));
+            return _attributeMap.Where(x => x[0] == tagName && !existingAttributes.Contains(x[1]))
+                                .Select(x => CreateCompletionItem(x[1], x[2], x[3]));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
