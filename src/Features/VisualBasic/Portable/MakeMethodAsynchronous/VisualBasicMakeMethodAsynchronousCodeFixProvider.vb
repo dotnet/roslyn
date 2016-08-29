@@ -27,6 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End Get
         End Property
 
+        Protected Overrides Function GetMakeAsyncTaskFunctionResource() As String
+            Return VBFeaturesResources.Make_Async_Function
+        End Function
+
+        Protected Overrides Function GetMakeAsyncVoidFunctionResource() As String
+            Return VBFeaturesResources.Make_Async_Sub
+        End Function
+
         Protected Overrides Function IsMethodOrAnonymousFunction(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.FunctionBlock) OrElse
                 node.IsKind(SyntaxKind.SubBlock) OrElse
