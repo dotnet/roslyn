@@ -763,6 +763,30 @@ class C
         }
 
         [Fact]
+        public void NotAssignable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (1, P) = (1, 2);
+    }
+    static int P { get { return 1; } }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 10),
+                // (6,13): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TupleWithUseSiteError()
         {
             string source = @"
@@ -2331,6 +2355,27 @@ class C1
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
                 );
             // no crash
+        }
+
+        [Fact]
+        public void DeclarationCannotBeEmbedded()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        if (true)
+            var (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                );
         }
     }
 }
