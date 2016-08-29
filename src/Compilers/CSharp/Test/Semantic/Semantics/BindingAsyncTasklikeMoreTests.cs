@@ -604,5 +604,66 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
                 //         async MyTask F() { };
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ }").WithLocation(8, 26));
         }
+
+        [Fact]
+        static void AsyncBuilderAttributeMultipleParameters()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(typeof(B1),1)] class T1 { }
+class B1 { }
+
+[AsyncBuilder(typeof(B2))] class T2 { }
+class B2 { }
+
+class Program {
+    static void Main() { }
+    async T1 f1() => await Task.Delay(1);
+    async T2 f2() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t, int i) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyEmitDiagnostics(
+                // (8,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'AsyncBuilderAttribute.AsyncBuilderAttribute(Type, int)'
+                // [AsyncBuilder(typeof(B2))] class T2 { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AsyncBuilder(typeof(B2))").WithArguments("i", "System.Runtime.CompilerServices.AsyncBuilderAttribute.AsyncBuilderAttribute(System.Type, int)").WithLocation(8, 2),
+                // (13,14): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T1 f1() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f1").WithLocation(13, 14),
+                // (14,14): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T2 f2() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f2").WithLocation(14, 14)
+                );
+        }
+
+
+        [Fact]
+        static void AsyncBuilderAttributeSingleParameterWrong()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(1)] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(int i) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyEmitDiagnostics(
+                // (9,13): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(9, 13)
+                );
+        }
+
     }
 }
