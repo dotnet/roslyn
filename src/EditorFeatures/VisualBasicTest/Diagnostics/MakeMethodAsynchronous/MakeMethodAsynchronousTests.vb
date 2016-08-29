@@ -18,16 +18,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module")
-                )
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module"),
+                index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module")
-                )
+                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module"),
+                index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
         Await Nothing
     End Sub
 </ModuleDeclaration>
-            Await TestAsync(initial, expected)
+            Await TestAsync(initial, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
         Await Nothing
     End Function
 </ModuleDeclaration>
-            Await TestAsync(initial, expected, index:=1)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
