@@ -28,6 +28,7 @@ namespace Roslyn.Test.Utilities
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
+            public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
