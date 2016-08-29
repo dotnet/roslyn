@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,13 +11,16 @@ namespace Microsoft.CodeAnalysis
     {
         internal class IncrementalTreeSource : ValueSource<TreeAndVersion>
         {
-            private readonly ValueSource<TreeAndVersion> _current;
-            private readonly ValueSource<TreeAndVersion> _previous;
+            private readonly AsyncLazy<TreeAndVersion> _current;
+            private readonly WeakReference<ValueSource<TreeAndVersion>> _weakPrevious;
  
-            public IncrementalTreeSource(ValueSource<TreeAndVersion> current, ValueSource<TreeAndVersion> previous)
+            public IncrementalTreeSource(AsyncLazy<TreeAndVersion> current, ValueSource<TreeAndVersion> previous)
             {
                 _current = current;
-                _previous = previous;
+
+                // Hold onto previous source weakly, so that we don't keep realized trees alive longer than necessary.
+                // note: it is expected that _current will have a strong reference on _previous until _current is realized. 
+                _weakPrevious = new WeakReference<ValueSource<TreeAndVersion>>(previous);
             }
 
             /// <summary>
@@ -25,9 +29,10 @@ namespace Microsoft.CodeAnalysis
             public int GetIncrementalParseDepth()
             {
                 int depth = 0;
-                for (var source = _previous as IncrementalTreeSource;
+
+                for (var source = this;
                     source != null;
-                    source = source._previous as IncrementalTreeSource)
+                    source = source.GetPreviousIncrementalSource())
                 {
                     TreeAndVersion tmp;
                     if (source.TryGetValue(out tmp))
@@ -42,6 +47,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return depth;
+            }
+
+            private IncrementalTreeSource GetPreviousIncrementalSource()
+            {
+                ValueSource<TreeAndVersion> previous;
+                _weakPrevious.TryGetTarget(out previous);
+                return previous as IncrementalTreeSource;
             }
 
             public override bool TryGetValue(out TreeAndVersion value)
