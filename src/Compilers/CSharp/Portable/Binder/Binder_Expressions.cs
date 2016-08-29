@@ -671,7 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsThrowExpressionInProperContext(ThrowExpressionSyntax node)
         {
-            if (node.Parent == null || node.HasErrors)
+            var parent = node.Parent;
+            if (parent == null || node.HasErrors)
             {
                 return true;
             }
@@ -680,18 +681,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ConditionalExpression: // ?:
                     {
-                        var papa = (ConditionalExpressionSyntax)node.Parent;
-                        return node == papa.WhenTrue || node == papa.WhenFalse;
+                        var conditionalParent = (ConditionalExpressionSyntax)parent;
+                        return node == conditionalParent.WhenTrue || node == conditionalParent.WhenFalse;
                     }
                 case SyntaxKind.CoalesceExpression: // ??
                     {
-                        var papa = (BinaryExpressionSyntax)node.Parent;
-                        return node == papa.Right;
+                        var binaryParent = (BinaryExpressionSyntax)parent;
+                        return node == binaryParent.Right;
                     }
                 case SyntaxKind.ArrowExpressionClause: // =>
                     {
-                        var papa = (ArrowExpressionClauseSyntax)node.Parent;
-                        return node == papa.Expression;
+                        var arrowClauseParent = (ArrowExpressionClauseSyntax)parent;
+                        return node == arrowClauseParent.Expression;
                     }
                 // We do not support && and || because
                 // 1. The precedence would not syntactically allow it

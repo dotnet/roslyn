@@ -13175,6 +13175,121 @@ foo throws");
         }
 
         [Fact]
+        public void ThrowExpressionWithNullable01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static int M(int? data)
+    {
+        return data ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M(1));
+        try
+        {
+            Console.WriteLine(M(null));
+        }
+        catch (Exception)
+        {
+            Console.WriteLine(""thrown"");
+        }
+    }
+    static string M(object data)
+    {
+        return data?.ToString() ?? throw null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"1
+thrown");
+        }
+
+        [Fact]
+        public void ThrowExpressionWithNullable03()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        MainAsync().Wait();
+    }
+    static async Task MainAsync()
+    {
+        foreach (var i in new[] { 1, 2 })
+        {
+            try
+            {
+                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""thrown "" + ex.Message);
+            }
+        }
+    }
+    static async Task<object> Foo(int i)
+    {
+        await Task.Yield();
+        return (i == 1) ? i : (object)null;
+    }
+    static async Task<Exception> Bar(int i)
+    {
+        await Task.Yield();
+        Console.WriteLine(""making exception "" + i);
+        return new Exception(i.ToString());
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"making exception 2
+thrown 2");
+        }
+
+        [Fact]
         public void ThrowExpressionPrecedence01()
         {
             var source =

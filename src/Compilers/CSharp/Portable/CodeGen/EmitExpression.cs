@@ -321,14 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
         {
-            this.EmitExpression(node.Expression, true);
-            var thrownType = node.Expression.Type;
-            if (thrownType?.TypeKind == TypeKind.TypeParameter)
-            {
-                this.EmitBox(thrownType, node.Expression.Syntax);
-            }
-
-            _builder.EmitThrow(isRethrow: false);
+            this.EmitThrow(node.Expression);
 
             // to satisfy invariants, we push a default value to pretend to adjust the stack height
             EmitDefaultValue(node.Type, used, node.Syntax);

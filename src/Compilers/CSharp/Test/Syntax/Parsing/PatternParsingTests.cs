@@ -108,6 +108,8 @@ class C
         var z = from x in throw new NullReferenceException() select x;
         M(throw new NullReferenceException());
         throw throw null;
+        (int, int) w = (1, throw null);
+        return throw null;
     }
     static void M(string s) {}
 }";
@@ -126,7 +128,22 @@ class C
                 Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(12, 11),
                 // (13,15): error CS8115: A throw expression is not allowed in this context.
                 //         throw throw null;
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(13, 15)
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(13, 15),
+                // (14,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (int, int) w = (1, throw null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(14, 9),
+                // (14,28): error CS8115: A throw expression is not allowed in this context.
+                //         (int, int) w = (1, throw null);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(14, 28),
+                // (14,24): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (int, int) w = (1, throw null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, throw null)").WithArguments("System.ValueTuple`2").WithLocation(14, 24),
+                // (15,16): error CS8115: A throw expression is not allowed in this context.
+                //         return throw null;
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(15, 16),
+                // (14,9): warning CS0162: Unreachable code detected
+                //         (int, int) w = (1, throw null);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(14, 9)
                 );
         }
     }
