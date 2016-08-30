@@ -127,15 +127,9 @@ End Module
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
-        Dim t as (Integer, Integer)
-                 ~~~~~~~~~~~~~~~~~~
 BC30389: '(Integer, Integer).Item1' is not accessible in this context because it is 'Private'.
         console.writeline(t.Item1)
                           ~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
-        Dim t1 as (A As Integer, B As Integer)
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3161,9 +3155,6 @@ BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll'
 BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
-        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3171,9 +3162,6 @@ BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTupl
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of )' from assembly or module 'NoTuples.dll' failed.
-        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
         Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
@@ -3207,9 +3195,6 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         Dim x As (Integer, A As String) = (1, "hello", C:=2)
                  ~~~~~~~~~~~~~~~~~~~~~~
@@ -3848,9 +3833,6 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
                  ~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         Dim x As (Integer, String) = (1, "hello")
-                 ~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
-        Dim x As (Integer, String) = (1, "hello")
                                      ~~~~~~~~~~~~
 </errors>)
 
@@ -4267,9 +4249,6 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
-    Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
-                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
         return (Nothing, Nothing)
                ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -4347,9 +4326,6 @@ End Namespace
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
-    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
-                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31091: Import of type 'ValueTuple(Of ,,,,,,,)' from assembly or module 'NoTuples.dll' failed.
     Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
