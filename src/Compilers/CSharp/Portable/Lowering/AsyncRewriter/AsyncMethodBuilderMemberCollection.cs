@@ -133,10 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            // TODO: in both nongeneric and generic forks below, we should unify both "custom tasklike" and "Task/Task<T>"
-            // down the same custom-tasklike path. (Should mscorlib ever device to put [AsyncBuilder] on Task then that
-            // will happen anyway).
-
             if (method.IsTaskReturningAsync(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
@@ -148,21 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    builderType = builderArgument as NamedTypeSymbol;
-                    if (builderType?.IsErrorType() == true)
-                    {
-                    }
-                    else if ((object)builderType == null || 
-                             builderType.SpecialType == SpecialType.System_Void ||
-                             builderType.DeclaredAccessibility != returnType.DeclaredAccessibility ||
-                             builderType.IsGenericType)
-                    {
-                        // might be null if type isn't a named type, e.g. [AsyncBuilder(typeof(object[]))]
-                        var diagnostic = new CSDiagnostic(
-                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncReturn), F.Syntax.Location);
-                        F.Diagnostics.Add(diagnostic);
-                    }
-                    else
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, desiredArity:0);
+                    if (builderType != null)
                     {
                         taskProperty = GetCustomTaskProperty(F, builderType);
                         createBuilderMethod = GetCustomCreateMethod(F, builderType);
@@ -234,33 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (customBuilder)
                 {
-                    builderType = builderArgument as NamedTypeSymbol;
-
-                    // builderType must be an open generic of arity 1, and its containing types must be nongeneric
-                    bool isBuilderGenericityOk = ((object)builderType != null &&
-                                                  !builderType.IsErrorType() &&
-                                                  builderType.Arity == 1 && 
-                                                  builderType.TypeArguments[0] is UnboundArgumentErrorTypeSymbol);
-
-                    for (var containingType = builderType.ContainingType;
-                        containingType != null && isBuilderGenericityOk;
-                        containingType = containingType.ContainingType)
-                    {
-                        isBuilderGenericityOk &= (containingType.Arity == 0);
-                    }
-
-                    if (builderType?.IsErrorType() == true)
-                    {
-                    }
-                    else if ((object)builderType == null ||
-                        builderType.SpecialType == SpecialType.System_Void ||
-                        builderType.DeclaredAccessibility != returnType.DeclaredAccessibility ||
-                        !isBuilderGenericityOk)
-                    {
-                        F.Diagnostics.Add(new CSDiagnostic(
-                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncReturn), F.Syntax.Location));
-                    }
-                    else
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, 1);
+                    if (builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
                         taskProperty = GetCustomTaskProperty(F, builderType);
@@ -305,6 +263,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(method);
+        }
+
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, int desiredArity)
+        {
+            var builderType = builderAttributeArgument as NamedTypeSymbol;
+
+            bool isArityOk;
+            if (desiredArity == 0)
+            {
+                isArityOk = builderType?.IsGenericType == false;
+            }
+            else if (desiredArity == 1)
+            {
+                isArityOk = builderType?.IsUnboundGenericType == true &&
+                            builderType?.ContainingType?.IsGenericType != true;
+            }
+            else
+            {
+                isArityOk = false;
+                Debug.Assert(false, "expected arity 0 or 1");
+            }
+
+
+            if ((object)builderType == null ||
+                 builderType.IsErrorType() == true ||
+                 builderType.SpecialType == SpecialType.System_Void ||
+                 builderType.DeclaredAccessibility != desiredAccessibility ||
+                 !isArityOk)
+            {
+                F.Diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, F.Syntax.Location);
+                return null;
+            }
+            else
+            {
+                return builderType;
+            }
         }
 
         private static bool TryCreate(
@@ -402,8 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory F,
             NamedTypeSymbol builderType)
         {
-            // The Create method's return type is expected to be buildderType.
-            // The WellKnownMembers routines aren't able to enforce that, which is this method exists.
+            // The Create method's return type is expected to be builderType.
+            // The WellKnownMembers routines aren't able to enforce that, which is why this method exists.
             //
             // TODO: consider removing WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder*__Create
             // and using GetCustomCreateMethod for the Task types as well as for custom tasklikes.
@@ -425,10 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return method;
                 }
             }
-            var diagnostic = new CSDiagnostic(
-                new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, builderType, methodName),
-                F.Syntax.Location);
-            F.Diagnostics.Add(diagnostic);
+            F.Diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, F.Syntax.Location, builderType, methodName);
             return null;
         }
 

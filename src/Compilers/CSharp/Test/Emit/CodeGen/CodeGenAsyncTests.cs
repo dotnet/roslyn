@@ -3507,44 +3507,36 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
         [Fact]
         public void AsyncTasklikeMissingBuilderType()
         {
-            // Builder base
-            var libBB = @"public class BB { }";
-            var cBB = CreateCompilationWithMscorlib45(libBB);
-            var rBB = cBB.EmitToImageReference();
-                
             // Builder
-            var libB = @"
+            var libB = @"public class B { }";
+            var cB = CreateCompilationWithMscorlib45(libB);
+            var rB = cB.EmitToImageReference();
+                
+            // Tasklike
+            var libT = @"
 using System.Runtime.CompilerServices;
 
 [AsyncBuilder(typeof(B))] public class T { }
-public class B : BB
-{
-    public static B Create() => new B();
-    public T Task { get; }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void SetException(System.Exception exception) { }
-    public void SetResult() { }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-}
 
 namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
 ";
-            var cB = CreateCompilationWithMscorlib45(libB, references: new[] { rBB });
-            var rB = cB.EmitToImageReference();
+            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var rT = cT.EmitToImageReference();
 
-            // Consumer, fails to reference BuilderBase
+            // Consumer, fails to reference builder
             var source = @"
 using System.Threading.Tasks;
 
 class Program {
-    static void Main() { var b = new B(); }
+    static void Main() { }
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rB });
+            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
+                // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(6, 17)
                 );
         }
 
@@ -4768,5 +4760,6 @@ class C
                 //     async Task GetNumber(Task task) { await task; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
         }
+
     }
 }
