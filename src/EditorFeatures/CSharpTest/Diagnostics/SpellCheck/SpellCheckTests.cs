@@ -464,7 +464,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
-        public async Task TestMissingOnSnippet()
+        public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
             await TestAsync(
 @"
@@ -491,7 +491,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
-        public async Task TestNotMissingOnKeyword()
+        public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
             await TestMissingAsync(
 @"
