@@ -540,6 +540,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make method async.
+        /// </summary>
+        internal static string Make_method_async {
+            get {
+                return ResourceManager.GetString("Make_method_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async (stay void).
+        /// </summary>
+        internal static string Make_method_async_remain_void {
+            get {
+                return ResourceManager.GetString("Make_method_async_remain_void", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
         internal static string member_name {

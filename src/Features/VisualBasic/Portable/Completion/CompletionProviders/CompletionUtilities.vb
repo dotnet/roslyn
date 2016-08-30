@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return "[" + insertionText
                 End If
 
-                If insertionText.Last() = "]"c Then
+                If insertionText.EndsWith("]") Then
                     ' If the user commits with "]" and the item already ends with "]"
                     ' then trim "]" off the end so we don't have ]] inserted into the
                     ' document.
