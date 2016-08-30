@@ -400,7 +400,6 @@
     <Compile Include="InternalUtilities\ConsList`1.cs" />
     <Compile Include="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentXmlNames.cs" />
-    <Compile Include="InternalUtilities\EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
