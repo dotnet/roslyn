@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var noLocals = ImmutableArray<LocalSymbol>.Empty;
-            var noLocalFunctions = ImmutableArray<LocalFunctionSymbol>.Empty;
             var initializerInvocation = MethodCompiler.BindConstructorInitializer(this, diagnostics, compilationState.Compilation);
             var syntax = initializerInvocation.Syntax;
 
@@ -26,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 new BoundBlock(
                     syntax,
                     noLocals,
-                    noLocalFunctions,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundExpressionStatement(syntax, initializerInvocation),
                         new BoundReturnStatement(syntax, RefKind.None, null))));
