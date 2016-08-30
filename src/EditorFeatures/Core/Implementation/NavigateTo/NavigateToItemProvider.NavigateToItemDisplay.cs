@@ -26,21 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _iconFactory = iconFactory;
             }
 
-            public string AdditionalInformation
-            {
-                get
-                {
-                    return _searchResult.AdditionalInformation;
-                }
-            }
+            public string AdditionalInformation => _searchResult.AdditionalInformation;
 
-            public string Description
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public string Description => null;
+
+            public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
             public ReadOnlyCollection<DescriptionItem> DescriptionItems
             {
@@ -110,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     return _glyph;
                 }
             }
-
-            public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
             public void NavigateTo()
             {
