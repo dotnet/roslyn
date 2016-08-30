@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private ImmutableArray<CompletionProvider> GetProviders(
+        private ImmutableArray<CompletionProvider> GetFilteredProviders(
             ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
         {
             return FilterProviders(GetProviders(roles, trigger), trigger, options);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
             options = options ?? document.Options;
-            var providers = GetProviders(roles, trigger, options);
+            var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
 
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            var providers = GetProviders(roles, trigger, options);
+            var providers = GetFilteredProviders(roles, trigger, options);
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 
