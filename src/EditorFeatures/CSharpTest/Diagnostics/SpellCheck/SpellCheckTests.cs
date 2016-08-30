@@ -472,7 +472,7 @@ class C
 {
     void M()
     {
-        // here 'for' is a snippet, and we should not offer it.
+        // here 'for' is a keyword, and we should offer to spell check to it.
         [|foo|];
     }
 }
@@ -482,7 +482,7 @@ class C
 {
     void M()
     {
-        // here 'for' is a snippet, and we should not offer it.
+        // here 'for' is a keyword, and we should offer to spell check to it.
         for;
     }
 }
@@ -499,7 +499,7 @@ class C
 {
     void M()
     {
-        // here 'for' is a keyword, and we should offer it.
+        // here 'for' is a snippet, and we should not offer to spell check to it.
         var v = [|foo|];
     }
 }
