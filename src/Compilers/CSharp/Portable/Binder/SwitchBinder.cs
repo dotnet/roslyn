@@ -379,6 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             GetDeclaredLocalFunctionsForScope(node), boundSwitchSections, this.BreakLabel, null);
         }
 
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        {
+            // A pattern should be handled by a pattern switch binder.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         // Bind the switch expression
         private BoundExpression BindSwitchExpression(DiagnosticBag diagnostics)
         {

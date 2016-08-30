@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(IsSimpleBinaryOperator(node.Kind()));
 
-            var expressions = ArrayBuilder<BoundExpression>.GetInstance();
             var syntaxNodes = ArrayBuilder<BinaryExpressionSyntax>.GetInstance();
 
             ExpressionSyntax current = node;
@@ -406,32 +405,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var binOp = (BinaryExpressionSyntax)current;
                 syntaxNodes.Push(binOp);
-                expressions.Push(BindValue(binOp.Right, diagnostics, BindValueKind.RValue));
                 current = binOp.Left;
             }
-            BoundExpression leftMost = BindExpression(current, diagnostics);
-            expressions.Push(leftMost);
 
-            Debug.Assert(syntaxNodes.Count + 1 == expressions.Count);
             int compoundStringLength = 0;
 
+            BoundExpression result = BindExpression(current, diagnostics);
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
-                BoundExpression left = expressions.Pop();
-                BoundExpression right = expressions.Pop();
-                left = CheckValue(left, bindValueKind, diagnostics);
+                BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
+                BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
-                expressions.Push(boundOp);
+                result = boundOp;
             }
 
-            Debug.Assert(expressions.Count == 1);
-
-            var result = expressions.Peek();
-            expressions.Free();
             syntaxNodes.Free();
-
             return result;
         }
 
@@ -440,8 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
-            // If either operand is bad, don't try to do binary operator overload resolution; that will just
-            // make cascading errors.  
+            // If either operand is bad, don't try to do binary operator overload resolution; that would just
+            // make cascading errors.
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {

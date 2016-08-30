@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType();
+                declType = this.CreateErrorType("var");
             }
 
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
@@ -283,10 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
-            if (isVar)
-            {
-                localSymbol.SetTypeSymbol(operandType);
-            }
+            localSymbol.SetType(declType);
 
             // Check for variable declaration errors.
             hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
@@ -300,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            DeclareLocalVariable(localSymbol, identifier, declType);
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
     }

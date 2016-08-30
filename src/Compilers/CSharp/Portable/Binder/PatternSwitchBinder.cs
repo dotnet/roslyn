@@ -70,6 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, this);
         }
 
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        {
+            // node should be a label of this switch statement.
+            Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
+
+            // This simulates enough of the normal binding path of a switch statement to cause
+            // the label's pattern variables to have their types inferred, if necessary.
+            // It also binds the when clause, and therefore any pattern and out variables there.
+            BoundPatternSwitchLabel defaultLabel = null;
+            BindPatternSwitchSectionLabel(
+                sectionBinder: GetBinder(node.Parent),
+                boundSwitchExpression: SwitchGoverningExpression,
+                node: node,
+                label: LabelsByNode[node],
+                defaultLabel: ref defaultLabel,
+                diagnostics: diagnostics);
+        }
+
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(BoundExpression boundSwitchExpression, SyntaxList<SwitchSectionSyntax> sections, Binder originalBinder, out BoundPatternSwitchLabel defaultLabel, DiagnosticBag diagnostics)
         {
             defaultLabel = null;
