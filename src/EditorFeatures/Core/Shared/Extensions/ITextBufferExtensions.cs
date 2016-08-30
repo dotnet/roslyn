@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        internal static T GetOption<T>(this ITextBuffer buffer, Option<T> option)
+        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option<bool> option)
         {
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             if (document != null)
             {
-                return document.Options.GetOption(option);
+                return document.Project.Solution.Options.GetOption(option);
             }
 
             return option.DefaultValue;
         }
 
-        internal static T GetOption<T>(this ITextBuffer buffer, PerLanguageOption<T> option)
+        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption<bool> option)
         {
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 if (document != null)
                 {
-                    return document.Options.GetOption(option);
+                    return document.Project.Solution.Options.GetOption(option, document.Project.Language);
                 }
 
                 return option.DefaultValue;

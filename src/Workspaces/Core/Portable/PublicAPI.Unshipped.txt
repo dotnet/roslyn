@@ -13,7 +13,7 @@ Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.get -> string
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.set -> void
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
-Microsoft.CodeAnalysis.Document.Options.get -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
+Microsoft.CodeAnalysis.Document.GetOptionsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Options.DocumentOptionSet>
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T

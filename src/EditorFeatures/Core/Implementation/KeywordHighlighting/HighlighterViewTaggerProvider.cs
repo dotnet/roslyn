@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            if (!document.Options.GetOption(FeatureOnOffOptions.KeywordHighlighting))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
             {
                 return;
             }

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
         {
             var doc = GetDocument(initialText);
-            options = options ?? doc.Options;
+            options = options ?? await doc.GetOptionsAsync();
 
             var imported = await ImportAdder.AddImportsAsync(doc, options);
 

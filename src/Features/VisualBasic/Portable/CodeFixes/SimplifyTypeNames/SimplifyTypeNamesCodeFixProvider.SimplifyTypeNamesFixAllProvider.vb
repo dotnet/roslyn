@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
@@ -13,10 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Friend Shared Shadows ReadOnly Instance As SimplifyTypeNamesFixAllProvider = New SimplifyTypeNamesFixAllProvider
 
-            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, document As Document, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
+            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, options As DocumentOptionSet, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
                 codeActionId = Nothing
                 Dim diagnosticId As String = Nothing
-                Dim node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, document.Options, diagnosticId, cancellationToken)
+                Dim node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, options, diagnosticId, cancellationToken)
                 If node IsNot Nothing Then
                     codeActionId = GetCodeActionId(diagnosticId, node.ToString)
                 End If

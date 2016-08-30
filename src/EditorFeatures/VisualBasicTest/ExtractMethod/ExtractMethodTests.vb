@@ -97,8 +97,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)
 
-            Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration) _
-                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
+            Dim originalOptions = Await document.GetOptionsAsync()
+            Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration) _
+                                         .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), options)
@@ -129,7 +130,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
-                Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+                Dim originalOptions = Await document.GetOptionsAsync()
+                Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
                 Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), options)
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
@@ -163,7 +166,8 @@ End Class</text>
                 Dim root = Await document.GetSyntaxRootAsync()
                 Dim iterator = root.DescendantNodesAndSelf()
 
-                Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+                Dim originalOptions = Await document.GetOptionsAsync()
+                Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
 
                 For Each node In iterator
                     Try

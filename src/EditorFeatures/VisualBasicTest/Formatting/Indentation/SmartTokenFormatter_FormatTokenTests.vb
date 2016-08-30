@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
@@ -196,7 +197,7 @@ End Class
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                             formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New SmartTokenFormatter(document.Options, formattingRules, root)
+                Dim smartFormatter = New SmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
 
                 Using edit = buffer.CreateEdit()

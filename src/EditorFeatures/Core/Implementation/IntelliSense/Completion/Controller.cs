@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
+                    this.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode),
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }

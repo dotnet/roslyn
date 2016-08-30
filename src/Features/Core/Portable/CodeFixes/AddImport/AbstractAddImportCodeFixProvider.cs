@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var placeSystemNamespaceFirst = document.Options.GetOption(
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(
                 GenerationOptions.PlaceSystemNamespaceFirst);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
