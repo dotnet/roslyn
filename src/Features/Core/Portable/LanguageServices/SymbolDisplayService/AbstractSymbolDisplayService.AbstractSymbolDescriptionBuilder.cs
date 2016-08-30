@@ -530,17 +530,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 
-            protected virtual void AddDescriptionForProperty(IPropertySymbol symbol)
+            protected void AddDescriptionForProperty(IPropertySymbol symbol)
             {
-                if (symbol.IsIndexer)
-                {
-                    // TODO : show duplicated member case
-                    // TODO : a way to check whether it is a member call off dynamic type?
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
-                    return;
-                }
-
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
             }

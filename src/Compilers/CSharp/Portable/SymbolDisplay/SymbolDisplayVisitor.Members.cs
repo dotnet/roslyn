@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 if (method.DeclaredAccessibility != property.DeclaredAccessibility)
                 {
-                    AddAccessibilityIfRequired(method);
+                    AddAccessibility(method);
                 }
 
                 AddKeyword(keyword);
