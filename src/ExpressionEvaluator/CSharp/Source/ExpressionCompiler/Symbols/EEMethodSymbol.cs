@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 localsSet.Free();
 
-                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
                 Debug.Assert(!diagnostics.HasAnyErrors());
                 Debug.Assert(!body.HasErrors);

@@ -44,7 +44,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers2()
@@ -72,7 +72,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1);
+            await TestAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -215,7 +215,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -313,7 +313,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]

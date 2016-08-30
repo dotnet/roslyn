@@ -7459,6 +7459,7 @@ tryAgain:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
             }
@@ -9826,8 +9827,7 @@ tryAgain:
                 // However, we actually do support ref indexing of indexed properties in COM interop
                 // scenarios, and when indexing an object of static type "dynamic". So we enforce
                 // that the ref/out of the argument must match the parameter when binding the argument list.
-                if (!isIndexer && refOrOutKeyword?.Kind == SyntaxKind.OutKeyword &&
-                    IsPossibleOutVarDeclaration())
+                if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword && IsPossibleOutVarDeclaration())
                 {
                     TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
                     SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);

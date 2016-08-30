@@ -8810,7 +8810,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         /// </summary>
         internal static string ERR_TupleReservedMemberNameAnyPosition {
             get {
@@ -8846,7 +8846,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {
@@ -13382,7 +13382,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the assignment target..
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_TupleLiteralNameMismatch {
             get {

@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
+                    await GenerateCompilationEventsAndPopulateEventsCacheAsync(analysisScope, driver, cancellationToken).ConfigureAwait(false);
 
                     // Track if this task was suspended by another tree diagnostics request for the same tree.
                     // If so, we wait for the high priority requests to complete before restarting analysis.
@@ -706,6 +706,64 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private async Task GenerateCompilationEventsAndPopulateEventsCacheAsync(AnalysisScope analysisScope, AnalyzerDriver driver, CancellationToken cancellationToken)
+        {
+#if SIMULATED_EVENT_QUEUE
+            await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
+#else
+            GenerateCompilationEvents(analysisScope, cancellationToken);
+            await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
+#endif
+        }
+
+        private void GenerateCompilationEvents(AnalysisScope analysisScope, CancellationToken cancellationToken)
+        {
+            // Invoke GetDiagnostics to populate CompilationEvent queue for the given analysis scope.
+            // Discard the returned diagnostics.
+            if (analysisScope.FilterTreeOpt == null)
+            {
+                var unused = _compilation.GetDiagnostics(cancellationToken);
+            }
+            else if (!analysisScope.IsSyntaxOnlyTreeAnalysis)
+            {
+                var mappedModel = _compilationData.GetOrCreateCachedSemanticModel(analysisScope.FilterTreeOpt, _compilation, cancellationToken);
+                var unused = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
+            }
+        }
+
+        private async Task PopulateEventsCacheAsync(CancellationToken cancellationToken)
+        {
+            if (_compilation.EventQueue.Count > 0)
+            {
+                AnalyzerDriver driver = null;
+                try
+                {
+                    driver = await GetAnalyzerDriverAsync(cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var compilationEvents = DequeueGeneratedCompilationEvents();
+                    await _analysisState.OnCompilationEventsGeneratedAsync(compilationEvents, driver, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    FreeDriver(driver);
+                }
+            }
+        }
+
+        private ImmutableArray<CompilationEvent> DequeueGeneratedCompilationEvents()
+        {
+            var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
+
+            CompilationEvent compilationEvent;
+            while (_compilation.EventQueue.TryDequeue(out compilationEvent))
+            {
+                builder.Add(compilationEvent);
+            }
+
+            return builder.ToImmutable();
         }
 
         private async Task<AnalyzerDriver> GetAnalyzerDriverAsync(CancellationToken cancellationToken)

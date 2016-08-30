@@ -209,7 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposeStmt));
                 }
                 else
@@ -261,7 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (d != null) d.Dispose();
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray.Create<LocalSymbol>(disposableVar),
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposableVarDecl, ifStmt));
                 }
 
@@ -277,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
                     tryBlock: new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(whileLoop)),
                     catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
                     finallyBlockOpt: finallyBlockOpt);
@@ -288,7 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -301,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -549,7 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 forEachSyntax,
                 locals: iterationVariables,
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create(iteratorVariableInitialization, rewrittenBody));
         }
 
@@ -865,7 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result = new BoundBlock(
                 forEachSyntax,
                 ImmutableArray.Create(arrayVar).Concat(upperVar.AsImmutableOrNull()),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 ImmutableArray.Create(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
 
             InstrumentForEachStatement(node, ref result);

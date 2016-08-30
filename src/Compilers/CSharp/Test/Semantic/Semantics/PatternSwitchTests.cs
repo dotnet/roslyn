@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1219,6 +1221,42 @@ public enum EnumA
 EnumA.ValueA
 Default";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
+        public void InferenceInSwitch()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        object o = 1;
+        switch (o)
+        {
+            case var i when i.ToString() is var s:
+                Console.WriteLine(s);
+                break;
+            case var i2:
+                var s2 =  i2.ToString();
+                Console.WriteLine(s2);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var sRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(sRef).Type.ToTestDisplayString());
+            var iRef = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(iRef).Type.ToTestDisplayString());
+            var s2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "s2").Single();
+            Assert.Equal("System.String", model.GetTypeInfo(s2Ref).Type.ToTestDisplayString());
+            var i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
+            Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
         }
     }
 }
