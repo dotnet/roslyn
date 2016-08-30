@@ -461,5 +461,49 @@ class C
 
             await TestAsync(text, expected, compareTokens: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        public async Task TestMissingOnSnippet()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is a snippet, and we should not offer it.
+        [|foo|];
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is a snippet, and we should not offer it.
+        for;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
+        public async Task TestNotMissingOnKeyword()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        // here 'for' is a keyword, and we should offer it.
+        var v = [|foo|];
+    }
+}
+");
+        }
     }
 }
