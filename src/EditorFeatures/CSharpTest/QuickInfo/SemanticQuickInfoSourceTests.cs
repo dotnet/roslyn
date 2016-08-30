@@ -4181,6 +4181,36 @@ public class Methods2
             await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task MethodOverloadStaticMethodsOnInstance()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class T
+{
+    void M()
+    {
+        new C().M$$();
+    }
+}
+class C
+{
+    public void M() {}
+    public static void M(int p) {}
+}    
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.M()";
+            await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(4868, "https://github.com/dotnet/roslyn/issues/4868")]
         public async Task QuickInfoExceptions()

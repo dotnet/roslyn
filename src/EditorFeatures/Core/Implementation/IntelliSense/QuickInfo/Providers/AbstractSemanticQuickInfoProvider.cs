@@ -276,8 +276,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
 
             var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
-
+            var parentSymbol = semanticModel.GetSymbolInfo(bindableParent).Symbol;
+            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken)
+                                         .Where(s => parentSymbol == null || enclosingType.InheritsFromOrEquals(parentSymbol.ContainingType) || s.IsStatic == parentSymbol.IsStatic);
+            
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))
                              .Concat(overloads)
