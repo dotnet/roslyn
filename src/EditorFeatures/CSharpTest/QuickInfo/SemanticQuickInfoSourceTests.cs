@@ -4241,5 +4241,24 @@ class C
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TupleProperty()
+        {
+            await TestInMethodAsync(@"
+interface I
+{
+    (int, int) Name { get; set; }
+}
+class C : I
+{
+    (int, int) I.Name$$
+    {
+       get { throw new System.Exception(); }
+       set { }
+    }
+}",
+                MainDescription("(int, int) C.Name { get; set; }"));
+        }
     }
 }
