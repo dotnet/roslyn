@@ -5990,12 +5990,18 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
+BC37262: Tuple member names must be unique.
+        Dim x1 = (A:=10, a:=20)
+                         ~
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
         System.Console.Write(x1.a)
                              ~~~~
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
         System.Console.Write(x1.A)
                              ~~~~
+BC37262: Tuple member names must be unique.
+        Dim x2 as (A as Integer, a As Integer) = (10, 20)
+                                 ~
 BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
         System.Console.Write(x1.a)
                              ~~~~
