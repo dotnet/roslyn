@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasNaturalType = True
 
             ' set of names already used
-            Dim uniqueFieldNames = PooledHashSet(Of String).GetInstance()
+            Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
 
             Dim boundArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Count)
             Dim elementTypes = ArrayBuilder(Of TypeSymbol).GetInstance(arguments.Count)
@@ -358,8 +358,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     hasNaturalType = False
                 End If
             Next
-
-            uniqueFieldNames.Free()
 
             If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> elementTypes.Count Then
                 hasErrors = True
@@ -423,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As PooledHashSet(Of String)) As Boolean
+        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As HashSet(Of String)) As Boolean
             Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
             If reserved = 0 Then
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)

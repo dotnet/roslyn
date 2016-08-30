@@ -3701,7 +3701,7 @@ BC37261: Tuple member name 'Item3' is only allowed at position 3.
 BC37261: Tuple member name 'Item2' is only allowed at position 2.
         Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
                                                      ~~~~~
-BC37260: Tuple membername 'Rest' is disallowed at any position.
+BC37260: Tuple member name 'Rest' is disallowed at any position.
         Dim x As (Item1 As Integer, Item3 As String, Item2 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Rest As Integer) =
                                                                                                                                                ~~~~
 BC37261: Tuple member name 'Item2' is only allowed at position 2.
@@ -3710,7 +3710,7 @@ BC37261: Tuple member name 'Item2' is only allowed at position 2.
 BC37261: Tuple member name 'Item4' is only allowed at position 4.
             (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
                            ~~~~~
-BC37260: Tuple membername 'Rest' is disallowed at any position.
+BC37260: Tuple member name 'Rest' is disallowed at any position.
             (Item2:="bad", Item4:="bad", Item3:=3, Item4:=4, Item5:=5, Item6:=6, Item7:=7, Rest:="bad")
                                                                                            ~~~~
 </errors>)
@@ -3735,22 +3735,22 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37260: Tuple membername 'CompareTo' is disallowed at any position.
+BC37260: Tuple member name 'CompareTo' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                  ~~~~~~~~~
-BC37260: Tuple membername 'Deconstruct' is disallowed at any position.
+BC37260: Tuple member name 'Deconstruct' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                           ~~~~~~~~~~~
-BC37260: Tuple membername 'Equals' is disallowed at any position.
+BC37260: Tuple member name 'Equals' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                           ~~~~~~
-BC37260: Tuple membername 'GetHashCode' is disallowed at any position.
+BC37260: Tuple member name 'GetHashCode' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                      ~~~~~~~~~~~
-BC37260: Tuple membername 'Rest' is disallowed at any position.
+BC37260: Tuple member name 'Rest' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                                      ~~~~
-BC37260: Tuple membername 'ToString' is disallowed at any position.
+BC37260: Tuple member name 'ToString' is disallowed at any position.
         Dim x = (CompareTo:=2, Create:=3, Deconstruct:=4, Equals:=5, GetHashCode:=6, Rest:=8, ToString:=10)
                                                                                               ~~~~~~~~
 </errors>)
@@ -5935,6 +5935,184 @@ End Module
             Assert.NotNull(model.GetSymbolInfo(type).Symbol)
             Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString())
 
+        End Sub
+
+        <Fact>
+        Public Sub CaseSensitivity001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim x2 = (A:=10, B:=20)
+        System.Console.Write(x2.a)
+        System.Console.Write(x2.item2)
+        
+        Dim x3 = (item1 := 1, item2 := 2)
+        System.Console.Write(x3.Item1)
+        System.Console.WriteLine(x3.Item2)
+
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[102012]]>)
+
+        End Sub
+
+        <Fact>
+        Public Sub CaseSensitivity002()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+
+Module Module1
+    Sub Main()
+        Dim x1 = (A:=10, a:=20)
+        System.Console.Write(x1.a)
+        System.Console.Write(x1.A)
+
+        Dim x2 as (A as Integer, a As Integer) = (10, 20)
+        System.Console.Write(x1.a)
+        System.Console.Write(x1.A)
+
+        Dim x3 = (I1:=10, item1:=20)
+        Dim x4 = (Item1:=10, item1:=20)
+        Dim x5 = (item1:=10, item1:=20)
+        Dim x6 = (tostring:=10, item1:=20)
+    End Sub
+End Module
+        ]]>
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37262: Tuple member names must be unique.
+        Dim x1 = (A:=10, a:=20)
+                         ~
+BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
+        System.Console.Write(x1.a)
+                             ~~~~
+BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
+        System.Console.Write(x1.A)
+                             ~~~~
+BC37262: Tuple member names must be unique.
+        Dim x2 as (A as Integer, a As Integer) = (10, 20)
+                                 ~
+BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
+        System.Console.Write(x1.a)
+                             ~~~~
+BC31429: 'A' is ambiguous because multiple kinds of members with this name exist in structure '(A As Integer, a As Integer)'.
+        System.Console.Write(x1.A)
+                             ~~~~
+BC37261: Tuple member name 'item1' is only allowed at position 1.
+        Dim x3 = (I1:=10, item1:=20)
+                          ~~~~~
+BC37261: Tuple member name 'item1' is only allowed at position 1.
+        Dim x4 = (Item1:=10, item1:=20)
+                             ~~~~~
+BC37261: Tuple member name 'item1' is only allowed at position 1.
+        Dim x5 = (item1:=10, item1:=20)
+                             ~~~~~
+BC37260: Tuple member name 'tostring' is disallowed at any position.
+        Dim x6 = (tostring:=10, item1:=20)
+                  ~~~~~~~~
+BC37261: Tuple member name 'item1' is only allowed at position 1.
+        Dim x6 = (tostring:=10, item1:=20)
+                                ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub CaseSensitivity003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x as (Item1 as String, itEm2 as String, Bob as string) = (Nothing, Nothing, Nothing)
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+(, , )
+            ]]>)
+
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Assert.Equal("(Nothing, Nothing, Nothing)", node.ToString())
+            Assert.Null(model.GetTypeInfo(node).Type)
+
+            Dim fields = From m In model.GetTypeInfo(node).ConvertedType.GetMembers()
+                         Where m.Kind = SymbolKind.Field
+                         Order By m.Name
+                         Select m.Name
+
+            ' check no duplication of original/default ItemX fields
+            Assert.Equal("Bob#Item1#Item2#Item3", fields.Join("#"))
+        End Sub
+
+        <Fact>
+        Public Sub CaseSensitivity004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim x = (
+                    I1 := 1,
+                    I2 := 2,
+                    I3 := 3,
+                    ITeM4 := 4,
+                    I5 := 5,
+                    I6 := 6,
+                    I7 := 7,
+                    ITeM8 := 8,
+                    ItEM9 := 9
+                )
+
+        System.Console.WriteLine(x.ToString())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+(1, 2, 3, 4, 5, 6, 7, 8, 9)
+            ]]>)
+
+
+            Dim comp = verifier.Compilation
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
+
+            Dim fields = From m In model.GetTypeInfo(node).Type.GetMembers()
+                         Where m.Kind = SymbolKind.Field
+                         Order By m.Name
+                         Select m.Name
+
+            ' check no duplication of original/default ItemX fields
+            Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
         End Sub
 
     End Class

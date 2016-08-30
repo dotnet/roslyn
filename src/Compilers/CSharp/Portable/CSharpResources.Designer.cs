@@ -8801,7 +8801,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         /// </summary>
         internal static string ERR_TupleReservedMemberNameAnyPosition {
             get {
