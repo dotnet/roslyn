@@ -5926,6 +5926,24 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(8297, "https://github.com/dotnet/roslyn/issues/8297")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVBClassNamedNew()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+Class [|[$$New]|]
+    Sub New()
+    End Sub
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="New2")
+            End Using
+        End Sub
+
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>

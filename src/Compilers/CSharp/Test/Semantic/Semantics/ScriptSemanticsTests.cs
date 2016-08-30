@@ -742,10 +742,8 @@ static int Baz = w;
             c.VerifyDiagnostics(
                 // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
                 // var x = 1; { var x = x;}
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22),
-                // (1,22): error CS0165: Use of unassigned local variable 'x'
-                // var x = 1; { var x = x;}
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22)
+                );
         }
 
         [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]

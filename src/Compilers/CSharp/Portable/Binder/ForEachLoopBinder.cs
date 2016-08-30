@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                        this.IterationVariable.SetTypeSymbol(iterationVariableType);
+                        this.IterationVariable.SetType(iterationVariableType);
                         break;
                     }
                 case SyntaxKind.ForEachComponentStatement:

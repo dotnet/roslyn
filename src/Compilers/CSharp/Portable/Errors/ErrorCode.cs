@@ -1419,7 +1419,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
-        // Available  = 8179-8195
+        ERR_SemiOrLBraceOrArrowExpected = 8179,
+
+        // Available  = 8180-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

@@ -1159,6 +1159,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to N/A.
+        /// </summary>
+        internal static string NotApplicable {
+            get {
+                return ResourceManager.GetString("NotApplicable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         internal static string OK {
@@ -1557,6 +1566,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppression_State {
             get {
                 return ResourceManager.GetString("Suppression_State", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
+        /// </summary>
+        internal static string SuppressionNotSupportedToolTip {
+            get {
+                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         

@@ -1141,7 +1141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                         "ocedure", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
@@ -1508,6 +1508,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Make_0_an_Async_Function() As String
             Get
                 Return ResourceManager.GetString("Make_0_an_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Function.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Function() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Sub.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Sub() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Sub", resourceCulture)
             End Get
         End Property
         

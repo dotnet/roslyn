@@ -4039,9 +4039,14 @@ public class iii
    }
 }";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
-            DiagnosticsUtils.VerifyErrorCodes(
-                comp,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+            comp.VerifyDiagnostics(
+                // (18,15): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
+                //       switch (a)   // CS0151, compiler cannot choose between int and long
+                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(18, 15),
+                // (20,15): error CS0029: Cannot implicitly convert type 'int' to 'iii'
+                //          case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "iii").WithLocation(20, 15)
+                );
         }
 
         [Fact]

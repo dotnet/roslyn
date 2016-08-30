@@ -5386,7 +5386,7 @@
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple membername '{0}' is disallowed at any position.</value>
+    <value>Tuple member name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>

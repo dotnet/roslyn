@@ -210,6 +210,12 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
+  <data name="IDS_FeatureExpressionBodiedAccessor" xml:space="preserve">
+    <value>property accessor expression body experimental features</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedDeOrConstructor" xml:space="preserve">
+    <value>constructor and destructor expression body experimental features</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -4569,7 +4575,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Properties cannot combine accessor lists with expression bodies.</value>
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Methods cannot combine block bodies with expression bodies.</value>
+    <value>Methods and accessors cannot combine block bodies with expression bodies.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>
@@ -4849,7 +4855,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple membername '{0}' is disallowed at any position.</value>
+    <value>Tuple member name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
@@ -4891,7 +4897,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
-    <value>Cannot infer the type of implicitly-typed out variable.</value>
+    <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
@@ -4906,7 +4912,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type must be 'var'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
-    <value>The tuple element name '{0}' is ignored because a different name is specified by the assignment target.</value>
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
   </data>
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
@@ -4940,5 +4946,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
+    <value>{ or ; or =&gt; expected</value>
   </data>
 </root>
