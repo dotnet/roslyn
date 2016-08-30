@@ -428,63 +428,6 @@ class C
         }
 
         [Fact]
-        public void ThrowExpression()
-        {
-            var tree = UsingTree(@"
-class C
-{
-    int x = y ?? throw null;
-}", options: TestOptions.Regular);
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.CoalesceExpression);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.QuestionQuestionToken);
-                                        N(SyntaxKind.ThrowExpression);
-                                        {
-                                            N(SyntaxKind.ThrowKeyword);
-                                            N(SyntaxKind.NullLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NullKeyword);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
         public void TupleInParameters()
         {
             var tree = UsingTree(@"

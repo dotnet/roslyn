@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternParsingTexts : CSharpTestBase
+    public class PatternParsingTexts : ParsingTests
     {
         [Fact]
         public void CasePatternVersusFeatureFlag()
@@ -145,6 +145,63 @@ class C
                 //         (int, int) w = (1, throw null);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(14, 9)
                 );
+        }
+
+        [Fact]
+        public void ThrowExpression()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    int x = y ?? throw null;
+}", options: TestOptions.Regular);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.CoalesceExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.QuestionQuestionToken);
+                                        N(SyntaxKind.ThrowExpression);
+                                        {
+                                            N(SyntaxKind.ThrowKeyword);
+                                            N(SyntaxKind.NullLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NullKeyword);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }
