@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
             // We initialized ProjectSystemName to include nameof(XamlProject).
             // Update DisplayName to just the project name.
-            DisplayName = XamlProject.GetProjectName(hierarchy);
+            UpdateProjectDisplayName(XamlProject.GetProjectName(hierarchy));
         }
 
         private static string GetProjectName(IVsHierarchy hierarchy)

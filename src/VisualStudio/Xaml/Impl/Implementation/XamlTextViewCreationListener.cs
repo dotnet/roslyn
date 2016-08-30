@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     return;
                 }
 
-                project.AddDocument(vsDocument, isCurrentContext: true);
+                project.AddDocument(vsDocument, isCurrentContext: true, hookupHandlers: true);
             }
 
             AttachRunningDocTableEvents();
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             {
                 if (TryCreateXamlDocument(project, newMoniker, out newDocument))
                 {
-                    project.AddDocument(newDocument, isCurrentContext: true);
+                    project.AddDocument(newDocument, isCurrentContext: true, hookupHandlers: true);
                 }
             }
         }
