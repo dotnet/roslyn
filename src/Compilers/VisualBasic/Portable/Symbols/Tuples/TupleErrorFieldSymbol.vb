@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' id is an index of the element (zero-based).
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
-        Private ReadOnly _tupleFieldId As Integer
+        Private ReadOnly _tupleElementIndex As Integer
 
         Private ReadOnly _locations As ImmutableArray(Of Location)
 
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property TupleFieldId As Integer
             Get
-                Return Me._tupleFieldId
+                Return Me._tupleElementIndex
             End Get
         End Property
 
@@ -66,12 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As NamedTypeSymbol, name As String, tupleFieldId As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo)
+        Public Sub New(container As NamedTypeSymbol, name As String, tupleElementIndex As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo)
             MyBase.New(container, container, type, name)
             Debug.Assert(name <> Nothing)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo
-            Me._tupleFieldId = tupleFieldId
+            Me._tupleElementIndex = tupleElementIndex
         End Sub
 
         Public Overrides ReadOnly Property Type As TypeSymbol
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.ContainingType.GetHashCode(), Me._tupleFieldId.GetHashCode())
+            Return Hash.Combine(Me.ContainingType.GetHashCode(), Me._tupleElementIndex.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As TupleErrorFieldSymbol) As Boolean
             Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me.ContainingType = other.ContainingType)
+                (other IsNot Nothing AndAlso Me._tupleElementIndex = other._tupleElementIndex AndAlso Me.ContainingType = other.ContainingType)
         End Function
     End Class
 End Namespace

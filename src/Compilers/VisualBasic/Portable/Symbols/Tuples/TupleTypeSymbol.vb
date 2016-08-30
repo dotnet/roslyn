@@ -765,9 +765,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                                container.Name & "." & TupleMemberName(fieldRemainder)))
 
                     Dim defaultName As String = TupleMemberName(i + 1)
-                    ' Add a field with default name if the given name Is different
+                    ' Add a field with default name if the given name is different
                     If Name <> defaultName Then
-                        members.Add(New TupleErrorFieldSymbol(Me, defaultName, -members.Count - 1, Nothing, _elementTypes(i), diagnosticInfo))
+                        members.Add(New TupleErrorFieldSymbol(Me, defaultName, i, Nothing, _elementTypes(i), diagnosticInfo))
                     End If
 
                     members.Add(New TupleErrorFieldSymbol(Me, Name, i,

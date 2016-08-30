@@ -4260,7 +4260,7 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
             Assert.Equal(SymbolKind.ErrorType, mTuple.TupleUnderlyingType.Kind)
             Assert.IsAssignableFrom(Of ErrorTypeSymbol)(mTuple.TupleUnderlyingType)
             Assert.Equal(TypeKind.Struct, mTuple.TypeKind)
-            'AssertTupleTypeEquality(mTuple)
+            AssertTupleTypeEquality(mTuple)
             Assert.False(mTuple.IsImplicitlyDeclared)
             'Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture))
             Assert.Null(mTuple.BaseType)
@@ -4303,6 +4303,34 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
             Assert.False(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
 
+        End Sub
+
+        Private Shared Sub AssertTupleTypeEquality(tuple As TypeSymbol)
+            Assert.True(tuple.Equals(tuple))
+            'Assert.True(tuple.Equals(tuple, TypeCompareKind.ConsiderEverything))
+            'Assert.True(tuple.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames))
+            'Assert.False(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything))
+            'Assert.False(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.ConsiderEverything))
+            'Assert.True(tuple.Equals(tuple.TupleUnderlyingType, TypeCompareKind.IgnoreDynamicAndTupleNames))
+            'Assert.True(tuple.TupleUnderlyingType.Equals(tuple, TypeCompareKind.IgnoreDynamicAndTupleNames))
+
+            Dim members = tuple.GetMembers()
+
+            For i As Integer = 0 To members.Length - 1
+                For j As Integer = 0 To members.Length - 1
+                    If i <> j Then
+                        Assert.NotSame(members(i), members(j))
+                        Assert.True(Not members(i).Equals(members(j)) OrElse members(i).Name <> members(j).Name)
+                        Assert.True(Not members(j).Equals(members(i)) OrElse members(j).Name <> members(i).Name)
+                    End If
+                Next
+            Next
+
+            Dim underlyingMembers = tuple.TupleUnderlyingType.GetMembers()
+            For Each m In members
+                Assert.False(underlyingMembers.Any(Function(u) u.Equals(m)))
+                Assert.False(underlyingMembers.Any(Function(u) m.Equals(u)))
+            Next
         End Sub
 
         <Fact>
