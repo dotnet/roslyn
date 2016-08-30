@@ -4320,8 +4320,8 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll
                 For j As Integer = 0 To members.Length - 1
                     If i <> j Then
                         Assert.NotSame(members(i), members(j))
-                        Assert.True(Not members(i).Equals(members(j)) OrElse members(i).Name <> members(j).Name)
-                        Assert.True(Not members(j).Equals(members(i)) OrElse members(j).Name <> members(i).Name)
+                        Assert.True(Not members(i).Equals(members(j)))
+                        Assert.True(Not members(j).Equals(members(i)))
                     End If
                 Next
             Next

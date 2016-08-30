@@ -124,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _tupleElementIndex == other._tupleElementIndex && ContainingType == other.ContainingType;
+            return (object)other != null &&
+                _tupleElementIndex == other._tupleElementIndex &&
+                ContainingType == other.ContainingType &&
+                Name == other.Name;
         }
     }
 }

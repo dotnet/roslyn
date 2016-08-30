@@ -942,8 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                container.ContainingAssembly);
 
                     string defaultName = TupleMemberName(i + 1);
-
-                    // Add a field with default name if the given name Is different
+                    // Add a field with default name if the given name is different
                     if (name != defaultName)
                     {
                         members.Add(new TupleErrorFieldSymbol(this, defaultName, i, null, _elementTypes[i], diagnosticInfo));
