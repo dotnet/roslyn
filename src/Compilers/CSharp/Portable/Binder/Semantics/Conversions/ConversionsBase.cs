@@ -837,6 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return interpolatedStringConversion;
                     }
                     break;
+
+                case BoundKind.ThrowExpression:
+                    return Conversion.ImplicitThrow;
             }
 
             return Conversion.NoConversion;

@@ -1693,6 +1693,13 @@
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ThrowExpression" />
+    <Field Name="ThrowKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
+  </Node>
   <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="WhenClause" />
     <Field Name="WhenKeyword" Type="SyntaxToken">

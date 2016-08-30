@@ -8946,6 +8946,7 @@ tryAgain:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.ColonColonToken: // bad aliased name
+                case SyntaxKind.ThrowKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
@@ -9234,6 +9235,13 @@ tryAgain:
                 skipped = this.AddError(skipped, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                 leftOperand = AddTrailingSkippedSyntax(this.CreateMissingIdentifierName(), skipped);
             }
+            else if (tk == SyntaxKind.ThrowKeyword)
+            {
+                var result = ParseThrowExpression();
+                // we parse a throw expression even at the wrong precedence for better recovery
+                return (precedence <= Precedence.Coalescing) ? result :
+                    this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+            }
             else
             {
                 // Not a unary operator - get a primary expression.
@@ -9356,6 +9364,14 @@ tryAgain:
             }
 
             return leftOperand;
+        }
+
+        private ExpressionSyntax ParseThrowExpression()
+        {
+            var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
+            var thrown = this.ParseSubExpression(Precedence.Coalescing);
+            var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
+            return CheckFeatureAvailability(result, MessageID.IDS_FeatureThrowExpression);
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)

@@ -923,6 +923,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            VisitRvalue(node.Expression);
+            SetUnreachable();
+            return node;
+        }
+
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
