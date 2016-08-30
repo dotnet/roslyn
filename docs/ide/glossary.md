@@ -17,7 +17,11 @@ generally forces *suggestion mode* so that you don't accidentally commit an exis
 trying to declare a new one (for example, in a context where a delegate is expected, suggestion
 mode is forced to allow typing a lambda parameter name).
 
-* **Completion builder** -
+* **Completion builder** - When in *suggestion mode*, completion shows an extra entry at the top
+of the list containing a watermark with what sort of declaration can appear if no text is in the
+editor, or else an entry matching the currently typed text.  This is intended to represent that
+completion will not commit to another item in the but will instead preserve your current text
+unless commit is forced (with tab/enter).
 
 * **Signature Help** (aka **Parameter Help**) - The tooltip showing the possible overloads that
 shows when typing a method call or the generic parameters of a type/method).  Normally invoked
