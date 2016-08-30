@@ -27,6 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End Get
         End Property
 
+        Protected Overrides Function GetMakeAsyncTaskFunctionResource() As String
+            Return VBFeaturesResources.Make_Async_Function
+        End Function
+
+        Protected Overrides Function GetMakeAsyncVoidFunctionResource() As String
+            Return VBFeaturesResources.Make_Async_Sub
+        End Function
+
         Protected Overrides Function IsMethodOrAnonymousFunction(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.FunctionBlock) OrElse
                 node.IsKind(SyntaxKind.SubBlock) OrElse
@@ -81,16 +89,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End If
 
             ' Have to convert this sub into a func. 
-            Dim asClause = SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax())
-
             Dim subStatement = node.SubOrFunctionStatement
+            Dim asClause = SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax()).
+                                         WithTrailingTrivia(subStatement.ParameterList.GetTrailingTrivia())
+
             Dim functionStatement = SyntaxFactory.FunctionStatement(
                 subStatement.AttributeLists,
                 subStatement.Modifiers.Add(s_asyncToken),
                 SyntaxFactory.Token(SyntaxKind.FunctionKeyword).WithTriviaFrom(subStatement.SubOrFunctionKeyword),
                 subStatement.Identifier,
                 subStatement.TypeParameterList,
-                subStatement.ParameterList,
+                subStatement.ParameterList.WithoutTrailingTrivia(),
                 asClause,
                 subStatement.HandlesClause,
                 subStatement.ImplementsClause)

@@ -5977,6 +5977,9 @@ public class X
                 // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
+                // (89,18): error CS0150: A constant value is expected
+                //             case y10:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
                 // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
                 //                   2 is var x14, 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
@@ -7961,6 +7964,9 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
+                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (d, dd) = ((true is var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = ((true is var x1), x1);").WithLocation(11, 13),
                 // (13,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
@@ -13136,5 +13142,54 @@ public static class StaticType
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
+
+        [Fact, WorkItem(13316, "https://github.com/dotnet/roslyn/issues/13316")]
+        public void TypeAsExpressionInIsPattern()
+        {
+            var source =
+@"namespace CS7
+{
+    class T1 { public int a = 2; }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            if (T1 is object i)
+            {
+            }
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (8,17): error CS0119: 'T1' is a type, which is not valid in the given context
+                //             if (T1 is object i)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T1").WithArguments("CS7.T1", "type").WithLocation(8, 17)
+                );
+        }
+
+        [Fact, WorkItem(13316, "https://github.com/dotnet/roslyn/issues/13316")]
+        public void MethodGroupAsExpressionInIsPattern()
+        {
+            var source =
+@"namespace CS7
+{
+    class Program
+    {
+        const int T = 2;
+        static void M(object o)
+        {
+            if (M is T)
+            {
+            }
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             if (M is T)
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "M is T").WithLocation(8, 17)
+                );
+        }
+
     }
 }

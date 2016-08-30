@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal static class PredefinedCodeFixProviderNames
     {
+        public const string AddDocCommentNodes = "Add Doc Comment Nodes";
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
         public const string ApplyNamingStyle = "Apply Naming Style";

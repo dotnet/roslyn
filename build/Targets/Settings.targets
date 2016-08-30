@@ -135,6 +135,8 @@
   <PropertyGroup>
     <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
     <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
   </PropertyGroup>
 
   <Choose>

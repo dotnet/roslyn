@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync().ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             if (GetParamNode(root, context.Span) != null)
             {

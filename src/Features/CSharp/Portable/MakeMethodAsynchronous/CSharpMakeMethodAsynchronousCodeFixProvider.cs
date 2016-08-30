@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -21,6 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
             ImmutableArray.Create(CS4032, CS4033, CS4034);
+
+        protected override string GetMakeAsyncTaskFunctionResource()
+        {
+            return CSharpFeaturesResources.Make_method_async;
+        }
+
+        protected override string GetMakeAsyncVoidFunctionResource()
+        {
+            return CSharpFeaturesResources.Make_method_async_remain_void;
+        }
 
         protected override bool IsMethodOrAnonymousFunction(SyntaxNode node)
         {
