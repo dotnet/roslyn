@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                           elementNames);
         }
 
-        public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
+        private static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
         {
             Debug.Assert(tupleCompatibleType.IsTupleCompatible());
 
