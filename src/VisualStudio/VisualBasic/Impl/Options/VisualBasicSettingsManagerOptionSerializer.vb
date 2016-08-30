@@ -41,6 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Const Style_QualifyPropertyAccess As String = NameOf(AutomationObject.Style_QualifyPropertyAccess)
         Private Const Style_QualifyMethodAccess As String = NameOf(AutomationObject.Style_QualifyMethodAccess)
         Private Const Style_QualifyEventAccess As String = NameOf(AutomationObject.Style_QualifyEventAccess)
+        Private Const Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration = NameOf(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        Private Const Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess = NameOf(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
 
         Protected Overrides Function CreateStorageKeyToOptionMap() As ImmutableDictionary(Of String, IOption)
             Dim Result As ImmutableDictionary(Of String, IOption).Builder = ImmutableDictionary.Create(Of String, IOption)(StringComparer.OrdinalIgnoreCase).ToBuilder()
@@ -163,6 +165,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return FetchStyleBool(Style_QualifyEventAccess, value)
             End If
 
+            ' code style use predefined/framework type
+            If optionKey.Option Is CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration Then
+                Return FetchStyleBool(Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess Then
+                Return FetchStyleBool(Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value)
+            End If
+
             If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
                 Return FetchEnterKeyBehavior(optionKey, value)
             End If
@@ -230,6 +239,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return PersistStyleOption(Of Boolean)(Style_QualifyMethodAccess, value)
             ElseIf optionKey.Option Is CodeStyleOptions.QualifyEventAccess Then
                 Return PersistStyleOption(Of Boolean)(Style_QualifyEventAccess, value)
+            End If
+
+            ' code style use predefined/framework type
+            If optionKey.Option Is CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration Then
+                Return PersistStyleOption(Of Boolean)(Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess Then
+                Return PersistStyleOption(Of Boolean)(Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value)
             End If
 
             Return MyBase.TryPersist(optionKey, value)

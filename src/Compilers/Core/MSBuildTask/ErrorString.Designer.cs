@@ -8,10 +8,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using System.Reflection;
-
 namespace Microsoft.CodeAnalysis.BuildTasks {
     using System;
+    using System.Reflection;
     
     
     /// <summary>

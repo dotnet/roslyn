@@ -11,6 +11,11 @@
       <!-- TFS build number isn't set on CI server -->
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
     </NuSpec>
+    <NuSpec Include="$(InsertionFilesDir)\VS.Tools.Roslyn.nuspec" >
+      <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+      <!-- TFS build number isn't set on CI server -->
+      <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
+    </NuSpec>
   </ItemGroup>
   <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
     <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />

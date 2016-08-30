@@ -84,6 +84,7 @@
     <Compile Include="NativeViewTests.cs" />
     <Compile Include="ObjectIdTests.cs" />
     <Compile Include="ResultsViewTests.cs" />
+    <Compile Include="TupleTests.cs" />
     <Compile Include="TypeNameFormatterTests.cs" />
     <Compile Include="TypeVariablesExpansionTests.cs" />
     <Compile Include="ValueFormattingTests.cs" />

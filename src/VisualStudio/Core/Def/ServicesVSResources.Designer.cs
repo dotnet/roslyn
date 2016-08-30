@@ -715,6 +715,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For locals, parameters and members.
+        /// </summary>
+        internal static string For_locals_parameters_and_members {
+            get {
+                return ResourceManager.GetString("For_locals_parameters_and_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For member access expressions.
+        /// </summary>
+        internal static string For_member_access_expressions {
+            get {
+                return ResourceManager.GetString("For_member_access_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  from Bing.
         /// </summary>
         internal static string from_Bing {
@@ -1141,6 +1159,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to N/A.
+        /// </summary>
+        internal static string NotApplicable {
+            get {
+                return ResourceManager.GetString("NotApplicable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         internal static string OK {
@@ -1539,6 +1566,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppression_State {
             get {
                 return ResourceManager.GetString("Suppression_State", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
+        /// </summary>
+        internal static string SuppressionNotSupportedToolTip {
+            get {
+                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         

@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -12,6 +11,7 @@ using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -393,7 +393,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return 0;
             }
 
-            if (!UseSharedCompilation || !string.IsNullOrEmpty(ToolPath))
+            if (!UseSharedCompilation ||
+                !string.IsNullOrEmpty(ToolPath) ||
+                !Utilities.IsCompilerServerSupported)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -422,7 +424,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         sdkDir: null,
                         workingDir: CurrentDirectoryToUse());
 
-                    var responseTask = BuildClientShim.RunServerCompilation(
+                    var responseTask = DesktopBuildClient.RunServerCompilation(
                         Language,
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
                         buildPaths,
@@ -466,20 +468,47 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private static string TryGetClientDir()
         {
-#if PORTABLE50
-            return null;
-#else
             var buildTask = typeof(ManagedCompiler).GetTypeInfo().Assembly;
 
-            if (buildTask.GlobalAssemblyCache)
+            var inGac = (bool?)typeof(Assembly)
+                .GetTypeInfo()
+                .GetDeclaredProperty("GlobalAssemblyCache")
+                ?.GetMethod.Invoke(buildTask, parameters: null);
+
+            if (inGac != false)
                 return null;
 
-            var uri = new Uri(buildTask.CodeBase);
-            string assemblyPath = uri.IsFile
-                ? uri.LocalPath
-                : Assembly.GetCallingAssembly().Location;
+            var codeBase = (string)typeof(Assembly)
+                .GetTypeInfo()
+                .GetDeclaredProperty("CodeBase")
+                ?.GetMethod.Invoke(buildTask, parameters: null);
+
+            if (codeBase == null) return null;
+
+            var uri = new Uri(codeBase);
+
+            string assemblyPath;
+            if (uri.IsFile)
+            {
+                assemblyPath = uri.LocalPath;
+            }
+            else
+            {
+                var callingAssembly = (Assembly)typeof(Assembly)
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("GetCallingAssembly")
+                    ?.Invoke(null, null);
+
+                var location = (string)typeof(Assembly)
+                    .GetTypeInfo()
+                    .GetDeclaredProperty("Location")
+                    ?.GetMethod.Invoke(callingAssembly, parameters: null);
+
+                if (location == null) return null;
+
+                assemblyPath = location;
+            }
             return Path.GetDirectoryName(assemblyPath);
-#endif
         }
 
         /// <summary>
@@ -865,7 +894,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return true;
             }
 
-            Hashtable alreadySeen = new Hashtable(StringComparer.OrdinalIgnoreCase);
+            var alreadySeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (ITaskItem item in itemList)
             {
                 string key;

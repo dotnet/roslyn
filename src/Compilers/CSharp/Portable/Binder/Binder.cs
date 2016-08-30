@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: The return value reflects obsolete-ness, not whether or not the diagnostic was reported.
         /// </returns>
-        private static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
+        internal static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             Debug.Assert(diagnostics != null);
 

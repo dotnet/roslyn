@@ -480,6 +480,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
+    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
+  </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
@@ -713,5 +719,11 @@ Additional information: {1}</value>
   </data>
   <data name="End_of_inner_exception_stack" xml:space="preserve">
     <value>--- End of inner exception stack trace ---</value>
+  </data>
+  <data name="For_locals_parameters_and_members" xml:space="preserve">
+    <value>For locals, parameters and members</value>
+  </data>
+  <data name="For_member_access_expressions" xml:space="preserve">
+    <value>For member access expressions</value>
   </data>
 </root>

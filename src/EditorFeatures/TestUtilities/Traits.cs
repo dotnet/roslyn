@@ -28,6 +28,7 @@ namespace Roslyn.Test.Utilities
             public const string Classification = nameof(Classification);
             public const string ClassView = nameof(ClassView);
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
+            public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -83,6 +84,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
+            public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeLens = nameof(CodeLens);

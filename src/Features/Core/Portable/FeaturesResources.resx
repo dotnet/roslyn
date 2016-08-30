@@ -1046,6 +1046,9 @@ This version used in: {2}</value>
   <data name="Remove_tag" xml:space="preserve">
     <value>Remove tag</value>
   </data>
+  <data name="Add_missing_param_nodes" xml:space="preserve">
+    <value>Add missing param nodes</value>
+  </data>
   <data name="Make_containing_scope_async" xml:space="preserve">
     <value>Make containing scope async</value>
   </data>
@@ -1063,5 +1066,8 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_Abstract_Class" xml:space="preserve">
     <value>Implement Abstract Class</value>
+  </data>
+  <data name="Use_framework_type" xml:space="preserve">
+    <value>Use framework type</value>
   </data>
 </root>

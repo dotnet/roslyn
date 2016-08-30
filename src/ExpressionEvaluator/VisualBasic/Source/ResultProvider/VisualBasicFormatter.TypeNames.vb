@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
         End Sub
 
-        Protected Overrides Sub AppendGenericTypeArgumentList(
+        Protected Overrides Sub AppendGenericTypeArguments(
             builder As StringBuilder,
             typeArguments() As Type,
             typeArgumentOffset As Integer,

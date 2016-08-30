@@ -120,6 +120,7 @@
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\PreferFrameworkType\PreferFrameworkTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
@@ -233,8 +234,10 @@
     <Compile Include="Completion\SnippetsRule.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\Analyzers\PreferFrameworkTypeDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\AbstractAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentSpan.cs" />
     <Compile Include="FindReferences\DefinitionItem.cs" />

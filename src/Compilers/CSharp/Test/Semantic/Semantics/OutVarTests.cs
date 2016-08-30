@@ -173,7 +173,7 @@ public class Cls
 
             Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
             Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Same(symbol, model.GetDeclaredSymbol(decl));
+            Assert.Null(model.GetDeclaredSymbol(decl));
 
             foreach (var reference in references)
             {
@@ -7585,54 +7585,6 @@ public class X
         }
 
         [Fact]
-        public void Scope_LocalDeclarationStmt_07()
-        {
-            var source =
-@"
-public class X
-{
-    public static void Main()
-    {
-    }
-
-    int Dummy(params object[] x) { return 0; }
-
-    void Test1()
-    {
-        SpeculateHere();
-    }
-
-    static bool TakeOutParam(object y, out int x) 
-    {
-        x = 123;
-        return true;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var statement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
-var y1 = Dummy(TakeOutParam(true, out var x1), x1);
-");
-
-            bool success = model.TryGetSpeculativeSemanticModel(GetReferences(tree, "SpeculateHere").Single().SpanStart, statement, out model);
-            Assert.True(success);
-            Assert.NotNull(model);
-            tree = statement.SyntaxTree;
-
-            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(1, x1Ref.Length);
-            VerifyModelForOutVar(model, x1Decl, x1Ref);
-            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
-
-            Assert.Equal("System.Int32 y1", model.GetDeclaredSymbol(statement.Declaration.Variables.Single()).ToTestDisplayString());
-        }
-
-        [Fact]
         public void LocalDeclarationStmt_01()
         {
             var source =
@@ -7749,6 +7701,751 @@ class C
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        var (d, dd) = (TakeOutParam(true, out var x1), x1);
+    }
+    void Test4()
+    {
+        var x4 = 11;
+        Dummy(x4);
+
+        var (d, dd) = (TakeOutParam(true, out var x4), x4);
+    }
+
+    void Test6()
+    {
+        var (d, dd) = (x6 && TakeOutParam(true, out var x6), 1);
+    }
+
+    void Test8()
+    {
+        var (d, dd) = (TakeOutParam(true, out var x8), x8);
+        System.Console.WriteLine(x8);
+    }
+
+    void Test14()
+    {
+        var (d, dd, ddd) = (TakeOutParam(1, out var x14), 
+                      TakeOutParam(2, out var x14), 
+                      x14);
+    }
+
+    static bool TakeOutParam(object y, out object x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (19,51): error CS0128: A local variable named 'x4' is already defined in this scope
+                //         var (d, dd) = (TakeOutParam(true, out var x4), x4);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 51),
+                // (24,24): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         var (d, dd) = (x6 && TakeOutParam(true, out var x6), 1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 24),
+                // (36,47): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                       TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyNotAnOutLocal(model, x4Ref[0]);
+            VerifyNotAnOutLocal(model, x4Ref[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            var x6Ref = GetReferences(tree, "x6").Single();
+            VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            var x8Ref = GetReferences(tree, "x8").ToArray();
+            Assert.Equal(2, x8Ref.Length);
+            VerifyModelForOutVar(model, x8Decl, x8Ref);
+
+            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            var x14Ref = GetReferences(tree, "x14").Single();
+            Assert.Equal(2, x14Decl.Length);
+            VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        (object d, object dd) = (TakeOutParam(true, out var x1), x1);
+    }
+    void Test4()
+    {
+        var x4 = 11;
+        Dummy(x4);
+
+        (object d, object dd) = (TakeOutParam(true, out var x4), x4);
+    }
+
+    void Test6()
+    {
+        (object d, object dd) = (x6 && TakeOutParam(true, out var x6), 1);
+    }
+
+    void Test8()
+    {
+        (object d, object dd) = (TakeOutParam(true, out var x8), x8);
+        System.Console.WriteLine(x8);
+    }
+
+    void Test14()
+    {
+        (object d, object dd, object ddd) = (TakeOutParam(1, out var x14), 
+                      TakeOutParam(2, out var x14), 
+                      x14);
+    }
+
+    static bool TakeOutParam(object y, out object x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (19,61): error CS0128: A local variable named 'x4' is already defined in this scope
+                //         (object d, object dd) = (TakeOutParam(true, out var x4), x4);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(19, 61),
+                // (24,34): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         (object d, object dd) = (x6 && TakeOutParam(true, out var x6), 1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(24, 34),
+                // (36,47): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                       TakeOutParam(2, out var x14), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(36, 47)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyNotAnOutLocal(model, x4Ref[0]);
+            VerifyNotAnOutLocal(model, x4Ref[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
+            var x6Ref = GetReferences(tree, "x6").Single();
+            VerifyModelForOutVar(model, x6Decl, x6Ref);
+
+            var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
+            var x8Ref = GetReferences(tree, "x8").ToArray();
+            Assert.Equal(2, x8Ref.Length);
+            VerifyModelForOutVar(model, x8Decl, x8Ref);
+
+            var x14Decl = GetOutVarDeclarations(tree, "x14").ToArray();
+            var x14Ref = GetReferences(tree, "x14").Single();
+            Assert.Equal(2, x14Decl.Length);
+            VerifyModelForOutVar(model, x14Decl[0], x14Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x14Decl[1]);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        var (x1, dd) = 
+                      (TakeOutParam(true, out var x1), x1);
+        Dummy(x1);
+    }
+
+    void Test2()
+    {
+        (object x2, object dd) = 
+                         (TakeOutParam(true, out var x2), x2);
+        Dummy(x2);
+    }
+
+    static bool TakeOutParam(object y, out object x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (13,51): error CS0128: A local variable named 'x1' is already defined in this scope
+                //                       (TakeOutParam(true, out var x1), x1);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(13, 51),
+                // (13,56): error CS0841: Cannot use local variable 'x1' before it is declared
+                //                       (TakeOutParam(true, out var x1), x1);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(13, 56),
+                // (13,56): error CS0165: Use of unassigned local variable 'x1'
+                //                       (TakeOutParam(true, out var x1), x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 56),
+                // (20,54): error CS0128: A local variable named 'x2' is already defined in this scope
+                //                          (TakeOutParam(true, out var x2), x2);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 54),
+                // (20,59): error CS0165: Use of unassigned local variable 'x2'
+                //                          (TakeOutParam(true, out var x2), x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 59)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyNotAnOutLocal(model, x1Ref[0]);
+            VerifyNotAnOutLocal(model, x1Ref[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyNotAnOutLocal(model, x2Ref[0]);
+            VerifyNotAnOutLocal(model, x2Ref[1]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x2Decl);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    object Dummy(params object[] x) {return null;}
+
+    void Test1()
+    {
+        (object d, object x1) = (Dummy(TakeOutParam(true, out var x1), x1), 
+                                Dummy(x1));
+        Dummy(x1);
+    }
+
+    void Test2()
+    {
+        (object d1, object d2) = (Dummy(TakeOutParam(true, out var x2), x2), 
+                    Dummy(TakeOutParam(true, out var x2), x2));
+    }
+
+    void Test3()
+    {
+        (object d1, object d2) = (Dummy(TakeOutParam(true, out var x3), x3), 
+                    Dummy(x3));
+    }
+
+    void Test4()
+    {
+        (object d1, object d2) = (Dummy(x4), 
+                    Dummy(TakeOutParam(true, out var x4), x4));
+    }
+
+    static bool TakeOutParam(object y, out object x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (12,67): error CS0128: A local variable named 'x1' is already defined in this scope
+                //         (object d, object x1) = (Dummy(TakeOutParam(true, out var x1), x1), 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 67),
+                // (12,72): error CS0165: Use of unassigned local variable 'x1'
+                //         (object d, object x1) = (Dummy(TakeOutParam(true, out var x1), x1), 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 72),
+                // (20,54): error CS0128: A local variable named 'x2' is already defined in this scope
+                //                     Dummy(TakeOutParam(true, out var x2), x2));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 54),
+                // (31,41): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         (object d1, object d2) = (Dummy(x4), 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(31, 41)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyNotAnOutLocal(model, x1Ref[0]);
+            VerifyNotAnOutLocal(model, x1Ref[1]);
+            VerifyNotAnOutLocal(model, x1Ref[2]);
+            VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x2Decl[1]);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForOutVar(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            VerifyModelForOutVar(model, x4Decl, x4Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        SpeculateHere();
+    }
+
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var statement = (DeconstructionDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+var (y1, dd) = (TakeOutParam(true, out var x1), x1);
+");
+
+            bool success = model.TryGetSpeculativeSemanticModel(GetReferences(tree, "SpeculateHere").Single().SpanStart, statement, out model);
+            Assert.True(success);
+            Assert.NotNull(model);
+            tree = statement.SyntaxTree;
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            Assert.Equal("System.Int32", model.GetTypeInfo(x1Ref[0]).Type.ToTestDisplayString());
+
+            Assert.Equal("System.Boolean y1", model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single().ToTestDisplayString());
+        }
+        
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_DeconstructionDeclarationStmt_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        if (true)
+            var (d, dd) = (TakeOutParam(true, out var x1), x1);
+
+        x1++;
+    }
+
+    static bool TakeOutParam(object y, out object x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (d, dd) = (TakeOutParam(true, out var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = (TakeOutParam(true, out var x1), x1);").WithLocation(11, 13),
+                // (13,9): error CS0103: The name 'x1' does not exist in the current context
+                //         x1++;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref[0]);
+            VerifyNotInScope(model, x1Ref[1]);
+
+            var d = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(id => id.Identifier.ValueText == "d").Single();
+            Assert.Equal("System.Boolean d", model.GetDeclaredSymbol(d).ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        (object d1, object d2) = (Dummy(new C(""a""), TakeOutParam(new C(""b""), out var x1), x1),
+                                 Dummy(new C(""c""), TakeOutParam(new C(""d""), out var x2), x2));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+a
+c
+b");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        if (true)
+        {
+            (object d1, object d2) = (Dummy(new C(""a""), TakeOutParam(new C(""b""), out var x1), x1), x1);
+        }
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var (d1, (d2, d3)) = (Dummy(new C(""a""), TakeOutParam(new C(""b""), out var x1), x1),
+                              (Dummy(new C(""c""), TakeOutParam(new C(""d""), out var x2), x2),
+                               Dummy(new C(""e""), TakeOutParam(new C(""f""), out var x3), x3)));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(d3);
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+        System.Console.WriteLine(x3);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+f
+a
+c
+e
+b
+d
+f");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForOutVar(model, x3Decl[0], x3Ref);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void DeconstructionDeclarationStmt_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        (var d1, (var d2, var d3)) = (Dummy(new C(""a""), TakeOutParam(new C(""b""), out var x1), x1),
+                              (Dummy(new C(""c""), TakeOutParam(new C(""d""), out var x2), x2),
+                               Dummy(new C(""e""), TakeOutParam(new C(""f""), out var x3), x3)));
+        System.Console.WriteLine(d1);
+        System.Console.WriteLine(d2);
+        System.Console.WriteLine(d3);
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+        System.Console.WriteLine(x3);
+    }
+
+    static object Dummy(object x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class C
+{
+    private readonly string _val;
+
+    public C(string val)
+    {
+        _val = val;
+    }
+
+    public override string ToString()
+    {
+        return _val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"b
+d
+f
+a
+c
+e
+b
+d
+f");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVar(model, x2Decl[0], x2Ref);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").ToArray();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(2, x3Ref.Length);
+            VerifyModelForOutVar(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -10857,7 +11554,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -10899,7 +11596,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -10943,7 +11640,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -10985,7 +11682,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11027,7 +11724,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11072,7 +11769,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11114,7 +11811,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11159,10 +11856,11 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
 
-            var zRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "z1").Single();
+            model = compilation.GetSemanticModel(tree);
+            var zRef = GetReference(tree, "z1");
             Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
@@ -11207,7 +11905,7 @@ a:              TakeOutParam(x1, out var y1);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Single();
+            var yRef = GetReference(tree, "y1");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11261,7 +11959,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Last();
+            var yRef = GetReferences(tree, "y1").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -11320,9 +12018,109 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y1").Last();
+            var yRef = GetReferences(tree, "y1").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_SwitchLabelGuard_13()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        Test(1);
+    }
+
+    static void Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when TakeOutParam(123, out var x1):
+                var (z0, z1)  = (x1 > 0, TakeOutParam(x1, out var y1));
+                System.Console.WriteLine(y1);
+                System.Console.WriteLine(z1 ? 1 : 0);
+                break;
+        }
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"123
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = GetReference(tree, "y1");
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+
+            model = compilation.GetSemanticModel(tree);
+            var zRef = GetReference(tree, "z1");
+            Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void Scope_SwitchLabelGuard_14()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        Test(1);
+    }
+
+    static void Test(int val)
+    {
+        switch (val)
+        {
+            case 1 when TakeOutParam(123, out var x1):
+                var (z0, (z1, z2))  = (x1 > 0, (TakeOutParam(x1, out var y1), true));
+                System.Console.WriteLine(y1);
+                System.Console.WriteLine(z1 ? 1 : 0);
+                break;
+        }
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"123
+1").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yRef = GetReference(tree, "y1");
+            Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+
+            model = compilation.GetSemanticModel(tree);
+            var zRef = GetReference(tree, "z1");
+            Assert.Equal("System.Boolean", model.GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -15375,7 +16173,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+            var yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -15408,7 +16206,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+            var yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -15441,7 +16239,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+            var yRef = GetReference(tree, "y");
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -15476,7 +16274,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Last();
+            var yRef = GetReferences(tree, "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
@@ -15511,7 +16309,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Last();
+            var yRef = GetReferences(tree, "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }

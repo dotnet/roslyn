@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return ConvertClassifications(sourceText, textSpan.Start, classifiedSpans, insertSourceTextInGaps);
         }
  
-        private static List<SymbolDisplayPart> ConvertClassifications(
+        internal static List<SymbolDisplayPart> ConvertClassifications(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, bool insertSourceTextInGaps = false)
         {
             var parts = new List<SymbolDisplayPart>();

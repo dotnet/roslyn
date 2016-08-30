@@ -71,6 +71,7 @@
     <Compile Include="Helpers\TestTypeExtensions.vb" />
     <Compile Include="ObjectIdTests.vb" />
     <Compile Include="ResultsViewTests.vb" />
+    <Compile Include="TupleTests.vb" />
     <Compile Include="TypeNameFormatterTests.vb" />
     <Compile Include="TypeVariablesExpansionTests.vb" />
     <Compile Include="ValueFormatterTests.vb" />

@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
                     if (localFunctionStmt.Body != null)
                         return GetFirstExcludedToken(localFunctionStmt.Body);
-                    if (localFunctionStmt.SemicolonToken != null)
+                    if (localFunctionStmt.SemicolonToken != default(SyntaxToken))
                         return localFunctionStmt.SemicolonToken;
                     return localFunctionStmt.ParameterList.GetLastToken();
                 default:

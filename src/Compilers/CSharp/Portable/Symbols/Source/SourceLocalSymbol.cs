@@ -93,9 +93,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ForEachLocalSymbol(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
+        /// <param name="containingSymbol"></param>
+        /// <param name="scopeBinder">
+        /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
+        /// </param>
+        /// <param name="enclosingBinderOpt">
+        /// Enclosing binder for the location where the local is declared, if different from the <paramref name="scopeBinder"/>.
+        /// It should be used to bind something at that location.
+        /// </param>
+        /// <param name="closestTypeSyntax"></param>
+        /// <param name="identifierToken"></param>
+        /// <param name="kind"></param>
+        /// <param name="deconstruction"></param>
+        /// <returns></returns>
         public static SourceLocalSymbol MakeDeconstructionLocal(
             Symbol containingSymbol,
-            Binder binder,
+            Binder scopeBinder,
+            Binder enclosingBinderOpt,
             TypeSyntax closestTypeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind kind,
@@ -106,11 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (closestTypeSyntax.IsVar)
             {
                 return new DeconstructionLocalSymbol(
-                    containingSymbol, binder, closestTypeSyntax, identifierToken, kind, deconstruction);
+                    containingSymbol, scopeBinder, enclosingBinderOpt, closestTypeSyntax, identifierToken, kind, deconstruction);
             }
             else
             {
-                return new SourceLocalSymbol(containingSymbol, binder, false, closestTypeSyntax, identifierToken, kind);
+                return new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind);
             }
         }
 
@@ -648,10 +662,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private class DeconstructionLocalSymbol : SourceLocalSymbol
         {
             private readonly SyntaxNode _deconstruction;
+            private readonly Binder _enclosingBinderOpt;
 
             public DeconstructionLocalSymbol(
                 Symbol containingSymbol,
                 Binder scopeBinder,
+                Binder enclosingBinderOpt,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
@@ -659,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
                 _deconstruction = deconstruction;
+                _enclosingBinderOpt = enclosingBinderOpt;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -668,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.DeconstructionDeclarationStatement:
                         var localDecl = (DeconstructionDeclarationStatementSyntax)_deconstruction;
-                        var localBinder = this.ScopeBinder.GetBinder(localDecl);
+                        var localBinder = _enclosingBinderOpt ?? this.ScopeBinder;
                         localBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
                         break;
 

@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal SyntaxIdentifierWithTrivia(ObjectReader reader)
                 : base(reader)
             {
-                var leading = (CSharpSyntaxNode)reader.ReadValue();
+                var leading = (GreenNode)reader.ReadValue();
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
                     _leading = leading;
                 }
-                var trailing = (CSharpSyntaxNode)reader.ReadValue();
+                var trailing = (GreenNode)reader.ReadValue();
                 if (trailing != null)
                 {
                     _trailing = trailing;
