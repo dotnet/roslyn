@@ -185,7 +185,7 @@ public class Cls
 
             Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
             Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Same(symbol, model.GetDeclaredSymbol(decl));
+            Assert.Null(model.GetDeclaredSymbol(decl));
 
             foreach (var reference in references)
             {
@@ -8151,6 +8151,9 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
+                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (d, dd) = (TakeOutParam(true, out var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = (TakeOutParam(true, out var x1), x1);").WithLocation(11, 13),
                 // (13,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)

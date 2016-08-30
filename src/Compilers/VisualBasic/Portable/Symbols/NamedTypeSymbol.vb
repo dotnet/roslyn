@@ -1243,18 +1243,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         ''' <returns></returns>
-        Public Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+        Public NotOverridable Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
             If IsTupleType Then
                 tupleCardinality = 0
                 Return False
             End If
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
-            If (Not IsUnboundGenericType AndAlso
+            If Not IsUnboundGenericType AndAlso
                 ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
                 ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
-                ContainingNamespace.Name = MetadataHelpers.SystemString) Then
+                ContainingNamespace.Name = MetadataHelpers.SystemString Then
 
                 Dim arity = Me.Arity
 

@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         public void GetItems(DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
             InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
                 MethodId.GetItems,
                 r =>
                 {

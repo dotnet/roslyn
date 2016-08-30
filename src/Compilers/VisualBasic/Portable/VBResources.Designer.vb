@@ -10389,7 +10389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         '''</summary>
         Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
             Get

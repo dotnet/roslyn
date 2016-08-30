@@ -722,6 +722,18 @@
      (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <!-- 
+    InferredType is the type of the literal if there is no target type available.
+    Inferred type is a tuple type that combines default types of arguments.
+    
+    Important thing to note:
+    1) InferredType is generally available even if the literal otherwise has no type 
+       For example   (Nothing, Nothing)   has no type, but has InferredType (Object, Object)
+    2) Sometimes InferredType is not available.
+       For example   (AddressOf Main, AddressOf Main) has no InferredType because 
+       AddressOf Main has no default type
+    -->    
+    <Field Name="InferredType" Type="TupleTypeSymbol" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray(Of String)" Null="allow"/>
   </Node>
 

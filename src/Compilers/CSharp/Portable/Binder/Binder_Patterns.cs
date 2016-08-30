@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var expression = BindExpression(node.Expression, diagnostics);
-            var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
+            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            var hasErrors = node.HasErrors || IsOperandErrors(node, ref expression, diagnostics);
             var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
@@ -121,15 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            expression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
+            var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!expression.HasErrors && constantValueOpt == null)
+            if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, expression, constantValueOpt, hasErrors);
+            return new BoundConstantPattern(node, convertedExpression, constantValueOpt, hasErrors);
         }
 
         internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
@@ -158,6 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
                     // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
                     // input value among many constant tests.
+                    convertedExpression = operand;
+                }
+                else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                {
                     convertedExpression = operand;
                 }
             }
