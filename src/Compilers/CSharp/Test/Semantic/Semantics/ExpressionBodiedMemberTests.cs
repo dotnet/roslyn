@@ -471,7 +471,7 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
-            Assert.Null(model.GetSymbolInfo(node).Symbol);
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
 
             Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single().Body.Position));
 
@@ -510,7 +510,7 @@ public class C
             var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
             Assert.Equal("P1", node.ToString());
-            Assert.Null(model.GetSymbolInfo(node).Symbol);
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
 
             Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single().Body.Position));
 
@@ -540,16 +540,15 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (10,9): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(10, 9),
-    // (10,12): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "P1").WithLocation(10, 12)
+                // (8,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //         get
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"get
+        { return 1; }
+        => P1;").WithLocation(8, 9)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
 
 

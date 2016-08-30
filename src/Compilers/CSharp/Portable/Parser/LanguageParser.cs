@@ -3754,12 +3754,17 @@ parse_member_name:;
                 bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
                 bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
 
-                if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
+                if (!currentTokenIsArrow && !currentTokenIsSemicolon && !currentTokenIsOpenBraceToken && validAccName && !IsTerminator())
+                {
+                    // if there is no body, we "expect" a block for an accessor.
+                    blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                }
+                else if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
                 {
                     this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon,
                                                                     requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
                 }
-                else if (currentTokenIsSemicolon || validAccName || IsTerminator())
+                else if (currentTokenIsSemicolon || validAccName)
                 {
                     semicolon = this.EatToken(SyntaxKind.SemicolonToken,
                                         IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
@@ -7232,7 +7237,7 @@ tryAgain:
         // This then allows a "with many weak children" red node when the red node is created.
         // If "isAccessorBody" is true, then we produce a special diagnostic if the open brace is
         // missing.  Also, "isMethodBody" must be true.
-        private BlockSyntax ParseBlock(bool isMethodBody = false)
+        private BlockSyntax ParseBlock(bool isMethodBody = false, bool isAccessorBody = false)
         {
             // Check again for incremental re-use, since ParseBlock is called from a bunch of places
             // other than ParseStatementCore()
@@ -7241,7 +7246,14 @@ tryAgain:
                 return (BlockSyntax)this.EatNode();
             }
 
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            // There's a special error code for a missing token after an accessor keyword
+            var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
+                ? this.AddError(
+                    SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                    IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                            : ErrorCode.ERR_SemiOrLBraceExpected)
+                : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
             try
