@@ -7019,6 +7019,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deconstruction is not supported for an &apos;out&apos; argument..
+        /// </summary>
+        internal static string ERR_OutVarDeconstructionIsNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_OutVarDeconstructionIsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out.
         /// </summary>
         internal static string ERR_OverloadRefOut {
