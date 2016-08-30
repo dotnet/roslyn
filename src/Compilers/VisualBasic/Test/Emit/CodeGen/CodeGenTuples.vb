@@ -150,6 +150,350 @@ BC30389: '(A As Integer, B As Integer).A' is not accessible in this context beca
         End Sub
 
         <Fact>
+        Public Sub TupleDefaultType001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = (Nothing, Nothing)
+        console.writeline(t)            
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+(, )
+            ]]>)
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldnull
+  IL_0002:  newobj     "Sub System.ValueTuple(Of Object, Object)..ctor(Object, Object)"
+  IL_0007:  box        "System.ValueTuple(Of Object, Object)"
+  IL_000c:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0011:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType001err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = (Nothing, Nothing)
+        console.writeline(t)            
+    End Sub
+End Module
+
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'NoTuples.dll' failed.
+        Dim t = (Nothing, Nothing)
+                ~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t1 = ({Nothing}, {Nothing})
+        console.writeline(t1.GetType())            
+
+        Dim t2 = {(Nothing, Nothing)}
+        console.writeline(t2.GetType())            
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Object[],System.Object[]]
+System.ValueTuple`2[System.Object,System.Object][]
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Dim t3 = Function(){(Nothing, Nothing)}
+        console.writeline(t3.GetType())            
+
+        Dim t4 = {Function()(Nothing, Nothing)}
+        console.writeline(t4.GetType())            
+
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object][]]
+VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object]][]
+            ]]>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Test(({Nothing}, {{Nothing}}))
+        Test((Function(x as integer)x, Function(x as Long)x))
+    End Sub
+
+    function Test(of T, U)(x as (T, U)) as (U, T)
+        System.Console.WriteLine(GetType(T))
+        System.Console.WriteLine(GetType(U))
+        System.Console.WriteLine()
+
+        return (x.Item2, x.Item1)
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Object[]
+System.Object[,]
+
+VB$AnonymousDelegate_0`2[System.Int32,System.Int32]
+VB$AnonymousDelegate_0`2[System.Int64,System.Int64]
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType005()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Test((Function(x as integer)Function()x, Function(x as Long){({Nothing}, {Nothing})}))
+    End Sub
+
+    function Test(of T, U)(x as (T, U)) as (U, T)
+        System.Console.WriteLine(GetType(T))
+        System.Console.WriteLine(GetType(U))
+        System.Console.WriteLine()
+
+        return (x.Item2, x.Item1)
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+VB$AnonymousDelegate_0`2[System.Int32,VB$AnonymousDelegate_1`1[System.Int32]]
+VB$AnonymousDelegate_0`2[System.Int64,System.ValueTuple`2[System.Object[],System.Object[]][]]
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType006()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+
+    Sub Main()
+        Test((Nothing, Nothing), "q")
+        Test((Nothing, "q"), Nothing)
+
+        Test1("q", (Nothing, Nothing))
+        Test1(Nothing, ("q", Nothing))
+
+    End Sub
+
+    function Test(of T)(x as (T, T), y as T) as T
+        System.Console.WriteLine(GetType(T))
+
+        return y
+    End Function
+
+    function Test1(of T)(x as T, y as (T, T)) as T
+        System.Console.WriteLine(GetType(T))
+
+        return x
+    End Function
+
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.String
+System.String
+System.String
+System.String
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType006err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Test1((Nothing, Nothing), Nothing)
+        Test2(Nothing, (Nothing, Nothing))
+    End Sub
+
+    function Test1(of T)(x as (T, T), y as T) as T
+        System.Console.WriteLine(GetType(T))
+        return y
+    End Function
+
+    function Test2(of T)(x as T, y as (T, T)) as T
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test1(Of T)(x As (T, T), y As T) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test1((Nothing, Nothing), Nothing)
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test2(Of T)(x As T, y As (T, T)) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(Nothing, (Nothing, Nothing))
+        ~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim valid As (A as Action, B as Action) = (AddressOf Main, AddressOf Main)
+        Test2(valid)
+
+        Test2((AddressOf Main, Sub() Main))
+    End Sub
+
+    function Test2(of T)(x as (T, T)) as (T, T)
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.Action
+VB$AnonymousDelegate_0
+            ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub TupleDefaultType007err()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="NoTuples">
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim x = (AddressOf Main, AddressOf Main)
+        Dim x1 = (Function() Main, Function() Main)
+        Dim x2 = (AddressOf Mai, Function() Mai)
+        Dim x3 = (A := AddressOf Main, B := (D := AddressOf Main, C := AddressOf Main))
+        
+        Test1((AddressOf Main, Sub() Main))
+        Test1((AddressOf Main, Function() Main))
+        Test2((AddressOf Main, Function() Main))
+    End Sub
+
+    function Test1(of T)(x as T) as T
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+
+    function Test2(of T)(x as (T, T)) as (T, T)
+        System.Console.WriteLine(GetType(T))
+        return x
+    End Function
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30491: Expression does not produce a value.
+        Dim x = (AddressOf Main, AddressOf Main)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30491: Expression does not produce a value.
+        Dim x1 = (Function() Main, Function() Main)
+                             ~~~~
+BC30491: Expression does not produce a value.
+        Dim x1 = (Function() Main, Function() Main)
+                                              ~~~~
+BC30451: 'Mai' is not declared. It may be inaccessible due to its protection level.
+        Dim x2 = (AddressOf Mai, Function() Mai)
+                            ~~~
+BC30491: Expression does not produce a value.
+        Dim x3 = (A := AddressOf Main, B := (D := AddressOf Main, C := AddressOf Main))
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test1(Of T)(x As T) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test1((AddressOf Main, Sub() Main))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test1(Of T)(x As T) As T' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test1((AddressOf Main, Function() Main))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Function Test2(Of T)(x As (T, T)) As (T, T)' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2((AddressOf Main, Function() Main))
+        ~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
         Public Sub DataFlow()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -754,12 +1098,10 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(C As Object, D As Object, E As Object)' cannot be converted to '(A As String, B As String)'.
         Dim x as (A as String, B as String) = (C:=Nothing, D:=Nothing, E:=Nothing)
                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
-
-
         End Sub
 
         <Fact>
@@ -2063,11 +2405,21 @@ Imports System
 Module C
     Sub Main()
         System.Console.WriteLine(Test((Nothing,"q")))
+        System.Console.WriteLine(Test(("q", Nothing)))
+
+        System.Console.WriteLine(Test1((Nothing, Nothing), (Nothing,"q")))
+        System.Console.WriteLine(Test1(("q", Nothing), (Nothing, Nothing)))
     End Sub
 
     Function Test(of T)(x as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
 
+        return x
+    End Function
+
+        Function Test1(of T)(x as (T, T), y as (T, T)) as (T, T)
+        Console.WriteLine(Gettype(T))
+        
         return x
     End Function
 End Module
@@ -2076,6 +2428,12 @@ End Module
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.String
 (, q)
+System.String
+(q, )
+System.String
+(, )
+System.String
+(q, )
             ]]>)
 
         End Sub
@@ -2772,7 +3130,7 @@ End Module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Integer, String)'.
         Dim x As (Integer, String) = (1, Nothing, 2)
                                      ~~~~~~~~~~~~~~~
 </errors>)
@@ -5232,7 +5590,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5281,7 +5639,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = DirectCast((Nothing, Nothing, Nothing), (Integer, Integer))
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5327,7 +5685,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.
@@ -5347,6 +5705,76 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
                 ~~~~~~~~~~~~~
 </errors>)
 
+        End Sub
+
+        <Fact>
+        Public Sub TupleInferredLambdStrictOn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="comp">
+    <file name="a.vb"><![CDATA[
+Option Strict On
+Class C
+    Shared Sub Main()
+        Dim valid = (1, Function() Nothing)
+        Dim x = (Nothing, Function(t) t)
+        Dim y = (1, Function(t) t)
+        Dim z = (Function(t) t, Function(t) t)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim x = (Nothing, Function(t) t)
+                                   ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim y = (1, Function(t) t)
+                             ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim z = (Function(t) t, Function(t) t)
+                          ~
+BC36642: Option Strict On requires each lambda expression parameter to be declared with an 'As' clause if its type cannot be inferred.
+        Dim z = (Function(t) t, Function(t) t)
+                                         ~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        Public Sub TupleInferredLambdStrictOff()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Class C
+    Shared Sub Main()
+        Dim valid = (1, Function() Nothing)
+        Test(valid)
+
+        Dim x = (Nothing, Function(t) t)
+        Test(x)
+
+        Dim y = (1, Function(t) t)
+        Test(y)
+    End Sub
+
+    shared function Test(of T)(x as T) as T
+        System.Console.WriteLine(GetType(T))
+
+        return x
+    End Function
+End Class
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_0`1[System.Object]]
+System.ValueTuple`2[System.Object,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
+System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
+            ]]>)
         End Sub
 
         <Fact>
@@ -5376,7 +5804,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(String, String)'.
         x = (Nothing, Nothing, Nothing)
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(String, String)'.
@@ -5431,7 +5859,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30491: Expression does not produce a value.
+BC30311: Value of type '(Object, Object, Object)' cannot be converted to '(Integer, Integer)'.
         x = ((Nothing, Nothing, Nothing), 1)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30311: Value of type '(Integer, Integer, Integer)' cannot be converted to '(Integer, Integer)'.

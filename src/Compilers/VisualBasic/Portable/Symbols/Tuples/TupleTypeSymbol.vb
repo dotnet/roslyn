@@ -319,7 +319,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._locations = locations
         End Sub
 
-        Friend Shared Function Create(locationOpt As Location, elementTypes As ImmutableArray(Of TypeSymbol), elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String), compilation As VisualBasicCompilation, Optional syntax As VisualBasicSyntaxNode = Nothing, Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+        Friend Shared Function Create(
+                                     locationOpt As Location,
+                                     elementTypes As ImmutableArray(Of TypeSymbol),
+                                     elementLocations As ImmutableArray(Of Location),
+                                     elementNames As ImmutableArray(Of String),
+                                     compilation As VisualBasicCompilation,
+                                     Optional syntax As SyntaxNode = Nothing,
+                                     Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
@@ -477,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (numElements - 1) \ (RestPosition - 1) + 1
         End Function
 
-        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim numElements As Integer = elementTypes.Length
             Dim remainder As Integer
             Dim chainLength As Integer = TupleTypeSymbol.NumberOfValueTuples(numElements, remainder)
