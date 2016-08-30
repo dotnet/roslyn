@@ -8716,8 +8716,8 @@ class C
                     if (i != j)
                     {
                         Assert.NotSame(members[i], members[j]);
-                        Assert.True(!members[i].Equals(members[j]));
-                        Assert.True(!members[j].Equals(members[i]));
+                        Assert.False(members[i].Equals(members[j]));
+                        Assert.False(members[j].Equals(members[i]));
                     }
                 }
             }
@@ -8780,7 +8780,7 @@ class C
                         if (i != j)
                         {
                             Assert.NotSame(members1[i], members2[j]);
-                            Assert.True(!members1[i].Equals(members2[j]));
+                            Assert.False(members1[i].Equals(members2[j]));
                         }
                     }
                 }
