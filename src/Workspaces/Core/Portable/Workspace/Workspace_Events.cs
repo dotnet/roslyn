@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
         /// An event that is fired when the active context document associated with a buffer 
         /// changes.
         /// </summary>
-        internal event EventHandler<DocumentEventArgs> DocumentActiveContextChanged
+        public event EventHandler<DocumentEventArgs> DocumentActiveContextChanged
         {
             add
             {
