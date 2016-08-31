@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _containingTuple As TupleTypeSymbol
 
-        Private _tupleElementIndex As Integer
+        Private _tupleFieldId As Integer
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property TupleFieldId As Integer
             Get
-                Return Me._tupleElementIndex
+                Return Me._tupleFieldId
             End Get
         End Property
 
@@ -59,10 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer)
             MyBase.New(underlyingField)
             Me._containingTuple = container
-            Me._tupleElementIndex = tupleElementIndex
+            Me._tupleFieldId = tupleFieldId
         End Sub
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._containingTuple.GetHashCode(), Me._tupleElementIndex.GetHashCode())
+            Return Hash.Combine(Me._containingTuple.GetHashCode(), Me._tupleFieldId.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As TupleFieldSymbol) As Boolean
             Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._tupleElementIndex = other._tupleElementIndex AndAlso Me._containingTuple = other._containingTuple)
+                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me._containingTuple = other._containingTuple)
         End Function
     End Class
 
@@ -142,8 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer, location As Location)
-            MyBase.New(container, underlyingField, tupleElementIndex)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location)
+            MyBase.New(container, underlyingField, tupleFieldId)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
         End Sub
     End Class
@@ -175,8 +175,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementIndex As Integer, location As Location)
-            MyBase.New(container, underlyingField, tupleElementIndex, location)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementOrdinal As Integer, location As Location)
+            MyBase.New(container, underlyingField, tupleElementOrdinal, location)
             Debug.Assert(name <> Nothing)
             Debug.Assert(name <> underlyingField.Name)
             Me._name = name
