@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Emit
 {
     /// <summary>
-    /// Specifies the type of an instrumentation that is performed and be emitted along with the binary output.
+    /// Specifies a kind of instrumentation to be applied in generated code.
     /// </summary>
     public enum InstrumentationKind
     {
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Emit
         None = 0,
 
         /// <summary>
-        /// Instruments the binary to add....
+        /// Instruments the binary to add test coverage.
         /// </summary>
         TestCoverage = 1,
     }

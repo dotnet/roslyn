@@ -195,12 +195,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override int GetHashCode()
         {
-            var instrumentationKindHash = 0;
-            foreach (var instrumentationKind in InstrumentationKinds)
-            {
-                instrumentationKindHash = Hash.Combine((int)instrumentationKind, instrumentationKindHash);
-            }
-
             return Hash.Combine(this.EmitMetadataOnly,
                    Hash.Combine(this.BaseAddress.GetHashCode(),
                    Hash.Combine(this.FileAlignment,

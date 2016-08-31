@@ -160,10 +160,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Specifies the list of instrumentation kinds to be used during compilation.
         /// </summary>
-        public string InstrumentationKinds
+        public string Instrument
         {
-            set { _store[nameof(InstrumentationKinds)] = value; }
-            get { return (string)_store[nameof(InstrumentationKinds)]; }
+            set { _store[nameof(Instrument)] = value; }
+            get { return (string)_store[nameof(Instrument)]; }
         }
 
         public string KeyContainer
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
-            commandLine.AppendSwitchIfNotNull("/instrument:", InstrumentationKinds);
+            commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
 
             AddFeatures(commandLine, Features);

@@ -95,7 +95,7 @@
           FileAlignment="$(FileAlignment)"
           GenerateFullPaths="$(GenerateFullPaths)"
           HighEntropyVA="$(HighEntropyVA)"
-          InstrumentationKinds="$(Instrument)"
+          Instrument="$(Instrument)"
           KeyContainer="$(KeyContainerName)"
           KeyFile="$(KeyOriginatorFile)"
           LangVersion="$(LangVersion)"

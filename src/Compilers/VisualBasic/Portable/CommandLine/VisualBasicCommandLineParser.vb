@@ -551,7 +551,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            instrumentationKinds.AddRange(ParseInstrumentationKinds(value, diagnostics))
+                            For Each instrumentationKind As InstrumentationKind In ParseInstrumentationKinds(value, diagnostics)
+                                If Not instrumentationKinds.Contains(instrumentationKind) Then
+                                    instrumentationKinds.Add(instrumentationKind)
+                                End If
+                            Next
 
                             Continue For
 
@@ -1560,7 +1564,7 @@ lVbRuntimePlus:
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
-        Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
+        Private Shared Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
