@@ -1,10 +1,11 @@
+param (
+    [string]$CPCLocation = "C:/CPC",
+    [switch]$ShouldArchive = $false
+)
+
 set-variable -name LastExitCode 0
 set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
-
-param (
-    [string]$CPCLocation = "C:/CPC"
-)
 
 # If the test runner crashes and doesn't shut down CPC, CPC could fill
 # the entire disk with ETL traces.
@@ -31,12 +32,14 @@ if (Test-Path ToArchive) {
     Remove-Item -Recurse -Force ToArchive
 }
 
-if (Test-Path $CPCLocation) {
+if ($ShouldArchive) {
     # Move all etl files to the a folder for archiving
     echo "creating ToArchive directory"
     mkdir ToArchive
-    echo "moving C:/CPC/DataBackup* to ToArchive"
-    mv C:/CPC/DataBackup* ToArchive
+    echo "moving $CPCLocation/DataBackup* to ToArchive"
+    mv $CPCLocation/DataBackup* ToArchive
+    echo "moving $CPCLocation/consumptionTempResults.xml to ToArchive"
+    mv $CPCLocation/consumptionTempResults.xml ToArchive
     ls ToArchive
 }
 

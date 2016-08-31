@@ -164,10 +164,10 @@ namespace Runner
                     }
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     traceManager.Stop();
-                    throw e;
+                    throw;
                 }
                 finally
                 {
