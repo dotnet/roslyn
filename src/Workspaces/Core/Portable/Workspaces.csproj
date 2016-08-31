@@ -242,6 +242,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Next" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
@@ -390,6 +391,7 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="Options\EditorConfigStorageLocation.cs" />
     <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IDocumentOptions.cs" />
     <Compile Include="Options\IDocumentOptionsProvider.cs" />

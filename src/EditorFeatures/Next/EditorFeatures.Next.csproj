@@ -73,6 +73,8 @@
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
     <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
