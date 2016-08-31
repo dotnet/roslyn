@@ -240,6 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(operand != null || operandType != (object)null);
+
+            if (InConstructorInitializer || InFieldInitializer)
+            {
+                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+            }
+
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 

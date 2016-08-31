@@ -2044,6 +2044,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = (TypedVariableComponentSyntax)declarationExpression.VariableComponent;
             var typeSyntax = declaration.Type;
 
+            if (InConstructorInitializer || InFieldInitializer)
+            {
+                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
+            }
+
             bool isConst = false;
             bool isVar;
             AliasSymbol alias;
