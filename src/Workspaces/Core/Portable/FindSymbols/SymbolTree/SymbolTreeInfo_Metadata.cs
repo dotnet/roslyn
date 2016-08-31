@@ -17,14 +17,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static char[] s_dotSeparator = { '.' };
-
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
-            var typeName = reader.GetString(name);
-            var index = typeName.IndexOf('`');
-            typeName = index > 0 ? typeName.Substring(0, index) : typeName;
-            return typeName;
+            var blobReader = reader.GetBlobReader(name);
+            var backtickIndex = IndexOfCharacter(blobReader, '`');
+            if (backtickIndex == -1)
+            {
+                return reader.GetString(name);
+            }
+
+            unsafe
+            {
+                return MetadataStringDecoder.DefaultUTF8.GetString(
+                    blobReader.CurrentPointer, backtickIndex);
+            }
+        }
+
+        private static int IndexOfCharacter(BlobReader blobReader, char ch)
+        {
+            unsafe
+            {
+                var ptr = blobReader.CurrentPointer;
+                for (int i = 0, n = blobReader.RemainingBytes; i < n; i++)
+                {
+                    if (*ptr == ch)
+                    {
+                        return i;
+                    }
+
+                    ptr++;
+                }
+
+                return -1;
+            }
         }
 
         private static Metadata GetMetadataNoThrow(PortableExecutableReference reference)
@@ -457,6 +482,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             private void AddNamespaceParts(
+                StringHandle namespaceHandle, List<string> simpleNames)
+            {
+                var blobReader = _metadataReader.GetBlobReader(namespaceHandle);
+
+                while (true)
+                {
+                    var dotIndex = IndexOfCharacter(blobReader, '.');
+                    unsafe
+                    {
+                        if (dotIndex == -1)
+                        {
+                            simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
+                                blobReader.CurrentPointer, blobReader.RemainingBytes));
+                            return;
+                        }
+                        else
+                        {
+                            simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
+                                blobReader.CurrentPointer, dotIndex));
+                            blobReader.SkipBytes(dotIndex + 1);
+                        }
+                    }
+                }
+            }
+
+            private void AddNamespaceParts(
                 NamespaceDefinitionHandle namespaceHandle, List<string> simpleNames)
             {
                 if (namespaceHandle.IsNil)
@@ -472,12 +523,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private void AddTypeReferenceNameParts(TypeReferenceHandle handle, List<string> simpleNames)
             {
                 var typeReference = _metadataReader.GetTypeReference(handle);
-                var namespaceString = _metadataReader.GetString(typeReference.Namespace);
-
-                // NOTE(cyrusn): Unfortunately, we are forced to allocate here
-                // no matter what.  The metadata reader API gives us no way to
-                // just get the component namespace parts for a namespace reference.
-                simpleNames.AddRange(namespaceString.Split(s_dotSeparator));
+                AddNamespaceParts(typeReference.Namespace, simpleNames);
                 simpleNames.Add(GetMetadataNameWithoutBackticks(_metadataReader, typeReference.Name));
             }
 
