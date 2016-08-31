@@ -2860,8 +2860,10 @@ parse_member_name:;
                     Debug.Assert(syntax is BasePropertyDeclarationSyntax);
                     code = ErrorCode.ERR_AccessorListAndExpressionBody;
                 }
+
                 return AddError(syntax, code);
             }
+
             return syntax;
         }
 

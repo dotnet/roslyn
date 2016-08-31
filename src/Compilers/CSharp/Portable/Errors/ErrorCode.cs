@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
         #endregion diagnostics introduced in C# 5
 
-        // available 4037-4999
+        // unused 4037-4999
 
         #region diagnostics introduced in C# 6
         // WRN_UnknownOption = 5000,   //unused in Roslyn
@@ -1241,6 +1241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
         #endregion diagnostics introduced in C# 6
+
+        // huge gap here; unused 7103-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,

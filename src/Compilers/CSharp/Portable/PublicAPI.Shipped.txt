@@ -558,7 +558,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.AddAttr
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.AddBodyStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax
-
+Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.ImplicitOrExplicitKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.OperatorKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
@@ -1236,6 +1236,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.AddTypeParameterLis
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.Arity.get -> int
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.ConstraintClauses.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.ExplicitInterfaceSpecifier.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.ReturnType.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax.TypeParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax
@@ -1323,6 +1324,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.AddAttributeLists
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.AddBodyStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.OperatorKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.OperatorToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.OperatorDeclarationSyntax.ReturnType.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
