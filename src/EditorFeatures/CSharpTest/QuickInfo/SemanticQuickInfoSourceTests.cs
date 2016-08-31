@@ -1774,6 +1774,26 @@ class C : I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TupleProperty()
+        {
+            await TestInMethodAsync(@"
+interface I
+{
+    (int, int) Name { get; set; }
+}
+
+class C : I
+{
+    (int, int) I.Name$$
+    {
+       get { throw new System.Exception(); }
+       set { }
+    }
+}",
+                MainDescription("(int, int) C.Name { get; set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Operator()
         {
             await TestInClassAsync(@"
