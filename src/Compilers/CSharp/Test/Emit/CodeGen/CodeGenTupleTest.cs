@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17857,6 +17858,30 @@ public class C
                 //         (int x2, int y2) = GetCoordinates2();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2();").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9)
             );
+        }
+
+        [Fact, WorkItem(13494, "https://github.com/dotnet/roslyn/issues/13494")]
+        public static void Bug13494()
+        {
+            var source1 = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var(a,  )
+    }
+}
+";
+
+            var text = SourceText.From(source1);
+            var startTree = SyntaxFactory.ParseSyntaxTree(text);
+            var finalString = startTree.GetCompilationUnitRoot().ToFullString();
+
+            var newText = text.WithChanges(new TextChange(new TextSpan(80, 0), " ")); // add space before closing-paren
+            var newTree = startTree.WithChangedText(newText);
+            var finalText = newTree.GetCompilationUnitRoot().ToFullString();
+            Assert.Equal(newText.ToString(), finalText);
+            // no crash
         }
     }
 }

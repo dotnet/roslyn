@@ -8451,7 +8451,6 @@ tryAgain:
                     {
                         return deconstruction;
                     }
-
                 }
                 finally
                 {
