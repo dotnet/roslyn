@@ -14242,7 +14242,6 @@ public class X
 True").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var yRef = GetReferences(tree, "y1").Single();
             Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(yRef).Type.ToTestDisplayString());

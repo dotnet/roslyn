@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.VariableDeclarator:
                     break;
                 case SyntaxKind.ArgumentList:
@@ -202,11 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             VisitNodeToBind(node.Expression);
-        }
-
-        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
-        {
-            VisitNodeToBind(node.Assignment.Value);
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
