@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
         private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<IFormattingRule> rules = null)
         {
-            if (!session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && shouldHonorAutoFormattingOnCloseBraceOption)
+            if (!session.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && shouldHonorAutoFormattingOnCloseBraceOption)
             {
                 return;
             }
@@ -143,7 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            if (session.SubjectBuffer.GetOption(SmartIndent) == IndentStyle.Smart)
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var style = document != null ? document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetOption(SmartIndent)
+                                         : SmartIndent.DefaultValue;
+
+            if (style == IndentStyle.Smart)
             {
                 // skip whitespace
                 while (startPosition >= 0 && char.IsWhiteSpace(snapshot[startPosition]))

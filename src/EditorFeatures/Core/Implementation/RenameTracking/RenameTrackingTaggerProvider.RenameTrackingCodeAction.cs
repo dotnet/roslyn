@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                if (!_document.Options.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
+                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                if (!documentOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);

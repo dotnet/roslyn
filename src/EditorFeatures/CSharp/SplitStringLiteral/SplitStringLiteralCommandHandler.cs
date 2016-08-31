@@ -3,9 +3,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
@@ -56,13 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             if (document != null)
             {
-                var enabled = document.Project.Solution.Workspace.Options.GetOption(
-                    SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
+                var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var enabled = options.GetOption(
+                    SplitStringLiteralOptions.Enabled);
 
                 if (enabled)
                 {
                     var cursorPosition = SplitStringLiteral(
-                        subjectBuffer, document, caret, CancellationToken.None);
+                        subjectBuffer, document, options, caret, CancellationToken.None);
 
                     if (cursorPosition != null)
                     {
@@ -100,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         }
 
         private int? SplitStringLiteral(
-            ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
+            ITextBuffer subjectBuffer, Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
-            var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
-            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
+            var useTabs = options.GetOption(FormattingOptions.UseTabs);
+            var tabSize = options.GetOption(FormattingOptions.TabSize);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);

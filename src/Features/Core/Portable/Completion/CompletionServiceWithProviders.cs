@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? document.Options;
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);;
             var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             AssertIsForeground();
             nextHandler();
 
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 EventHookupSessionManager.CancelAndDismissExistingSessions();
                 return;

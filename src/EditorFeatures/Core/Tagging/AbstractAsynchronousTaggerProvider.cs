@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         internal IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
+            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
                 return null;
             }

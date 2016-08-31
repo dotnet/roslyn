@@ -44,7 +44,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                If Not (isExplicitFormat OrElse document.Options.GetOption(FeatureOnOffOptions.PrettyListing)) Then
+                Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+                If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
 
@@ -56,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' create commit formatting cleanup provider that has line commit specific behavior
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
+                                                documentOptions,
                                                 spanToFormat,
                                                 baseSnapshot, baseTree,
                                                 dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
@@ -104,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Function GetCommitFormattingCleanupProvider(
             document As Document,
+            documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
             oldTree As SyntaxTree,
@@ -114,24 +117,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldDirtySpan = newDirtySpan.TranslateTo(oldSnapshot, SpanTrackingMode.EdgeInclusive)
 
             ' based on changes made to dirty spans, get right formatting rules to apply
-            Dim rules = GetFormattingRules(document, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
+            Dim rules = GetFormattingRules(document, documentOptions, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
 
             Return New SimpleCodeCleanupProvider(PredefinedCodeCleanupProviderNames.Format,
                                                  Function(doc, spans, c) FormatAsync(doc, spans, rules, c),
-                                                 Function(r, spans, w, c) Format(r, spans, w, document.Options, rules, c))
+                                                 Function(r, spans, w, c) Format(r, spans, w, document.GetOptionsAsync(c).WaitAndGetResult(c), rules, c))
         End Function
 
         Private Async Function FormatAsync(document As Document, spans As IEnumerable(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+
             If document.TryGetText(oldText) Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, document.Options, rules, cancellationToken))
+                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, documentOptions, rules, cancellationToken))
                 Return document.WithText(newText)
             End If
 
-            Return Await Formatter.FormatAsync(document, spans, document.Options, rules, cancellationToken).ConfigureAwait(False)
+            Return Await Formatter.FormatAsync(document, spans, documentOptions, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Function Format(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
@@ -154,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Function GetFormattingRules(
             document As Document,
+            documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
             oldTree As SyntaxTree,
@@ -205,8 +211,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' for now, do very simple checking. basically, we see whether we get same number of indent operation for the give span. alternative, but little bit
             ' more expensive and complex, we can actually calculate indentation right after the span, and see whether that is changed. not sure whether that much granularity
             ' is needed.
-            If GetNumberOfIndentOperations(document, oldTree, oldDirtySpan, cancellationToken) =
-               GetNumberOfIndentOperations(document, newTree, newDirtySpan, cancellationToken) Then
+            If GetNumberOfIndentOperations(document, documentOptions, oldTree, oldDirtySpan, cancellationToken) =
+               GetNumberOfIndentOperations(document, documentOptions, newTree, newDirtySpan, cancellationToken) Then
                 Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(document))
             End If
 
@@ -214,17 +220,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Function GetNumberOfIndentOperations(document As Document,
-                                                     syntaxTree As SyntaxTree,
-                                                     span As SnapshotSpan,
-                                                     cancellationToken As CancellationToken) As Integer
-            Dim vbTree = syntaxTree
+                                                     documentOptions As DocumentOptionSet,
+                                                     SyntaxTree As SyntaxTree,
+                                                     Span As SnapshotSpan,
+                                                     CancellationToken As CancellationToken) As Integer
 
             ' find containing statement of the end point, and use its end point as position to get indent operation
-            Dim containingStatement = ContainingStatementInfo.GetInfo(span.End, vbTree, cancellationToken)
-            Dim endPosition = If(containingStatement Is Nothing, span.End.Position + 1, containingStatement.TextSpan.End + 1)
+            Dim containingStatement = ContainingStatementInfo.GetInfo(Span.End, SyntaxTree, CancellationToken)
+            Dim endPosition = If(containingStatement Is Nothing, Span.End.Position + 1, containingStatement.TextSpan.End + 1)
 
             ' get token right after given span
-            Dim token = vbTree.GetRoot(cancellationToken).FindToken(Math.Min(endPosition, syntaxTree.GetRoot(cancellationToken).FullSpan.End))
+            Dim token = SyntaxTree.GetRoot(CancellationToken).FindToken(Math.Min(endPosition, SyntaxTree.GetRoot(CancellationToken).FullSpan.End))
 
             Dim node = token.Parent
 
@@ -232,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=document.Options))
+                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=documentOptions))
                 node = node.Parent
             End While
 

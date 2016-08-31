@@ -28,16 +28,6 @@ namespace Microsoft.CodeAnalysis.Options
             _values = values;
         }
 
-        public override T GetOption<T>(Option<T> option)
-        {
-            return (T)GetOption(new OptionKey(option, language: null));
-        }
-
-        public override T GetOption<T>(PerLanguageOption<T> option, string language)
-        {
-            return (T)GetOption(new OptionKey(option, language));
-        }
-
         public override object GetOption(OptionKey optionKey)
         {
             lock (_gate)
@@ -52,16 +42,6 @@ namespace Microsoft.CodeAnalysis.Options
 
                 return value;
             }
-        }
-
-        public override OptionSet WithChangedOption<T>(Option<T> option, T value)
-        {
-            return WithChangedOption(new OptionKey(option, language: null), value);
-        }
-
-        public override OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string language, T value)
-        {
-            return WithChangedOption(new OptionKey(option, language), value);
         }
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)

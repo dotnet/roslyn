@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
-            If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.PrettyListing) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.PrettyListing) Then
                 nextHandler()
                 Return
             End If
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.FormatOnPaste) Then
+                If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) Then
                     transaction.Complete()
                     Return
                 End If
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action) Implements ICommandHandler(Of SaveCommandArgs).ExecuteCommand
-            If args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.FormatOnSave) Then
+            If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
                 _waitIndicator.Wait(
                     title:=VBEditorResources.Format_on_Save,
                     message:=VBEditorResources.Formatting_Document,

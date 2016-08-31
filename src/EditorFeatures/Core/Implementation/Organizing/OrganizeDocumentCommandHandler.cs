@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-                newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, subjectBuffer.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst), cancellationToken).WaitAndGetResult(cancellationToken);
+                newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, subjectBuffer.GetFeatureOnOffOption(GenerationOptions.PlaceSystemNamespaceFirst), cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);
