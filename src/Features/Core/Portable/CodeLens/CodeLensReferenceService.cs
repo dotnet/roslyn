@@ -33,10 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return null;
-            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -92,10 +88,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return null;
-            }
 
             var langServices = document.GetLanguageService<ICodeLensDisplayInfoService>();
             if (langServices == null)
@@ -231,11 +223,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return null;
-            }
-
             var fullName = GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
 
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
@@ -269,10 +256,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return null;
-            }
 
             return GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
         }

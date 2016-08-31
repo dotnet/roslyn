@@ -78,21 +78,14 @@ namespace Microsoft.CodeAnalysis.CodeLens
                    (definition as IMethodSymbol)?.AssociatedSymbol != null;
         }
 
-        /// <summary>
-        /// Returns partial symbol locations whose node does not match the queried syntaxNode
-        /// </summary>
-        /// <param name="symbol">Symbol whose locations are queried</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Partial locations</returns>
+        // Returns partial symbol locations whose node does not match the queried syntaxNode
         private IEnumerable<Location> GetPartialLocations(ISymbol symbol, CancellationToken cancellationToken)
         {
             // Returns nodes from source not equal to actual location
             return from syntaxReference in symbol.DeclaringSyntaxReferences
-                let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
-                where !(_queriedNode.Span == candidateSyntaxNode.Span &&
-                        _queriedNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath,
-                            StringComparison.OrdinalIgnoreCase))
-                select syntaxReference.SyntaxTree.GetLocation(syntaxReference.Span);
+                   let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
+                   where _queriedNode != candidateSyntaxNode
+                   select candidateSyntaxNode.GetLocation();
         }
 
         public void OnDefinitionFound(ISymbol symbol)
