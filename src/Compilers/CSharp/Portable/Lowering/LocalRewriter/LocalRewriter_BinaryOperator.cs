@@ -265,6 +265,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.BoolAnd:
                         if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
                         if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
+
+                        if (loweredLeft.IsDefaultValue())
+                        {
+                            return _factory.Sequence(loweredRight, loweredLeft);
+                        }
+                        if (loweredRight.IsDefaultValue())
+                        {
+                            return _factory.Sequence(loweredLeft, loweredRight);
+                        }
+
                         goto default;
 
                     case BinaryOperatorKind.BoolOr:
@@ -390,11 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.ULongMultiplication:
                         if (loweredLeft.IsDefaultValue())
                         {
-                            return loweredLeft;
+                            return _factory.Sequence(loweredRight, loweredLeft);
                         }
                         if (loweredRight.IsDefaultValue())
                         {
-                            return loweredRight;
+                            return _factory.Sequence(loweredLeft, loweredRight);
                         }
                         if (loweredLeft.ConstantValue?.UInt64Value == 1)
                         {

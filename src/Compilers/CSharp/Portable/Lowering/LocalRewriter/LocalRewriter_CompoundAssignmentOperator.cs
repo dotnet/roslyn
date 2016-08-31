@@ -691,11 +691,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return objCreation.Arguments.Length == 1 && ReadIsSideeffecting(objCreation.Arguments[0]);
                     }
 
-                    return false;
+                    return true;
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expression;
+                    var method = call.Method;
+
+                    // common production of lowered lifted operators
+                    // GetValueOrDefault is known to be not sideeffecting.
+                    if (IsSpecialMember(method.OriginalDefinition, SpecialMember.System_Nullable_T_GetValueOrDefault))
+                    {
+                        return ReadIsSideeffecting(call.ReceiverOpt);
+                    }
+
+                    return true;
 
                 default:
                     return true;
             }
+        }
+
+        private static bool IsSpecialMember(MethodSymbol method, SpecialMember specialMember)
+        {
+            Debug.Assert(method != null);
+            return method.ContainingAssembly?.GetSpecialTypeMember(specialMember) == method;
         }
 
         // nontrivial literals do not change between reads

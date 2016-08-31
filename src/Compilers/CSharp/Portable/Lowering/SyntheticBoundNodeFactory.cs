@@ -747,8 +747,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i < parts.Length - 1; i++) builder.Add(parts[i]);
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var part = parts[i];
+                if (LocalRewriter.ReadIsSideeffecting(part))
+                {
+                    builder.Add(parts[i]);
+                }
+            }
             var lastExpression = parts[parts.Length - 1];
+
+            if (locals.IsDefaultOrEmpty && builder.Count == 0)
+            {
+                builder.Free();
+                return lastExpression;
+            }
+
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
