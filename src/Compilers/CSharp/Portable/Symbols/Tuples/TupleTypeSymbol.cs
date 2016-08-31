@@ -830,7 +830,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // This is a matching field, but it is in the extension tuple
                                     tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
 
-
                                     string defaultName = TupleMemberName(tupleFieldIndex + 1);
                                     // Add a field with default name if the given name is different
                                     if (namesOfVirtualFields[tupleFieldIndex] != defaultName)
@@ -946,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Add a field with default name if the given name is different
                     if (name != defaultName)
                     {
-                        members.Add(new TupleErrorFieldSymbol(this, defaultName, -members.Count - 1, null, _elementTypes[i], diagnosticInfo));
+                        members.Add(new TupleErrorFieldSymbol(this, defaultName, i, null, _elementTypes[i], diagnosticInfo));
                     }
 
                     members.Add(new TupleErrorFieldSymbol(this, name, i,
