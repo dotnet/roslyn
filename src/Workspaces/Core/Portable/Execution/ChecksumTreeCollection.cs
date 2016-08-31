@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +95,44 @@ namespace Microsoft.CodeAnalysis.Execution
 
             // as long as solution snapshot is pinned. it must exist in one of the trees.
             throw ExceptionUtilities.UnexpectedValue(checksum);
+        }
+
+        public ImmutableDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            using (var set = Creator.CreateChecksumSet(checksums))
+            {
+                var count = set.Object.Count;
+                var builder = ImmutableDictionary.CreateBuilder<Checksum, ChecksumObject>();
+
+                // search snapshots we have
+                foreach (var cache in _rootTreeNodes.Values)
+                {
+                    cache.AppendChecksumObjects(builder, set.Object, cancellationToken);
+                    if (builder.Count == count)
+                    {
+                        return builder.ToImmutable();
+                    }
+                }
+
+                // search global assets
+                foreach (var asset in _globalAssets.Values)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (set.Object.Remove(asset.Checksum))
+                    {
+                        builder[asset.Checksum] = asset;
+
+                        if (builder.Count == count)
+                        {
+                            return builder.ToImmutable();
+                        }
+                    }
+                }
+
+                // as long as solution snapshot is pinned. it must exist in one of the trees.
+                throw ExceptionUtilities.UnexpectedValue(builder.Count);
+            }
         }
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)

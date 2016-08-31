@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -86,23 +88,67 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
+            T asset;
+            if (TryGetAsset(checksum, out asset))
+            {
+                return asset;
+            }
+
             using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, GetChecksumLogInfo, checksum, cancellationToken))
+            {
+                // TODO: what happen if service doesn't come back. timeout?
+                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+
+                _assets.TryAdd(checksum, new Entry(value));
+
+                return (T)value;
+            }
+        }
+
+        public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, GetChecksumLogInfo, solutionChecksum, cancellationToken))
+            {
+                var collector = new ChecksumSynchronizer(this);
+                await collector.SynchronizeAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private bool Exists(Checksum checksum)
+        {
+            object unused;
+            return TryGetAsset(checksum, out unused);
+        }
+
+        private bool TryGetAsset<T>(Checksum checksum, out T value)
+        {
+            value = default(T);
+            using (Logger.LogBlock(FunctionId.AssetService_TryGetAsset, GetChecksumLogInfo, checksum, CancellationToken.None))
             {
                 Entry entry;
                 if (!_assets.TryGetValue(checksum, out entry))
                 {
-                    // TODO: what happen if service doesn't come back. timeout?
-                    var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-
-                    _assets.TryAdd(checksum, new Entry(value));
-
-                    return (T)value;
+                    return false;
                 }
 
                 // Update timestamp
                 Update(checksum, entry);
 
-                return (T)entry.Object;
+                value = (T)entry.Object;
+                return true;
+            }
+        }
+
+        private async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, GetChecksumsLogInfo, checksums, cancellationToken))
+            {
+                var values = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+
+                foreach (var tuple in values)
+                {
+                    _assets.TryAdd(tuple.Item1, new Entry(tuple.Item2));
+                }
             }
         }
 
@@ -115,6 +161,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
+            using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
+            {
+                pooledObject.Object.Add(checksum);
+
+                var tuple = await RequestAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
+                return tuple[0].Item2;
+            }
+        }
+
+        private async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            if (checksums.Count == 0)
+            {
+                return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
+            }
+
             // the service doesn't care which asset source it uses to get the asset. if there are multiple
             // channel created (multiple caller to code analysis service), we will have multiple asset sources
             // 
@@ -130,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // ask one of asset source for data
-                    return await source.RequestAssetAsync(serviceId, checksum, cancellationToken).ConfigureAwait(false);
+                    return await source.RequestAssetsAsync(serviceId, checksums, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (IsExpected(ex))
                 {
@@ -158,6 +220,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return checksum.ToString();
         }
 
+        private static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
+        {
+            return string.Join("|", checksums.Select(c => c.ToString()));
+        }
+
         private class Entry
         {
             // mutable field
@@ -170,6 +237,88 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 LastAccessed = DateTime.UtcNow;
                 Object = @object;
+            }
+        }
+
+        private struct ChecksumSynchronizer
+        {
+            private readonly AssetService _assetService;
+
+            public ChecksumSynchronizer(AssetService assetService)
+            {
+                _assetService = assetService;
+            }
+
+            public async Task SynchronizeAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+            {
+                // get children of solution checksum object at once
+                var solutionChecksums = new HashSet<Checksum>();
+                var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                AppendIfNeeded(solutionChecksums, solutionChecksumObject.Info);
+                AppendIfNeeded(solutionChecksums, solutionChecksumObject.Projects);
+
+                await _assetService.SynchronizeAssetsAsync(solutionChecksums, cancellationToken).ConfigureAwait(false);
+
+                // get children of project checksum objects at once
+                var projectChecksums = new HashSet<Checksum>();
+                foreach (var projectChecksum in solutionChecksumObject.Projects)
+                {
+                    var projectChecksumObject = await _assetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
+
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.Info);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.CompilationOptions);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.ParseOptions);
+
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.ProjectReferences);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.MetadataReferences);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.AnalyzerReferences);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.Documents);
+                    AppendIfNeeded(projectChecksums, projectChecksumObject.AdditionalDocuments);
+                }
+
+                await _assetService.SynchronizeAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+
+                // get children of document checksum objects at once
+                var documentChecksums = new HashSet<Checksum>();
+                foreach (var projectChecksum in solutionChecksumObject.Projects)
+                {
+                    var projectChecksumObject = await _assetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var checksum in projectChecksumObject.Documents)
+                    {
+                        var documentChecksumObject = await _assetService.GetAssetAsync<DocumentChecksumObject>(checksum, cancellationToken).ConfigureAwait(false);
+
+                        AppendIfNeeded(documentChecksums, documentChecksumObject.Info);
+                        AppendIfNeeded(documentChecksums, documentChecksumObject.Text);
+                    }
+
+                    foreach (var checksum in projectChecksumObject.AdditionalDocuments)
+                    {
+                        var documentChecksumObject = await _assetService.GetAssetAsync<DocumentChecksumObject>(checksum, cancellationToken).ConfigureAwait(false);
+
+                        AppendIfNeeded(documentChecksums, documentChecksumObject.Info);
+                        AppendIfNeeded(documentChecksums, documentChecksumObject.Text);
+                    }
+                }
+
+                await _assetService.SynchronizeAssetsAsync(documentChecksums, cancellationToken).ConfigureAwait(false);
+            }
+
+            private void AppendIfNeeded(HashSet<Checksum> checksums, IEnumerable<Checksum> collection)
+            {
+                foreach (var checksum in collection)
+                {
+                    AppendIfNeeded(checksums, checksum);
+                }
+            }
+
+            private void AppendIfNeeded(HashSet<Checksum> checksums, Checksum info)
+            {
+                if (!_assetService.Exists(info))
+                {
+                    checksums.Add(info);
+                }
             }
         }
     }

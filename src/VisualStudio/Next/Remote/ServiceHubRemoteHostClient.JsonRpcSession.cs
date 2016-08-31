@@ -126,23 +126,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 /// <summary>
                 /// this is callback from remote host side to get asset associated with checksum from VS.
                 /// </summary>
-                public async Task RequestAssetAsync(int serviceId, byte[] checksum, string streamName)
+                public async Task RequestAssetAsync(int serviceId, byte[][] checksums, string streamName)
                 {
                     try
                     {
-                        var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
-
                         using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                         {
                             using (var writer = new ObjectWriter(stream))
                             {
                                 writer.WriteInt32(serviceId);
-                                writer.WriteValue(checksum);
 
-                                var checksumObject = service.GetChecksumObject(new Checksum(checksum), _source.Token);
-                                writer.WriteString(checksumObject.Kind);
-
-                                await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
+                                await WriteAssetAsync(writer, checksums).ConfigureAwait(false);
                             }
 
                             await stream.FlushAsync(_source.Token).ConfigureAwait(false);
@@ -157,6 +151,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     {
                         // rpc connection is closed. 
                         // can happen if pinned solution scope is disposed
+                    }
+                }
+
+                private async Task WriteAssetAsync(ObjectWriter writer, byte[][] checksums)
+                {
+                    // special case
+                    if (checksums.Length == 0)
+                    {
+                        await WriteNoAssetAsync(writer).ConfigureAwait(false);
+                        return;
+                    }
+
+                    if (checksums.Length == 1)
+                    {
+                        await WriteOneAssetAsync(writer, checksums[0]).ConfigureAwait(false);
+                        return;
+                    }
+
+                    await WriteMultipleAssetsAsync(writer, checksums).ConfigureAwait(false);
+                }
+
+                private Task WriteNoAssetAsync(ObjectWriter writer)
+                {
+                    writer.WriteInt32(0);
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                private async Task WriteOneAssetAsync(ObjectWriter writer, byte[] checksum)
+                {
+                    var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
+
+                    var checksumObject = service.GetChecksumObject(new Checksum(checksum), _source.Token);
+                    writer.WriteInt32(1);
+
+                    writer.WriteValue(checksum);
+                    writer.WriteString(checksumObject.Kind);
+
+                    await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
+                }
+
+                private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
+                {
+                    var service = ChecksumScope.Workspace.Services.GetRequiredService<ISolutionChecksumService>();
+
+                    var checksumObjectMap = service.GetChecksumObjects(checksums.Select(c => new Checksum(c)), _source.Token);
+                    writer.WriteInt32(checksumObjectMap.Count);
+
+                    foreach (var kv in checksumObjectMap)
+                    {
+                        var checksum = kv.Key;
+                        var checksumObject = kv.Value;
+
+                        writer.WriteValue(checksum.ToArray());
+                        writer.WriteString(checksumObject.Kind);
+
+                        await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
                     }
                 }
 

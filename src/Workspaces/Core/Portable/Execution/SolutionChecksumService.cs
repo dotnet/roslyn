@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -68,9 +72,22 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
+            public ImmutableDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            {
+                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObjects, GetChecksumsLogInfo, checksums, cancellationToken))
+                {
+                    return _treeCollection.GetChecksumObjects(checksums, cancellationToken);
+                }
+            }
+
             private static string GetChecksumLogInfo(Checksum checksum)
             {
                 return checksum.ToString();
+            }
+
+            private static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
+            {
+                return string.Join("|", checksums.Select(c => c.ToString()));
             }
         }
     }

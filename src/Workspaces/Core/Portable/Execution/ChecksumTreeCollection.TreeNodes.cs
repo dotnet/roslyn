@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -56,6 +58,40 @@ namespace Microsoft.CodeAnalysis.Execution
                 // this cache has no reference to the given checksum
                 return null;
             }
+
+            public override void AppendChecksumObjects(ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+            {
+                base.AppendChecksumObjects(builder, checksums, cancellationToken);
+                if (checksums.Count == 0)
+                {
+                    return;
+                }
+
+                if (_additionalAssets == null)
+                {
+                    // this can't be reached
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                AppendChecksumObjects(builder, checksums, _additionalAssets, cancellationToken);
+            }
+
+            private void AppendChecksumObjects(
+                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, ConcurrentDictionary<Checksum, Asset> assets, CancellationToken cancellationToken)
+            {
+                AppendChecksumObjects(builder, checksums, assets.Count, assets.Keys, c => GetItem(assets, c), cancellationToken);
+            }
+
+            private ChecksumObject GetItem(ConcurrentDictionary<Checksum, Asset> assets, Checksum checksum)
+            {
+                Asset asset;
+                if (assets.TryGetValue(checksum, out asset))
+                {
+                    return asset;
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -90,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public virtual ChecksumObject TryGetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
-                // search needed to be improved.
                 ChecksumObject checksumObject;
                 foreach (var entry in _cache.Values)
                 {
@@ -119,6 +154,39 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 return null;
+            }
+
+            public virtual void AppendChecksumObjects(ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+            {
+                if (checksums.Count == 0)
+                {
+                    return;
+                }
+
+                foreach (var entry in _cache.Values)
+                {
+                    AppendChecksumObjects(builder, checksums, entry, cancellationToken);
+                    if (checksums.Count == 0)
+                    {
+                        // we found all
+                        return;
+                    }
+
+                    var cache = entry.TryGetSubTreeNode();
+                    if (cache == null)
+                    {
+                        // this entry doesn't have sub tree cache
+                        continue;
+                    }
+
+                    // ask its sub tree cache
+                    cache.AppendChecksumObjects(builder, checksums, cancellationToken);
+                    if (checksums.Count == 0)
+                    {
+                        // we found all
+                        return;
+                    }
+                }
             }
 
             public ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
@@ -177,6 +245,59 @@ namespace Microsoft.CodeAnalysis.Execution
                 where TAsset : Asset
             {
                 return GetOrCreateChecksumObjectAsync(key, value, kind, valueGetterAsync, cancellationToken);
+            }
+
+            protected void AppendChecksumObjects(
+                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder,
+                HashSet<Checksum> checksums,
+                int itemCount,
+                IEnumerable<Checksum> itemChecksums,
+                Func<Checksum, ChecksumObject> itemGetter, CancellationToken cancellationToken)
+            {
+                using (var removed = Creator.CreateList<Checksum>())
+                {
+                    foreach (var checksum in GetChecksums(checksums.Count, checksums, itemCount, itemChecksums))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var checksumObject = itemGetter(checksum);
+                        if (checksumObject != null && checksums.Contains(checksum))
+                        {
+                            // found entry
+                            builder[checksum] = checksumObject;
+                            removed.Object.Add(checksum);
+
+                            if (removed.Object.Count == checksums.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    checksums.ExceptWith(removed.Object);
+                }
+            }
+
+            private IEnumerable<Checksum> GetChecksums(int count1, IEnumerable<Checksum> checksums1, int count2, IEnumerable<Checksum> checksums2)
+            {
+                return count1 < count2 ? checksums1 : checksums2;
+            }
+
+            private void AppendChecksumObjects(
+                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, ChecksumObjectCache entry, CancellationToken cancellationToken)
+            {
+                AppendChecksumObjects(builder, checksums, entry.Count, entry.GetChecksums(), c => GetItem(entry, c), cancellationToken);
+            }
+
+            private ChecksumObject GetItem(ChecksumObjectCache entry, Checksum checksum)
+            {
+                ChecksumObject checksumObject;
+                if (entry.TryGetValue(checksum, out checksumObject))
+                {
+                    return checksumObject;
+                }
+
+                return null;
             }
 
             private async Task<TChecksumObject> GetOrCreateChecksumObjectAsync<TKey, TValue, TChecksumObject>(

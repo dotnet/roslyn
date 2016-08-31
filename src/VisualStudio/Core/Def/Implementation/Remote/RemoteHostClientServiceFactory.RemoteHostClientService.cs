@@ -33,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _analyzerService = analyzerService;
             }
 
+            public Workspace Workspace => _workspace;
+
             public void Enable()
             {
                 lock (_gate)
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var token = _shutdownCancellationTokenSource.Token;
 
                     // create solution checksum updator
-                    _checksumUpdator = new SolutionChecksumUpdator(_workspace, token);
+                    _checksumUpdator = new SolutionChecksumUpdator(this, token);
 
                     _instanceTask = Task.Run(() => EnableAsync(token), token);
                 }
