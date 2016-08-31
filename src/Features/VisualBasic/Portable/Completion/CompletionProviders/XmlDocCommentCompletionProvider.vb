@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -10,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class XmlDocCommentCompletionProvider
-        Inherits AbstractDocCommentCompletionProvider
+        Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = "<"c OrElse (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
@@ -116,8 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     items.AddRange(GetListHeaderItems())
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
-                items.AddRange(GetTagsForSymbol(symbol, parent))
-                items.AddRange(GetSingleUseTopLevelItems(parent))
+                items.AddRange(GetItemsForSymbol(symbol, parent))
+                items.AddRange(GetTopLevelSingleUseItems(parent))
                 items.AddRange(GetTopLevelRepeatableItems())
             End If
 
@@ -223,142 +222,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Sub
 
-        Protected Overrides Function GetKeywordItems() As IEnumerable(Of CompletionItem)
-            Return SyntaxFacts.GetKeywordKinds() _
-                              .Select(Function(keyword) CreateCompletionItem(SyntaxFacts.GetText(keyword)))
+        Protected Overrides Function GetKeywordNames() As IEnumerable(Of String)
+            Return SyntaxFacts.GetKeywordKinds().Select(Function(keyword) SyntaxFacts.GetText(keyword))
         End Function
 
-        Private Function GetTagsForSymbol(symbol As ISymbol,
-                                          parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)()
-
-            If symbol Is Nothing Then
-                Return items
-            End If
-
-            Dim method = TryCast(symbol, IMethodSymbol)
-            If method IsNot Nothing Then
-                items.AddRange(GetTagsForMethod(method, parent))
-            End If
-
-            Dim [property] = TryCast(symbol, IPropertySymbol)
-            If [property] IsNot Nothing Then
-                items.AddRange(GetTagsForProperty([property], parent))
-            End If
-
-            Dim type = TryCast(symbol, INamedTypeSymbol)
-            If type IsNot Nothing Then
-                items.AddRange(GetTagsForType(type, parent))
-            End If
-
-            Return items
+        Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
+            Return parentTrivia.Content.Select(AddressOf GetElementName)
         End Function
 
-        Private Function GetTagsForType(type As INamedTypeSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
+        Protected Overrides Function GetExistingTopLevelAttributeValues(syntax As DocumentationCommentTriviaSyntax, elementName As String, attributeName As String) As IEnumerable(Of String)
+            Dim attributeValues = SpecializedCollections.EmptyEnumerable(Of String)()
 
-            Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
-
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            Return items
-        End Function
-
-        Private Function GetTagsForProperty([property] As IPropertySymbol,
-                                            parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
-
-            Dim typeParameters = [property].GetTypeArguments().Select(Function(t) t.Name).ToSet()
-            Dim value = True
-
-            For Each node In parent.ChildNodes
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim name = TryCast(element.StartTag.Name, XmlNameSyntax)
-
-                    If name?.LocalName.ValueText = ValueTagName Then
-                        value = False
-                    End If
+            For Each node In syntax.Content
+                Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
+                If GetElementNameAndAttributes(node, attributes) = elementName Then
+                    attributeValues = attributeValues.Concat(
+                        attributes.Where(Function(attribute) GetAttributeName(attribute) = attributeName) _
+                                  .Select(AddressOf GetAttributeValue))
                 End If
             Next
 
-            If [property].IsIndexer Then
-                Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
-                RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
-            End If
-
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            If value Then
-                items.Add(GetItem(ValueTagName))
-            End If
-
-            Return items
+            Return attributeValues
         End Function
 
-        Private Function GetTagsForMethod(method As IMethodSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim items = New List(Of CompletionItem)
+        Private Function GetElementName(node As XmlNodeSyntax) As String
+            Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
+            Return GetElementNameAndAttributes(node, attributes)
+        End Function
 
-            Dim parameters = method.Parameters.Select(Function(p) p.Name).ToSet()
-            Dim typeParameters = method.TypeParameters.Select(Function(t) t.Name).ToSet()
-            Dim returns = True
+        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax, ByRef attributes As SyntaxList(Of XmlNodeSyntax)) As String
+            attributes = Nothing
 
-            RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-            RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
+            Dim nameSyntax As XmlNameSyntax = Nothing
 
-            For Each node In parent.ChildNodes
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing AndAlso Not element.StartTag.IsMissing AndAlso Not element.EndTag.IsMissing Then
-                    Dim name = TryCast(element.StartTag.Name, XmlNameSyntax)
-
-                    If name?.LocalName.ValueText = ReturnsTagName Then
-                        returns = False
-                    End If
-                End If
-            Next
-
-            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
-
-            If returns Then
-                items.Add(GetItem(ReturnsTagName))
+            If node.IsKind(SyntaxKind.XmlEmptyElement) Then
+                Dim emptyElementSyntax = DirectCast(node, XmlEmptyElementSyntax)
+                nameSyntax = TryCast(emptyElementSyntax.Name, XmlNameSyntax)
+                attributes = emptyElementSyntax.Attributes
+            ElseIf node.IsKind(SyntaxKind.XmlElement) Then
+                Dim elementSyntax = DirectCast(node, XmlElementSyntax)
+                nameSyntax = TryCast(elementSyntax.StartTag.Name, XmlNameSyntax)
+                attributes = elementSyntax.StartTag.Attributes
             End If
 
-            Return items
+            Return nameSyntax?.LocalName.ValueText
         End Function
 
-        Private Function FindName(name As String, element As XmlElementSyntax) As String
-            Dim startTag = element.StartTag
-            Dim nameSyntax = TryCast(startTag.Name, XmlNameSyntax)
-
-            If nameSyntax.LocalName.ValueText = name Then
-                Return startTag.Attributes.OfType(Of XmlNameAttributeSyntax)() _
-                    .Where(Function(a) a.Name.ToString() = NameAttributeName) _
-                    .Select(Function(a) a.Reference.Identifier.ValueText) _
-                    .FirstOrDefault()
+        Private Function GetAttributeValue(attribute As XmlNodeSyntax) As String
+            If TypeOf attribute Is XmlAttributeSyntax Then
+                Return DirectCast(DirectCast(attribute, XmlAttributeSyntax).Value, XmlStringSyntax).TextTokens.GetValueText()
             End If
 
-            Return Nothing
+            Return TryCast(attribute, XmlNameAttributeSyntax)?.Reference?.Identifier.ValueText
         End Function
-
-        Private Function GetSingleUseTopLevelItems(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
-            Dim names = New HashSet(Of String)({SummaryTagName, RemarksTagName, ExceptionTagName, IncludeTagName, PermissionTagName, ExampleTagName, CompletionListTagName})
-
-            RemoveExistingTags(parentTrivia, names, Function(x) DirectCast(x.StartTag.Name, XmlNameSyntax).LocalName.ValueText)
-
-            Return names.Select(AddressOf GetItem)
-        End Function
-
-        Private Sub RemoveExistingTags(parentTrivia As DocumentationCommentTriviaSyntax, names As ISet(Of String), selector As Func(Of XmlElementSyntax, String))
-            For Each node In parentTrivia.Content
-                Dim element = TryCast(node, XmlElementSyntax)
-                If element IsNot Nothing Then
-                    names.Remove(selector(element))
-                End If
-            Next
-        End Sub
 
         Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
             Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()

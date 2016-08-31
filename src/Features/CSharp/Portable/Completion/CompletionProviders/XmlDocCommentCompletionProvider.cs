@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
+    internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -106,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
                     (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
-                    items.AddRange(GetTopLevelSingleUseNames(parentTrivia));
+                    items.AddRange(GetTopLevelSingleUseItems(parentTrivia));
                     items.AddRange(GetTopLevelRepeatableItems());
-                    items.AddRange(GetTagsForSymbol(declaredSymbol, parentTrivia));
+                    items.AddRange(GetItemsForSymbol(declaredSymbol, parentTrivia));
                 }
             }
 
@@ -133,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private bool IsAttributeNameContext(SyntaxToken token, int position, out string elementName, out ISet<string> attributeNames)
         {
+            elementName = null;
+
             if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && string.IsNullOrWhiteSpace(token.Text))
             {
                 // Unlike VB, the C# lexer has a preference for leading trivia so, in the following text...
@@ -147,11 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Handle the <elem$$ case by going back one token (some of the subsequent checks need to account for this)
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+            SyntaxList<XmlAttributeSyntax> attributes = default(SyntaxList<XmlAttributeSyntax>);
+
             if (token.IsKind(SyntaxKind.IdentifierToken) && token.IsParentKind(SyntaxKind.XmlName))
             {
                 // <elem $$
                 // <elem attr$$
-                return TryGetAttributeNameContext(token.Parent.Parent, out elementName, out attributeNames);
+                elementName = GetElementNameAndAttributes(token.Parent.Parent, out attributes);
             }
             else if (token.IsParentKind(SyntaxKind.XmlCrefAttribute) ||
                      token.IsParentKind(SyntaxKind.XmlNameAttribute) ||
@@ -164,45 +167,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (token == attributeSyntax.EndQuoteToken)
                 {
-                    return TryGetAttributeNameContext(attributeSyntax.Parent, out elementName, out attributeNames);
+                    elementName = GetElementNameAndAttributes(attributeSyntax.Parent, out attributes);
                 }
             }
 
-            elementName = null;
-            attributeNames = null;
-            return false;
-        }
-
-        private bool TryGetAttributeNameContext(SyntaxNode node, out string elementName, out ISet<string> attributeNames)
-        {
-            XmlNameSyntax elementNameSyntax = null;
-            var attributeSyntax = default(SyntaxList<XmlAttributeSyntax>);
-
-            if (node.IsKind(SyntaxKind.XmlEmptyElement))
-            {
-                var emptyElementSyntax = (XmlEmptyElementSyntax)node;
-                elementNameSyntax = emptyElementSyntax.Name;
-                attributeSyntax = emptyElementSyntax.Attributes;
-            }
-            else if (node.IsKind(SyntaxKind.XmlElementStartTag))
-            {
-                var startTagSyntax = (XmlElementStartTagSyntax)node;
-                elementNameSyntax = startTagSyntax.Name;
-                attributeSyntax = startTagSyntax.Attributes;
-            }
-
-            elementName = elementNameSyntax?.LocalName.ValueText;
-            attributeNames = attributeSyntax.Select(a => a.Name.LocalName.ValueText)
-                                            .ToSet();
+            attributeNames = attributes.Select(attribute => GetAttributeName(attribute))
+                                       .ToSet();
 
             return elementName != null;
         }
 
+        private string GetElementNameAndAttributes(SyntaxNode node, out SyntaxList<XmlAttributeSyntax> attributes)
+        {
+            XmlNameSyntax nameSyntax;
+
+            switch (node.Kind())
+            {
+                case SyntaxKind.XmlEmptyElement:
+                {
+                    var emptyElementSyntax = (XmlEmptyElementSyntax)node;
+                    nameSyntax = emptyElementSyntax.Name;
+                    attributes = emptyElementSyntax.Attributes;
+                    break;
+                }
+
+                case SyntaxKind.XmlElement:
+                {
+                    node = ((XmlElementSyntax)node).StartTag;
+                    goto case SyntaxKind.XmlElementStartTag;
+                }
+
+                case SyntaxKind.XmlElementStartTag:
+                {
+                    var startTagSyntax = (XmlElementStartTagSyntax)node;
+                    nameSyntax = startTagSyntax.Name;
+                    attributes = startTagSyntax.Attributes;
+                    break;
+                }
+
+                default:
+                    nameSyntax = null;
+                    attributes = default(SyntaxList<XmlAttributeSyntax>);
+                    break;
+            }
+
+            return nameSyntax?.LocalName.ValueText;
+        }
+
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax;
+            XmlAttributeSyntax attributeSyntax = null;
 
-            if (IsAttributeValueContext(token, out attributeSyntax))
+            if (token.IsParentKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
+            {
+                // name="bar$$
+                attributeSyntax = (XmlNameAttributeSyntax)token.Parent.Parent;
+            }
+            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            {
+                // foo="bar$$
+                attributeSyntax = (XmlTextAttributeSyntax)token.Parent;
+            }
+            else if (token.IsParentKind(SyntaxKind.XmlNameAttribute) || token.IsParentKind(SyntaxKind.XmlTextAttribute))
+            {
+                // name="$$
+                // foo="$$
+                attributeSyntax = (XmlAttributeSyntax)token.Parent;
+                if (token != attributeSyntax.StartQuoteToken)
+                {
+                    attributeSyntax = null;
+                }
+            }
+
+
+            if (attributeSyntax != null)
             {
                 attributeName = attributeSyntax.Name.LocalName.ValueText;
 
@@ -228,162 +266,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private bool IsAttributeValueContext(SyntaxToken token, out XmlAttributeSyntax syntax)
+        protected override IEnumerable<string> GetKeywordNames()
         {
-            if (token.IsParentKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
-            {
-                syntax = (XmlAttributeSyntax)token.Parent.Parent;
-                return true;
-            }
-            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.IsParentKind(SyntaxKind.XmlTextAttribute))
-            {
-                syntax = (XmlAttributeSyntax)token.Parent;
-                return true;
-            }
-            else if (token.IsParentKind(SyntaxKind.XmlNameAttribute) || token.IsParentKind(SyntaxKind.XmlTextAttribute))
-            {
-                syntax = (XmlAttributeSyntax)token.Parent;
-                return token == syntax.StartQuoteToken;
-            }
-            else
-            {
-                syntax = null;
-                return false;
-            }
+            return SyntaxFacts.GetKeywordKinds().Select(keyword => SyntaxFacts.GetText(keyword));
         }
 
-        protected override IEnumerable<CompletionItem> GetKeywordItems()
+        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax)
         {
-            return SyntaxFacts.GetKeywordKinds()
-                              .Select(keyword => CreateCompletionItem(SyntaxFacts.GetText(keyword)));
+            return syntax.Content.Select(GetElementName);
         }
 
-        private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia)
+        protected override IEnumerable<string> GetExistingTopLevelAttributeValues(DocumentationCommentTriviaSyntax syntax, string elementName, string attributeName)
         {
-            var names = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
+            var attributeValues = SpecializedCollections.EmptyEnumerable<string>();
 
-            RemoveExistingTags(parentTrivia, names, x => x.StartTag.Name.LocalName.ValueText);
-
-            return names.Select(GetItem);
-        }
-
-        private void RemoveExistingTags(DocumentationCommentTriviaSyntax parentTrivia, ISet<string> names, Func<XmlElementSyntax, string> selector)
-        {
-            if (parentTrivia != null)
+            foreach (var node in syntax.Content)
             {
-                foreach (var node in parentTrivia.Content)
+                SyntaxList<XmlAttributeSyntax> attributes;
+                if (GetElementNameAndAttributes(node, out attributes) == elementName)
                 {
-                    if (node is XmlElementSyntax element)
-                    {
-                        names.Remove(selector(element));
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<CompletionItem> GetTagsForSymbol(ISymbol symbol, DocumentationCommentTriviaSyntax trivia)
-        {
-            if (symbol is IMethodSymbol method)
-            {
-                return GetTagsForMethod(method, trivia);
-            }
-
-            if (symbol is IPropertySymbol property)
-            {
-                return GetTagsForProperty(property, trivia);
-            }
-
-            if (symbol is INamedTypeSymbol namedType)
-            {
-                return GetTagsForType(namedType, trivia);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-        }
-
-        private IEnumerable<CompletionItem> GetTagsForType(INamedTypeSymbol symbol, DocumentationCommentTriviaSyntax trivia)
-        {
-            var items = new List<CompletionItem>();
-
-            var typeParameters = symbol.TypeParameters.Select(p => p.Name).ToSet();
-
-            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
-
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(FormatParameter(TypeParamTagName, t))));
-            return items;
-        }
-
-        private string AttributeSelector(XmlElementSyntax element, string attribute)
-        {
-            if (!element.StartTag.IsMissing && !element.EndTag.IsMissing)
-            {
-                var startTag = element.StartTag;
-                var nameAttribute = startTag.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ValueText == NameAttributeName);
-                if (nameAttribute != null)
-                {
-                    if (startTag.Name.LocalName.ValueText == attribute)
-                    {
-                        return nameAttribute.Identifier.Identifier.ValueText;
-                    }
+                    attributeValues = attributeValues.Concat(
+                        attributes.Where(attribute => GetAttributeName(attribute) == attributeName)
+                                  .Select(GetAttributeValue));
                 }
             }
 
-            return null;
+            return attributeValues;
         }
 
-        private IEnumerable<CompletionItem> GetTagsForProperty(IPropertySymbol symbol, DocumentationCommentTriviaSyntax trivia)
+        private string GetElementName(XmlNodeSyntax node)
         {
-            var items = new List<CompletionItem>();
-
-            if (symbol.IsIndexer)
-            {
-                var parameters = symbol.GetParameters().Select(p => p.Name).ToSet();
-                RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
-                items.AddRange(parameters.Select(p => CreateCompletionItem(FormatParameter(ParamTagName, p))));
-            }
-
-            var typeParameters = symbol.GetTypeArguments().Select(p => p.Name).ToSet();
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(TypeParamTagName, NameAttributeName, t)));
-            items.Add(CreateCompletionItem("value"));
-            return items;
+            SyntaxList<XmlAttributeSyntax> attributes;
+            return GetElementNameAndAttributes(node, out attributes);
         }
 
-        private IEnumerable<CompletionItem> GetTagsForMethod(IMethodSymbol symbol, DocumentationCommentTriviaSyntax trivia)
+        private string GetAttributeName(XmlAttributeSyntax attribute)
         {
-            var items = new List<CompletionItem>();
+            return attribute.Name.LocalName.ValueText;
+        }
 
-            var parameters = symbol.GetParameters().Select(p => p.Name).ToSet();
-            var typeParameters = symbol.TypeParameters.Select(t => t.Name).ToSet();
-
-            RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
-            RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
-
-            items.AddRange(parameters.Select(p => CreateCompletionItem(FormatParameter(ParamTagName, p))));
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(FormatParameter(TypeParamTagName, t))));
-
-            // Provide a return completion item in case the function returns something
-            var returns = true;
-
-            foreach (var node in trivia.Content)
+        private string GetAttributeValue(XmlAttributeSyntax attribute)
+        {
+            switch (attribute)
             {
-                if (node is XmlElementSyntax element && !element.StartTag.IsMissing && !element.EndTag.IsMissing)
-                {
-                    var startTag = element.StartTag;
+                case XmlTextAttributeSyntax textAttribute:
+                    return textAttribute.TextTokens.GetValueText();
 
-                    if (startTag.Name.LocalName.ValueText == ReturnsTagName)
-                    {
-                        returns = false;
-                        break;
-                    }
-                }
+                case XmlNameAttributeSyntax nameAttribute:
+                    return nameAttribute.Identifier.Identifier.ValueText;
+
+                default:
+                    return null;
             }
-
-            if (returns && !symbol.ReturnsVoid)
-            {
-                items.Add(CreateCompletionItem(ReturnsTagName));
-            }
-
-            return items;
         }
 
         private static CompletionItemRules s_defaultRules = 

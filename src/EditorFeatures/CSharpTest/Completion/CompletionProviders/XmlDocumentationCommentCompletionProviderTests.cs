@@ -246,6 +246,84 @@ public class goo
 }", "returns");
         }
 
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadWritePropertyNoReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; set; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadWritePropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; set; }
+}", "value");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyPropertyNoReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyPropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { get; }
+}", "value");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WriteOnlyPropertyNoReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { set; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WriteOnlyPropertyValue()
+        {
+            await VerifyItemExistsAsync(@"
+public class goo
+{
+    
+    /// $$
+    public int bar { set; }
+}", "value");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamTypeParam()
         {

@@ -8,10 +8,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractDocCommentCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider
+        where TSyntax : SyntaxNode
     {
         // Tag names
         protected const string CDataPrefixTagName = "![CDATA[";
@@ -101,6 +103,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
 
+        protected abstract IEnumerable<string> GetExistingTopLevelElementNames(TSyntax syntax);
+
+        protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
+
+        private Boolean HasExistingTopLevelElement(TSyntax syntax, string name)
+        {
+            return GetExistingTopLevelElementNames(syntax).Contains(name);
+        }
+
         protected CompletionItem GetItem(string n)
         {
             if (_tagMap.TryGetValue(n, out var value))
@@ -179,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else if (attributeName == LangwordAttributeName && tagName == SeeTagName)
             {
-                return GetKeywordItems();
+                return GetKeywordNames().Select(keyword => CreateCompletionItem(keyword));
             }
             else if (attributeName == TypeAttributeName && tagName == ListTagName)
             {
@@ -205,11 +216,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        protected abstract IEnumerable<CompletionItem> GetKeywordItems();
+        protected abstract IEnumerable<string> GetKeywordNames();
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
         {
             return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
+        }
+
+        protected IEnumerable<CompletionItem> GetTopLevelSingleUseItems(TSyntax syntax)
+        {
+            var tagNames = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
+            tagNames.RemoveAll(GetExistingTopLevelElementNames(syntax).WhereNotNull());
+            return tagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListItems()
@@ -222,7 +240,40 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
         }
 
-        protected string FormatParameter(string kind, string name)
+        protected IEnumerable<CompletionItem> GetItemsForSymbol(ISymbol symbol, TSyntax syntax)
+        {
+            var items = new List<CompletionItem>();
+
+            if (symbol != null)
+            {
+                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParamTagName));
+                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParamTagName));
+
+                var property = symbol as IPropertySymbol;
+                if (property != null && !HasExistingTopLevelElement(syntax, ValueTagName))
+                {
+                    items.Add(GetItem(ValueTagName));
+                }
+
+                var method = symbol as IMethodSymbol;
+                var returns = method != null && !method.ReturnsVoid;
+                if (returns && !HasExistingTopLevelElement(syntax, ReturnsTagName))
+                {
+                    items.Add(GetItem(ReturnsTagName));
+                }
+            }
+
+            return items;
+        }
+
+        private IEnumerable<CompletionItem> GetParameterItems<TSymbol>(ImmutableArray<TSymbol> symbols, TSyntax syntax, string tagName) where TSymbol : ISymbol
+        {
+            var names = symbols.Select(p => p.Name).ToSet();
+            names.RemoveAll(GetExistingTopLevelAttributeValues(syntax, tagName, NameAttributeName).WhereNotNull());
+            return names.Select(name => GetItem(FormatParameter(tagName, name)));
+        }
+
+        private string FormatParameter(string kind, string name)
         {
             return $"{kind} {NameAttributeName}=\"{name}\"";
         }
@@ -261,14 +312,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 newPosition, includesCommitCharacter: true);
         }
 
-        private TextSpan ComputeReplacementSpan(CompletionItem completionItem, SourceText text)
-        {
-            var currentSpan = completionItem.Span;
-            var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(completionItem);
-            return TextSpan.FromBounds(text[currentSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? currentSpan.Start - 1 : currentSpan.Start, currentSpan.End);
-        }
-
-        protected CompletionItem CreateCompletionItem(string displayText)
+        private CompletionItem CreateCompletionItem(string displayText)
         {
             return CreateCompletionItem(displayText, displayText, string.Empty);
         }
