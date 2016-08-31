@@ -226,9 +226,9 @@ public class Cls
                 // (6,28): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(long x2, byte x3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(6, 28),
-                // (6,28): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
                 // (7,34): error CS0103: The name 'x1' does not exist in the current context
                 //         System.Console.WriteLine(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),

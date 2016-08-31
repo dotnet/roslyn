@@ -1171,10 +1171,34 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (7,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
                 );
+        }
+
+        [Fact]
+        public void ChainedAssignment()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1, x2;
+        var y = (x1, x1) = (x2, x2) = new C();
+        System.Console.Write($""{y.ToString()} {x1} {x2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = b = 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
 
         [Fact]
@@ -2344,15 +2368,15 @@ class C1
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (4,32): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
-                // (6,38): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                // (6,38): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
-                // (6,18): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                // (6,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
                 );
             // no crash
         }

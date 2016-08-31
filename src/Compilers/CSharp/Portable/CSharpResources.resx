@@ -1439,6 +1439,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PredefinedTypeNotFound" xml:space="preserve">
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
   </data>
