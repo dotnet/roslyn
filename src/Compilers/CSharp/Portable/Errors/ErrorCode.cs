@@ -1345,7 +1345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsLocalFunction = 8110,
         #endregion diagnostics for local functions introduced in C# 7
 
-        // Available = 8111, 8112, 8113, 8114, 8115
+        #region diagnostics for instrumentation
+
+        ERR_InvalidInstrumentationKind = 8111,
+
+        #endregion
+
+        // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_PatternNullableType = 8116,

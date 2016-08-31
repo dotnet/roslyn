@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
+            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData == true)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImportChain oldImportChain = compilationState.CurrentImportChain;
-            bool instrumentForDynamicAnalysis = _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true;
+            bool instrumentForDynamicAnalysis = _moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData == true;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
             DiagnosticBag diagsForCurrentMethod = DiagnosticBag.GetInstance();
@@ -1403,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
-                if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
+                if (moduleBuilder.EmitOptions.EmitTestCoverageData)
                 {
                     Debug.Assert(debugDocumentProvider != null);
                     dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(dynamicAnalysisSpans);
