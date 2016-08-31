@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
