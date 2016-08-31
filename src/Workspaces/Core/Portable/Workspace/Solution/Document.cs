@@ -458,14 +458,17 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
-        /// merged with any settings the user has specified at the solution, project, and document levels.
+        /// merged with any settings the user has specified at the document levels.
         /// </summary>
         /// <remarks>
-        /// This method is async because this may require reading other files. It is expected this is cheap and synchronous in most cases due to caching.</remarks>
-        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        /// This method is async because this may require reading other files. It is expected this is cheap and synchronous in most cases due to caching.
+        /// </remarks>
+        public async Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            // TODO: merge with document-specific options
-            return Task.FromResult(new DocumentOptionSet(Project.Solution.Options, Project.Language));
+            var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options).ConfigureAwait(false);
+
+            return new DocumentOptionSet(optionSet, Project.Language);
         }
     }
 }

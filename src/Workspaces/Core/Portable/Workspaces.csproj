@@ -391,6 +391,9 @@
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="Options\GlobalOptionService.cs" />
+    <Compile Include="Options\IDocumentOptions.cs" />
+    <Compile Include="Options\IDocumentOptionsProvider.cs" />
+    <Compile Include="Options\IDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />

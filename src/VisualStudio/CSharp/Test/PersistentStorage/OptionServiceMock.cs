@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -48,6 +49,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void SetOptions(OptionSet optionSet)
         {
             Equals(null, null);
+            throw new NotImplementedException();
+        }
+
+        public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet)
+        {
             throw new NotImplementedException();
         }
     }
