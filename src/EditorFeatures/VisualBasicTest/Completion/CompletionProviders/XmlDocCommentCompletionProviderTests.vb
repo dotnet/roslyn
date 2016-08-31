@@ -556,6 +556,56 @@ End Class
             Await VerifyItemsAbsentAsync(text, "returns")
         End Function
 
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ReadWritePropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public Property P As Integer
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "returns")
+        End Function
+
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ReadOnlyPropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public ReadOnly Property P As Integer
+        Get
+        End Get
+    End Property
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "returns")
+        End Function
+
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WriteOnlyPropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public WriteOnly Property P As Integer
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Await VerifyItemIsAbsentAsync(Text, "returns")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestValueAlreadyOnProperty() As Task
             Dim text = "

@@ -246,6 +246,45 @@ public class foo
 }", "returns");
         }
 
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadWritePropertyReturns()
+        {
+            await VerifyItemExistsAsync(@"
+public class foo
+{
+    
+    /// $$
+    public void bar { get; set; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ReadOnlyPropertyReturns()
+        {
+            await VerifyItemExistsAsync(@"
+public class foo
+{
+    
+    /// $$
+    public void bar { get; }
+}", "returns");
+        }
+
+        [WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WriteOnlyPropertyReturns()
+        {
+            await VerifyItemIsAbsentAsync(@"
+public class foo
+{
+    
+    /// $$
+    public void bar { set; }
+}", "returns");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamTypeParam()
         {
