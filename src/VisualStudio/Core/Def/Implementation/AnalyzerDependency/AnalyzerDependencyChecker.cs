@@ -19,15 +19,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly HashSet<string> _analyzerFilePaths;
         private readonly List<IIgnorableAssemblyList> _ignorableAssemblyLists;
+        private readonly ImmutableDictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByName;
         private readonly IBindingRedirectionService _bindingRedirectionService;
 
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IIgnorableAssemblyList> ignorableAssemblyLists, IBindingRedirectionService bindingRedirectionService = null)
+        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IIgnorableAssemblyList> ignorableAssemblyLists, IEnumerable<AssemblyIdentity> loadedAssemblyIdentities, IBindingRedirectionService bindingRedirectionService = null)
         {
             Debug.Assert(analyzerFilePaths != null);
             Debug.Assert(ignorableAssemblyLists != null);
+            Debug.Assert(loadedAssemblyIdentities != null);
 
             _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
             _ignorableAssemblyLists = ignorableAssemblyLists.ToList();
+            _loadedAssemblyIdentitiesByName = loadedAssemblyIdentities.ToImmutableDictionary(i => i.Name, StringComparer.OrdinalIgnoreCase);
             _bindingRedirectionService = bindingRedirectionService;
         }
 
@@ -51,14 +54,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // First check for analyzers with the same identity but different
             // contents (that is, different MVIDs).
-
             ImmutableArray<AnalyzerDependencyConflict> conflicts = FindConflictingAnalyzers(analyzerInfos, cancellationToken);
 
             // Then check for missing references.
-
             ImmutableArray<MissingAnalyzerDependency> missingDependencies = FindMissingDependencies(analyzerInfos, cancellationToken);
 
-            return new AnalyzerDependencyResults(conflicts, missingDependencies);
+            // Check for loaded assemblies with same name as analyzers, but with a different version.
+            ImmutableArray<LoadedAssemblyAnalyzerConflict> loadedAssemblyAnalyzerConflicts = FindConflictingLoadedAssemblies(analyzerInfos, _loadedAssemblyIdentitiesByName, cancellationToken);
+
+            return new AnalyzerDependencyResults(conflicts, missingDependencies, loadedAssemblyAnalyzerConflicts);
         }
 
         private ImmutableArray<MissingAnalyzerDependency> FindMissingDependencies(List<AnalyzerInfo> analyzerInfos, CancellationToken cancellationToken)
@@ -107,6 +111,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                 identityGroup.Key,
                                 identityGroupArray[i].Path,
                                 identityGroupArray[j].Path));
+                        }
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        // internal for testing purposes.
+        internal static ImmutableArray<LoadedAssemblyAnalyzerConflict> FindConflictingLoadedAssemblies(List<AnalyzerInfo> analyzerInfos, ImmutableDictionary<string, AssemblyIdentity> loadedAssemblyIdentitiesByName, CancellationToken cancellationToken)
+        {
+            ImmutableArray<LoadedAssemblyAnalyzerConflict>.Builder builder = ImmutableArray.CreateBuilder<LoadedAssemblyAnalyzerConflict>();
+
+            foreach (var analyzerInfosByName in analyzerInfos.GroupBy(di => di.Identity.Name))
+            {
+                AssemblyIdentity loadedAssemblyIdentity;
+                if (loadedAssemblyIdentitiesByName.TryGetValue(analyzerInfosByName.Key, out loadedAssemblyIdentity))
+                {
+                    foreach (var analyzerInfo in analyzerInfosByName)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (analyzerInfo.Identity.Version != loadedAssemblyIdentity.Version)
+                        {
+                            builder.Add(new LoadedAssemblyAnalyzerConflict(
+                                loadedAssemblyIdentity,
+                                analyzerInfo.Identity,
+                                analyzerInfo.Path));
                         }
                     }
                 }
@@ -175,7 +207,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return metadataReader.GetGuid(mvidHandle);
         }
 
-        private sealed class AnalyzerInfo
+        // internal for testing purposes.
+        internal sealed class AnalyzerInfo
         {
             public AnalyzerInfo(string filePath, AssemblyIdentity identity, Guid mvid, ImmutableArray<AssemblyIdentity> references)
             {

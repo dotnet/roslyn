@@ -49,6 +49,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        private readonly DiagnosticDescriptor _loadedAssemblyAnalyzerConflictRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.LoadedAssemblyAnalyzerConflictId,
+            title: ServicesVSResources.AnalyzerAndLoadedAssemblyConflict,
+            messageFormat: ServicesVSResources.Analyzer_assembly_0_cannot_be_loaded_as_another_assembly_with_same_name_but_different_version_1_has_already_been_loaded_in_the_process_You_may_need_to_restart_the_process_for_analyzers_to_work_correctly,
+            category: FeaturesResources.Roslyn_HostError,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         [ImportingConstructor]
         public AnalyzerDependencyCheckingService(
             VisualStudioWorkspaceImpl workspace,
@@ -80,6 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
+            var loadedAssemblyAnalyzerConflicts = results.LoadedAssemblyAnalyzerConflicts;
 
             foreach (var project in _workspace.ProjectTracker.Projects)
             {
@@ -112,6 +121,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
+                foreach (var loadedAssemblyAnalyzerConflict in loadedAssemblyAnalyzerConflicts)
+                {
+                    if (project.CurrentProjectAnalyzersContains(loadedAssemblyAnalyzerConflict.ConflictingAnalyzerFilePath))
+                    {
+                        var messageArguments = new string[] { loadedAssemblyAnalyzerConflict.ConflictingAnalyzerIdentity.ToString(), loadedAssemblyAnalyzerConflict.LoadedAssemblyIdentity.ToString()};
+                        DiagnosticData diagnostic;
+                        if (DiagnosticData.TryCreate(_loadedAssemblyAnalyzerConflictRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        {
+                            builder.Add(diagnostic);
+                        }
+                    }
+                }
+
                 _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
             }
 
@@ -123,6 +145,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             foreach (var missingDependency in missingDependencies)
             {
                 LogMissingDependency(missingDependency);
+            }
+
+            foreach (var loadedAssemblyAnalyzerConflict in loadedAssemblyAnalyzerConflicts)
+            {
+                LogLoadedAssemblyAnalyzerConflict(loadedAssemblyAnalyzerConflict);
             }
         }
 
@@ -146,6 +173,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     m["Analyzer"] = missingDependency.AnalyzerPath;
                     m["Identity"] = missingDependency.DependencyIdentity;
+                }));
+        }
+
+        private void LogLoadedAssemblyAnalyzerConflict(LoadedAssemblyAnalyzerConflict conflict)
+        {
+            Logger.Log(
+                FunctionId.AnalyzerDependencyCheckingService_LogLoadedAssemblyAnalyzerConflict,
+                KeyValueLogMessage.Create(m =>
+                {
+                    m["Analyzer"] = conflict.ConflictingAnalyzerFilePath;
+                    m["AnalyzerIdentity"] = conflict.ConflictingAnalyzerIdentity;
+                    m["LoadedAssemblyIdentity"] = conflict.LoadedAssemblyIdentity;
                 }));
         }
 
@@ -173,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IgnorableAssemblyIdentityList loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
 
                 IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
+                return new AnalyzerDependencyChecker(currentAnalyzerPaths, ignorableAssemblyLists, loadedAssemblies, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 

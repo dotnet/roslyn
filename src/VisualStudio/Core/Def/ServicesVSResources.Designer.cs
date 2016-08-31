@@ -181,6 +181,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; cannot be loaded as another assembly with same name but different version &apos;{1}&apos; has already been loaded in the process. You may need to restart the process for analyzers to work correctly..
+        /// </summary>
+        internal static string Analyzer_assembly_0_cannot_be_loaded_as_another_assembly_with_same_name_but_different_version_1_has_already_been_loaded_in_the_process_You_may_need_to_restart_the_process_for_analyzers_to_work_correctly {
+            get {
+                return ResourceManager.GetString("Analyzer_assembly_0_cannot_be_loaded_as_another_assembly_with_same_name_but_diffe" +
+                        "rent_version_1_has_already_been_loaded_in_the_process_You_may_need_to_restart_th" +
+                        "e_process_for_analyzers_to_work_correctly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well..
         /// </summary>
         internal static string Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well {
@@ -196,6 +207,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Analyzer_reference_to_0_in_project_1 {
             get {
                 return ResourceManager.GetString("Analyzer_reference_to_0_in_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AnalyzerAndLoadedAssemblyConflict.
+        /// </summary>
+        internal static string AnalyzerAndLoadedAssemblyConflict {
+            get {
+                return ResourceManager.GetString("AnalyzerAndLoadedAssemblyConflict", resourceCulture);
             }
         }
         
