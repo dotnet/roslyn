@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60818-04",
+    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60831-01",
     "System.Diagnostics.Process": "4.1.0",
     "System.IO.FileSystem": "4.0.1",
     "System.IO.FileSystem.Primitives": "4.0.1",

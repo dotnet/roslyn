@@ -8,7 +8,7 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60818-04</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60831-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
@@ -37,7 +37,7 @@
     <SystemNetSocketsVersion>4.1.0</SystemNetSocketsVersion>
     <SystemReflectionVersion>4.1.0</SystemReflectionVersion>
     <SystemReflectionExtensionsVersion>4.0.1</SystemReflectionExtensionsVersion>
-    <SystemReflectionMetadataVersion>1.4.1-beta-24410-02</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>1.4.1-beta-24430-01</SystemReflectionMetadataVersion>
     <SystemReflectionPrimitivesVersion>4.0.1</SystemReflectionPrimitivesVersion>
     <SystemReflectionTypeExtensionsVersion>4.1.0</SystemReflectionTypeExtensionsVersion>
     <SystemResourcesResourceManagerVersion>4.0.1</SystemResourcesResourceManagerVersion>
