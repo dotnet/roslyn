@@ -51,7 +51,7 @@ try
         if (-not $test) 
         {
             <# Do not overwrite existing packages. #>
-            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "VS.ExternalAPIs.Roslyn.*.nupkg"
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "*.nupkg"
 
             <# TODO: Once all dependencies are available on NuGet we can merge the following two commands. #>
             robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") $coreXTRoot "VS.ExternalAPIs.*.nupkg"
