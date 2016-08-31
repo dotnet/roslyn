@@ -84,7 +84,9 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // Returns nodes from source not equal to actual location
             return from syntaxReference in symbol.DeclaringSyntaxReferences
                    let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
-                   where _queriedNode != candidateSyntaxNode
+                   where !(_queriedNode.Span == candidateSyntaxNode.Span &&
+                           _queriedNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath,
+                               StringComparison.OrdinalIgnoreCase))
                    select candidateSyntaxNode.GetLocation();
         }
 
