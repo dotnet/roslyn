@@ -67,9 +67,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNames(itemId));
         }
 
-        protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
+        protected void SetOutputPathAndRelatedData(string objOutputPath)
         {
-            return TryGetOutputPathFromHierarchy(Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath);
+            // Update the objOutputPath and related data.
+            SetObjOutputPathAndRelatedData(objOutputPath);
+
+            // Also fetch and update the new binOutputPath.
+            string binOutputPath;
+            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
+            {
+                SetBinOutputPathAndRelatedData(binOutputPath);
+            }
         }
 
         private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
