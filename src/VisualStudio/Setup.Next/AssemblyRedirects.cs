@@ -6,6 +6,8 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Next.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Xaml.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Next.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Remote.ServiceHub.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Remote.Workspaces.dll")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",
     GenerateCodeBase = false,
