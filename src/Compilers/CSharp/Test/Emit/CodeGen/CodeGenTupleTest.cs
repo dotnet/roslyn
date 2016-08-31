@@ -3033,7 +3033,7 @@ class C
                 // (6,42): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
-                // (6,100): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,100): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
                 // (6,111): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
@@ -3042,7 +3042,7 @@ class C
                 // (6,125): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
-                // (6,189): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,189): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
                );
@@ -3063,22 +3063,22 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (6,18): error CS8126: Tuple membername 'CompareTo' is disallowed at any position.
+                // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
-                // (6,43): error CS8126: Tuple membername 'Deconstruct' is disallowed at any position.
+                // (6,43): error CS8126: Tuple member name 'Deconstruct' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
-                // (6,59): error CS8126: Tuple membername 'Equals' is disallowed at any position.
+                // (6,59): error CS8126: Tuple member name 'Equals' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
-                // (6,70): error CS8126: Tuple membername 'GetHashCode' is disallowed at any position.
+                // (6,70): error CS8126: Tuple member name 'GetHashCode' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
-                // (6,86): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,86): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
-                // (6,95): error CS8126: Tuple membername 'ToString' is disallowed at any position.
+                // (6,95): error CS8126: Tuple member name 'ToString' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );

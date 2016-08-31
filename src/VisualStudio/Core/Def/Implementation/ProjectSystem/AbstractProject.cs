@@ -150,6 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
                 this.MetadataService = visualStudioWorkspaceOpt.Services.GetService<IMetadataService>();
             }
+
+            UpdateAssemblyName();
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -1321,9 +1323,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetOutputPathAndRelatedData(string objOutputPath, bool hasSameBinAndObjOutputPaths = false)
+        protected void SetObjOutputPathAndRelatedData(string objOutputPath)
         {
-            if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(this.ObjOutputPath, objOutputPath, StringComparison.OrdinalIgnoreCase))
+            var currentObjOutputPath = this.ObjOutputPath;
+            if (PathUtilities.IsAbsolute(objOutputPath) && !string.Equals(currentObjOutputPath, objOutputPath, StringComparison.OrdinalIgnoreCase))
             {
                 // set obj output path
                 this.ObjOutputPath = objOutputPath;
@@ -1343,8 +1346,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOptionsChanged(this.Id, CurrentCompilationOptions, CurrentParseOptions));
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnOutputFilePathChanged(this.Id, objOutputPath));
                 }
-            }
 
+                UpdateAssemblyName();
+            }
+        }
+
+        private void UpdateAssemblyName()
+        {
             // set assembly name if changed
             // we use designTimeOutputPath to get assembly name since it is more reliable way to get the assembly name.
             // otherwise, friend assembly all get messed up.
@@ -1358,28 +1366,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAssemblyNameChanged(this.Id, newAssemblyName));
                 }
             }
+        }
 
+        protected void SetBinOutputPathAndRelatedData(string binOutputPath)
+        {
             // refresh final output path
-            string newBinOutputPath;
-            if (hasSameBinAndObjOutputPaths)
-            {
-                newBinOutputPath = objOutputPath;
-            }
-            else if (!TryGetOutputPathFromHierarchy(out newBinOutputPath))
-            {
-                newBinOutputPath = null;
-            }
-
             var currentBinOutputPath = this.BinOutputPath;
-            if (newBinOutputPath != null && !string.Equals(currentBinOutputPath, newBinOutputPath, StringComparison.OrdinalIgnoreCase))
+            if (binOutputPath != null && !string.Equals(currentBinOutputPath, binOutputPath, StringComparison.OrdinalIgnoreCase))
             {
-                // set obj output path if changed
-                BinOutputPath = newBinOutputPath;
+                this.BinOutputPath = binOutputPath;
 
                 // If the project has been hooked up with the project tracker, then update the bin path with the tracker.
                 if (this.ProjectTracker.GetProject(Id) != null)
                 {
-                    this.ProjectTracker.UpdateProjectBinPath(this, currentBinOutputPath, BinOutputPath);
+                    this.ProjectTracker.UpdateProjectBinPath(this, currentBinOutputPath, binOutputPath);
                 }
             }
         }
@@ -1450,8 +1450,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
-
-        protected abstract bool TryGetOutputPathFromHierarchy(out string binOutputPath);
 
 #if DEBUG
         public virtual bool Debug_VBEmbeddedCoreOptionOn

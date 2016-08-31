@@ -277,7 +277,7 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
-            return source.OrderBy(new ComparisonComparer<T>(compare));
+            return source.OrderBy(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
@@ -292,7 +292,7 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
         {
-            return source.ThenBy(new ComparisonComparer<T>(compare));
+            return source.ThenBy(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
@@ -304,7 +304,7 @@ namespace Roslyn.Utilities
         {
             public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
 
-            public static readonly IComparer<T> Comparer = new ComparisonComparer<T>(CompareTo);
+            public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
         }
 
         private static class Functions<T>
@@ -386,6 +386,11 @@ namespace Roslyn.Utilities
             }
 
             return false;
+        }
+
+        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
+        {
+            return Comparer<T>.Create(comparison);
         }
     }
 }

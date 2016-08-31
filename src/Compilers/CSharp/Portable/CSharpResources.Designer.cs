@@ -5498,6 +5498,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid instrumentation kind: {0}.
+        /// </summary>
+        internal static string ERR_InvalidInstrumentationKind {
+            get {
+                return ResourceManager.GetString("ERR_InvalidInstrumentationKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The line number specified for #line directive is missing or invalid.
         /// </summary>
         internal static string ERR_InvalidLineNumber {
@@ -8801,7 +8810,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         /// </summary>
         internal static string ERR_TupleReservedMemberNameAnyPosition {
             get {
@@ -8837,7 +8846,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {

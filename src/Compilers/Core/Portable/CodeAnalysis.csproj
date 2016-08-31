@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="CodeGen\ItemTokenMap.cs" />
     <Compile Include="Emit\DebugDocumentsBuilder.cs" />
+    <Compile Include="Emit\InstrumentationKind.cs" />
     <Compile Include="EmbeddedText.cs" />
     <Compile Include="Emit\EditAndContinue\LambdaSyntaxFacts.cs" />
     <Compile Include="InternalUtilities\EncodingExtensions.cs" />
@@ -400,7 +401,6 @@
     <Compile Include="InternalUtilities\ConsList`1.cs" />
     <Compile Include="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentXmlNames.cs" />
-    <Compile Include="InternalUtilities\EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />

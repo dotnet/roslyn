@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
-            string instrument = "";
+            ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             bool optionsEnded = false;
@@ -312,7 +313,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                instrument = value;
+                                foreach (InstrumentationKind instrumentationKind in ParseInstrumentationKinds(value, diagnostics))
+                                {
+                                    if (!instrumentationKinds.Contains(instrumentationKind))
+                                    {
+                                        instrumentationKinds.Add(instrumentationKind);
+                                    }
+                                }
                             }
 
                             continue;
@@ -1253,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fileAlignment: fileAlignment,
                 subsystemVersion: subsystemVersion,
                 runtimeMetadataVersion: runtimeMetadataVersion,
-                instrument: instrument
+                instrumentationKinds: instrumentationKinds.ToImmutableAndFree()
             );
 
             // add option incompatibility errors if any
@@ -1544,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
+        private static IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1565,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
+        private static IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
         {
             if (value == null)
             {
@@ -1653,6 +1660,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (outputKind.IsNetModule() && win32ManifestFile != null)
             {
                 AddDiagnostic(diagnostics, ErrorCode.WRN_CantHaveManifestForModule);
+            }
+        }
+
+        private static IEnumerable<InstrumentationKind> ParseInstrumentationKinds(string value, IList<Diagnostic> diagnostics)
+        {
+            string[] kinds = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var kind in kinds)
+            {
+                switch (kind.ToLower())
+                {
+                    case "testcoverage":
+                        yield return InstrumentationKind.TestCoverage;
+                        break;
+
+                    default:
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidInstrumentationKind, kind);
+                        break;
+                }
             }
         }
 

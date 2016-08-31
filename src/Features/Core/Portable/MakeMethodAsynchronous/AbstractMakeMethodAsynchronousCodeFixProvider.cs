@@ -42,23 +42,27 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 symbol.ReturnsVoid)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(FeaturesResources.Make_method_async, c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, cancellationToken: c)),
+                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
+                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
                     context.Diagnostics);
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(FeaturesResources.Make_method_async_return_Task, c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
+                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
+                        context.Document, diagnostic, keepVoid: true, cancellationToken: c)),
                     context.Diagnostics);
             }
             else
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(FeaturesResources.Make_method_async, c => FixNodeAsync(
+                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
                         context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
                     context.Diagnostics);
             }
         }
+
+        protected abstract string GetMakeAsyncTaskFunctionResource();
+
+        protected abstract string GetMakeAsyncVoidFunctionResource();
 
         private const string AsyncSuffix = "Async";
 

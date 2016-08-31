@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly OutliningTaggerProvider _outliningTaggerProvider;
+        private readonly VisualStudio14StructureTaggerProvider _outliningTaggerProvider;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
-            OutliningTaggerProvider outliningTaggerProvider)
+            VisualStudio14StructureTaggerProvider outliningTaggerProvider)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;

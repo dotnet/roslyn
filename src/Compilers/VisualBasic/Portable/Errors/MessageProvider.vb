@@ -272,6 +272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_InvalidInstrumentationKind As Integer
+            Get
+                Return ERRID.ERR_InvalidInstrumentationKind
+            End Get
+        End Property
 
         ' reference manager:
         Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
