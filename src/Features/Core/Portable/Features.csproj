@@ -81,6 +81,7 @@
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">

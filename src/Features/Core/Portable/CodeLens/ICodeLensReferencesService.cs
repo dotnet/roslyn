@@ -26,7 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
         /// </summary>
-        Task<IEnumerable<ReferenceMethodDescriptor>> FindMethodReferenceLocationsAsync(Solution solution,
+        Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution,
             DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Given a document and syntax node, returns the fully qualified name of the located node's declaration.
+        /// </summary>
+        Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+            CancellationToken cancellationToken);
     }
 }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
-        private async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
             int searchCap, CancellationToken cancellationToken) where T: class
         {
@@ -186,11 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 async progress =>
                 {
                     var referenceTasks = progress.Locations
-                        .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
-                        .Distinct(LocationComparer.Instance)
-                        .Select(
-                            location =>
-                                GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
+                        .Select(location => GetDescriptorOfEnclosingSymbolAsync(solution, location, cancellationToken))
                         .ToArray();
 
                     await Task.WhenAll(referenceTasks).ConfigureAwait(false);
@@ -225,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return null;
         }
 
-        private static async Task<ReferenceMethodDescriptor> TryCreateMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ReferenceMethodDescriptor> GetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
             var doc = solution.GetDocument(commonLocation.SourceTree);
             if (doc == null)
@@ -245,22 +241,40 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath) : null;
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindMethodReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
             return await FindAsync(solution, documentId, syntaxNode,
                 async progress =>
                 {
                     var descriptorTasks =
                         progress.Locations
-                        .Where(location => location.Kind != LocationKind.MetadataFile && location.Kind != LocationKind.None)
-                        .Select(location =>
-                            TryCreateMethodDescriptorAsync(location, solution, cancellationToken))
+                        .Select(location => GetMethodDescriptorAsync(location, solution, cancellationToken))
                         .ToArray();
 
                     await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
                     return descriptorTasks.Where(task => task.Result != null).Select(task => task.Result);
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+            CancellationToken cancellationToken)
+        {
+            var commonLocation = syntaxNode.GetLocation();
+            var doc = solution.GetDocument(commonLocation.SourceTree);
+            if (doc == null)
+            {
+                return null;
+            }
+
+            var document = solution.GetDocument(doc.Id);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel == null)
+            {
+                return null;
+            }
+
+            return GetEnclosingMethod(semanticModel, commonLocation)?.ToDisplayString(MethodDisplayFormat);
         }
     }
 }
