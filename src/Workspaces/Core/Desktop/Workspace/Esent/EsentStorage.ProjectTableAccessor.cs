@@ -1,22 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
+using System.Text;
 using Microsoft.Isam.Esent.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
+namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentStorage
     {
-        public class DocumentTableAccessor : ProjectDocumentTableAccessor
+        public class ProjectTableAccessor : ProjectDocumentTableAccessor
         {
             private readonly JET_COLUMNID _nameColumnId;
             private readonly JET_COLUMNID _valueColumnId;
 
-            public DocumentTableAccessor(
-                OpenSession session, string tableName, string primaryIndexName,
-                JET_COLUMNID projectColumnId, JET_COLUMNID projectNameColumnId,
-                JET_COLUMNID documentColumnId, JET_COLUMNID nameColumnId, JET_COLUMNID valueColumnId) :
-                base(session, tableName, primaryIndexName, projectColumnId, projectNameColumnId, documentColumnId)
+            public ProjectTableAccessor(
+                OpenSession session, string tableName, string indexName,
+                JET_COLUMNID projectColumnId, JET_COLUMNID projectNameColumnId, JET_COLUMNID nameColumnId, JET_COLUMNID valueColumnId) :
+                base(session, tableName, indexName, projectColumnId, projectNameColumnId, default(JET_COLUMNID))
             {
                 _nameColumnId = nameColumnId;
                 _valueColumnId = valueColumnId;
@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                     PrepareUpdate(JET_prep.Insert);
 
                     var args = GetColumnValues(key, _nameColumnId, nameId);
+
                     Api.SetColumns(SessionId, TableId, args);
                     Free(args);
                 }

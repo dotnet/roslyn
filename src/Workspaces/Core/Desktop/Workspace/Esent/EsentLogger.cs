@@ -4,7 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
+namespace Microsoft.CodeAnalysis.Esent
 {
     internal class EsentLogger
     {

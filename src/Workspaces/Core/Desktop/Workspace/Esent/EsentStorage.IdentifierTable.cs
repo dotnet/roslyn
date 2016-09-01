@@ -2,36 +2,36 @@
 
 using Microsoft.Isam.Esent.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
+namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentStorage
     {
-        private class NameTable : AbstractTable
+        private class IdentifierNameTable : AbstractTable
         {
-            private const string TableName = "NameTable";
+            private const string TableName = "IdentifierTable";
 
             private const string IdColumnName = "Id";
 
-            private const string NameIndexName = "NameIndex";
-            private const string NameColumnName = "Name";
+            private const string IdentifierIndexName = "IdentifierIndex";
+            private const string IdentifierColumnName = "Identifier";
 
             private JET_COLUMNID _idColumnId;
-            private JET_COLUMNID _nameColumnId;
+            private JET_COLUMNID _identifierColumnId;
 
             public override void Create(JET_SESID sessionId, JET_DBID databaseId)
             {
                 var idColumnCreate = CreateAutoIncrementIdColumn(IdColumnName);
-                var nameColumnCreate = CreateTextColumn(NameColumnName);
+                var identifierColumnCreate = CreateTextColumn(IdentifierColumnName);
 
-                var columns = new JET_COLUMNCREATE[] { idColumnCreate, nameColumnCreate };
+                var columns = new JET_COLUMNCREATE[] { idColumnCreate, identifierColumnCreate };
 
                 var primaryIndexKey = CreateIndexKey(IdColumnName);
-                var nameIndexKey = CreateIndexKey(NameColumnName);
+                var identifierIndexKey = CreateIndexKey(IdentifierColumnName);
 
                 var indexes = new JET_INDEXCREATE[]
                 {
                     CreatePrimaryIndex(primaryIndexKey),
-                    CreateUniqueTextIndex(NameIndexName, nameIndexKey)
+                    CreateUniqueTextIndex(IdentifierIndexName, identifierIndexKey)
                 };
 
                 var tableCreate = CreateTable(TableName, columns, indexes);
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 Api.JetCreateTableColumnIndex3(sessionId, databaseId, tableCreate);
 
                 _idColumnId = idColumnCreate.columnid;
-                _nameColumnId = nameColumnCreate.columnid;
+                _identifierColumnId = identifierColumnCreate.columnid;
 
                 Api.JetCloseTable(sessionId, tableCreate.tableid);
             }
@@ -49,13 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 using (var table = new Table(sessionId, databaseId, TableName, OpenTableGrbit.ReadOnly))
                 {
                     _idColumnId = Api.GetTableColumnid(sessionId, table, IdColumnName);
-                    _nameColumnId = Api.GetTableColumnid(sessionId, table, NameColumnName);
+                    _identifierColumnId = Api.GetTableColumnid(sessionId, table, IdentifierColumnName);
                 }
             }
 
             public override AbstractTableAccessor GetTableAccessor(OpenSession openSession)
             {
-                return new StringNameTableAccessor(openSession, TableName, NameIndexName, _idColumnId, _nameColumnId);
+                return new StringNameTableAccessor(openSession, TableName, IdentifierIndexName, _idColumnId, _identifierColumnId);
             }
         }
     }

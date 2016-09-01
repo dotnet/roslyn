@@ -2,43 +2,44 @@
 
 using Microsoft.Isam.Esent.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
+namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentStorage
     {
-        private class ProjectTable : ProjectDocumentTable
+        private class NameTable : AbstractTable
         {
-            private const string TableName = "ProjectTable";
+            private const string TableName = "NameTable";
 
+            private const string IdColumnName = "Id";
+
+            private const string NameIndexName = "NameIndex";
             private const string NameColumnName = "Name";
-            private const string ValueColumnName = "Value";
 
-            private JET_COLUMNID _projectColumnId;
-            private JET_COLUMNID _projectNameColumnId;
+            private JET_COLUMNID _idColumnId;
             private JET_COLUMNID _nameColumnId;
-            private JET_COLUMNID _valueColumnId;
 
             public override void Create(JET_SESID sessionId, JET_DBID databaseId)
             {
-                var nameColumnCreate = CreateIdColumn(NameColumnName);
-                var valueColumnCreate = CreateBinaryColumn(ValueColumnName);
+                var idColumnCreate = CreateAutoIncrementIdColumn(IdColumnName);
+                var nameColumnCreate = CreateTextColumn(NameColumnName);
 
-                var columns = CreateProjectColumns(nameColumnCreate, valueColumnCreate);
+                var columns = new JET_COLUMNCREATE[] { idColumnCreate, nameColumnCreate };
 
-                var projectAndNameIndexKey = CreateProjectIndexKey(NameColumnName);
+                var primaryIndexKey = CreateIndexKey(IdColumnName);
+                var nameIndexKey = CreateIndexKey(NameColumnName);
 
                 var indexes = new JET_INDEXCREATE[]
                 {
-                    CreatePrimaryIndex(projectAndNameIndexKey)
+                    CreatePrimaryIndex(primaryIndexKey),
+                    CreateUniqueTextIndex(NameIndexName, nameIndexKey)
                 };
 
                 var tableCreate = CreateTable(TableName, columns, indexes);
 
                 Api.JetCreateTableColumnIndex3(sessionId, databaseId, tableCreate);
 
-                GetColumnIds(columns, out _projectColumnId, out _projectNameColumnId);
+                _idColumnId = idColumnCreate.columnid;
                 _nameColumnId = nameColumnCreate.columnid;
-                _valueColumnId = valueColumnCreate.columnid;
 
                 Api.JetCloseTable(sessionId, tableCreate.tableid);
             }
@@ -47,15 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             {
                 using (var table = new Table(sessionId, databaseId, TableName, OpenTableGrbit.ReadOnly))
                 {
-                    GetColumnIds(sessionId, table, out _projectColumnId, out _projectNameColumnId);
+                    _idColumnId = Api.GetTableColumnid(sessionId, table, IdColumnName);
                     _nameColumnId = Api.GetTableColumnid(sessionId, table, NameColumnName);
-                    _valueColumnId = Api.GetTableColumnid(sessionId, table, ValueColumnName);
                 }
             }
 
             public override AbstractTableAccessor GetTableAccessor(OpenSession openSession)
             {
-                return new ProjectTableAccessor(openSession, TableName, PrimaryIndexName, _projectColumnId, _projectNameColumnId, _nameColumnId, _valueColumnId);
+                return new StringNameTableAccessor(openSession, TableName, NameIndexName, _idColumnId, _nameColumnId);
             }
         }
     }

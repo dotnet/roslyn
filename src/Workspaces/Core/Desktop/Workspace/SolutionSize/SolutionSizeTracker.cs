@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
+namespace Microsoft.CodeAnalysis.SolutionSize
 {
     /// <summary>
     /// Track approximate solution size.
@@ -32,12 +30,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
         /// </summary>
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
         {
-            return workspace is VisualStudioWorkspaceImpl ? _tracker.GetSolutionSize(solutionId) : -1;
+            var service = workspace.Services.GetService<IPersistentStorageLocationService>();
+            return service.IsSupported(workspace)
+                ? _tracker.GetSolutionSize(solutionId)
+                : -1;
         }
 
         IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
         {
-            return workspace is VisualStudioWorkspaceImpl ? _tracker : null;
+            var service = workspace.Services.GetService<IPersistentStorageLocationService>();
+            return service.IsSupported(workspace) ? _tracker : null;
         }
 
         internal class IncrementalAnalyzer : IIncrementalAnalyzer

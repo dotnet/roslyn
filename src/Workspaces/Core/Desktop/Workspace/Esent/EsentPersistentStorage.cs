@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -14,7 +13,7 @@ using Microsoft.Isam.Esent;
 using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
+namespace Microsoft.CodeAnalysis.Esent
 {
     internal partial class EsentPersistentStorage : AbstractPersistentStorage
     {
@@ -54,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
             _nameTableCache = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            var enablePerformanceMonitor = optionService.GetOption(InternalFeatureOnOffOptions.EsentPerformanceMonitor);
+            var enablePerformanceMonitor = optionService.GetOption(PersistentStorageOptions.EsentPerformanceMonitor);
             _esentStorage = new EsentStorage(databaseFile, enablePerformanceMonitor);
         }
 
