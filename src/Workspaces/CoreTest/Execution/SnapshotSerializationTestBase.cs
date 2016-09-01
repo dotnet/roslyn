@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var writer = new ObjectWriter(stream))
             {
                 // serialize asset to bits
-                await checksumObject.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await checksumObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var writer = new ObjectWriter(stream))
             {
                 // serialize asset to bits
-                await originalChecksumObject.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await originalChecksumObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                await solutionId.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await solutionId.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))

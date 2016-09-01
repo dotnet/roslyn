@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -38,6 +39,45 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private ConcurrentDictionary<string, ChecksumObject> LazyKindToChecksumObjectMap => Volatile.Read(ref _lazyKindToChecksumObjectMap);
             private ConcurrentDictionary<Checksum, ChecksumObject> LazyChecksumToChecksumObjectMap => Volatile.Read(ref _lazyChecksumToChecksumObjectMap);
+
+            public int Count
+            {
+                get
+                {
+                    var count = 0;
+                    var checksumObject = SingleElementChecksumObject;
+                    if (checksumObject != null)
+                    {
+                        count++;
+                    }
+
+                    var checksumMap = LazyChecksumToChecksumObjectMap;
+                    if (checksumMap != null)
+                    {
+                        count += checksumMap.Count;
+                    }
+
+                    return count;
+                }
+            }
+
+            public IEnumerable<Checksum> GetChecksums()
+            {
+                var checksumObject = SingleElementChecksumObject;
+                if (checksumObject != null)
+                {
+                    yield return checksumObject.Checksum;
+                }
+
+                var checksumMap = LazyChecksumToChecksumObjectMap;
+                if (checksumMap != null)
+                {
+                    foreach (var checksum in checksumMap.Keys)
+                    {
+                        yield return checksum;
+                    }
+                }
+            }
 
             public ChecksumObject Add(ChecksumObject checksumObject)
             {

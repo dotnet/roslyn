@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly object _gate;
 
-            private SolutionChecksumUpdator _checksumUpdator;
+            private SolutionChecksumUpdater _checksumUpdater;
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _workspace = workspace;
                 _analyzerService = analyzerService;
             }
+
+            public Workspace Workspace => _workspace;
 
             public void Enable()
             {
@@ -64,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var token = _shutdownCancellationTokenSource.Token;
 
-                    // create solution checksum updator
-                    _checksumUpdator = new SolutionChecksumUpdator(_workspace, token);
+                    // create solution checksum updater
+                    _checksumUpdater = new SolutionChecksumUpdater(this, token);
 
                     _instanceTask = Task.Run(() => EnableAsync(token), token);
                 }
@@ -88,8 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     _shutdownCancellationTokenSource.Cancel();
 
-                    _checksumUpdator.Shutdown();
-                    _checksumUpdator = null;
+                    _checksumUpdater.Shutdown();
+                    _checksumUpdater = null;
 
                     try
                     {
@@ -120,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // ensure we have solution checksum
-                _checksumUpdator.EnsureSolutionChecksum(cancellationToken);
+                _checksumUpdater.EnsureSolutionChecksum(cancellationToken);
 
                 return instanceTask;
             }

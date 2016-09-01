@@ -8,14 +8,16 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class RemoteHostClientServiceFactory
     {
-        private class SolutionChecksumUpdator : GlobalOperationAwareIdleProcessor
+        private class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
         {
-            private readonly Workspace _workspace;
+            private readonly SemaphoreSlim _gate;
+            private readonly RemoteHostClientService _service;
             private readonly ISolutionChecksumService _checksumService;
             private readonly SemaphoreSlim _event;
 
@@ -23,19 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _globalOperationCancellationSource;
             private ChecksumScope _lastSnapshot;
 
-            public SolutionChecksumUpdator(
-                Workspace workspace,
-                CancellationToken shutdownToken) :
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
                 base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
-                     workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                     workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+                     service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
+                     service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
-                _workspace = workspace;
-                _checksumService = _workspace.Services.GetService<ISolutionChecksumService>();
+                _service = service;
+                _checksumService = service.Workspace.Services.GetService<ISolutionChecksumService>();
+
+                _gate = new SemaphoreSlim(initialCount: 1);
                 _event = new SemaphoreSlim(initialCount: 0);
 
                 // start listening workspace change event
-                _workspace.WorkspaceChanged += OnWorkspaceChanged;
+                _service.Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
                 // create its own cancellation token source
                 _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(shutdownToken);
@@ -96,13 +98,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 base.Shutdown();
 
                 // stop listening workspace change event
-                _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                _service.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
                 CancelAndDispose(_globalOperationCancellationSource);
 
-                // release last snapshot
-                _lastSnapshot?.Dispose();
-                _lastSnapshot = null;
+                using (_gate.DisposableWait(CancellationToken.None))
+                {
+                    // release last snapshot
+                    _lastSnapshot?.Dispose();
+                    _lastSnapshot = null;
+                }
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -128,21 +133,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task UpdateSolutionChecksumAsync(CancellationToken cancellationToken)
             {
-                // hold onto previous snapshot
-                var previousSnapshot = _lastSnapshot;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // hold onto previous snapshot
+                    var previousSnapshot = _lastSnapshot;
 
-                // create a new one (incrementally update the snapshot)
-                _lastSnapshot = await _checksumService.CreateChecksumAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                    // create a new one (incrementally update the snapshot)
+                    _lastSnapshot = await _checksumService.CreateChecksumAsync(_service.Workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
-                // let old one go.
-                previousSnapshot?.Dispose();
+                    // let old one go.
+                    previousSnapshot?.Dispose();
+                }
             }
 
             private void CreateInitialSolutionChecksum()
             {
                 // initial solution checksum creation won't be affected by global operation.
                 // cancellation can only happen if it is being shutdown.
-                Task.Run(() => UpdateSolutionChecksumAsync(ShutdownCancellationToken), ShutdownCancellationToken);
+                Task.Run(async () =>
+                {
+                    await UpdateSolutionChecksumAsync(ShutdownCancellationToken).ConfigureAwait(false);
+
+                    var remoteHostClient = await _service.GetRemoteHostClientAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                    if (remoteHostClient == null)
+                    {
+                        return;
+                    }
+
+                    var solution = _service.Workspace.CurrentSolution;
+                    using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
+                    {
+                        // ask remote host to sync initial asset
+                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
+                    }
+                }, ShutdownCancellationToken);
             }
 
             private static void CancelAndDispose(CancellationTokenSource cancellationSource)

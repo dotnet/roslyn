@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -42,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken);
 
-        // TODO: provide a way to walk whole hierarchical checksum tree or return multiple ChecksumObject
-        //       based on given predicate
+        /// <summary>
+        /// Get <see cref="ChecksumObject"/>s corresponding to given <see cref="Checksum"/>s. 
+        /// </summary>
+        IReadOnlyDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

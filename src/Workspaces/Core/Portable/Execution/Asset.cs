@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _writer = writer;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _writer(_value, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _writer = writer;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _writer(_language, _value, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _reference = reference;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _serializer.SerializeMetadataReference(_reference, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _reference = reference;
         }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _serializer.SerializeAnalyzerReference(_reference, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Execution
             _state = state;
         }
 
-        public override async Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override async Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             var text = await _state.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

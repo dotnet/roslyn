@@ -4,9 +4,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class WellKnownServiceHubServices
     {
-        public const string RemoteHostService = "remoteHostService";
-        public const string RemoteHostService_Connect = "Connect";
-
         public const string SnapshotService = "snapshotService";
         public const string SnapshotService_Done = "Done";
 
