@@ -4828,7 +4828,7 @@ End Namespace
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13305")>
+        <Fact>
         Public Sub MultipleDefinitionsOfValueTuple()
 
             Dim source1 =
@@ -4875,14 +4875,30 @@ End Class
 </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={comp1.ToMetadataReference(), comp2.ToMetadataReference()})
-            comp.AssertTheseDiagnostics(
+            Dim comp3 = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={comp1.ToMetadataReference(), comp2.ToMetadataReference()})
+            comp3.AssertTheseDiagnostics(
 <errors>
+BC30521: Overload resolution failed because no accessible 'Extension' is most specific for these arguments:
+    Extension method 'Public Sub Extension(y As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub Extension(y As (Integer, Integer))' defined in 'M2': Not most specific.
+        x.Extension((1, 1))
+          ~~~~~~~~~
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'comp.dll' failed.
+        x.Extension((1, 1))
+                    ~~~~~~
 </errors>)
-            ' Crashes in SubstituteNamedType.MakeDeclaredBase
 
-            Dim verifier = CompileAndVerify(source, additionalRefs:={comp1.ToMetadataReference()}, expectedOutput:=<![CDATA[M1.Extension]]>)
-            verifier.VerifyDiagnostics()
+            Dim comp4 = CreateCompilationWithMscorlibAndVBRuntime(source,
+                            additionalRefs:={comp1.ToMetadataReference()},
+                            options:=TestOptions.DebugExe)
+
+            comp4.AssertTheseDiagnostics(
+<errors>
+BC40056: Namespace or type specified in the Imports 'M2' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports M2
+        ~~
+</errors>)
+            CompileAndVerify(comp4, expectedOutput:=<![CDATA[M1.Extension]]>)
 
         End Sub
 
