@@ -469,10 +469,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
                 {
-                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) ||
-                        targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
+                    if (targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.BaseConstructorInitializer) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.ThisConstructorInitializer))
+                    {
+                        return true;
+                    }
+                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
+                        ((InvocationExpressionSyntax)targetToken.Parent.Parent).Expression.ToString() != "var")
                     {
                         return true;
                     }

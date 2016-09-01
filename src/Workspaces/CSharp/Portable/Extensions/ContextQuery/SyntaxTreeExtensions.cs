@@ -1880,6 +1880,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // var(|
+            // var(id, |
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            {
+                if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                    ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
+                {
+                    return false;
+                }
+            }
+
             // Foo(|
             // Foo(expr, |
             // this[|
