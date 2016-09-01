@@ -221,18 +221,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        //private string GetName(int nodeIndex)
-        //{
-        //    // Use 'ref' so the assignment will go back into the node in the array.
-        //    ref var node = ref _nodes[nodeIndex];
-        //    if (node.MutableName == null)
-        //    {
-        //        node.MutableName = new string(_concatenatedNames, node.WordSpan.Start, node.WordSpan.Length);
-        //    }
-
-        //    return node.MutableName;
-        //}
-
         private static StringSliceComparer GetComparer(bool ignoreCase)
         {
             return ignoreCase
