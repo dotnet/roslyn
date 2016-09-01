@@ -250,6 +250,7 @@ class D
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput =
@@ -257,6 +258,13 @@ class D
 True
 False";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+#else
+            compilation.VerifyDiagnostics(
+                // (13,36): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     public D(object o) : this(o is int x && x >= 5) {}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
+                );
+#endif
         }
 
         [Fact]
@@ -325,6 +333,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_FIELD_INITIALIZER
             compilation.VerifyDiagnostics();
             using (new EnsureEnglishCulture())
             {
@@ -334,6 +343,19 @@ True for 10
 False for 1.2";
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
+#else
+            compilation.VerifyDiagnostics(
+                // (7,35): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     static bool b1 = M(o1, (o1 is int x && x >= 5)),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(7, 35),
+                // (8,35): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //                 b2 = M(o2, (o2 is int x && x >= 5)),
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(8, 35),
+                // (9,35): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //                 b3 = M(o3, (o3 is int x && x >= 5));
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(9, 35)
+                );
+#endif
         }
 
         [Fact]
@@ -4056,8 +4078,16 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
+#else
+            compilation.VerifyDiagnostics(
+                // (9,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     static bool Test1 = 1 is int x1 && Dummy(x1); 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 30)
+                );
+#endif
         }
 
         [Fact, WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
@@ -4088,10 +4118,21 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True
 2
 True");
+#else
+            compilation.VerifyDiagnostics(
+                // (14,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     static bool Test1 = 1 is int x1 && Dummy(() => x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(14, 30),
+                // (15,23): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     bool Test2 = 2 is int x1 && Dummy(() => x1);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(15, 23)
+                );
+#endif
         }
 
         [Fact]
@@ -4124,12 +4165,33 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+    // (8,23): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test3 = 3 is int x3 && x3 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 23),
     // (10,18): error CS0841: Cannot use local variable 'x4' before it is declared
     //     bool Test4 = x4 && 4 is int x4;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 18),
+    // (10,29): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test4 = x4 && 4 is int x4;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 29),
+    // (12,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test5 = 51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 24),
+    // (13,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //                  52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 24),
     // (13,28): error CS0128: A local variable named 'x5' is already defined in this scope
     //                  52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 28),
+    // (16,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 24),
+    // (16,56): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 56),
+    // (18,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test71 = 7 is int x7 && x7 > 0; 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 24),
     // (19,25): error CS0103: The name 'x7' does not exist in the current context
     //     bool Test72 = Dummy(x7, 2); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(19, 25),
@@ -4196,21 +4258,42 @@ public enum X
     // (6,13): error CS0841: Cannot use local variable 'x4' before it is declared
     //     Test4 = x4 && 4 is int x4 ? 1 : 0,
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(6, 13),
+    // (6,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test4 = x4 && 4 is int x4 ? 1 : 0,
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(6, 24),
+    // (8,19): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test5 = 51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(8, 19),
+    // (9,19): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //             52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(9, 19),
     // (9,23): error CS0128: A local variable named 'x5' is already defined in this scope
     //             52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(9, 23),
+    // (12,19): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test61 = 6 is int x6 && x6 > 0 ? 1 : 0, Test62 = 6 is int x6 && x6 > 0 ? 1 : 0,
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(12, 19),
     // (12,14): error CS0133: The expression being assigned to 'X.Test61' must be constant
     //     Test61 = 6 is int x6 && x6 > 0 ? 1 : 0, Test62 = 6 is int x6 && x6 > 0 ? 1 : 0,
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "6 is int x6 && x6 > 0 ? 1 : 0").WithArguments("X.Test61").WithLocation(12, 14),
+    // (12,59): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test61 = 6 is int x6 && x6 > 0 ? 1 : 0, Test62 = 6 is int x6 && x6 > 0 ? 1 : 0,
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(12, 59),
     // (12,54): error CS0133: The expression being assigned to 'X.Test62' must be constant
     //     Test61 = 6 is int x6 && x6 > 0 ? 1 : 0, Test62 = 6 is int x6 && x6 > 0 ? 1 : 0,
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "6 is int x6 && x6 > 0 ? 1 : 0").WithArguments("X.Test62").WithLocation(12, 54),
+    // (14,19): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test71 = 7 is int x7 && x7 > 0 ? 1 : 0, 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(14, 19),
     // (14,14): error CS0133: The expression being assigned to 'X.Test71' must be constant
     //     Test71 = 7 is int x7 && x7 > 0 ? 1 : 0, 
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "7 is int x7 && x7 > 0 ? 1 : 0").WithArguments("X.Test71").WithLocation(14, 14),
     // (15,14): error CS0103: The name 'x7' does not exist in the current context
     //     Test72 = x7, 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 14),
+    // (4,18): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     Test3 = 3 is int x3 ? x3 : 0,
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(4, 18),
     // (4,13): error CS0133: The expression being assigned to 'X.Test3' must be constant
     //     Test3 = 3 is int x3 ? x3 : 0,
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "3 is int x3 ? x3 : 0").WithArguments("X.Test3").WithLocation(4, 13)
@@ -4277,21 +4360,42 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+    // (8,29): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test3 = 3 is int x3 && x3 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 29),
     // (8,24): error CS0133: The expression being assigned to 'X.Test3' must be constant
     //     const bool Test3 = 3 is int x3 && x3 > 0;
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "3 is int x3 && x3 > 0").WithArguments("X.Test3").WithLocation(8, 24),
     // (10,24): error CS0841: Cannot use local variable 'x4' before it is declared
     //     const bool Test4 = x4 && 4 is int x4;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 24),
+    // (10,35): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test4 = x4 && 4 is int x4;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 35),
+    // (12,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test5 = 51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 30),
+    // (13,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //                        52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 30),
     // (13,34): error CS0128: A local variable named 'x5' is already defined in this scope
     //                        52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 34),
+    // (16,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 30),
     // (16,25): error CS0133: The expression being assigned to 'X.Test61' must be constant
     //     const bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "6 is int x6 && x6 > 0").WithArguments("X.Test61").WithLocation(16, 25),
+    // (16,62): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 62),
     // (16,57): error CS0133: The expression being assigned to 'X.Test62' must be constant
     //     const bool Test61 = 6 is int x6 && x6 > 0, Test62 = 6 is int x6 && x6 > 0;
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "6 is int x6 && x6 > 0").WithArguments("X.Test62").WithLocation(16, 57),
+    // (18,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     const bool Test71 = 7 is int x7 && x7 > 0; 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 30),
     // (18,25): error CS0133: The expression being assigned to 'X.Test71' must be constant
     //     const bool Test71 = 7 is int x7 && x7 > 0; 
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "7 is int x7 && x7 > 0").WithArguments("X.Test71").WithLocation(18, 25),
@@ -4357,8 +4461,16 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
+#else
+            compilation.VerifyDiagnostics(
+                // (9,37): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 37)
+                );
+#endif
         }
 
         [Fact]
@@ -4391,12 +4503,33 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+    // (8,30): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test3 {get;} = 3 is int x3 && x3 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(8, 30),
     // (10,25): error CS0841: Cannot use local variable 'x4' before it is declared
     //     bool Test4 {get;} = x4 && 4 is int x4;
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 25),
+    // (10,36): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test4 {get;} = x4 && 4 is int x4;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(10, 36),
+    // (12,31): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test5 {get;} = 51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(12, 31),
+    // (13,24): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //                  52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(13, 24),
     // (13,28): error CS0128: A local variable named 'x5' is already defined in this scope
     //                  52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 28),
+    // (16,31): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test61 {get;} = 6 is int x6 && x6 > 0; bool Test62 {get;} = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 31),
+    // (16,75): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test61 {get;} = 6 is int x6 && x6 > 0; bool Test62 {get;} = 6 is int x6 && x6 > 0;
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(16, 75),
+    // (18,31): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     bool Test71 {get;} = 7 is int x7 && x7 > 0; 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(18, 31),
     // (19,32): error CS0103: The name 'x7' does not exist in the current context
     //     bool Test72 {get;} = Dummy(x7, 2); 
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(19, 32),
@@ -4761,15 +4894,36 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+    // (9,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(3 is int x3 && x3 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 21),
     // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
     //         : this(x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
+    // (13,27): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(x4 && 4 is int x4)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 27),
+    // (17,22): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(17, 22),
+    // (18,22): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //                52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(18, 22),
     // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
     //                52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
+    // (23,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 21),
+    // (23,44): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 44),
     // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
     //         : this(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
+    // (27,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : this(7 is int x7 && x7 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(27, 21),
     // (30,16): error CS0103: The name 'x7' does not exist in the current context
     //         : this(x7, 2)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
@@ -4857,15 +5011,36 @@ public class Y
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+    // (9,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(3 is int x3 && x3 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x3").WithLocation(9, 21),
     // (13,16): error CS0841: Cannot use local variable 'x4' before it is declared
     //         : base(x4 && 4 is int x4)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(13, 16),
+    // (13,27): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(x4 && 4 is int x4)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x4").WithLocation(13, 27),
+    // (17,22): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(51 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(17, 22),
+    // (18,22): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //                52 is int x5 && 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x5").WithLocation(18, 22),
     // (18,26): error CS0128: A local variable named 'x5' is already defined in this scope
     //                52 is int x5 && 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(18, 26),
+    // (23,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 21),
+    // (23,44): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x6").WithLocation(23, 44),
     // (23,48): error CS0128: A local variable named 'x6' is already defined in this scope
     //         : base(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(23, 48),
+    // (27,21): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //         : base(7 is int x7 && x7 > 0)
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x7").WithLocation(27, 21),
     // (30,16): error CS0103: The name 'x7' does not exist in the current context
     //         : base(x7, 2)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(30, 16),
@@ -4934,7 +5109,10 @@ class D
             compilation.VerifyDiagnostics(
     // (15,27): error CS0103: The name 'x' does not exist in the current context
     //         Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27),
+    // (13,36): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     public D(object o) : this(o is int x && x >= 5) 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
                 );
         }
 
@@ -4969,7 +5147,10 @@ class C
             compilation.VerifyDiagnostics(
     // (15,27): error CS0103: The name 'x' does not exist in the current context
     //         Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27),
+    // (13,36): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+    //     public D(object o) : base(o is int x && x >= 5) 
+    Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
                 );
         }
         [Fact]
@@ -5012,11 +5193,22 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+#if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 True
 True");
+#else
+            compilation.VerifyDiagnostics(
+                // (12,36): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     public D(object o) : base(2 is int x1 && Dummy(x1)) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(12, 36),
+                // (17,28): error CS8200: Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.
+                //     public D() : this(1 is int x1 && Dummy(x1)) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(17, 28)
+                );
+#endif
         }
 
         [Fact]

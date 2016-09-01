@@ -1433,6 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         ERR_OutVarDeconstructionIsNotSupported = 8199,
+        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         #endregion diagnostics for out var
     }
 }
