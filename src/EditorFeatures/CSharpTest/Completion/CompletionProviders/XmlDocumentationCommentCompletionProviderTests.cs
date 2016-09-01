@@ -780,6 +780,24 @@ public class foo<T>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InvokeWithOpenAngleCommitSeeOnSpace()
+        {
+            var markupBeforeCommit = @"class c
+{
+        /// <$$
+        void foo() { }
+}";
+
+            var expectedCodeAfterCommit = @"class c
+{
+        /// <see$$/>
+        void foo() { }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitSeealsoNoOpenAngle()
         {
             var markupBeforeCommit = @"class c
@@ -1049,25 +1067,6 @@ public class foo<T>
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "summary", expectedCodeAfterCommit, commitChar: '>');
         }
 
-        [WorkItem(623168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623168")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoTrailingSpace()
-        {
-            var markupBeforeCommit = @"class c
-{
-        /// $$
-        void foo() { }
-}";
-
-            var expectedCodeAfterCommit = @"class c
-{
-        /// <see cref=""$$""/>
-        void foo() { }
-}";
-
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "see", expectedCodeAfterCommit, commitChar: ' ');
-        }
-
         [WorkItem(638802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638802")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TagsAfterSameLineClosedTag()
@@ -1223,8 +1222,9 @@ static void Foo()
 ", "bullet", "number", "table");
         }
 
+        [WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task SeeLangword()
+        public async Task SeeLangwordValues()
         {
             await VerifyItemsExistAsync(@"
 /// <summary>
@@ -1234,6 +1234,34 @@ static void Foo()
 {
 }
 ", "await", "class");
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeAttributesOnSpace()
+        {
+            var text = @"
+/// <summary>
+/// <see $$
+/// </summary>
+static void Foo()
+{
+}";
+            await VerifyItemExistsAsync(text, "langword", usePreviousCharAsTrigger: true);
+        }
+
+        [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeLangwordValuesOnQuote()
+        {
+            var text = @"
+/// <summary>
+/// <see langword=""$$
+/// </summary>
+static void Foo()
+{
+}";
+            await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return text[characterPosition] == '<';
+            var c = text[characterPosition];
+            return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
@@ -35,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 return null;
             }
-
-            var items = new List<CompletionItem>();
 
             var attachedToken = parentTrivia.ParentTrivia.Token;
             if (attachedToken.Kind() == SyntaxKind.None)
@@ -62,15 +61,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             string elementName, attributeName;
+            if (!(trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ') &&
+                IsAttributeValueContext(token, out elementName, out attributeName))
+            {
+                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
+            }
+
             ISet<string> existingAttributes;
             if (IsAttributeNameContext(token, position, out elementName, out existingAttributes))
             {
                 return GetAttributeItems(elementName, existingAttributes);
             }
-            else if (IsAttributeValueContext(token, out elementName, out attributeName))
+
+            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
             {
-                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
+                return null;
             }
+
+            var items = new List<CompletionItem>();
 
             if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
                 (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||

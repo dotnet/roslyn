@@ -12,7 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            Return text(characterPosition) = "<"c OrElse (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
+            Return text(characterPosition) = "<"c OrElse text(characterPosition) = """"c OrElse
+                (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c) OrElse
+                IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
         Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
@@ -83,6 +85,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If items.Any() Then
                     Return items
                 End If
+            End If
+
+            If trigger.Kind = CompletionTriggerKind.Insertion AndAlso Not trigger.Character = """"c AndAlso Not trigger.Character = "<"c Then
+                Return items
             End If
 
             items.AddRange(GetAlwaysVisibleItems())
