@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,13 +37,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        /// <summary>
-        /// <see cref="Node"/>
-        /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node
         {
+            /// <summary>
+            /// Span in <see cref="_concatenatedNames"/> of the Name of this Node.
+            /// </summary>
             public readonly TextSpan NameSpan;
+
+            /// <summary>
+            /// Index in <see cref="_nodes"/> of the parent Node of this Node.
+            /// Value will be <see cref="RootNodeParentIndex"/> if this is the 
+            /// Node corresponding to the root symbol.
+            /// </summary>
             public readonly int ParentIndex;
 
             public Node(TextSpan wordSpan, int parentIndex)
