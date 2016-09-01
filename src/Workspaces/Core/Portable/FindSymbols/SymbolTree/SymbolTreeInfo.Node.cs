@@ -10,6 +10,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private const int RootNodeParentIndex = -1;
 
+        /// <summary>
+        /// <see cref="BuilderNode"/>s are produced when initially creating our indices.
+        /// They store Names of symbols and the index of their parent symbol.  When we
+        /// produce the final <see cref="SymbolTreeInfo"/> though we will then convert
+        /// these to <see cref="Node"/>s.  Those nodes will not point to individual 
+        /// strings, but will instead point at <see cref="_concatenatedNames"/>.
+        /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct BuilderNode
         {
@@ -32,8 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// A node represents a single unique name in a dotted-name tree.
-        /// Uniqueness is always case sensitive.
+        /// <see cref="Node"/>
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node

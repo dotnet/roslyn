@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -240,14 +241,14 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int GetFNVHashCodeOrdinalIgnoreCase(string text, int start, int length)
+        internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
         {
             int hashCode = Hash.FnvOffsetBias;
             int end = start + length;
 
             for (int i = start; i < end; i++)
             {
-                hashCode = unchecked((hashCode ^ char.ToLowerInvariant(text[i])) * Hash.FnvPrime);
+                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(text[i])) * Hash.FnvPrime);
             }
 
             return hashCode;

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal int GetHashCodeOrdinalIgnoreCase()
         {
-            return Hash.GetFNVHashCodeOrdinalIgnoreCase(this._underlyingString, this._span.Start, this._span.Length);
+            return Hash.GetCaseInsensitiveFNVHashCode(this._underlyingString, this._span.Start, this._span.Length);
         }
 
         internal int CompareToOrdinal(StringSlice other)
