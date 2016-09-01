@@ -1258,5 +1258,45 @@ public class X
             var i2Ref = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "i2").Single();
             Assert.Equal("System.Object", model.GetTypeInfo(i2Ref).Type.ToTestDisplayString());
         }
+
+        [Fact, WorkItem(13395, "https://github.com/dotnet/roslyn/issues/13395")]
+        public void CodeGenSwitchInLoop()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        bool hasB = false;
+        foreach (var c in ""ab"")
+        {
+           switch (c)
+           {
+              case char b when IsB(b):
+                 hasB = true;
+                 break;
+
+              default:
+                 hasB = false;
+                 break;
+           }
+        }
+        Console.WriteLine(hasB);
+    }
+
+    public static bool IsB(char value)
+    {
+        return value == 'b';
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
