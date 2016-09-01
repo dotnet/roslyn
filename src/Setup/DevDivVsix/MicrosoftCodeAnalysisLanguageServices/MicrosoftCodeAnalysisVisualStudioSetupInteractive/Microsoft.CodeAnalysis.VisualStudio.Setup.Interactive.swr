@@ -4,6 +4,7 @@ package name=Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive
         version=$(Version)
         vs.package.type=vsix
         vs.package.vsixId=A5E5EE8D-39AE-42FF-8BBF-53C5B09C07D7
+        vs.package.installSize=126976
 
 vs.localizedResources
   vs.localizedResource language=en-us
