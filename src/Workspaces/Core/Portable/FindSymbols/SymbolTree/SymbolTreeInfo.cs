@@ -20,15 +20,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly VersionStamp _version;
 
+        /// <summary>
+        /// To prevent lots of allocations, we concatenate all the names in all our
+        /// Nodes into one long string.  Each Node then just points at the span in
+        /// this string with the portion they care about.
+        /// </summary>
         private readonly string _concatenatedNames;
 
         /// <summary>
-        /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name.
-        /// They are sorted case-insensitively with the <see cref="s_totalComparer" />. Finding case-sensitive
-        /// matches can be found by binary searching for something that matches insensitively, and then searching
-        /// around that equivalence class for one that matches.
+        /// The list of nodes that represent symbols. The primary key into the sorting of this 
+        /// list is the name. They are sorted case-insensitively with the <see cref="s_totalComparer" />.
+        /// Finding case-sensitive matches can be found by binary searching for something that 
+        /// matches insensitively, and then searching around that equivalence class for one that 
+        /// matches.
         /// </summary>
-        private readonly Node[] _nodes;
+        private readonly ImmutableArray<Node> _nodes;
 
         /// <summary>
         /// Inheritance information for the types in this assembly.  The mapping is between
@@ -104,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             _version = version;
             _concatenatedNames = concatenatedNames;
-            _nodes = sortedNodes;
+            _nodes = ImmutableArray.Create(sortedNodes);
             _spellCheckerTask = spellCheckerTask;
         }
 
@@ -425,13 +431,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Binding 
 
         // returns all the symbols in the container corresponding to the node
-        private IEnumerable<ISymbol> Bind(int index, INamespaceOrTypeSymbol rootContainer, CancellationToken cancellationToken)
+        private IEnumerable<ISymbol> Bind(
+            int index, INamespaceOrTypeSymbol rootContainer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using (var symbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
             {
-                Bind(index, rootContainer, symbols.Object, cancellationToken);
+                BindWorker(index, rootContainer, symbols.Object, cancellationToken);
 
                 foreach (var symbol in symbols.Object)
                 {
@@ -442,7 +449,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         // returns all the symbols in the container corresponding to the node
-        private void Bind(int index, INamespaceOrTypeSymbol rootContainer, List<ISymbol> results, CancellationToken cancellationToken)
+        private void BindWorker(
+            int index, INamespaceOrTypeSymbol rootContainer, List<ISymbol> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -460,7 +468,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var containerSymbols = SharedPools.Default<List<ISymbol>>().GetPooledObject())
                 {
-                    Bind(node.ParentIndex, rootContainer, containerSymbols.Object, cancellationToken);
+                    BindWorker(node.ParentIndex, rootContainer, containerSymbols.Object, cancellationToken);
 
                     foreach (var containerSymbol in containerSymbols.Object.OfType<INamespaceOrTypeSymbol>())
                     {
