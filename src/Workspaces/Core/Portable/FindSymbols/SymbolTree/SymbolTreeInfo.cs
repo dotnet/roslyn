@@ -476,6 +476,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal void AssertEquivalentTo(SymbolTreeInfo other)
         {
             Debug.Assert(_version.Equals(other._version));
+            Debug.Assert(_concatenatedNames == other._concatenatedNames);
             Debug.Assert(_nodes.Length == other._nodes.Length);
 
             for (int i = 0, n = _nodes.Length; i < n; i++)

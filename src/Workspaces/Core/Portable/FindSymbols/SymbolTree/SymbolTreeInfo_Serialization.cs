@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _version.WriteTo(writer);
 
             writer.WriteString(_concatenatedNames);
+
             writer.WriteInt32(_nodes.Length);
             foreach (var node in _nodes)
             {
@@ -217,9 +218,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     var version = VersionStamp.ReadFrom(reader);
 
-                    var nodeCount = reader.ReadInt32();
                     var concatenatedNames = reader.ReadString();
 
+                    var nodeCount = reader.ReadInt32();
                     var nodes = new Node[nodeCount];
                     for (var i = 0; i < nodeCount; i++)
                     {
