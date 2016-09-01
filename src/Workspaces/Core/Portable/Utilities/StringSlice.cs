@@ -35,13 +35,9 @@ namespace Microsoft.CodeAnalysis.Utilities
             return new Enumerator(this);
         }
 
-        public override bool Equals(object obj) =>
-            Equals((StringSlice)obj);
+        public override bool Equals(object obj) => Equals((StringSlice)obj);
 
-        public bool Equals(StringSlice other)
-        {
-            return EqualsOrdinal(other);
-        }
+        public bool Equals(StringSlice other) => EqualsOrdinal(other);
 
         internal bool EqualsOrdinal(StringSlice other)
         {
@@ -92,10 +88,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 CaseInsensitiveComparison.ToLower(thisChar) == CaseInsensitiveComparison.ToLower(otherChar);
         }
 
-        public override int GetHashCode()
-        {
-            return GetHashCodeOrdinal();
-        }
+        public override int GetHashCode() => GetHashCodeOrdinal();
 
         internal int GetHashCodeOrdinal()
         {
