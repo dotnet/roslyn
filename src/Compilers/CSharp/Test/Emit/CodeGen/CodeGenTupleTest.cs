@@ -17877,7 +17877,8 @@ class Program
             var startTree = SyntaxFactory.ParseSyntaxTree(text);
             var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
-            var newText = text.WithChanges(new TextChange(new TextSpan(80, 0), " ")); // add space before closing-paren
+            var pos = source1.IndexOf("var(a,  )") + 8;
+            var newText = text.WithChanges(new TextChange(new TextSpan(pos, 0), " ")); // add space before closing-paren
             var newTree = startTree.WithChangedText(newText);
             var finalText = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(newText.ToString(), finalText);
