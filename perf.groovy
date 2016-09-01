@@ -21,7 +21,7 @@ def generate(boolean isPr) {
         publishers {
             postBuildScripts {
                 steps {
-                    batchFile("""powershell -File ./build/scripts/cleanup_perf.ps1""")
+                    batchFile("""powershell -File ./build/scripts/cleanup_perf.ps1 -ShouldArchive""")
                 }
             }
         }

@@ -103,7 +103,7 @@ namespace Roslyn.Test.Performance.Utilities
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
             {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+                logger.Log($"Didn't download and extract {zipFileName} because one already exists at {zipPath}.");
                 return;
             }
 

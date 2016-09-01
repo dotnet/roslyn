@@ -136,32 +136,43 @@ namespace Runner
 
                 Log($"Number of iterations: {iterations}");
 
-                for (int i = 0; i < iterations; i++)
+                try
                 {
-                    traceManager.Start();
-                    traceManager.StartScenarios();
-
-                    if (test.ProvidesScenarios)
+                    for (int i = 0; i < iterations; i++)
                     {
-                        traceManager.WriteScenarios(test.GetScenarios());
-                        test.Test();
-                    }
-                    else
-                    {
-                        traceManager.StartScenario(test.Name, test.MeasuredProc);
-                        traceManager.StartEvent();
-                        test.Test();
-                        traceManager.EndEvent();
-                        traceManager.EndScenario();
+                        traceManager.Start();
+                        traceManager.StartScenarios();
+
+                        if (test.ProvidesScenarios)
+                        {
+                            traceManager.WriteScenarios(test.GetScenarios());
+                            test.Test();
+                        }
+                        else
+                        {
+                            traceManager.StartScenario(test.Name, test.MeasuredProc);
+                            traceManager.StartEvent();
+                            test.Test();
+                            traceManager.EndEvent();
+                            traceManager.EndScenario();
+                        }
+
+                        traceManager.EndScenarios();
+                        traceManager.WriteScenariosFileToDisk();
+                        traceManager.Stop();
+                        traceManager.ResetScenarioGenerator();
                     }
 
-                    traceManager.EndScenarios();
-                    traceManager.WriteScenariosFileToDisk();
-                    traceManager.Stop();
-                    traceManager.ResetScenarioGenerator();
                 }
-
-                traceManager.Cleanup();
+                catch (Exception)
+                {
+                    traceManager.Stop();
+                    throw;
+                }
+                finally
+                {
+                    traceManager.Cleanup();
+                }
             }
         }
     }
