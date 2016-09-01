@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -21,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private sealed class RootTreeNode : SubTreeNode, IRootChecksumTreeNode
         {
+            // cache to remove lambda allocation
+            private readonly static Func<ConcurrentDictionary<Checksum, Asset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, Asset>(concurrencyLevel: 2, capacity: 10);
+
+            // cache to remove lambda allocation
+            private readonly Func<Checksum, ChecksumObject> _checksumObjectFromAdditionalAssetsGetter;
+
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
@@ -28,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 base(owner, GetOrCreateSerializer(solutionState.Workspace.Services))
             {
                 SolutionState = solutionState;
+
+                _checksumObjectFromAdditionalAssetsGetter = GetChecksumObjectFromAdditionalAssets;
             }
 
             public SolutionState SolutionState { get; }
@@ -36,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                LazyInitialization.EnsureInitialized(ref _additionalAssets, () => new ConcurrentDictionary<Checksum, Asset>(concurrencyLevel: 2, capacity: 10));
+                LazyInitialization.EnsureInitialized(ref _additionalAssets, s_additionalAssetsCreator);
 
                 _additionalAssets.TryAdd(asset.Checksum, asset);
             }
@@ -59,33 +66,36 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public override void AppendChecksumObjects(ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+            public override void AppendChecksumObjects(Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
             {
-                base.AppendChecksumObjects(builder, checksums, cancellationToken);
-                if (checksums.Count == 0)
+                // call base one to do common search
+                base.AppendChecksumObjects(map, searchingChecksumsLeft, cancellationToken);
+                if (searchingChecksumsLeft.Count == 0)
                 {
+                    // there is no checksum left to find
                     return;
                 }
 
+                // root tree node has extra data that we need to search as well
                 if (_additionalAssets == null)
                 {
                     // this can't be reached
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                AppendChecksumObjects(builder, checksums, _additionalAssets, cancellationToken);
+                AppendChecksumObjectsFromAdditionalAssets(map, searchingChecksumsLeft, cancellationToken);
             }
 
-            private void AppendChecksumObjects(
-                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, ConcurrentDictionary<Checksum, Asset> assets, CancellationToken cancellationToken)
+            private void AppendChecksumObjectsFromAdditionalAssets(
+                Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
             {
-                AppendChecksumObjects(builder, checksums, assets.Count, assets.Keys, c => GetItem(assets, c), cancellationToken);
+                AppendChecksumObjects(map, searchingChecksumsLeft, _additionalAssets.Count, _additionalAssets.Keys, _checksumObjectFromAdditionalAssetsGetter, cancellationToken);
             }
 
-            private ChecksumObject GetItem(ConcurrentDictionary<Checksum, Asset> assets, Checksum checksum)
+            private ChecksumObject GetChecksumObjectFromAdditionalAssets(Checksum checksum)
             {
                 Asset asset;
-                if (assets.TryGetValue(checksum, out asset))
+                if (_additionalAssets.TryGetValue(checksum, out asset))
                 {
                     return asset;
                 }
@@ -103,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class SubTreeNode : IChecksumTreeNode
         {
+            // cache to remove lambda allocation
             private static readonly Func<object, ChecksumObjectCache> s_cacheCreator = _ => new ChecksumObjectCache();
 
             private readonly ChecksumTreeCollection _owner;
@@ -156,19 +167,20 @@ namespace Microsoft.CodeAnalysis.Execution
                 return null;
             }
 
-            public virtual void AppendChecksumObjects(ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+            public virtual void AppendChecksumObjects(Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
             {
-                if (checksums.Count == 0)
+                if (searchingChecksumsLeft.Count == 0)
                 {
+                    // there is no checksum left to find
                     return;
                 }
 
                 foreach (var entry in _cache.Values)
                 {
-                    AppendChecksumObjects(builder, checksums, entry, cancellationToken);
-                    if (checksums.Count == 0)
+                    AppendChecksumObjects(map, searchingChecksumsLeft, entry, cancellationToken);
+                    if (searchingChecksumsLeft.Count == 0)
                     {
-                        // we found all
+                        // there is no checksum left to find
                         return;
                     }
 
@@ -180,10 +192,10 @@ namespace Microsoft.CodeAnalysis.Execution
                     }
 
                     // ask its sub tree cache
-                    cache.AppendChecksumObjects(builder, checksums, cancellationToken);
-                    if (checksums.Count == 0)
+                    cache.AppendChecksumObjects(map, searchingChecksumsLeft, cancellationToken);
+                    if (searchingChecksumsLeft.Count == 0)
                     {
-                        // we found all
+                        // there is no checksum left to find
                         return;
                     }
                 }
@@ -247,52 +259,61 @@ namespace Microsoft.CodeAnalysis.Execution
                 return GetOrCreateChecksumObjectAsync(key, value, kind, valueGetterAsync, cancellationToken);
             }
 
-            protected void AppendChecksumObjects(
-                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder,
-                HashSet<Checksum> checksums,
-                int itemCount,
-                IEnumerable<Checksum> itemChecksums,
-                Func<Checksum, ChecksumObject> itemGetter, CancellationToken cancellationToken)
+            protected static void AppendChecksumObjects(
+                Dictionary<Checksum, ChecksumObject> map,
+                HashSet<Checksum> searchingChecksumsLeft,
+                int currentNodeChecksumCount,
+                IEnumerable<Checksum> currentNodeChecksums,
+                Func<Checksum, ChecksumObject> checksumGetterForCurrentNode, 
+                CancellationToken cancellationToken)
             {
+                // this will iterate through candidate checksums to see whether that checksum exists in both
+                // checksum set we are currently searching for and checksums current node contains
                 using (var removed = Creator.CreateList<Checksum>())
                 {
-                    foreach (var checksum in GetChecksums(checksums.Count, checksums, itemCount, itemChecksums))
+                    // we have 2 sets of checksums. one we are searching for and ones this node contains.
+                    // we only need to iterate one of them to see this node contains what we are looking for.
+                    // so, we check two set and use one that has smaller number of checksums.
+                    foreach (var checksum in GetSmallerChecksumList(searchingChecksumsLeft.Count, searchingChecksumsLeft, currentNodeChecksumCount, currentNodeChecksums))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var checksumObject = itemGetter(checksum);
-                        if (checksumObject != null && checksums.Contains(checksum))
+                        // if checksumGetter return null for given checksum, that means current node doesn't have given checksum
+                        var checksumObject = checksumGetterForCurrentNode(checksum);
+                        if (checksumObject != null && searchingChecksumsLeft.Contains(checksum))
                         {
-                            // found entry
-                            builder[checksum] = checksumObject;
+                            // found given checksum in current node
+                            map[checksum] = checksumObject;
                             removed.Object.Add(checksum);
 
-                            if (removed.Object.Count == checksums.Count)
+                            // we found all checksums we are looking for
+                            if (removed.Object.Count == searchingChecksumsLeft.Count)
                             {
                                 break;
                             }
                         }
                     }
 
-                    checksums.ExceptWith(removed.Object);
+                    searchingChecksumsLeft.ExceptWith(removed.Object);
                 }
             }
 
-            private IEnumerable<Checksum> GetChecksums(int count1, IEnumerable<Checksum> checksums1, int count2, IEnumerable<Checksum> checksums2)
+            private static IEnumerable<Checksum> GetSmallerChecksumList(int count1, IEnumerable<Checksum> checksums1, int count2, IEnumerable<Checksum> checksums2)
             {
+                // return smaller checksum list from given two list
                 return count1 < count2 ? checksums1 : checksums2;
             }
 
             private void AppendChecksumObjects(
-                ImmutableDictionary<Checksum, ChecksumObject>.Builder builder, HashSet<Checksum> checksums, ChecksumObjectCache entry, CancellationToken cancellationToken)
+                Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, ChecksumObjectCache cache, CancellationToken cancellationToken)
             {
-                AppendChecksumObjects(builder, checksums, entry.Count, entry.GetChecksums(), c => GetItem(entry, c), cancellationToken);
+                AppendChecksumObjects(map, searchingChecksumsLeft, cache.Count, cache.GetChecksums(), c => GetChecksumObjectFromTreeNode(cache, c), cancellationToken);
             }
 
-            private ChecksumObject GetItem(ChecksumObjectCache entry, Checksum checksum)
+            private ChecksumObject GetChecksumObjectFromTreeNode(ChecksumObjectCache cache, Checksum checksum)
             {
                 ChecksumObject checksumObject;
-                if (entry.TryGetValue(checksum, out checksumObject))
+                if (cache.TryGetValue(checksum, out checksumObject))
                 {
                     return checksumObject;
                 }

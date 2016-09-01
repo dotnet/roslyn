@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         // somehow, ImmutableArray<T>.Enumerator doesn't implement IEnumerator<T>
         public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             throw new NotImplementedException("should not be called");
         }

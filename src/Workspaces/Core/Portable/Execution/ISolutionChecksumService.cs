@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Execution
         ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get <see cref="ChecksumObject"/> corresponding to given <see cref="Checksum"/>. 
+        /// Get <see cref="ChecksumObject"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        ImmutableDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        IReadOnlyDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

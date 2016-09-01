@@ -125,5 +125,15 @@ namespace Microsoft.CodeAnalysis.Execution
 
             return new Checksum(builder.MoveToImmutable());
         }
+
+        public static string GetChecksumLogInfo(Checksum checksum)
+        {
+            return checksum.ToString();
+        }
+
+        public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
+        {
+            return string.Join("|", checksums.Select(c => c.ToString()));
+        }
     }
 }

@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                await asset.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))

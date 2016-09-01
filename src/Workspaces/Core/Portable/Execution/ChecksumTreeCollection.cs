@@ -2,7 +2,6 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,20 +96,22 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(checksum);
         }
 
-        public ImmutableDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public IReadOnlyDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
-            using (var set = Creator.CreateChecksumSet(checksums))
+            using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
             {
-                var count = set.Object.Count;
-                var builder = ImmutableDictionary.CreateBuilder<Checksum, ChecksumObject>();
+                var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
+                var result = new Dictionary<Checksum, ChecksumObject>();
 
-                // search snapshots we have
+                // search checksum trees we have
                 foreach (var cache in _rootTreeNodes.Values)
                 {
-                    cache.AppendChecksumObjects(builder, set.Object, cancellationToken);
-                    if (builder.Count == count)
+                    cache.AppendChecksumObjects(result, searchingChecksumsLeft.Object, cancellationToken);
+                    if (result.Count == numberOfChecksumsToSearch)
                     {
-                        return builder.ToImmutable();
+                        // no checksum left to find
+                        Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                        return result;
                     }
                 }
 
@@ -119,19 +120,21 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (set.Object.Remove(asset.Checksum))
+                    if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
                     {
-                        builder[asset.Checksum] = asset;
+                        result[asset.Checksum] = asset;
 
-                        if (builder.Count == count)
+                        if (result.Count == numberOfChecksumsToSearch)
                         {
-                            return builder.ToImmutable();
+                            // no checksum left to find
+                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                            return result;
                         }
                     }
                 }
 
                 // as long as solution snapshot is pinned. it must exist in one of the trees.
-                throw ExceptionUtilities.UnexpectedValue(builder.Count);
+                throw ExceptionUtilities.UnexpectedValue(result.Count);
             }
         }
 

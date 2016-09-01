@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return asset;
             }
 
-            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, GetChecksumLogInfo, checksum, cancellationToken))
+            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
                 // TODO: what happen if service doesn't come back. timeout?
                 var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
@@ -107,15 +106,28 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, GetChecksumLogInfo, solutionChecksum, cancellationToken))
+            // this will pull in assets that belong to the given solution checksum to this remote host.
+            // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
+            // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
+            // itself will bring that data in from data source (VS)
+
+            // one can call this method to make cache hot for all assets that belong to the solution checksum so that GetAssetAsync call will most likely cache hit.
+            // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
+            // before one actually consume the data. 
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
             {
                 var collector = new ChecksumSynchronizer(this);
                 await collector.SynchronizeAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private bool Exists(Checksum checksum)
+        private bool EnsureCacheEntryIfExists(Checksum checksum)
         {
+            // this will check whether checksum exists in the cache and if it does,
+            // it will touch the entry so that it doesn't expire right after we checked it.
+            //
+            // even if it got expired after this for whatever reason, functionality wise everything will still work, 
+            // just perf will be impacted since we will fetch it from data source (VS)
             object unused;
             return TryGetAsset(checksum, out unused);
         }
@@ -123,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private bool TryGetAsset<T>(Checksum checksum, out T value)
         {
             value = default(T);
-            using (Logger.LogBlock(FunctionId.AssetService_TryGetAsset, GetChecksumLogInfo, checksum, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.AssetService_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
                 Entry entry;
                 if (!_assets.TryGetValue(checksum, out entry))
@@ -141,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, GetChecksumsLogInfo, checksums, cancellationToken))
+            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
                 var values = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
@@ -215,16 +227,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return ex is OperationCanceledException || ex is IOException || ex is ObjectDisposedException;
         }
 
-        private static string GetChecksumLogInfo(Checksum checksum)
-        {
-            return checksum.ToString();
-        }
-
-        private static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-        {
-            return string.Join("|", checksums.Select(c => c.ToString()));
-        }
-
         private class Entry
         {
             // mutable field
@@ -251,36 +253,49 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task SynchronizeAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
             {
-                // get children of solution checksum object at once
-                var solutionChecksums = new HashSet<Checksum>();
+                // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
+
+                // first, get solution checksum object for the given solution checksum
                 var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionChecksumObject>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                AppendIfNeeded(solutionChecksums, solutionChecksumObject.Info);
-                AppendIfNeeded(solutionChecksums, solutionChecksumObject.Projects);
+                // second, get direct children of the solution
+                await SynchronizeSolutionAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
 
+                // third, get direct children for all projects in the solution
+                await SynchronizeProjectsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+
+                // last, get direct children for all documents in the solution
+                await SynchronizeDocumentsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task SynchronizeSolutionAsync(SolutionChecksumObject solutionChecksumObject, CancellationToken cancellationToken)
+            {
+                // get children of solution checksum object at once
+                var solutionChecksums = new HashSet<Checksum>();
+
+                AddIfNeeded(solutionChecksums, solutionChecksumObject.Children);
                 await _assetService.SynchronizeAssetsAsync(solutionChecksums, cancellationToken).ConfigureAwait(false);
+            }
 
+            private async Task SynchronizeProjectsAsync(SolutionChecksumObject solutionChecksumObject, CancellationToken cancellationToken)
+            {
                 // get children of project checksum objects at once
                 var projectChecksums = new HashSet<Checksum>();
+
                 foreach (var projectChecksum in solutionChecksumObject.Projects)
                 {
                     var projectChecksumObject = await _assetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
-
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.Info);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.CompilationOptions);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.ParseOptions);
-
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.ProjectReferences);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.MetadataReferences);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.AnalyzerReferences);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.Documents);
-                    AppendIfNeeded(projectChecksums, projectChecksumObject.AdditionalDocuments);
+                    AddIfNeeded(projectChecksums, projectChecksumObject.Children);
                 }
 
                 await _assetService.SynchronizeAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+            }
 
+            private async Task SynchronizeDocumentsAsync(SolutionChecksumObject solutionChecksumObject, CancellationToken cancellationToken)
+            {
                 // get children of document checksum objects at once
                 var documentChecksums = new HashSet<Checksum>();
+
                 foreach (var projectChecksum in solutionChecksumObject.Projects)
                 {
                     var projectChecksumObject = await _assetService.GetAssetAsync<ProjectChecksumObject>(projectChecksum, cancellationToken).ConfigureAwait(false);
@@ -288,36 +303,54 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var checksum in projectChecksumObject.Documents)
                     {
                         var documentChecksumObject = await _assetService.GetAssetAsync<DocumentChecksumObject>(checksum, cancellationToken).ConfigureAwait(false);
-
-                        AppendIfNeeded(documentChecksums, documentChecksumObject.Info);
-                        AppendIfNeeded(documentChecksums, documentChecksumObject.Text);
+                        AddIfNeeded(documentChecksums, documentChecksumObject.Children);
                     }
 
                     foreach (var checksum in projectChecksumObject.AdditionalDocuments)
                     {
                         var documentChecksumObject = await _assetService.GetAssetAsync<DocumentChecksumObject>(checksum, cancellationToken).ConfigureAwait(false);
-
-                        AppendIfNeeded(documentChecksums, documentChecksumObject.Info);
-                        AppendIfNeeded(documentChecksums, documentChecksumObject.Text);
+                        AddIfNeeded(documentChecksums, documentChecksumObject.Children);
                     }
                 }
 
                 await _assetService.SynchronizeAssetsAsync(documentChecksums, cancellationToken).ConfigureAwait(false);
             }
 
-            private void AppendIfNeeded(HashSet<Checksum> checksums, IEnumerable<Checksum> collection)
+            private void AddIfNeeded(HashSet<Checksum> checksums, object[] checksumOrCollections)
             {
-                foreach (var checksum in collection)
+                foreach (var checksumOrCollection in checksumOrCollections)
                 {
-                    AppendIfNeeded(checksums, checksum);
+                    var checksum = checksumOrCollection as Checksum;
+                    if (checksum != null)
+                    {
+                        AddIfNeeded(checksums, checksum);
+                        continue;
+                    }
+
+                    var checksumCollection = checksumOrCollection as ChecksumCollection;
+                    if (checksumCollection != null)
+                    {
+                        AddIfNeeded(checksums, checksumCollection);
+                        continue;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);
                 }
             }
 
-            private void AppendIfNeeded(HashSet<Checksum> checksums, Checksum info)
+            private void AddIfNeeded(HashSet<Checksum> checksums, IEnumerable<Checksum> collection)
             {
-                if (!_assetService.Exists(info))
+                foreach (var checksum in collection)
                 {
-                    checksums.Add(info);
+                    AddIfNeeded(checksums, checksum);
+                }
+            }
+
+            private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
+            {
+                if (!_assetService.EnsureCacheEntryIfExists(checksum))
+                {
+                    checksums.Add(checksum);
                 }
             }
         }

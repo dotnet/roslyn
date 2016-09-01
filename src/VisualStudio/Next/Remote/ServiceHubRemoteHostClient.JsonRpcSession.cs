@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     writer.WriteValue(checksum);
                     writer.WriteString(checksumObject.Kind);
 
-                    await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
+                    await checksumObject.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                 }
 
                 private async Task WriteMultipleAssetsAsync(ObjectWriter writer, byte[][] checksums)
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         writer.WriteValue(checksum.ToArray());
                         writer.WriteString(checksumObject.Kind);
 
-                        await checksumObject.WriteToAsync(writer, _source.Token).ConfigureAwait(false);
+                        await checksumObject.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                     }
                 }
 

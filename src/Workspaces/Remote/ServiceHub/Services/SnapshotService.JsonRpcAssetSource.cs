@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     return await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { serviceId, checksums.Select(c => c.ToArray()).ToArray() },
-                        (s, c) => ReadAssetsAsync(s, _logger, serviceId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        (s, c) => ReadAssets(s, _logger, serviceId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 
-            private static Task<IList<ValueTuple<Checksum, object>>> ReadAssetsAsync(
+            private static IList<ValueTuple<Checksum, object>> ReadAssets(
                 Stream stream, TraceSource logger, int serviceId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
                 var results = new List<ValueTuple<Checksum, object>>();
@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.Remote
                         results.Add(ValueTuple.Create(responseChecksum, @object));
                     }
 
-                    return Task.FromResult<IList<ValueTuple<Checksum, object>>>(results);
+                    return results;
                 }
             }
 
             private static string GetRequestLogInfo(int serviceId, IEnumerable<Checksum> checksums)
             {
-                return $"{serviceId} - {string.Join("|", checksums.Select(c => c.ToString()))}";
+                return $"{serviceId} - {Checksum.GetChecksumsLogInfo(checksums)}";
             }
         }
     }

@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -66,28 +63,18 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public ChecksumObject GetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, GetChecksumLogInfo, checksum, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObject, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     return _treeCollection.GetChecksumObject(checksum, cancellationToken);
                 }
             }
 
-            public ImmutableDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public IReadOnlyDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObjects, GetChecksumsLogInfo, checksums, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionChecksumServiceFactory_GetChecksumObjects, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
                     return _treeCollection.GetChecksumObjects(checksums, cancellationToken);
                 }
-            }
-
-            private static string GetChecksumLogInfo(Checksum checksum)
-            {
-                return checksum.ToString();
-            }
-
-            private static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-            {
-                return string.Join("|", checksums.Select(c => c.ToString()));
             }
         }
     }
