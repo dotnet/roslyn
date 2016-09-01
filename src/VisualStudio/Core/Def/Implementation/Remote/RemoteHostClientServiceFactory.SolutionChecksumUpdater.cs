@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class RemoteHostClientServiceFactory
     {
-        private class SolutionChecksumUpdator : GlobalOperationAwareIdleProcessor
+        private class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
         {
             private readonly SemaphoreSlim _gate;
             private readonly RemoteHostClientService _service;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _globalOperationCancellationSource;
             private ChecksumScope _lastSnapshot;
 
-            public SolutionChecksumUpdator(RemoteHostClientService service, CancellationToken shutdownToken) :
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
                 base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
                      service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
                      service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
