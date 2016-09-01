@@ -7514,6 +7514,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        /// </summary>
+        internal static string ERR_PredefinedValueTupleTypeNotFound {
+            get {
+                return ResourceManager.GetString("ERR_PredefinedValueTupleTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute.
         /// </summary>
         internal static string ERR_PrincipalPermissionInvalidAction {
