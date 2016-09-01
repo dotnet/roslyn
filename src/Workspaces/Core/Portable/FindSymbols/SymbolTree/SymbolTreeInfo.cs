@@ -358,6 +358,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var n = unsortedNodes[i];
                 var currentName = n.Name;
 
+                // Don't bother adding the exact same name the concatenated sequence
+                // over and over again.  This can trivially happen because we'll run
+                // into the same names with different parents all through metadata 
+                // and source symbols.
                 if (currentName != lastName)
                 {
                     concatenatedNamesBuilder.Append(currentName);
