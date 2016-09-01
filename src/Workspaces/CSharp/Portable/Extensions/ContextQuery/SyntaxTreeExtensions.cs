@@ -2185,13 +2185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsInvocationOfVarExpression(this SyntaxToken token)
         {
-            if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
-                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
-            {
-                return true;
-            }
-
-            return false;
+            return token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
         }
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))
