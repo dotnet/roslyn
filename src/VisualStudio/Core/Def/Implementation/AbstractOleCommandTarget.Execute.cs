@@ -674,8 +674,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
+        protected virtual void InterceptUncommentSelectionCommand()
+        {
+        }
+
         protected void ExecuteUncommentBlock(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
+            InterceptUncommentSelectionCommand();
+
             CurrentHandlers.Execute(contentType,
                 args: new UncommentSelectionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);

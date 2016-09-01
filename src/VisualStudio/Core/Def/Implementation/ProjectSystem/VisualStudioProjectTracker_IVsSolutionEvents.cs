@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _solutionLoadComplete = false;
+            _solutionIsFullyLoaded = false;
 
             return VSConstants.S_OK;
         }

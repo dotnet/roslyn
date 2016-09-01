@@ -33,6 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _languageService = languageService;
         }
 
+        protected override void InterceptUncommentSelectionCommand()
+        {
+            _languageService.Workspace.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
+        }
+
         public virtual int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
         {
             pbstrText = null;
