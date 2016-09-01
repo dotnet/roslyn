@@ -460,6 +460,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private string GetName(Node node)
         {
+            // TODO(cyrusn): We could consider caching the strings we create in the
+            // Nodes themselves.  i.e. we could have a field in the node where the
+            // string could be stored once created.  The reason i'm not doing that now
+            // is because, in general, we shouldn't actually be allocating that many
+            // strings here.  This data structure is not in a hot path, and does not
+            // have a usage pattern where may strings are accessed in it.  Rather, 
+            // some features generally use it to just see if they can find a symbol
+            // corresponding to a single name.  As such, caching doesn't seem valuable.
             return _concatenatedNames.Substring(node.NameSpan.Start, node.NameSpan.Length);
         }
 
