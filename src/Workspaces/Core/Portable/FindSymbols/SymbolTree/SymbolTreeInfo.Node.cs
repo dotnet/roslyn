@@ -1,11 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private const int RootNodeParentIndex = -1;
+
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+        private struct BuilderNode
+        {
+            public readonly string Name;
+            public readonly int ParentIndex;
+
+            public BuilderNode(string name, int parentIndex)
+            {
+                Name = name;
+                ParentIndex = parentIndex;
+            }
+
+            public bool IsRoot =>
+                ParentIndex == RootNodeParentIndex;
+
+            private string GetDebuggerDisplay()
+            {
+                return Name + ", " + ParentIndex;
+            }
+        }
+
         /// <summary>
         /// A node represents a single unique name in a dotted-name tree.
         /// Uniqueness is always case sensitive.
@@ -13,41 +38,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct Node
         {
-            private readonly string _name;
-            private readonly int _parentIndex;
+            public readonly TextSpan NameSpan;
+            public readonly int ParentIndex;
 
-            public const int RootNodeParentIndex = -1;
-
-            public Node(string name, int parentIndex)
+            public Node(TextSpan wordSpan, int parentIndex)
             {
-                _name = name;
-                _parentIndex = parentIndex;
+                NameSpan = wordSpan;
+                ParentIndex = parentIndex;
             }
 
-            public string Name
-            {
-                get { return _name; }
-            }
-
-            public int ParentIndex
-            {
-                get { return _parentIndex; }
-            }
-
-            public bool IsRoot
-            {
-                get { return _parentIndex == RootNodeParentIndex; }
-            }
+            public bool IsRoot =>
+                ParentIndex == RootNodeParentIndex;
 
             public void AssertEquivalentTo(Node node)
             {
-                Debug.Assert(node.Name == this.Name);
+                Debug.Assert(node.NameSpan == this.NameSpan);
                 Debug.Assert(node.ParentIndex == this.ParentIndex);
-            }
-
-            private string GetDebuggerDisplay()
-            {
-                return _name + ", " + _parentIndex;
             }
         }
     }

@@ -6,9 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -18,13 +20,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly VersionStamp _version;
 
+        private readonly string _concatenatedNames;
+
         /// <summary>
         /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name.
         /// They are sorted case-insensitively with the <see cref="s_totalComparer" />. Finding case-sensitive
         /// matches can be found by binary searching for something that matches insensitively, and then searching
         /// around that equivalence class for one that matches.
         /// </summary>
-        private readonly ImmutableArray<Node> _nodes;
+        private readonly Node[] _nodes;
 
         /// <summary>
         /// Inheritance information for the types in this assembly.  The mapping is between
@@ -50,7 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly Task<SpellChecker> _spellCheckerTask;
 
-        private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
+        private static readonly StringSliceComparer s_caseInsensitiveComparer =
+            StringSliceComparer.OrdinalIgnoreCase;
 
         // We first sort in a case insensitive manner.  But, within items that match insensitively, 
         // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // result and reusing it when they see they're getting the same string again.
         private static readonly Comparison<string> s_totalComparer = (s1, s2) =>
         {
-            var diff = s_caseInsensitiveComparer.Compare(s1, s2);
+            var diff = StringComparer.OrdinalIgnoreCase.Compare(s1, s2);
             return diff != 0
                 ? diff
                 : StringComparer.Ordinal.Compare(s1, s2);
@@ -70,10 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private SymbolTreeInfo(
             VersionStamp version,
-            ImmutableArray<Node> sortedNodes,
+            string concatenatedNames,
+            Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
-            : this(version, sortedNodes, spellCheckerTask)
+            : this(version, concatenatedNames, sortedNodes, spellCheckerTask)
         {
             var indexBasedInheritanceMap = CreateIndexBasedInheritanceMap(inheritanceMap);
             _inheritanceMap = indexBasedInheritanceMap;
@@ -81,20 +87,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private SymbolTreeInfo(
             VersionStamp version,
-            ImmutableArray<Node> sortedNodes,
+            string concatenatedNames,
+            Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<int, int> inheritanceMap)
-            : this(version, sortedNodes, spellCheckerTask)
+            : this(version, concatenatedNames, sortedNodes, spellCheckerTask)
         {
             _inheritanceMap = inheritanceMap;
         }
 
         private SymbolTreeInfo(
-            VersionStamp version, 
-            ImmutableArray<Node> sortedNodes, 
+            VersionStamp version,
+            string concatenatedNames,
+            Node[] sortedNodes, 
             Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
+            _concatenatedNames = concatenatedNames;
             _nodes = sortedNodes;
             _spellCheckerTask = spellCheckerTask;
         }
@@ -113,7 +122,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 filter);
         }
 
-        private Task<IEnumerable<ISymbol>> FindAsyncWorker(SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+        private Task<IEnumerable<ISymbol>> FindAsyncWorker(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
@@ -185,15 +195,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Slow, linear scan of all the symbols in this assembly to look for matches.
         /// </summary>
-        private async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ISymbol>> FindAsync(
+            AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
         {
             var result = new List<ISymbol>();
             IAssemblySymbol assembly = null;
             for (int i = 0, n = _nodes.Length; i < n; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var node = _nodes[i];
-                if (predicate(node.Name))
+
+                if (predicate(GetName(_nodes[i])))
                 {
                     assembly = assembly ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
@@ -204,43 +215,58 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        private static StringComparer GetComparer(bool ignoreCase)
+        //private string GetName(int nodeIndex)
+        //{
+        //    // Use 'ref' so the assignment will go back into the node in the array.
+        //    ref var node = ref _nodes[nodeIndex];
+        //    if (node.MutableName == null)
+        //    {
+        //        node.MutableName = new string(_concatenatedNames, node.WordSpan.Start, node.WordSpan.Length);
+        //    }
+
+        //    return node.MutableName;
+        //}
+
+        private static StringSliceComparer GetComparer(bool ignoreCase)
         {
-            return ignoreCase ? CaseInsensitiveComparison.Comparer : StringComparer.Ordinal;
+            return ignoreCase
+                ? StringSliceComparer.OrdinalIgnoreCase
+                : StringSliceComparer.Ordinal;
         }
 
         /// <summary>
         /// Gets all the node indices with matching names per the <paramref name="comparer" />.
         /// </summary>
         private IEnumerable<int> FindNodeIndices(
-            string name, StringComparer comparer)
+            string name, StringSliceComparer comparer)
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(name);
+            var nameSlice = new StringSlice(name);
 
             if (startingPosition != -1)
             {
                 // yield if this matches by the actual given comparer
-                if (comparer.Equals(name, _nodes[startingPosition].Name))
+                if (comparer.Equals(nameSlice, GetNameSlice(startingPosition)))
                 {
                     yield return startingPosition;
                 }
 
                 int position = startingPosition;
-                while (position > 0 && s_caseInsensitiveComparer.Equals(_nodes[position - 1].Name, name))
+                while (position > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(position - 1), nameSlice))
                 {
                     position--;
-                    if (comparer.Equals(_nodes[position].Name, name))
+                    if (comparer.Equals(GetNameSlice(position), nameSlice))
                     {
                         yield return position;
                     }
                 }
 
                 position = startingPosition;
-                while (position + 1 < _nodes.Length && s_caseInsensitiveComparer.Equals(_nodes[position + 1].Name, name))
+                while (position + 1 < _nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(position + 1), nameSlice))
                 {
                     position++;
-                    if (comparer.Equals(_nodes[position].Name, name))
+                    if (comparer.Equals(GetNameSlice(position), nameSlice))
                     {
                         yield return position;
                     }
@@ -248,11 +274,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        private StringSlice GetNameSlice(int nodeIndex)
+        {
+            return new StringSlice(_concatenatedNames, _nodes[nodeIndex].NameSpan);
+        }
+
         /// <summary>
         /// Searches for a name in the ordered list that matches per the <see cref="s_caseInsensitiveComparer" />.
         /// </summary>
         private int BinarySearch(string name)
         {
+            var nameSlice = new StringSlice(name);
             int max = _nodes.Length - 1;
             int min = 0;
 
@@ -260,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(GetNameSlice(mid), nameSlice);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -297,17 +329,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new SemaphoreSlim(1);
 
         private static Task<SpellChecker> GetSpellCheckerTask(
-            Solution solution, VersionStamp version, string filePath, ImmutableArray<Node> sortedNodes)
+            Solution solution, VersionStamp version, string filePath, 
+            string concatenatedNames, Node[] sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
             return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
-                v => new SpellChecker(v, sortedNodes.Select(n => new StringSlice(n.Name)))));
+                v => new SpellChecker(v, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan)))));
         }
 
-        private static ImmutableArray<Node> SortNodes(ImmutableArray<Node> unsortedNodes)
+        private static void SortNodes(
+            ImmutableArray<BuilderNode> unsortedNodes,
+            out string concatenatedNames,
+            out Node[] sortedNodes)
         {
             // Generate index numbers from 0 to Count-1
             var tmp = new int[unsortedNodes.Length];
@@ -332,19 +368,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             tmp = null;
 
             var result = new Node[unsortedNodes.Length];
+            var concatenatedNamesBuilder = new StringBuilder();
+            string lastName = null;
 
             // Copy nodes into the result array in the appropriate order and fixing
             // up parent indexes as we go.
             for (int i = 0; i < unsortedNodes.Length; i++)
             {
-                Node n = unsortedNodes[i];
-                result[ranking[i]] = new Node(n.Name, n.IsRoot ? n.ParentIndex : ranking[n.ParentIndex]);
+                var n = unsortedNodes[i];
+                var currentName = n.Name;
+
+                if (currentName != lastName)
+                {
+                    concatenatedNamesBuilder.Append(currentName);
+                }
+
+                result[ranking[i]] = new Node(
+                    new TextSpan(concatenatedNamesBuilder.Length - currentName.Length, currentName.Length),
+                    n.IsRoot ? n.ParentIndex : ranking[n.ParentIndex]);
+
+                lastName = currentName;
             }
 
-            return ImmutableArray.Create(result);
+            sortedNodes = result;
+            concatenatedNames = concatenatedNamesBuilder.ToString();
         }
 
-        private static int CompareNodes(Node x, Node y, ImmutableArray<Node> nodeList)
+        private static int CompareNodes(
+            BuilderNode x, BuilderNode y, ImmutableArray<BuilderNode> nodeList)
         {
             var comp = s_totalComparer(x.Name, y.Name);
             if (comp == 0)
@@ -403,7 +454,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (_nodes[node.ParentIndex].IsRoot)
             {
-                results.AddRange(rootContainer.GetMembers(node.Name));
+                results.AddRange(rootContainer.GetMembers(GetName(node)));
             }
             else
             {
@@ -415,11 +466,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        results.AddRange(containerSymbol.GetMembers(node.Name));
+                        results.AddRange(containerSymbol.GetMembers(GetName(node)));
                     }
                 }
             }
         }
+
+        private string GetName(Node node)
+        {
+            return _concatenatedNames.Substring(node.NameSpan.Start, node.NameSpan.Length);
+        }
+
         #endregion
 
         internal void AssertEquivalentTo(SymbolTreeInfo other)
@@ -451,13 +508,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
             Solution solution, VersionStamp version, 
-            string filePath, ImmutableArray<Node> unsortedNodes,
+            string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
-            var sortedNodes = SortNodes(unsortedNodes);
-            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
+            string concatenatedNames;
+            Node[] sortedNodes;
+            SortNodes(unsortedNodes, out concatenatedNames, out sortedNodes);
+            var createSpellCheckerTask = GetSpellCheckerTask(
+                solution, version, filePath, concatenatedNames, sortedNodes);
 
-            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask, inheritanceMap);
+            return new SymbolTreeInfo(
+                version, concatenatedNames, sortedNodes, createSpellCheckerTask, inheritanceMap);
         }
 
         private OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

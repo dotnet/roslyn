@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "14";
+        private const string SerializationFormat = "15";
 
         /// <summary>
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -176,10 +177,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteString(SerializationFormat);
             _version.WriteTo(writer);
 
+            writer.WriteString(_concatenatedNames);
             writer.WriteInt32(_nodes.Length);
             foreach (var node in _nodes)
             {
-                writer.WriteString(node.Name);
+                writer.WriteInt32(node.NameSpan.Start);
+                writer.WriteInt32(node.NameSpan.Length);
                 writer.WriteInt32(node.ParentIndex);
             }
 
@@ -199,13 +202,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
         {
             return ReadSymbolTreeInfo(reader, 
-                (version, nodes) => Task.FromResult(
-                    new SpellChecker(version, nodes.Select(n => new StringSlice(n.Name)))));
+                (version, names, nodes) => Task.FromResult(
+                    new SpellChecker(version, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
             ObjectReader reader,
-            Func<VersionStamp, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
+            Func<VersionStamp, string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -215,17 +218,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var version = VersionStamp.ReadFrom(reader);
 
                     var nodeCount = reader.ReadInt32();
+                    var concatenatedNames = reader.ReadString();
 
-                    var nodeBuilder = ImmutableArray.CreateBuilder<Node>(nodeCount);
+                    var nodes = new Node[nodeCount];
                     for (var i = 0; i < nodeCount; i++)
                     {
-                        var name = reader.ReadString();
+                        var start = reader.ReadInt32();
+                        var length = reader.ReadInt32();
                         var parentIndex = reader.ReadInt32();
 
-                        nodeBuilder.Add(new Node(name, parentIndex));
+                        nodes[i] = new Node(new TextSpan(start, length), parentIndex);
                     }
-
-                    var nodes = nodeBuilder.MoveToImmutable();
 
                     var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
                     var inheritanceMapKeyCount = reader.ReadInt32();
@@ -241,8 +244,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var spellCheckerTask = createSpellCheckerTask(version, nodes);
-                    return new SymbolTreeInfo(version, nodes, spellCheckerTask, inheritanceMap);
+                    var spellCheckerTask = createSpellCheckerTask(version, concatenatedNames, nodes);
+                    return new SymbolTreeInfo(version, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
                 }
             }
             catch

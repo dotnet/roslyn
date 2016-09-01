@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         public StringSlice(string underlyingString, TextSpan span)
         {
-            this._underlyingString = underlyingString;
-            this._span = span;
+            _underlyingString = underlyingString;
+            _span = span;
 
             Debug.Assert(span.Start >= 0);
             Debug.Assert(span.End <= underlyingString.Length);
@@ -85,14 +85,24 @@ namespace Microsoft.CodeAnalysis.Utilities
             var end = this._span.End;
             for (int i = this._span.Start, j = other._span.Start; i < end; i++, j++)
             {
-                if (char.ToLowerInvariant(this._underlyingString[i]) != 
-                    char.ToLowerInvariant(other._underlyingString[j]))
+                var thisChar = this._underlyingString[i];
+                var otherChar = other._underlyingString[j];
+
+                if (!EqualsOrdinalIgnoreCase(thisChar, otherChar))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private static bool EqualsOrdinalIgnoreCase(char thisChar, char otherChar)
+        {
+            // Do a fast check first before converting to lowercase characters.
+            return 
+                thisChar == otherChar ||
+                CaseInsensitiveComparison.ToLower(thisChar) == CaseInsensitiveComparison.ToLower(otherChar);
         }
 
         public override int GetHashCode()
@@ -148,8 +158,8 @@ namespace Microsoft.CodeAnalysis.Utilities
                  i++, j++)
             {
                 var diff =
-                    char.ToLowerInvariant(this._underlyingString[i]) - 
-                    char.ToLowerInvariant(other._underlyingString[j]);
+                    CaseInsensitiveComparison.ToLower(this._underlyingString[i]) -
+                    CaseInsensitiveComparison.ToLower(other._underlyingString[j]);
                 if (diff != 0)
                 {
                     return diff;
