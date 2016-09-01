@@ -16,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where TSyntax : SyntaxNode
     {
         // Tag names
-        protected const string CDataPrefixTagName = "![CDATA[";
         protected const string CTagName = "c";
         protected const string CodeTagName = "code";
-        protected const string CommentPrefixTagName = "!--";
         protected const string CompletionListTagName = "completionlist";
         protected const string DescriptionTagName = "description";
         protected const string ExampleTagName = "example";
@@ -53,17 +51,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly Dictionary<string, string[]> _tagMap =
             new Dictionary<string, string[]>
             {
-                { ExceptionTagName,      new[] { $"<{ExceptionTagName} {CrefAttributeName}=\"",      "\"" } },
-                { CommentPrefixTagName,  new[] { $"<{CommentPrefixTagName}",                         "-->" } },
-                { CDataPrefixTagName,    new[] { $"<{CDataPrefixTagName}",                           "]]>" } },
-                { IncludeTagName,        new[] { $"<{IncludeTagName} {FileAttributeName}=\'",        $"\' {PathAttributeName}=\'[@name=\"\"]\'/>" } },
-                { PermissionTagName,     new[] { $"<{PermissionTagName} {CrefAttributeName}=\"",     "\"" } },
-                { SeeTagName,            new[] { $"<{SeeTagName} {CrefAttributeName}=\"",            "\"/>" } },
-                { SeeAlsoTagName,        new[] { $"<{SeeAlsoTagName} {CrefAttributeName}=\"",        "\"/>" } },
-                { ListTagName,           new[] { $"<{ListTagName} {TypeAttributeName}=\"",           "\"" } },
-                { ParamRefTagName,       new[] { $"<{ParamRefTagName} {NameAttributeName}=\"",       "\"/>" } },
-                { TypeParamRefTagName,   new[] { $"<{TypeParamRefTagName} {NameAttributeName}=\"",   "\"/>" } },
-                { CompletionListTagName, new[] { $"<{CompletionListTagName} {CrefAttributeName}=\"", "\"/>" } },
+                //                                  Open                         Before caret           $$  After caret                               Close
+                { ExceptionTagName,      new[] { $"<{ExceptionTagName}",      $" {CrefAttributeName}=\"",  "\"",                                      null } },
+                { IncludeTagName,        new[] { $"<{IncludeTagName}",        $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>" } },
+                { PermissionTagName,     new[] { $"<{PermissionTagName}",     $" {CrefAttributeName}=\"",  "\"",                                      null } },
+                { SeeTagName,            new[] { $"<{SeeTagName}",            $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                { SeeAlsoTagName,        new[] { $"<{SeeAlsoTagName}",        $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                { ListTagName,           new[] { $"<{ListTagName}",           $" {TypeAttributeName}=\"",  "\"",                                      null } },
+                { ParamRefTagName,       new[] { $"<{ParamRefTagName}",       $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
+                { TypeParamRefTagName,   new[] { $"<{TypeParamRefTagName}",   $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
+                { CompletionListTagName, new[] { $"<{CompletionListTagName}", $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
             };
 
         private readonly string[][] _attributeMap =
@@ -112,14 +109,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return GetExistingTopLevelElementNames(syntax).Contains(name);
         }
 
-        protected CompletionItem GetItem(string n)
+        private CompletionItem GetItem(string name)
         {
-            if (_tagMap.TryGetValue(n, out var value))
+            if (_tagMap.TryGetValue(name, out var values))
             {
-                return CreateCompletionItem(n, value[0], value[1]);
+                return CreateCompletionItem(name,
+                    beforeCaretText: values[0] + values[1],
+                    afterCaretText: values[2] + values[3],
+                    beforeCaretTextOnSpace: values[0],
+                    afterCaretTextOnSpace: values[3]);
             }
 
-            return CreateCompletionItem(n);
+            return CreateCompletionItem(name);
         }
 
         protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes)
@@ -130,7 +131,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }.Select(GetItem);
+            const string CommentPrefix = "!--";
+            const string CommentSuffix = "-->";
+            const string CDataPrefix = "![CDATA[";
+            const string CDataSuffix = "]]>";
+
+            return new[] {
+                GetItem(SeeTagName),
+                GetItem(SeeAlsoTagName),
+                CreateCompletionItem(CommentPrefix, "<" + CommentPrefix, CommentSuffix),
+                CreateCompletionItem(CDataPrefix, "<" + CDataPrefix, CDataSuffix),
+            };
         }
 
         protected IEnumerable<string> NestedTagNames
@@ -270,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var names = symbols.Select(p => p.Name).ToSet();
             names.RemoveAll(GetExistingTopLevelAttributeValues(syntax, tagName, NameAttributeName).WhereNotNull());
-            return names.Select(name => GetItem(FormatParameter(tagName, name)));
+            return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
         }
 
         private string FormatParameter(string kind, string name)
@@ -285,10 +296,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            bool includesCommitCharacter = true;
 
-            var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
-            var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
+            string beforeCaretText, afterCaretText;
+            if (commitChar == ' ' && XmlDocCommentCompletionItem.TryGetInsertionTextOnSpace(item, out beforeCaretText, out afterCaretText))
+            {
+                includesCommitCharacter = false;
+            }
+            else
+            {
+                beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
+                afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
+            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var itemSpan = item.Span;
             var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, itemSpan.End);
@@ -309,18 +330,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionChange.Create(
                 new TextChange(replacementSpan, replacementText),
-                newPosition, includesCommitCharacter: true);
+                newPosition, includesCommitCharacter);
         }
 
         private CompletionItem CreateCompletionItem(string displayText)
         {
-            return CreateCompletionItem(displayText, displayText, string.Empty);
+            return CreateCompletionItem(
+                displayText: displayText,
+                beforeCaretText: displayText,
+                afterCaretText: string.Empty);
         }
 
-        protected CompletionItem CreateCompletionItem(string displayText, string beforeCaretText, string afterCaretText)
+        protected CompletionItem CreateCompletionItem(string displayText,
+            string beforeCaretText, string afterCaretText,
+            string beforeCaretTextOnSpace = null, string afterCaretTextOnSpace = null)
         {
             return XmlDocCommentCompletionItem.Create(
-                displayText, beforeCaretText, afterCaretText, 
+                displayText, beforeCaretText, afterCaretText,
+                beforeCaretTextOnSpace, afterCaretTextOnSpace,
                 rules: GetCompletionItemRules(displayText));
         }
 

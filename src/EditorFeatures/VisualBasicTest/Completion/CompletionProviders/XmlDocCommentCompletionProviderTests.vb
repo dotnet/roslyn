@@ -685,8 +685,32 @@ End Class
             Await VerifyItemsExistAsync(text, "number", "bullet", "table")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeCommitOnSpace() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Dim after = "
+Class C
+    ''' <summary>
+    ''' <see$$/>
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyCustomCommitProviderAsync(text, "see", after, commitChar:=" "c)
+        End Function
+
+        <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSeeLangword() As Task
+        Public Async Function TestSeeLangwordValues() As Task
             Dim text = "
 Class C
     ''' <summary>
@@ -697,6 +721,51 @@ Class C
 End Class
 "
             Await VerifyItemsExistAsync(text, "Await", "Class")
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeAttributesOnSpace() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "langword", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SeeLangwordValuesOnQuote() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SeeLangwordValuesOnStartOfWord() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""A$$""
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
