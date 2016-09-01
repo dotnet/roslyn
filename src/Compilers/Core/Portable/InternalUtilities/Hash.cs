@@ -241,6 +241,8 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
+#if WORKSPACE
+
         internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
         {
             int hashCode = Hash.FnvOffsetBias;
@@ -253,6 +255,8 @@ namespace Roslyn.Utilities
 
             return hashCode;
         }
+
+#endif
 
         /// <summary>
         /// Compute the hashcode of a sub-string using FNV-1a

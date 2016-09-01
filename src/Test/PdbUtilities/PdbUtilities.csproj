@@ -52,9 +52,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
-      <Link>InternalUtilities\CaseInsensitiveComparison.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
