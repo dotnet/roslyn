@@ -37,11 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                var workspaceHost = RegisterWorkspaceHost(workspace);
-                if (workspaceHost != null)
-                {
-                    await workspaceHost.NotifyRemoteHostOfRegisterPrimarySolution().ConfigureAwait(false);
-                }
+                RegisterWorkspaceHost(workspace);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
@@ -53,18 +49,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private static WorkspaceHost RegisterWorkspaceHost(Workspace workspace)
+        private static void RegisterWorkspaceHost(Workspace workspace)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return null;
+                return;
             }
 
-            var workspaceHost = new WorkspaceHost(vsWorkspace);
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(workspaceHost);
-
-            return workspaceHost;
+            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(new WorkspaceHost(vsWorkspace));
         }
 
         private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :

@@ -35,6 +35,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 _workspace = workspace;
                 _currentSolutionId = workspace.CurrentSolution.Id;
+                
+                // Ensure that we populate the remote service with the initial state of
+                // the workspace's solution.
+                EnqueueRegisterPrimarySolutionTask();
+            }
+
+            public void OnAfterWorkingFolderChange()
+            {
+                this.AssertIsForeground();
+                EnqueueRegisterPrimarySolutionTask();
+            }
+
+            public void OnSolutionAdded(SolutionInfo solutionInfo)
+            {
+                this.AssertIsForeground();
+                EnqueueRegisterPrimarySolutionTask();
+            }
+
+            private void EnqueueRegisterPrimarySolutionTask()
+            {
+                _currentSolutionId = _workspace.CurrentSolution.Id;
+                var solutionId = _currentSolutionId;
+
+                lock (_gate)
+                {
+                    _lastTask = _lastTask.ContinueWith(
+                        _ => NotifyRemoteHostOfRegisterPrimarySolution(solutionId),
+                        TaskScheduler.Default).Unwrap();
+                }
             }
 
             public void OnBeforeWorkingFolderChange()
@@ -48,36 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     _lastTask = _lastTask.ContinueWith(
                         _ => NotifyRemoteHostOfUnregisterPrimarySolution(solutionId, synchronousShutdown: true),
-                        TaskScheduler.Default).Unwrap();
-                }
-            }
-
-            public void OnAfterWorkingFolderChange()
-            {
-                this.AssertIsForeground();
-
-                _currentSolutionId = _workspace.CurrentSolution.Id;
-                var solutionId = _currentSolutionId;
-
-                lock (_gate)
-                {
-                    _lastTask = _lastTask.ContinueWith(
-                        _ => NotifyRemoteHostOfRegisterPrimarySolution(solutionId),
-                        TaskScheduler.Default).Unwrap();
-                }
-            }
-
-            public void OnSolutionAdded(SolutionInfo solutionInfo)
-            {
-                this.AssertIsForeground();
-
-                _currentSolutionId = solutionInfo.Id;
-                var solutionId = _currentSolutionId;
-
-                lock (_gate)
-                {
-                    _lastTask = _lastTask.ContinueWith(
-                        _ => NotifyRemoteHostOfRegisterPrimarySolution(solutionId),
                         TaskScheduler.Default).Unwrap();
                 }
             }
@@ -99,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public async Task NotifyRemoteHostOfRegisterPrimarySolution(SolutionId solutionId)
+            private async Task NotifyRemoteHostOfRegisterPrimarySolution(SolutionId solutionId)
             {
                 var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
                 var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
