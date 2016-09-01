@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
-                                    _F.Sequence(
+                                    _F.MakeSequence(
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
                                         _F.ObjectNotEqual(
                                             _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
