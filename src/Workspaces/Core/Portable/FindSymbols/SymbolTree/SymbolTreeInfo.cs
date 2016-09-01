@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // result and reusing it when they see they're getting the same string again.
         private static readonly Comparison<string> s_totalComparer = (s1, s2) =>
         {
-            var diff = StringComparer.OrdinalIgnoreCase.Compare(s1, s2);
+            var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
             return diff != 0
                 ? diff
                 : StringComparer.Ordinal.Compare(s1, s2);
