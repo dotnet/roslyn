@@ -117,12 +117,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Task<IEnumerable<ISymbol>> FindAsync(
             SearchQuery query, IAssemblySymbol assembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), filter, cancellationToken);
         }
 
         public async Task<IEnumerable<ISymbol>> FindAsync(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, SymbolFilter filter, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             return SymbolFinder.FilterByCriteria(
                 await FindAsyncWorker(query, lazyAssembly, cancellationToken).ConfigureAwait(false),
                 filter);
@@ -131,6 +139,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private Task<IEnumerable<ISymbol>> FindAsyncWorker(
             SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
             switch (query.Kind)
@@ -141,9 +153,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return this.FindAsync(lazyAssembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
                 case SearchKind.Fuzzy:
                     return this.FuzzyFindAsync(lazyAssembly, query.Name, cancellationToken);
-                case SearchKind.Custom:
-                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
-                    return this.FindAsync(lazyAssembly, query.GetPredicate(), cancellationToken);
             }
 
             throw new InvalidOperationException();
@@ -193,29 +202,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                 result.AddRange(Bind(node, assemblySymbol.GlobalNamespace, cancellationToken));
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Slow, linear scan of all the symbols in this assembly to look for matches.
-        /// </summary>
-        private async Task<IEnumerable<ISymbol>> FindAsync(
-            AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
-        {
-            var result = new List<ISymbol>();
-            IAssemblySymbol assembly = null;
-            for (int i = 0, n = _nodes.Length; i < n; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (predicate(GetName(_nodes[i])))
-                {
-                    assembly = assembly ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                    result.AddRange(Bind(i, assembly.GlobalNamespace, cancellationToken));
-                }
             }
 
             return result;

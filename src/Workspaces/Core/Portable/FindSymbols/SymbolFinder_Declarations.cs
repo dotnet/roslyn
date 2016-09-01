@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(predicate));
             }
 
+            Kind = SearchKind.Custom;
             _predicate = predicate;
         }
 
@@ -115,7 +117,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -127,13 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), cancellationToken: cancellationToken);
-        }
-
-        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, SearchQuery query, CancellationToken cancellationToken)
-        {
-            return FindDeclarationsAsync(project, query, SymbolFilter.All, cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -158,6 +155,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
@@ -177,6 +178,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var list = new List<ISymbol>();
@@ -273,6 +278,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
             SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
+            // All entrypoints to this function are Find functions that are only searching
+            // for specific strings (i.e. they never do a custom search).
+            Debug.Assert(query.Kind != SearchKind.Custom);
+
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
                 if (referenceOpt != null)
