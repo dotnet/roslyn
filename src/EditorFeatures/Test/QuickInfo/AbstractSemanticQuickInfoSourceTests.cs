@@ -176,35 +176,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 */
         }
 
-        internal Action<QuickInfoElement> ElementGlyph(string elementKind, Glyph expectedGlyph)
+        internal Action<QuickInfoData> ElementGlyph(string elementKind, Glyph expectedGlyph)
         {
-            return (element) =>
+            return (qi) =>
             {
-                var glyphElement = element.Elements.FirstOrDefault(e => e.Kind == elementKind);
+                var glyphElement = qi.Element.Elements.FirstOrDefault(e => e.Kind == elementKind);
                 Assert.NotNull(glyphElement);
-                var actualGlyph = element.Tags.GetGlyph();
+                var actualGlyph = qi.Element.Tags.GetGlyph();
                 Assert.Equal(expectedGlyph, actualGlyph);
             };
         }
 
-        internal Action<QuickInfoElement> SymbolGlyph(Glyph expectedGlyph)
+        internal Action<QuickInfoData> SymbolGlyph(Glyph expectedGlyph)
         {
             return ElementGlyph(QuickInfoElementKinds.Symbol, expectedGlyph);
         }
 
-        internal Action<QuickInfoElement> WarningGlyph(Glyph expectedGlyph)
+        internal Action<QuickInfoData> WarningGlyph(Glyph expectedGlyph)
         {
             return ElementGlyph(QuickInfoElementKinds.Warning, expectedGlyph);
         }
 
-        internal Action<QuickInfoElement> ElementText(
+        internal Action<QuickInfoData> ElementText(
             string elementKind,
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (element) =>
+            return (qi) =>
             {
-                var md = element.Elements.FirstOrDefault(e => e.Kind == elementKind);
+                var md = qi.Element.Elements.FirstOrDefault(e => e.Kind == elementKind);
                 if (md != null)
                 {
                     var actualText = md.RawText;
@@ -231,21 +231,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
-        internal Action<QuickInfoElement> MainDescription(
+        internal Action<QuickInfoData> MainDescription(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return ElementText(QuickInfoElementKinds.Description, expectedText, expectedClassifications);
         }
 
-        internal Action<QuickInfoElement> Documentation(
+        internal Action<QuickInfoData> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
             return ElementText(QuickInfoElementKinds.Documentation, expectedText, expectedClassifications);
         }
 
-        internal Action<QuickInfoElement> TypeParameterMap(
+        internal Action<QuickInfoData> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             */
         }
 
-        internal Action<QuickInfoElement> AnonymousTypes(
+        internal Action<QuickInfoData> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             */
         }
 
-        internal Action<QuickInfoElement> NoTypeParameterMap
+        internal Action<QuickInfoData> NoTypeParameterMap
         {
             get
             {
@@ -302,23 +302,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             }
         }
 
-        internal Action<QuickInfoElement> Usage(string expectedText, bool expectsWarningGlyph = false)
+        internal Action<QuickInfoData> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return (element) =>
+            return (qi) =>
             {
-                ElementText(QuickInfoElementKinds.Usage, expectedText)(element);
+                ElementText(QuickInfoElementKinds.Usage, expectedText)(qi);
                 if (expectsWarningGlyph)
                 {
-                    WarningGlyph(Glyph.CompletionWarning)(element);
+                    WarningGlyph(Glyph.CompletionWarning)(qi);
                 }
                 else
                 {
-                    Assert.Null(element.Elements.FirstOrDefault(e => e.Kind == QuickInfoElementKinds.Warning));
+                    Assert.Null(qi.Element.Elements.FirstOrDefault(e => e.Kind == QuickInfoElementKinds.Warning));
                 }
             };
         }
 
-        internal Action<QuickInfoElement> Exceptions(string expectedText)
+        internal Action<QuickInfoData> Exceptions(string expectedText)
         {
             return ElementText(QuickInfoElementKinds.Exception, expectedText);
         }
@@ -331,6 +331,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal abstract Task TestAsync(string markup, params Action<QuickInfoElement>[] expectedResults);
+        internal abstract Task TestAsync(string markup, params Action<QuickInfoData>[] expectedResults);
     }
 }

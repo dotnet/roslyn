@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
     {
-        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoElement>[] expectedResults)
+        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoData>[] expectedResults)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
             {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoElement>[] expectedResults)
+        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoData>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        private async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoElement>[] expectedResults)
+        private async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoData>[] expectedResults)
         {
             var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(info);
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             {
                 foreach (var expected in expectedResults)
                 {
-                    expected(info.Element);
+                    expected(info);
                 }
             }
         }
 
-        private async Task VerifyWithMscorlib45Async(string markup, Action<QuickInfoElement>[] expectedResults)
+        private async Task VerifyWithMscorlib45Async(string markup, Action<QuickInfoData>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -113,19 +113,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(info.Element);
+                        expected(info);
                     }
                 }
             }
         }
 
-        internal override async Task TestAsync(string markup, params Action<QuickInfoElement>[] expectedResults)
+        internal override async Task TestAsync(string markup, params Action<QuickInfoData>[] expectedResults)
         {
             await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
             await TestWithOptionsAsync(Options.Script, markup, expectedResults);
         }
 
-        internal async Task TestWithUsingsAsync(string markup, params Action<QuickInfoElement>[] expectedResults)
+        internal async Task TestWithUsingsAsync(string markup, params Action<QuickInfoData>[] expectedResults)
         {
             var markupWithUsings =
 @"using System;
@@ -136,13 +136,13 @@ using System.Linq;
             await TestAsync(markupWithUsings, expectedResults);
         }
 
-        internal Task TestInClassAsync(string markup, params Action<QuickInfoElement>[] expectedResults)
+        internal Task TestInClassAsync(string markup, params Action<QuickInfoData>[] expectedResults)
         {
             var markupInClass = "class C { " + markup + " }";
             return TestWithUsingsAsync(markupInClass, expectedResults);
         }
 
-        internal Task TestInMethodAsync(string markup, params Action<QuickInfoElement>[] expectedResults)
+        internal Task TestInMethodAsync(string markup, params Action<QuickInfoData>[] expectedResults)
         {
             var markupInMethod = "class C { void M() { " + markup + " } }";
             return TestWithUsingsAsync(markupInMethod, expectedResults);
@@ -152,7 +152,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<QuickInfoElement>[] expectedResults)
+            params Action<QuickInfoData>[] expectedResults)
         {
             await TestWithMetadataReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
             await TestWithProjectReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
@@ -169,7 +169,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<QuickInfoElement>[] expectedResults)
+            params Action<QuickInfoData>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -194,7 +194,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<QuickInfoElement>[] expectedResults)
+            params Action<QuickInfoData>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -220,7 +220,7 @@ using System.Linq;
             string sourceCode,
             string referencedCode,
             string sourceLanguage,
-            params Action<QuickInfoElement>[] expectedResults)
+            params Action<QuickInfoData>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -237,7 +237,7 @@ using System.Linq;
             await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
         }
 
-        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoElement>[] expectedResults)
+        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoData>[] expectedResults)
         {
             using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
@@ -263,7 +263,7 @@ using System.Linq;
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(info.Element);
+                        expected(info);
                     }
                 }
             }
