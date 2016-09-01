@@ -75,6 +75,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.Build.Tasks.Core.dll",
         "Microsoft.Build.Utilities.Core.dll",
         "Microsoft.VisualStudio.Threading.dll",
+        "Microsoft.VisualStudio.Threading.resources.dll",
         "Microsoft.VisualStudio.Validation.dll",
         "System.Composition.AttributedModel.dll",
         "System.Composition.Runtime.dll",
