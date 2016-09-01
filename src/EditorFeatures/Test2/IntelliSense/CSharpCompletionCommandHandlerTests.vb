@@ -277,6 +277,7 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestDeconstructionDeclaration4() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -291,6 +292,7 @@ class C
                 state.SendTypeChars("i")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="int", isSoftSelected:=True)
+                ' We'd prefer hard-selection here, but only with ':' not acting as commit character
             End Using
         End Function
 

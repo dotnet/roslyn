@@ -464,19 +464,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // var( |
+            // var(expr, |
+            // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
+            if (targetToken.IsInvocationOfVarExpression())
+            {
+                return false;
+            }
+
             if (targetToken.Kind() == SyntaxKind.OpenParenToken ||
                 targetToken.Kind() == SyntaxKind.CommaToken)
             {
                 if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
                 {
-                    if (targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
+                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) ||
+                        targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.BaseConstructorInitializer) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.ThisConstructorInitializer))
-                    {
-                        return true;
-                    }
-                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
-                        ((InvocationExpressionSyntax)targetToken.Parent.Parent).Expression.ToString() != "var")
                     {
                         return true;
                     }

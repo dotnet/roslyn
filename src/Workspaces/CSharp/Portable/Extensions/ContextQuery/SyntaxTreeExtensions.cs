@@ -1882,13 +1882,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // var(|
             // var(id, |
-            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
+            if (token.IsInvocationOfVarExpression())
             {
-                if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
-                    ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Foo(|
@@ -2182,6 +2179,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     && ((InterpolationSyntax)token.Parent).OpenBraceToken == token;
             }
 
+            return false;
+        }
+
+        public static bool IsInvocationOfVarExpression(this SyntaxToken token)
+        {
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            {
+                if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                    ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
+                {
+                    return true;
+                }
+            }
             return false;
         }
 
