@@ -1883,7 +1883,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // var(|
             // var(id, |
             // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
-            if (token.IsInvocationOfVarExpression())
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) &&
+                token.IsInvocationOfVarExpression())
             {
                 return false;
             }
@@ -2184,14 +2185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsInvocationOfVarExpression(this SyntaxToken token)
         {
-            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
             {
-                if (token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
-                    ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var")
-                {
-                    return true;
-                }
+                return true;
             }
+
             return false;
         }
 
