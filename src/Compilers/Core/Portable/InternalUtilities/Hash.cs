@@ -240,6 +240,19 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
+        internal static int GetFNVHashCodeOrdinalIgnoreCase(string text, int start, int length)
+        {
+            int hashCode = Hash.FnvOffsetBias;
+            int end = start + length;
+
+            for (int i = start; i < end; i++)
+            {
+                hashCode = unchecked((hashCode ^ char.ToLowerInvariant(text[i])) * Hash.FnvPrime);
+            }
+
+            return hashCode;
+        }
+
         /// <summary>
         /// Compute the hashcode of a sub-string using FNV-1a
         /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
