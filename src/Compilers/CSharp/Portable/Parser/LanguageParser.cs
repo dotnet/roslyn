@@ -9843,10 +9843,74 @@ tryAgain:
                 else
                 {
                     expression = this.ParseSubExpression(Precedence.Expression);
+
+                    // See if the expression is an invocation that could also be successfully parsed and interpreted
+                    // as a deconstruction target. I.e. something like "var (x, y)" or "var (x, (y, z))".
+                    // We should report an error in this case because we plan to support deconstruction for out arguments
+                    // in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+                    // ref-returning method named var with two, or more arguments. 
+                    if (IsDeconstructionCompatibleArgument(refOrOutKeyword, expression))
+                    {
+                        expression = this.AddError(expression, ErrorCode.ERR_OutVarDeconstructionIsNotSupported);
+                    }
                 }
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+        }
+
+        private static bool IsDeconstructionCompatibleArgument(SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+        {
+            if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword &&
+                expression.Kind == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                ExpressionSyntax invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).Identifier.IsVar() &&
+                    invocation.ArgumentList.Arguments.Count > 1 &&
+                    !expression.GetDiagnostics().Contains(info => info.Severity == DiagnosticSeverity.Error) &&
+                    IsDeconstructionCompatibleArgumentList(invocation.ArgumentList.Arguments);
+            }
+
+            return false;
+        }
+
+        private static bool IsDeconstructionCompatibleArgumentList(SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            int count = arguments.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                ArgumentSyntax argument = arguments[i];
+
+                if (argument.NameColon != null || argument.RefOrOutKeyword != null)
+                {
+                    return false;
+                }
+
+                switch (argument.Expression.Kind)
+                {
+                    case SyntaxKind.IdentifierName:
+                        // Identifier is compatible
+                        break;
+
+                    case SyntaxKind.TupleExpression:
+                        // Tuple is compatible if its argument list is compatible
+                        if (!IsDeconstructionCompatibleArgumentList(((TupleExpressionSyntax)argument.Expression).Arguments))
+                        {
+                            return false;
+                        }
+                        break;
+
+                    default:
+                        // Nothing else can be compatible.
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         private bool IsPossibleOutVarDeclaration()

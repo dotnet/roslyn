@@ -54,6 +54,692 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var (x1, x2));
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, x2)").WithLocation(6, 19),
+                // (6,24): error CS0103: The name 'x1' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 24),
+                // (6,28): error CS0103: The name 'x2' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(6, 28),
+                // (6,19): error CS0103: The name 'var' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 19),
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
+                // (8,34): error CS0103: The name 'x2' does not exist in the current context
+                //         System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out (var x1, var x2));
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,35): error CS1003: Syntax error, '=>' expected
+                //         Test1(out (var x1, var x2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 35),
+                // (6,35): error CS1525: Invalid expression term ')'
+                //         Test1(out (var x1, var x2));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 35),
+                // (6,20): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         Test1(out (var x1, var x2));
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 20),
+                // (6,28): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         Test1(out (var x1, var x2));
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 28),
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
+                // (8,34): error CS0103: The name 'x2' does not exist in the current context
+                //         System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out (int x1, long x2));
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,36): error CS1003: Syntax error, '=>' expected
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 36),
+                // (6,36): error CS1525: Invalid expression term ')'
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 36),
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
+                // (8,34): error CS0103: The name 'x2' does not exist in the current context
+                //         System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out (int x1, (long x2, byte x3)));
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+        System.Console.WriteLine(x3);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,46): error CS1001: Identifier expected
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 46),
+                // (6,47): error CS1003: Syntax error, '=>' expected
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 47),
+                // (6,47): error CS1525: Invalid expression term ')'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 47),
+                // (6,28): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(long x2, byte x3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(6, 28),
+                // (6,28): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
+                // (8,34): error CS0103: The name 'x2' does not exist in the current context
+                //         System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34),
+                // (9,34): error CS0103: The name 'x3' does not exist in the current context
+                //         System.Console.WriteLine(x3);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(9, 34)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_05()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        object x3 = null;
+        Test1(out var (x1, (x2, x3)));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x, object y)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (11,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                //         Test1(out var (x1, (x2, x3)));
+                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, (x2, x3))").WithLocation(11, 19),
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_06()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        Test1(out var (x1));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_07()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(out var (x1, x2: x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_08()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(out var (ref x1, x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(ref object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_09()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(out var (x1, (x2)));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_10()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(out var ((x1), x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var (x1, x2));
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+
+            compilation.VerifyDiagnostics(
+                // (6,19): error CS8199: Deconstruction is not supported for an 'out' argument.
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_OutVarDeconstructionIsNotSupported, "var (x1, x2)").WithLocation(6, 19),
+                // (6,24): error CS0103: The name 'x1' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 24),
+                // (6,28): error CS0103: The name 'x2' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(6, 28),
+                // (6,19): error CS0103: The name 'var' does not exist in the current context
+                //         Test1(out var (x1, x2));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 19),
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
+                // (8,34): error CS0103: The name 'x2' does not exist in the current context
+                //         System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                );
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_12()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(out M1 (x1, x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int M1(object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_13()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(ref var (x1, x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x1, object x2)
+    {
+        return ref F1;
+    }
+
+    static object Test1(ref int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_14()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        Test1(var (x1, x2));
+        System.Console.WriteLine(F1);
+    }
+
+    static int var(object x1, object x2)
+    {
+        F1 = 123;
+        return 124;
+    }
+
+    static object Test1(int x)
+    {
+        System.Console.WriteLine(x);
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: 
+@"124
+123");
+
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_15()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        object x3 = null;
+        Test1(out M1 (x1, (x2, x3)));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int M1(object x, object y)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
+        public void OutVarDeconstruction_16()
+        {
+            var text = @"
+public class Cls
+{
+    private static int F1;
+
+    public static void Main()
+    {
+        object x1 = null;
+        object x2 = null;
+        object x3 = null;
+        Test1(out var (x1, (a: x2, b: x3)));
+        System.Console.WriteLine(F1);
+    }
+
+    static ref int var(object x, object y)
+    {
+        return ref F1;
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
+                //     private static int F1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "123");
+            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+        }
+
         private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
         {
             return GetReferences(tree, name).Single();
