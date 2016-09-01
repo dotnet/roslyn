@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
                         if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
 
-                        // note that we are using IsDefaultValue instead of False.
-                        // that is just to catch cases like default(bool) ot others resulting in 
+                        // Note that we are using IsDefaultValue instead of False.
+                        // That is just to catch cases like default(bool) or others resulting in 
                         // a default bool value, that we know to be "false"
-                        // bool? generally should not reach here, since it is handled by RewriteLiftedBinaryOperator
-                        // regardless, the following code shoudl handle default(bool?) correctly since
+                        // bool? generally should not reach here, since it is handled by RewriteLiftedBinaryOperator.
+                        // Regardless, the following code should handle default(bool?) correctly since
                         // default(bool?) & <expr> == default(bool?)  with sideeffects of <expr>
                         if (loweredLeft.IsDefaultValue())
                         {

@@ -15336,6 +15336,7 @@ class Program
         var local1 = true;
         System.Console.WriteLine(local1 & false);
         System.Console.WriteLine(false & default(bool?));
+        System.Console.WriteLine(false & ((bool?)local1).HasValue);
         System.Console.WriteLine(false & local1);
 
         // should optimize
@@ -15374,6 +15375,7 @@ Foo2 False
 False
 False
 False
+False
 Foo2 False
 Foo2 True
 False
@@ -15387,7 +15389,7 @@ True
             compilation.VerifyIL("Program.Main",
     @"
 {
-  // Code size      215 (0xd7)
+  // Code size      221 (0xdd)
   .maxstack  2
   IL_0000:  call       ""int Program.Foo1()""
   IL_0005:  pop
@@ -15429,31 +15431,33 @@ True
   IL_0077:  call       ""void System.Console.WriteLine(object)""
   IL_007c:  ldc.i4.0
   IL_007d:  call       ""void System.Console.WriteLine(bool)""
-  IL_0082:  call       ""bool Program.Foo2()""
-  IL_0087:  brfalse.s  IL_008c
-  IL_0089:  ldc.i4.0
-  IL_008a:  br.s       IL_008d
-  IL_008c:  ldc.i4.0
-  IL_008d:  call       ""void System.Console.WriteLine(bool)""
-  IL_0092:  call       ""bool Program.Foo2()""
-  IL_0097:  call       ""void System.Console.WriteLine(bool)""
-  IL_009c:  ldc.i4.0
+  IL_0082:  ldc.i4.0
+  IL_0083:  call       ""void System.Console.WriteLine(bool)""
+  IL_0088:  call       ""bool Program.Foo2()""
+  IL_008d:  brfalse.s  IL_0092
+  IL_008f:  ldc.i4.0
+  IL_0090:  br.s       IL_0093
+  IL_0092:  ldc.i4.0
+  IL_0093:  call       ""void System.Console.WriteLine(bool)""
+  IL_0098:  call       ""bool Program.Foo2()""
   IL_009d:  call       ""void System.Console.WriteLine(bool)""
-  IL_00a2:  call       ""bool Program.Foo2()""
-  IL_00a7:  call       ""void System.Console.WriteLine(bool)""
-  IL_00ac:  call       ""bool Program.Foo2()""
-  IL_00b1:  call       ""void System.Console.WriteLine(bool)""
-  IL_00b6:  call       ""bool Program.Foo2()""
-  IL_00bb:  brtrue.s   IL_00c0
-  IL_00bd:  ldc.i4.1
-  IL_00be:  br.s       IL_00c1
-  IL_00c0:  ldc.i4.1
-  IL_00c1:  call       ""void System.Console.WriteLine(bool)""
-  IL_00c6:  call       ""bool Program.Foo2()""
-  IL_00cb:  call       ""void System.Console.WriteLine(bool)""
-  IL_00d0:  ldc.i4.1
+  IL_00a2:  ldc.i4.0
+  IL_00a3:  call       ""void System.Console.WriteLine(bool)""
+  IL_00a8:  call       ""bool Program.Foo2()""
+  IL_00ad:  call       ""void System.Console.WriteLine(bool)""
+  IL_00b2:  call       ""bool Program.Foo2()""
+  IL_00b7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00bc:  call       ""bool Program.Foo2()""
+  IL_00c1:  brtrue.s   IL_00c6
+  IL_00c3:  ldc.i4.1
+  IL_00c4:  br.s       IL_00c7
+  IL_00c6:  ldc.i4.1
+  IL_00c7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00cc:  call       ""bool Program.Foo2()""
   IL_00d1:  call       ""void System.Console.WriteLine(bool)""
-  IL_00d6:  ret
+  IL_00d6:  ldc.i4.1
+  IL_00d7:  call       ""void System.Console.WriteLine(bool)""
+  IL_00dc:  ret
 }
 ");
         }

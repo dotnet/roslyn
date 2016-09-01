@@ -699,9 +699,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // common production of lowered lifted operators
                     // GetValueOrDefault is known to be not sideeffecting.
-                    if (IsSpecialMember(method, SpecialMember.System_Nullable_T_GetValueOrDefault))
+                    if (method.ContainingType?.IsNullableType() == true)
                     {
-                        return ReadIsSideeffecting(call.ReceiverOpt);
+                        if (IsSpecialMember(method, SpecialMember.System_Nullable_T_GetValueOrDefault) ||
+                            IsSpecialMember(method, SpecialMember.System_Nullable_T_get_HasValue))
+                        {
+                            return ReadIsSideeffecting(call.ReceiverOpt);
+                        }
                     }
 
                     return true;
