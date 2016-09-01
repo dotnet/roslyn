@@ -70,12 +70,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             VersionStamp version,
             ImmutableArray<Node> sortedNodes,
-            OrderPreservingMultiDictionary<int, int> inheritanceMap,
+            Task<SpellChecker> spellCheckerTask,
+            OrderPreservingMultiDictionary<string, string> inheritanceMap)
+            : this(version, sortedNodes, spellCheckerTask)
+        {
+            var indexBasedInheritanceMap = CreateIndexBasedInheritanceMap(inheritanceMap);
+            _inheritanceMap = indexBasedInheritanceMap;
+        }
+
+        private SymbolTreeInfo(
+            VersionStamp version,
+            ImmutableArray<Node> sortedNodes,
+            Task<SpellChecker> spellCheckerTask,
+            OrderPreservingMultiDictionary<int, int> inheritanceMap)
+            : this(version, sortedNodes, spellCheckerTask)
+        {
+            _inheritanceMap = inheritanceMap;
+        }
+
+        private SymbolTreeInfo(
+            VersionStamp version, 
+            ImmutableArray<Node> sortedNodes, 
             Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
             _nodes = sortedNodes;
-            _inheritanceMap = inheritanceMap;
             _spellCheckerTask = spellCheckerTask;
         }
 
@@ -151,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var result = new List<ISymbol>();
             IAssemblySymbol assemblySymbol = null;
 
-            foreach (var node in FindNodeIndices(_nodes, name, comparer))
+            foreach (var node in FindNodeIndices(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -192,35 +211,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Gets all the node indices with matching names per the <paramref name="comparer" />.
         /// </summary>
-        private static IEnumerable<int> FindNodeIndices(
-            ImmutableArray<Node> nodes, string name, StringComparer comparer)
+        private IEnumerable<int> FindNodeIndices(
+            string name, StringComparer comparer)
         {
             // find any node that matches case-insensitively
-            var startingPosition = BinarySearch(nodes, name);
+            var startingPosition = BinarySearch(name);
 
             if (startingPosition != -1)
             {
                 // yield if this matches by the actual given comparer
-                if (comparer.Equals(name, nodes[startingPosition].Name))
+                if (comparer.Equals(name, _nodes[startingPosition].Name))
                 {
                     yield return startingPosition;
                 }
 
                 int position = startingPosition;
-                while (position > 0 && s_caseInsensitiveComparer.Equals(nodes[position - 1].Name, name))
+                while (position > 0 && s_caseInsensitiveComparer.Equals(_nodes[position - 1].Name, name))
                 {
                     position--;
-                    if (comparer.Equals(nodes[position].Name, name))
+                    if (comparer.Equals(_nodes[position].Name, name))
                     {
                         yield return position;
                     }
                 }
 
                 position = startingPosition;
-                while (position + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(nodes[position + 1].Name, name))
+                while (position + 1 < _nodes.Length && s_caseInsensitiveComparer.Equals(_nodes[position + 1].Name, name))
                 {
                     position++;
-                    if (comparer.Equals(nodes[position].Name, name))
+                    if (comparer.Equals(_nodes[position].Name, name))
                     {
                         yield return position;
                     }
@@ -231,16 +250,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Searches for a name in the ordered list that matches per the <see cref="s_caseInsensitiveComparer" />.
         /// </summary>
-        private static int BinarySearch(ImmutableArray<Node> nodes, string name)
+        private int BinarySearch(string name)
         {
-            int max = nodes.Length - 1;
+            int max = _nodes.Length - 1;
             int min = 0;
 
             while (max >= min)
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison = s_caseInsensitiveComparer.Compare(nodes[mid].Name, name);
+                var comparison = s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -437,12 +456,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
 
-            var indexBasedInheritanceMap = CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap);
-            return new SymbolTreeInfo(version, sortedNodes, indexBasedInheritanceMap, createSpellCheckerTask);
+            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask, inheritanceMap);
         }
 
-        private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(
-            ImmutableArray<Node> sortedNodes,
+        private OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
             // All names in metadata will be case sensitive.  
@@ -452,12 +469,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var kvp in inheritanceMap)
             {
                 var baseName = kvp.Key;
-                var baseNameIndex = BinarySearch(sortedNodes, baseName);
+                var baseNameIndex = BinarySearch(baseName);
                 Debug.Assert(baseNameIndex >= 0);
 
                 foreach (var derivedName in kvp.Value)
                 {
-                    foreach (var derivedNameIndex in FindNodeIndices(sortedNodes, derivedName, comparer))
+                    foreach (var derivedNameIndex in FindNodeIndices(derivedName, comparer))
                     {
                         result.Add(baseNameIndex, derivedNameIndex);
                     }
@@ -470,7 +487,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public IEnumerable<INamedTypeSymbol> GetDerivedMetadataTypes(
             string baseTypeName, Compilation compilation, CancellationToken cancellationToken)
         {
-            var baseTypeNameIndex = BinarySearch(_nodes, baseTypeName);
+            var baseTypeNameIndex = BinarySearch(baseTypeName);
             var derivedTypeIndices = _inheritanceMap[baseTypeNameIndex];
 
             return from derivedTypeIndex in derivedTypeIndices

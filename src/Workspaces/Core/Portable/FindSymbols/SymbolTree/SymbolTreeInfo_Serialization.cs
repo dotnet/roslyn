@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var spellCheckerTask = createSpellCheckerTask(version, nodes);
-                    return new SymbolTreeInfo(version, nodes, inheritanceMap, spellCheckerTask);
+                    return new SymbolTreeInfo(version, nodes, spellCheckerTask, inheritanceMap);
                 }
             }
             catch
