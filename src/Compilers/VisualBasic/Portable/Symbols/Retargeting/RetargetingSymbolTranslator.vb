@@ -149,8 +149,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Private Function RetargetNamedTypeDefinition(type As NamedTypeSymbol, options As RetargetOptions) As NamedTypeSymbol
                 Debug.Assert(type Is type.OriginalDefinition)
 
-                If (type.IsTupleType) Then
-                    Return DirectCast(type, TupleTypeSymbol).WithUnderlyingType(Retarget(type.TupleUnderlyingType, options))
+                If type.IsTupleType Then
+                    Dim newUnderlyingType = Retarget(type.TupleUnderlyingType, options)
+
+                    If newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length) Then
+                        Return DirectCast(type, TupleTypeSymbol).WithUnderlyingType(newUnderlyingType)
+                    Else
+                        Return newUnderlyingType
+                    End If
                 End If
 
                 ' Check if we need to do special retargeting
