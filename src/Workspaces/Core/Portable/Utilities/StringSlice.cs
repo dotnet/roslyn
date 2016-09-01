@@ -169,37 +169,25 @@ namespace Microsoft.CodeAnalysis.Utilities
         private class OrdinalComparer : StringSliceComparer
         {
             public override int Compare(StringSlice x, StringSlice y)
-            {
-                return x.CompareToOrdinal(y);
-            }
+                => x.CompareToOrdinal(y);
 
             public override bool Equals(StringSlice x, StringSlice y)
-            {
-                return x.EqualsOrdinal(y);
-            }
+                => x.EqualsOrdinal(y);
 
             public override int GetHashCode(StringSlice obj)
-            {
-                return obj.GetHashCodeOrdinal();
-            }
+                => obj.GetHashCodeOrdinal();
         }
 
         private class OrdinalIgnoreCaseComparer : StringSliceComparer
         {
             public override int Compare(StringSlice x, StringSlice y)
-            {
-                return x.CompareToOrdinalIgnoreCase(y);
-            }
+                => x.CompareToOrdinalIgnoreCase(y);
 
             public override bool Equals(StringSlice x, StringSlice y)
-            {
-                return x.EqualsOrdinalIgnoreCase(y);
-            }
+                => x.EqualsOrdinalIgnoreCase(y);
 
-            public override int GetHashCode(StringSlice obj)
-            {
-                return obj.GetHashCodeOrdinalIgnoreCase();
-            }
+            public override int GetHashCode(StringSlice obj) 
+                => obj.GetHashCodeOrdinalIgnoreCase();
         }
 
         public abstract int Compare(StringSlice x, StringSlice y);
