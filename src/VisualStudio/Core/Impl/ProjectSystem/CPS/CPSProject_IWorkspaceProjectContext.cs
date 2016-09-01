@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             get
             {
-                return this.TryGetBinOutputPath();
+                return base.BinOutputPath;
             }
             set
             {
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // Setting the command line arguments should have already set the output file name and folder.
             // We fetch this output path to add the reference.
             var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            var binPathOpt = referencedProject.BinOutputPath;
             if (!string.IsNullOrEmpty(binPathOpt))
             {
                 AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(binPathOpt, properties);
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // AbstractProject and ProjectTracker track project references using the project bin output path.
             // We fetch this output path to remove the reference.
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            var binPathOpt = referencedProject.BinOutputPath;
             if (!string.IsNullOrEmpty(binPathOpt))
             {
                 base.RemoveMetadataReference(binPathOpt);

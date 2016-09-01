@@ -45,13 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
-            ProjectType = GetProjectType(hierarchy);
             ConnectHierarchyEvents();
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
 
             // Initialize command line arguments.
-            base.SetArguments(commandlineForOptions: string.Empty);
+            base.SetArguments(commandLine: string.Empty);
         }
+
+        /// <summary>
+        /// string (Guid) of the Hierarchy project type
+        /// </summary>
+        public string ProjectType => GetProjectType(Hierarchy);
 
         public override void Disconnect()
         {
@@ -180,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private void ValidateReferencesCore()
         {
             // can happen when project is unloaded and reloaded or in Venus (aspx) case
-            if (ProjectFilePath == null || TryGetBinOutputPath() == null || TryGetObjOutputPath() == null)
+            if (ProjectFilePath == null || BinOutputPath == null || ObjOutputPath == null)
             {
                 return;
             }

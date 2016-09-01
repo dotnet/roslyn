@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 // Change output path for project reference and verify the reference.
                 ((IWorkspaceProjectContext)project4).BinOutputPath = @"C:\project4.dll";
-                Assert.Equal(@"C:\project4.dll", project4.TryGetBinOutputPath());
+                Assert.Equal(@"C:\project4.dll", project4.BinOutputPath);
 
                 // This is currently broken by https://github.com/dotnet/roslyn/issues/12707
                 // Reverse the below assert to Assert.True once the above bug is fixed.
