@@ -35,7 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
                 var host = await instance._rpc.InvokeAsync<string>(WellKnownServiceHubServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
-                RegisterWorkspaceHost(workspace);
+                // Create a workspace host to hear about workspace changes.  We'll 
+                // remote those changes over to the remote side when they happen.
+                var workspaceHost = RegisterWorkspaceHost(workspace);
+                if (workspaceHost != null)
+                {
+                    await workspaceHost.NotifyRemoteHostOfRegisterPrimarySolution().ConfigureAwait(false);
+                }
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
@@ -47,15 +53,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private static void RegisterWorkspaceHost(Workspace workspace)
+        private static WorkspaceHost RegisterWorkspaceHost(Workspace workspace)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return;
+                return null;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(new WorkspaceHost(vsWorkspace));
+            var workspaceHost = new WorkspaceHost(vsWorkspace);
+            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(workspaceHost);
+
+            return workspaceHost;
         }
 
         private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :

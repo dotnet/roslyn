@@ -1,20 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal partial class ServiceHubRemoteHostClient
     {
-        private class WorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
+        private class WorkspaceHost : ForegroundThreadAffinitizedObject, IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
+
+            // We have to capture the solution ID because otherwise we won't know
+            // what is is when we get told about OnSolutionRemoved.  If we try
+            // to access the solution off of _workspace at that point, it will be
+            // gone.
             private SolutionId _currentSolutionId;
+
+            // We chain all tasks so that all the messages we send to the remote 
+            // process are serialized.  We don't want to interleave the individual
+            // messages we have for things like registering/unregistering the 
+            // primary solution ID.
+            private readonly object _gate = new object();
+            private Task _lastTask = SpecializedTasks.EmptyTask;
 
             public WorkspaceHost(VisualStudioWorkspaceImpl workspace)
             {
@@ -24,31 +39,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public void OnBeforeWorkingFolderChange()
             {
+                this.AssertIsForeground();
+
                 _currentSolutionId = _workspace.CurrentSolution.Id;
-                NotifyRemoteHostOfUnregisterPrimarySolution(synchronousShutdown: true);
+                var solutionId = _currentSolutionId;
+
+                lock (_gate)
+                {
+                    _lastTask = _lastTask.ContinueWith(
+                        _ => NotifyRemoteHostOfUnregisterPrimarySolution(solutionId, synchronousShutdown: true),
+                        TaskScheduler.Default).Unwrap();
+                }
             }
 
             public void OnAfterWorkingFolderChange()
             {
+                this.AssertIsForeground();
+
                 _currentSolutionId = _workspace.CurrentSolution.Id;
-                NotifyRemoteHostOfRegisterPrimarySolution();
+                var solutionId = _currentSolutionId;
+
+                lock (_gate)
+                {
+                    _lastTask = _lastTask.ContinueWith(
+                        _ => NotifyRemoteHostOfRegisterPrimarySolution(solutionId),
+                        TaskScheduler.Default).Unwrap();
+                }
             }
 
             public void OnSolutionAdded(SolutionInfo solutionInfo)
             {
+                this.AssertIsForeground();
+
                 _currentSolutionId = solutionInfo.Id;
-                NotifyRemoteHostOfRegisterPrimarySolution();
+                var solutionId = _currentSolutionId;
+
+                lock (_gate)
+                {
+                    _lastTask = _lastTask.ContinueWith(
+                        _ => NotifyRemoteHostOfRegisterPrimarySolution(solutionId),
+                        TaskScheduler.Default).Unwrap();
+                }
             }
 
             public void OnSolutionRemoved()
             {
-                NotifyRemoteHostOfUnregisterPrimarySolution(synchronousShutdown: false);
+                this.AssertIsForeground();
+
+                // Have to use the cached solution ID we've got as the workspace will
+                // no longer have a solution we can look at.
+                var solutionId = _currentSolutionId;
                 _currentSolutionId = null;
+
+                lock (_gate)
+                {
+                    _lastTask = _lastTask.ContinueWith(
+                        _ => NotifyRemoteHostOfUnregisterPrimarySolution(solutionId, synchronousShutdown: false),
+                        TaskScheduler.Default).Unwrap();
+                }
             }
 
-            private async void NotifyRemoteHostOfRegisterPrimarySolution()
+            public async Task NotifyRemoteHostOfRegisterPrimarySolution(SolutionId solutionId)
             {
-                var solutionId = _currentSolutionId;
                 var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
                 var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
 
@@ -67,9 +119,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private async void NotifyRemoteHostOfUnregisterPrimarySolution(bool synchronousShutdown)
+            private async Task NotifyRemoteHostOfUnregisterPrimarySolution(
+                SolutionId solutionId, bool synchronousShutdown)
             {
-                var solutionId = _currentSolutionId;
                 var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
                 var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
 
