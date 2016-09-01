@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13159")]
+        [Fact]
         [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -166,12 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       47 (0x2f)
+  // Code size       74 (0x4a)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
-                System.Guid V_3)
+                System.Guid V_3,
+                int? V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""z""
@@ -181,10 +182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  ldstr      ""z""
-  IL_0024:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0029:  call       ""void C.Test(object, out int)""
-  IL_002e:  ret
+  IL_001f:  isinst     ""int?""
+  IL_0024:  unbox.any  ""int?""
+  IL_0029:  stloc.s    V_4
+  IL_002b:  ldstr      ""z""
+  IL_0030:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0035:  ldloca.s   V_4
+  IL_0037:  call       ""int int?.GetValueOrDefault()""
+  IL_003c:  stind.i4
+  IL_003d:  ldloca.s   V_4
+  IL_003f:  call       ""bool int?.HasValue.get""
+  IL_0044:  call       ""void C.Test(bool)""
+  IL_0049:  ret
 }");
             });
         }

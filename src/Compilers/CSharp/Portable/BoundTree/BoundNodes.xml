@@ -1563,6 +1563,7 @@
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>

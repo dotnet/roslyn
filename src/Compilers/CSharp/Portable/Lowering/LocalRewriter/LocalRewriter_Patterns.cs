@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern.IsVar)
             {
                 Debug.Assert(input.Type == pattern.LocalSymbol.Type);
-                var assignment = _factory.AssignmentExpression(_factory.Local(pattern.LocalSymbol), input);
+                var assignment = _factory.AssignmentExpression(pattern.VariableAccess, input);
                 var result = _factory.Literal(true);
                 return _factory.Sequence(assignment, result);
             }
 
-            return MakeDeclarationPattern(pattern.Syntax, input, pattern.LocalSymbol, requiresNullTest: true);
+            return MakeDeclarationPattern(pattern.Syntax, input, pattern.VariableAccess, requiresNullTest: true);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression MakeDeclarationPattern(SyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
+        BoundExpression MakeDeclarationPattern(SyntaxNode syntax, BoundExpression input, BoundExpression target, bool requiresNullTest)
         {
             var type = target.Type;
             // a pattern match of the form "expression is Type identifier" is equivalent to
@@ -121,16 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (input.Type == type)
                 {
                     // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
-                    var assignment = _factory.AssignmentExpression(_factory.Local(target), input);
+                    var assignment = _factory.AssignmentExpression(target, input);
                     var result = requiresNullTest
-                        ? _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type))
+                        ? _factory.ObjectNotEqual(target, _factory.Null(type))
                         : (BoundExpression)_factory.Literal(true);
                     return _factory.Sequence(assignment, result);
                 }
                 else
                 {
-                    var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
-                    var result = _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type));
+                    var assignment = _factory.AssignmentExpression(target, _factory.As(input, type));
+                    var result = _factory.ObjectNotEqual(target, _factory.Null(type));
                     return _factory.Sequence(assignment, result);
                 }
             }
@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T?;
                 //     return t.HasValue;
                 // }
-                var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
-                var result = _factory.Call(_factory.Local(target), GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
+                var assignment = _factory.AssignmentExpression(target, _factory.As(input, type));
+                var result = _factory.Call(target, GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
                 return _factory.Sequence(assignment, result);
             }
             else if (type.IsValueType)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (input.Type == type)
                 {
                     return _factory.Sequence(
-                        _factory.AssignmentExpression(_factory.Local(target), input),
+                        _factory.AssignmentExpression(target, input),
                         _factory.Literal(true));
                 }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var value = _factory.Call(
                         input,
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                    var asg2 = _factory.AssignmentExpression(target, value);
                     var result = requiresNullTest ? MakeNullableHasValue(syntax, input) : _factory.Literal(true);
                     return _factory.Sequence(asg2, result);
                 }
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var value = _factory.Call(
                         _factory.Local(tmp),
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                    var asg2 = _factory.AssignmentExpression(target, value);
                     var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                     return _factory.Sequence(tmp, asg1, asg2, result);
                 }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 return _factory.Conditional(_factory.Is(input, type),
                     _factory.Sequence(_factory.AssignmentExpression(
-                        _factory.Local(target),
+                        target,
                         _factory.Convert(type, input)),
                         _factory.Literal(true)),
                     _factory.Literal(false),
