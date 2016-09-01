@@ -137,6 +137,7 @@
         "System.Security.Cryptography.Primitives.dll",
         "System.Security.Principal.Windows.dll",
         "System.Threading.Thread.dll",
+        "Microsoft.VisualStudio.Threading.resources.dll",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
