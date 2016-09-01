@@ -26,9 +26,6 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
         }
 
-        private bool IsFullSlice => 
-            this._span.Start == 0 && this._span.Length == _underlyingString.Length;
-
         public int Length => _span.Length;
 
         public char this[int index] => _underlyingString[_span.Start + index];
@@ -48,11 +45,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal bool EqualsOrdinal(StringSlice other)
         {
-            if (this.IsFullSlice && other.IsFullSlice)
-            {
-                return StringComparer.Ordinal.Equals(this._underlyingString, other._underlyingString);
-            }
-
             if (this._span.Length != other._span.Length)
             {
                 return false;
@@ -72,11 +64,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal bool EqualsOrdinalIgnoreCase(StringSlice other)
         {
-            if (this.IsFullSlice && other.IsFullSlice)
-            {
-                return StringComparer.OrdinalIgnoreCase.Equals(this._underlyingString, other._underlyingString);
-            }
-
             if (this._span.Length != other._span.Length)
             {
                 return false;
@@ -122,11 +109,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal int CompareToOrdinal(StringSlice other)
         {
-            if (this.IsFullSlice && other.IsFullSlice)
-            {
-                return StringComparer.Ordinal.Compare(this._underlyingString, other._underlyingString);
-            }
-
             var thisEnd = this._span.End;
             var otherEnd = other._span.End;
             for (int i = this._span.Start, j = other._span.Start; 
@@ -146,11 +128,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal int CompareToOrdinalIgnoreCase(StringSlice other)
         {
-            if (this.IsFullSlice && other.IsFullSlice)
-            {
-                return StringComparer.OrdinalIgnoreCase.Compare(this._underlyingString, other._underlyingString);
-            }
-
             var thisEnd = this._span.End;
             var otherEnd = other._span.End;
             for (int i = this._span.Start, j = other._span.Start;
