@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Execution
                     return asset;
                 }
 
+                // given checksum doesn't exist in this additional assets. but will exist
+                // in one of tree nodes/additional assets/global assets
                 return null;
             }
         }
@@ -318,6 +320,8 @@ namespace Microsoft.CodeAnalysis.Execution
                     return checksumObject;
                 }
 
+                // given checksum doesn't exist in this entry of tree node. but will exist
+                // in one of tree nodes/additional assets/global assets
                 return null;
             }
 
