@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static int IndexOfCharacter(BlobReader blobReader, char ch)
         {
+            // This function is only safe for searching for ascii characters.
+            Debug.Assert(ch < 127);
             unsafe
             {
                 var ptr = blobReader.CurrentPointer;
@@ -491,6 +493,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var dotIndex = IndexOfCharacter(blobReader, '.');
                     unsafe
                     {
+                        // Note: we won't get any string sharing as we're just using the 
+                        // default string decoded.  However, that's ok.  We only produce
+                        // these strings when we first read metadata.  Then we create and
+                        // persist our own index.  In the future when we read in that index
+                        // there's no way for us to share strings between us and the 
+                        // compiler at that point.
                         if (dotIndex == -1)
                         {
                             simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
