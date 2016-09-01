@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (name == null)
             {
@@ -126,13 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), cancellationToken: cancellationToken);
-        }
-
-        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, SearchQuery query, CancellationToken cancellationToken)
-        {
-            return FindDeclarationsAsync(project, query, SymbolFilter.All, cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), SymbolFilter.All, cancellationToken: cancellationToken);
         }
 
         /// <summary>
