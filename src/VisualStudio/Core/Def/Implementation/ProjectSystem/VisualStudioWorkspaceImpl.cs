@@ -1254,28 +1254,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 service.RegisterPrimarySolution(solutionId);
-                NotifyRemoteHostOfRegisterPrimarySolution(solutionId);
-            }
-
-            private async void NotifyRemoteHostOfRegisterPrimarySolution(
-                SolutionId solutionId)
-            {
-                var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
-                var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
-
-                using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName).ConfigureAwait(false);
-
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
-                        _workspace.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
-                }
             }
 
             private void UnregisterPrimarySolutionForPersistentStorage(
@@ -1288,24 +1266,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 service.UnregisterPrimarySolution(solutionId, synchronousShutdown);
-                NotifyRemoteHostOfUnregisterPrimarySolution(solutionId, synchronousShutdown);
-            }
-
-            private async void NotifyRemoteHostOfUnregisterPrimarySolution(
-                SolutionId solutionId, bool synchronousShutdown)
-            {
-                var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
-                var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
-
-                using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    // ask remote host to sync initial asset
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
-                        synchronousShutdown).ConfigureAwait(false);
-                }
             }
 
             void IVisualStudioWorkspaceHost.OnDocumentRemoved(DocumentId documentId)
