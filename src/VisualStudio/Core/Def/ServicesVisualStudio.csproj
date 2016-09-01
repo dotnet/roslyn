@@ -663,7 +663,6 @@
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
-    <Compile Include="Implementation\Workspace\PersistenceServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />

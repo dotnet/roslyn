@@ -5,19 +5,19 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
+using Microsoft.CodeAnalysis.SolutionSize;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.Storage
 {
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Host), Shared]
-    internal class PersistenceServiceFactory : IWorkspaceServiceFactory
+    internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
         private IPersistentStorageService _singleton;
 
         [ImportingConstructor]
-        public PersistenceServiceFactory(SolutionSizeTracker solutionSizeTracker)
+        public PersistenceStorageServiceFactory(SolutionSizeTracker solutionSizeTracker)
         {
             _solutionSizeTracker = solutionSizeTracker;
         }
