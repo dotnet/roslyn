@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Notify the document provider, so it knows the document is now open and a part of
             // the project
-            _documentProvider.NotifyDocumentRegisteredToProject(document);
+            _documentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
             Contract.ThrowIfFalse(document.IsOpen);
 
@@ -413,9 +413,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
+        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {
-            return _hostProjects.Values;
+            return _hostProjects.Values.ToImmutableReadOnlyListOrEmpty<IVisualStudioHostProject>();
         }
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)

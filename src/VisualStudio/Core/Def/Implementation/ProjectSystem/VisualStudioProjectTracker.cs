@@ -60,6 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// Holds the task with continuations to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
+        /// More specifically, all the notifications to workspace hosts are executed on the foreground thread. However, the project system might make project state changes
+        /// and request notifications to workspace hosts on background thread. So we queue up all the notifications for project state changes onto this task and execute them on the foreground thread.
         /// </summary>
         private Task _taskForForegroundAffinitizedActions = Task.CompletedTask;
 
@@ -78,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.Projects;
+        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.Projects;
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
         {
@@ -115,16 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _solutionLoadComplete = true;
                 }
-            }
-        }
-
-        private void WaitForScheduledForegroundAffinitizedActions()
-        {
-            AssertIsForeground();
-
-            lock (_gate)
-            {
-                _taskForForegroundAffinitizedActions.Wait();
             }
         }
 
@@ -221,9 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            // Wait for all the scheduled foreground requests to complete (these might add/remove projects).
-            WaitForScheduledForegroundAffinitizedActions();
-
             var hostData = _workspaceHosts.FirstOrDefault(s => s.Host == host);
             if (hostData == null)
             {
@@ -308,6 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectMap.Add(project.Id, project);
             }
 
+            // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
             UpdateProjectBinPath_Foreground(project, null, project.BinOutputPath);
 
             if (_solutionLoadComplete)
@@ -388,6 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void UpdateProjectBinPath_Foreground(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
         {
+            // UpdateProjectBinPath is defensively executed on the foreground thread as it calls back into referencing projects to perform metadata to P2P reference conversions.
             AssertIsForeground();
 
             if (oldBinPathOpt != null)
@@ -492,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>This method may be called on a background thread.</remarks>
         internal bool TryGetProjectByBinPath(string filePath, out AbstractProject project)
         {
-            lock (_projectsByBinPath)
+            lock (_gate)
             {
                 project = null;
 
@@ -517,7 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>This method may be called on a background thread.</remarks>
         internal bool TryGetProjectsByBinPath(string filePath, out ImmutableArray<AbstractProject> projects)
         {
-            lock (_projectsByBinPath)
+            lock (_gate)
             {
                 if (_projectsByBinPath.TryGetValue(filePath, out projects))
                 {
@@ -531,7 +522,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddProjectByBinPath(string filePath, AbstractProject project)
         {
-            lock (_projectsByBinPath)
+            lock (_gate)
             {
                 ImmutableArray<AbstractProject> projects;
                 if (!_projectsByBinPath.TryGetValue(filePath, out projects))
@@ -545,7 +536,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void RemoveProjectByBinPath(string filePath, AbstractProject project)
         {
-            lock (_projectsByBinPath)
+            lock (_gate)
             {
                 ImmutableArray<AbstractProject> projects;
                 if (_projectsByBinPath.TryGetValue(filePath, out projects) && projects.Contains(project))

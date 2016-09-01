@@ -105,9 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var projectInfos = inOrderToPush.Select(p => p.CreateProjectInfoForCurrentState()).ToImmutableArray();
 
-                // Enable projects to start pushing changes to workspace hosts, even before we add the solution/project to the host.
-                // As we are currently on the foreground thread, any background notification requests for project changes between now and until
-                // we add the solution/project to the host will just be queued onto foreground task scheduler and execute after we have added the solution/project to the host.
+                // We need to enable projects to start pushing changes to workspace hosts even before we add the solution/project to the host.
+                // This is required because between the point we capture the project info for current state and the point where we start pushing to workspace hosts,
+                // project system may send new events on the AbstractProject on a background thread, and these won't get pushed over to the workspace hosts as we didn't set the _pushingChangesToWorkspaceHost flag on the AbstractProject.
+                // By invoking StartPushingToWorkspaceHosts upfront, any project state changes on the background thread will enqueue notifications to workspace hosts on foreground scheduled tasks.
                 foreach (var project in inOrderToPush)
                 {
                     project.StartPushingToWorkspaceHosts();

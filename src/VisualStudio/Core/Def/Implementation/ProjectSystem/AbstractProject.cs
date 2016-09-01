@@ -271,54 +271,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ValidateReferences();
 
-            ImmutableArray<DocumentInfo> documents;
-            ImmutableArray<DocumentInfo> additionalDocuments;
-            ImmutableArray<ProjectReference> projectReferences;
-            ImmutableArray<MetadataReference> metadataReferences;
-            ImmutableArray<AnalyzerReference> analyzerReferences;
-            CompilationOptions compilationOptions;
-            ParseOptions parseOptions;
-            ProjectId id;
-            VersionStamp version;
-            string displayName, assemblyName, filePath, outputFilePath, language;
-            bool hasAllInformation;
-
             lock (_gate)
             {
-                documents = _documents.Values.Select(d => d.GetInitialState()).ToImmutableArray();
-                additionalDocuments = _additionalDocuments.Values.Select(d => d.GetInitialState()).ToImmutableArray();
-                metadataReferences = _metadataReferences.Select(r => r.CurrentSnapshot).ToImmutableArray<MetadataReference>();
-                projectReferences = _projectReferences.ToImmutableArray();
-                analyzerReferences = _analyzers.Values.Select(a => a.GetReference()).ToImmutableArray();
-                compilationOptions = this.CurrentCompilationOptions;
-                parseOptions = this.CurrentParseOptions;
-                id = this.Id;
-                version = this.Version;
-                displayName = this.DisplayName;
-                assemblyName = this.AssemblyName ?? this.ProjectSystemName;
-                filePath = this.ProjectFilePath;
-                outputFilePath = this.ObjOutputPath;
-                language = this.Language;
-                hasAllInformation = this.LastDesignTimeBuildSucceeded;
+                var info = ProjectInfo.Create(
+                    this.Id,
+                    this.Version,
+                    this.DisplayName,
+                    this.AssemblyName ?? this.ProjectSystemName,
+                    this.Language,
+                    filePath: this.ProjectFilePath,
+                    outputFilePath: this.ObjOutputPath,
+                    compilationOptions: this.CurrentCompilationOptions,
+                    parseOptions: this.CurrentParseOptions,
+                    documents: _documents.Values.Select(d => d.GetInitialState()),
+                    metadataReferences: _metadataReferences.Select(r => r.CurrentSnapshot),
+                    projectReferences: _projectReferences,
+                    analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
+                    additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
+
+                return info.WithHasAllInformation(hasAllInformation: this.LastDesignTimeBuildSucceeded);
             }
-
-            var info = ProjectInfo.Create(
-                id,
-                version,
-                displayName,
-                assemblyName,
-                language,
-                filePath: filePath,
-                outputFilePath: outputFilePath,
-                compilationOptions: compilationOptions,
-                parseOptions: parseOptions,
-                documents: documents,
-                metadataReferences: metadataReferences,
-                projectReferences: projectReferences,
-                analyzerReferences: analyzerReferences,
-                additionalDocuments: additionalDocuments);
-
-            return info.WithHasAllInformation(hasAllInformation);
         }
 
         protected ImmutableArray<string> GetStrongNameKeyPaths()
@@ -713,23 +685,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var reference = (VisualStudioMetadataReference)state;
             ChangedReferencesPendingUpdate.Remove(reference);
 
-            bool hasMetadataReference;
             lock (_gate)
             {
-                hasMetadataReference = _metadataReferences.Contains(reference);
-            }
+                // Ensure that we are still referencing this binary
+                if (_metadataReferences.Contains(reference))
+                {
+                    // remove the old metadata reference
+                    this.RemoveMetadataReferenceCore(reference, disposeReference: false);
 
-            // Ensure that we are still referencing this binary
-            if (hasMetadataReference)
-            {
-                // remove the old metadata reference
-                this.RemoveMetadataReferenceCore(reference, disposeReference: false);
+                    // Signal to update the underlying reference snapshot
+                    reference.UpdateSnapshot();
 
-                // Signal to update the underlying reference snapshot
-                reference.UpdateSnapshot();
-
-                // add it back (it will now be based on the new file contents)
-                this.AddMetadataReferenceCore(reference);
+                    // add it back (it will now be based on the new file contents)
+                    this.AddMetadataReferenceCore(reference);
+                }
             }
         }
 
@@ -740,11 +709,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // efforts to listen to file changes can lead to a deadlock situation.
             // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
             // to release the lock.
-            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            {
                 VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
                 RemoveAnalyzerReference(analyzer.FullPath);
-                AddAnalyzerReference(analyzer.FullPath);                
+                AddAnalyzerReference(analyzer.FullPath);
             }));
         }
 
@@ -1010,7 +980,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     document.UpdatedOnDisk += s_documentUpdatedOnDiskEventHandler;
                 }
 
-                DocumentProvider.NotifyDocumentRegisteredToProject(document);
+                DocumentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
                 if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
                 {
@@ -1053,7 +1023,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            DocumentProvider.NotifyDocumentRegisteredToProject(document);
+            DocumentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
             if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
             {
@@ -1078,71 +1048,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             using (Workspace?.Services.GetService<IGlobalOperationNotificationService>()?.Start("Disconnect Project"))
             {
-                // No sense in reloading any metadata references anymore.
-                foreach (var cancellationTokenSource in ChangedReferencesPendingUpdate.Values)
-                {
-                    cancellationTokenSource.Cancel();
-                }
-
-                ChangedReferencesPendingUpdate.Clear();
-
-                var wasPushing = _pushingChangesToWorkspaceHosts;
-
-                // disable pushing down to workspaces, so we don't get redundant workspace document removed events
-                _pushingChangesToWorkspaceHosts = false;
-
-                ImmutableArray<IVisualStudioHostDocument> documents;
-                ImmutableArray<IVisualStudioHostDocument> additionalDocuments;
-                ImmutableArray<VisualStudioMetadataReference> metadataReferences;
-                ImmutableArray<VisualStudioAnalyzer> analyzers;
-
                 lock (_gate)
                 {
-                    documents = _documents.Values.ToImmutableArray();
-                    additionalDocuments = _additionalDocuments.Values.ToImmutableArray();
-                    metadataReferences = _metadataReferences.ToImmutableArray();
-                    analyzers = _analyzers.Values.ToImmutableArray();
+                    // No sense in reloading any metadata references anymore.
+                    foreach (var cancellationTokenSource in ChangedReferencesPendingUpdate.Values)
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+
+                    ChangedReferencesPendingUpdate.Clear();
+
+                    var wasPushing = _pushingChangesToWorkspaceHosts;
+
+                    // disable pushing down to workspaces, so we don't get redundant workspace document removed events
+                    _pushingChangesToWorkspaceHosts = false;
+
+                    // The project is going away, so let's remove ourselves from the host. First, we
+                    // close and dispose of any remaining documents
+                    foreach (var document in _documents.Values)
+                    {
+                        UninitializeDocument(document);
+                    }
+
+                    foreach (var document in _additionalDocuments.Values)
+                    {
+                        UninitializeAdditionalDocument(document);
+                    }
+
+                    // Dispose metadata references.
+                    foreach (var reference in _metadataReferences)
+                    {
+                        reference.Dispose();
+                    }
+
+                    foreach (var analyzer in _analyzers.Values)
+                    {
+                        analyzer.Dispose();
+                    }
+
+                    // Make sure we clear out any external errors left when closing the project.
+                    ExternalErrorReporter?.ClearAllErrors();
+
+                    // Make sure we clear out any host errors left when closing the project.
+                    HostDiagnosticUpdateSource?.ClearAllDiagnosticsForProject(this.Id);
+
+                    ClearAnalyzerRuleSet();
+
+                    // reinstate pushing down to workspace, so the workspace project remove event fires
+                    _pushingChangesToWorkspaceHosts = wasPushing;
+
+                    this.ProjectTracker.RemoveProject(this);
+
+                    _pushingChangesToWorkspaceHosts = false;
+
+                    this.EditAndContinueImplOpt = null;
                 }
-
-                // The project is going away, so let's remove ourselves from the host. First, we
-                // close and dispose of any remaining documents
-                foreach (var document in documents)
-                {
-                    UninitializeDocument(document);
-                }
-
-                foreach (var document in additionalDocuments)
-                {
-                    UninitializeAdditionalDocument(document);
-                }
-
-                // Dispose metadata references.
-                foreach (var reference in metadataReferences)
-                {
-                    reference.Dispose();
-                }
-
-                foreach (var analyzer in analyzers)
-                {
-                    analyzer.Dispose();
-                }
-
-                // Make sure we clear out any external errors left when closing the project.
-                ExternalErrorReporter?.ClearAllErrors();
-
-                // Make sure we clear out any host errors left when closing the project.
-                HostDiagnosticUpdateSource?.ClearAllDiagnosticsForProject(this.Id);
-
-                ClearAnalyzerRuleSet();
-
-                // reinstate pushing down to workspace, so the workspace project remove event fires
-                _pushingChangesToWorkspaceHosts = wasPushing;
-
-                this.ProjectTracker.RemoveProject(this);
-
-                _pushingChangesToWorkspaceHosts = false;
-
-                this.EditAndContinueImplOpt = null;
             }
         }
 
@@ -1397,13 +1357,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void UpdateProjectDisplayNameAndFilePath(string newDisplayName, string newFilePath)
         {
             bool updateMade = false;
-            
+
             if (newDisplayName != null && this.DisplayName != newDisplayName)
             {
                 this.DisplayName = newDisplayName;
                 updateMade = true;
             }
-            
+
             if (newFilePath != null && File.Exists(newFilePath) && this.ProjectFilePath != newFilePath)
             {
                 Debug.Assert(PathUtilities.IsAbsolute(newFilePath));
