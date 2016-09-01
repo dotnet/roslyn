@@ -90,12 +90,7 @@ namespace Roslyn.Utilities
             private readonly Edge[] _compactEdges;
             private readonly BuilderNode[] _builderNodes;
 
-            public Builder(IEnumerable<string> values)
-                : this(values.Select(v => new StringSlice(v)))
-            {
-            }
-
-                public Builder(IEnumerable<StringSlice> values)
+            public Builder(IEnumerable<StringSlice> values)
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
                 var distinctValues = values.Where(v => v.Length > 0).Distinct(StringSliceComparer.OrdinalIgnoreCase).ToArray();

@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -303,7 +304,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
             return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
-                v => new SpellChecker(v, sortedNodes.Select(n => n.Name))));
+                v => new SpellChecker(v, sortedNodes.Select(n => new StringSlice(n.Name)))));
         }
 
         private static ImmutableArray<Node> SortNodes(ImmutableArray<Node> unsortedNodes)

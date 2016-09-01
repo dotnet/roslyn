@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -198,7 +199,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
         {
             return ReadSymbolTreeInfo(reader, 
-                (version, nodes) => Task.FromResult(new SpellChecker(version, nodes.Select(n => n.Name))));
+                (version, nodes) => Task.FromResult(
+                    new SpellChecker(version, nodes.Select(n => new StringSlice(n.Name)))));
         }
 
         private static SymbolTreeInfo ReadSymbolTreeInfo(
