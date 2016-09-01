@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, desiredArity:0);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:false);
                     if ((object)builderType != null)
                     {
                         taskProperty = GetCustomTaskProperty(F, builderType);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = typeMap.SubstituteType(resultType).Type;
                 }
                 returnType = returnType.ConstructedFrom.Construct(resultType);
-                NamedTypeSymbol builderType = null;
+                NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, 1);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric:true);
                     if ((object)builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
@@ -264,40 +264,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.UnexpectedValue(method);
         }
 
-        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, int desiredArity)
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric)
         {
             var builderType = builderAttributeArgument as NamedTypeSymbol;
 
-            bool isArityOk;
-            if (desiredArity == 0)
+            if ((object)builderType != null &&
+                 !builderType.IsErrorType() &&
+                 builderType.SpecialType != SpecialType.System_Void &&
+                 builderType.DeclaredAccessibility == desiredAccessibility)
             {
-                isArityOk = builderType?.IsGenericType == false;
-            }
-            else if (desiredArity == 1)
-            {
-                isArityOk = builderType?.IsUnboundGenericType == true &&
-                            builderType?.ContainingType?.IsGenericType != true;
-            }
-            else
-            {
-                isArityOk = false;
-                Debug.Assert(false, "expected arity 0 or 1");
+                bool isArityOk = isGeneric
+                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true
+                                 : !builderType.IsGenericType;
+                if (isArityOk)
+                {
+                    return builderType;
+                }
             }
 
-
-            if ((object)builderType == null ||
-                 builderType.IsErrorType() == true ||
-                 builderType.SpecialType == SpecialType.System_Void ||
-                 builderType.DeclaredAccessibility != desiredAccessibility ||
-                 !isArityOk)
-            {
-                F.Diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, F.Syntax.Location);
-                return null;
-            }
-            else
-            {
-                return builderType;
-            }
+            F.Diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, F.Syntax.Location);
+            return null;
         }
 
         private static bool TryCreate(
@@ -397,9 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The Create method's return type is expected to be builderType.
             // The WellKnownMembers routines aren't able to enforce that, which is why this method exists.
-            //
-            // TODO: consider removing WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder*__Create
-            // and using GetCustomCreateMethod for the Task types as well as for custom tasklikes.
             const string methodName = "Create";
             var members = builderType.GetMembers(methodName);
             foreach (var member in members)

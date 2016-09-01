@@ -3216,13 +3216,13 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> 3").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(4, 25));
         }
 
-        public string AsyncBuilderCode(string builderTypeName, string tasklikeTypeName, string genericTypeParameter = null, bool isStruct = false)
+        private static string AsyncBuilderCode(string builderTypeName, string tasklikeTypeName, string genericTypeParameter = null, bool isStruct = false)
         {
             string ofT = genericTypeParameter == null ? "" : "<" + genericTypeParameter + ">";
             return $@"
 public {(isStruct ? "struct" : "class")} {builderTypeName}{ofT}
 {{
-    public static {builderTypeName} Create() => default({builderTypeName}{ofT});
+    public static {builderTypeName}{ofT} Create() => default({builderTypeName}{ofT});
     public {tasklikeTypeName}{ofT} Task {{ get; }}
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine {{ }}
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine {{ }}
@@ -3504,6 +3504,30 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
                 );
         }
 
+        public void AsyncTasklikeBadAttributeArgument4()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncBuilder(null)] class T { }
+
+class Program {
+    static void Main() { }
+    async T f() => await Task.Delay(1);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async T f() => await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(1)").WithLocation(9, 17)
+                );
+        }
+
         [Fact]
         public void AsyncTasklikeMissingBuilderType()
         {
@@ -3548,20 +3572,6 @@ class Program {
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(typeof(B0))] public class T0 {{ }}
-[AsyncBuilder(typeof(B1))] public class T1 {{ }}
-[AsyncBuilder(typeof(B2))] public class T2 {{ }}
-[AsyncBuilder(typeof(B3))] public class T3 {{ }}
-[AsyncBuilder(typeof(B4))] public class T4 {{ }}
-[AsyncBuilder(typeof(B5))] public class T5 {{ }}
-
-{AsyncBuilderCode("B0", "T0").Replace("public static B0 Create()", "public static B0 Create()")}
-{AsyncBuilderCode("B1", "T1").Replace("public static B1 Create()", "private static B1 Create()")}
-{AsyncBuilderCode("B2", "T2").Replace("public static B2 Create() => default(B2);", "public static void Create() { }")}
-{AsyncBuilderCode("B3", "T3").Replace("public static B3 Create() => default(B3);", "public static B1 Create() => default(B1);")}
-{AsyncBuilderCode("B4", "T4").Replace("public static B4 Create()", "public static B4 Create(int i)")}
-{AsyncBuilderCode("B5", "T5").Replace("public static B5 Create()", "public static B5 Create<T>()")}
-
 class Program {{
     static void Main() {{ }}
     async T0 f0() => await Task.Delay(0);
@@ -3570,28 +3580,87 @@ class Program {{
     async T3 f3() => await Task.Delay(3);
     async T4 f4() => await Task.Delay(4);
     async T5 f5() => await Task.Delay(5);
+    async T6 f6() => await Task.Delay(6);
+    async T7 f7() => await Task.Delay(7);
+    async T8 f8() => await Task.Delay(8);
 }}
+
+[AsyncBuilder(typeof(B0))] public class T0 {{ }}
+[AsyncBuilder(typeof(B1))] public class T1 {{ }}
+[AsyncBuilder(typeof(B2))] public class T2 {{ }}
+[AsyncBuilder(typeof(B3))] public class T3 {{ }}
+[AsyncBuilder(typeof(B4))] public class T4 {{ }}
+[AsyncBuilder(typeof(B5))] public class T5 {{ }}
+[AsyncBuilder(typeof(B6))] public class T6 {{ }}
+[AsyncBuilder(typeof(B7))] public class T7 {{ }}
+[AsyncBuilder(typeof(B8))] public class T8 {{ }}
+
+{AsyncBuilderCode("B0", "T0").Replace("public static B0 Create()", "public static B0 Create()")}
+{AsyncBuilderCode("B1", "T1").Replace("public static B1 Create()", "private static B1 Create()")}
+{AsyncBuilderCode("B2", "T2").Replace("public static B2 Create() => default(B2);", "public static void Create() { }")}
+{AsyncBuilderCode("B3", "T3").Replace("public static B3 Create() => default(B3);", "public static B1 Create() => default(B1);")}
+{AsyncBuilderCode("B4", "T4").Replace("public static B4 Create()", "public static B4 Create(int i)")}
+{AsyncBuilderCode("B5", "T5").Replace("public static B5 Create()", "public static B5 Create<T>()")}
+{AsyncBuilderCode("B6", "T6").Replace("public static B6 Create()", "public static B6 Create(object arg = null)")}
+{AsyncBuilderCode("B7", "T7").Replace("public static B7 Create()", "public static B7 Create(params object[] arg)")}
+{AsyncBuilderCode("B8", "T8").Replace("public static B8 Create()", "public B8 Create()")}
 
 namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : System.Attribute {{ public AsyncBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (94,19): error CS0656: Missing compiler required member 'B1.Create'
+                // (8,19): error CS0656: Missing compiler required member 'B1.Create'
                 //     async T1 f1() => await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(1)").WithArguments("B1", "Create").WithLocation(94, 19),
-                // (95,19): error CS0656: Missing compiler required member 'B2.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(1)").WithArguments("B1", "Create").WithLocation(8, 19),
+                // (9,19): error CS0656: Missing compiler required member 'B2.Create'
                 //     async T2 f2() => await Task.Delay(2);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2", "Create").WithLocation(95, 19),
-                // (96,19): error CS0656: Missing compiler required member 'B3.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2", "Create").WithLocation(9, 19),
+                // (10,19): error CS0656: Missing compiler required member 'B3.Create'
                 //     async T3 f3() => await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Create").WithLocation(96, 19),
-                // (97,19): error CS0656: Missing compiler required member 'B4.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Create").WithLocation(10, 19),
+                // (11,19): error CS0656: Missing compiler required member 'B4.Create'
                 //     async T4 f4() => await Task.Delay(4);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4", "Create").WithLocation(97, 19),
-                // (98,19): error CS0656: Missing compiler required member 'B5.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4", "Create").WithLocation(11, 19),
+                // (12,19): error CS0656: Missing compiler required member 'B5.Create'
                 //     async T5 f5() => await Task.Delay(5);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(5)").WithArguments("B5", "Create").WithLocation(98, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(5)").WithArguments("B5", "Create").WithLocation(12, 19),
+                // (13,19): error CS0656: Missing compiler required member 'B6.Create'
+                //     async T6 f6() => await Task.Delay(6);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(6)").WithArguments("B6", "Create").WithLocation(13, 19),
+                // (14,19): error CS0656: Missing compiler required member 'B7.Create'
+                //     async T7 f7() => await Task.Delay(7);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(7)").WithArguments("B7", "Create").WithLocation(14, 19),
+                // (15,19): error CS0656: Missing compiler required member 'B8.Create'
+                //     async T8 f8() => await Task.Delay(8);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(8)").WithArguments("B8", "Create").WithLocation(15, 19)
+                );
+        }
+
+        [Fact]
+        public void AsyncInterfaceTasklike()
+        {
+            var source = $@"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class Program {{
+    static void Main() {{ }}
+    async I0 f0() => await Task.Delay(0);
+    async I1<int> f1() {{  await Task.Delay(1); return 1; }}
+}}
+
+[AsyncBuilder(typeof(B0))] public interface I0 {{ }}
+[AsyncBuilder(typeof(B1<>))] public interface I1<T> {{ }}
+
+{AsyncBuilderCode("B0", "I0", genericTypeParameter: null)}
+{AsyncBuilderCode("B1", "I1", genericTypeParameter: "T")}
+
+namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : System.Attribute {{ public AsyncBuilderAttribute(System.Type t) {{ }} }} }}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
                 );
         }
 
