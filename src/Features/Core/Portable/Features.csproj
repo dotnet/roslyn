@@ -82,6 +82,8 @@
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
