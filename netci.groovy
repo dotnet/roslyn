@@ -197,3 +197,9 @@ commitPullList.each { isPr ->
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
+
+
+// Make the call to generate the help job
+Utilities.createHelperJob(this, projectName, branchName,
+    "Welcome to the ${projectName} Repository",  // This is prepended to the help message
+    "Have a nice day!")  // This is appended to the help message.  You might put known issues here.
