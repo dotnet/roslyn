@@ -6382,6 +6382,47 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub RetargetTupleErrorType()
+            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(
+ <compilation>
+     <file name="a.vb">
+Public Class A
+     Public Shared Function M() As (Integer, Integer)
+        Return (1, 2)
+     End Function
+End Class
+     </file>
+ </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+            libComp.AssertNoDiagnostics()
+
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+ <compilation>
+     <file name="a.vb">
+Public Class B
+     Public Sub M2()
+        A.M()
+     End Sub
+End Class
+     </file>
+ </compilation>, additionalRefs:={libComp.ToMetadataReference()})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+        A.M()
+        ~~~~~
+</errors>)
+
+            Dim methodM = comp.GetMember(Of MethodSymbol)("A.M")
+            Assert.Equal("(System.Int32, System.Int32)", methodM.ReturnType.ToTestDisplayString())
+            Assert.True(methodM.ReturnType.IsTupleType)
+            Assert.False(methodM.ReturnType.IsErrorType())
+            Assert.True(methodM.ReturnType.TupleUnderlyingType.IsErrorType())
+
+        End Sub
+
+        <Fact>
         Public Sub CaseSensitivity001()
 
             Dim verifier = CompileAndVerify(

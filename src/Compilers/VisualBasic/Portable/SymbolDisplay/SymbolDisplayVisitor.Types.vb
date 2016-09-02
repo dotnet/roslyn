@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
-            String.IsNullOrEmpty(symbolName) Then
+                String.IsNullOrEmpty(symbolName) Then
 
                 symbolName = StringConstants.NamedSymbolErrorName
             Else
