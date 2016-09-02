@@ -1,0 +1,3 @@
+Microsoft.VisualStudio.InteractiveWindow.InteractiveClipboardFormat
+const Microsoft.VisualStudio.InteractiveWindow.InteractiveClipboardFormat.Tag = "89344A36-9821-495A-8255-99A63969F87D" -> string
+static Microsoft.VisualStudio.InteractiveWindow.InteractiveClipboardFormat.Deserialize(object value) -> string

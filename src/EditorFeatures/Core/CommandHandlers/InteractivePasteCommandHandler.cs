@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias InteractiveWindow;
-
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -14,6 +12,8 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using System.IO;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
     {
-        // Duplicated string, originally defined at `Microsoft.VisualStudio.InteractiveWindow.PredefinedInteractiveContentTypes`
-        private const string InteractiveContentTypeName = "Interactive Content";
-        // Duplicated string, originally defined at `Microsoft.VisualStudio.InteractiveWindow.InteractiveWindow`
-        private const string InteractiveClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
-
         // The following two field definitions have to stay in sync with VS editor implementation
 
         /// <summary>
@@ -63,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
             // InteractiveWindow handles pasting by itself, which including checks for buffer types, etc.
-            if (!args.TextView.TextBuffer.ContentType.IsOfType(InteractiveContentTypeName) &&
-                RoslynClipboard.ContainsData(InteractiveClipboardFormat))
+            if (!args.TextView.TextBuffer.ContentType.IsOfType(PredefinedInteractiveContentTypes.InteractiveContentTypeName) &&
+                RoslynClipboard.ContainsData(InteractiveClipboardFormat.Tag))
             {
                 PasteInteractiveFormat(args.TextView);
             }
@@ -94,27 +89,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
             Debug.Assert(!(dataHasLineCutCopyTag && dataHasBoxCutCopyTag));
 
-            var blocks = InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.BufferBlock.Deserialize((string)RoslynClipboard.GetData(InteractiveClipboardFormat));
-
-            var sb = PooledStringBuilder.GetInstance();
-            foreach (var block in blocks)
+            string text;
+            try
             {
-                switch (block.Kind)
-                {
-                    // the actual linebreak was converted to regular Input when copied
-                    // This LineBreak block was created by coping box selection and is used as line separater when pasted
-                    case InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.ReplSpanKind.LineBreak:
-                        Debug.Assert(dataHasBoxCutCopyTag);
-                        sb.Builder.Append(block.Content);
-                        break;
-                    case InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.ReplSpanKind.Input:
-                    case InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.ReplSpanKind.Output:
-                    case InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.ReplSpanKind.StandardInput:
-                        sb.Builder.Append(block.Content);
-                        break;
-                }
+                text = InteractiveClipboardFormat.Deserialize(RoslynClipboard.GetData(InteractiveClipboardFormat.Tag));
             }
-            var text = sb.ToStringAndFree();
+            catch (InvalidDataException)
+            {
+                text = "<bad clipboard data>";
+            }
 
             using (var transaction = _textUndoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste))
             {

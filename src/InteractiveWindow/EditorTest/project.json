@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "System.Collections.Immutable": "1.2.0",
     "BasicUndo": "0.9.3",
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
     "Moq": "4.2.1402.2112",
@@ -10,6 +11,6 @@
     "net46": {}
   },
   "runtimes": {
-    "win7-x86": {}
+    "win7": {}
   }
 }
