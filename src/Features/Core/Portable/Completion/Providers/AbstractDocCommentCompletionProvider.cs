@@ -1,86 +1,62 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
+    using static DocumentationCommentXmlNames;
+
     internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider
         where TSyntax : SyntaxNode
     {
         // Tag names
-        protected const string CTagName = "c";
-        protected const string CodeTagName = "code";
-        protected const string CompletionListTagName = "completionlist";
-        protected const string DescriptionTagName = "description";
-        protected const string ExampleTagName = "example";
-        protected const string ExceptionTagName = "exception";
-        protected const string IncludeTagName = "include";
-        protected const string ItemTagName = "item";
-        protected const string ListTagName = "list";
-        protected const string ListHeaderTagName = "listheader";
-        protected const string ParaTagName = "para";
-        protected const string ParamTagName = "param";
-        protected const string ParamRefTagName = "paramref";
-        protected const string PermissionTagName = "permission";
-        protected const string RemarksTagName = "remarks";
-        protected const string ReturnsTagName = "returns";
-        protected const string SeeTagName = "see";
-        protected const string SeeAlsoTagName = "seealso";
-        protected const string SummaryTagName = "summary";
-        protected const string TermTagName = "term";
-        protected const string TypeParamTagName = "typeparam";
-        protected const string TypeParamRefTagName = "typeparamref";
-        protected const string ValueTagName = "value";
+        private static readonly ImmutableArray<string> s_alwaysVisibleTagNames = ImmutableArray.Create(SeeElementName, SeeAlsoElementName);
+        private static readonly ImmutableArray<string> s_listTagNames = ImmutableArray.Create(ListHeaderElementName, TermElementName, ItemElementName, DescriptionElementName);
+        private static readonly ImmutableArray<string> s_listHeaderTagNames = ImmutableArray.Create(TermElementName, DescriptionElementName);
+        private static readonly ImmutableArray<string> s_nestedTagNames = ImmutableArray.Create(CElementName, CodeElementName, ParaElementName, ListElementName);
+        private static readonly ImmutableArray<string> s_topLevelRepeatableTagNames = ImmutableArray.Create(ExceptionElementName, IncludeElementName, PermissionElementName);
+        private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
-        // Attribute names
-        protected const string CrefAttributeName = "cref";
-        protected const string FileAttributeName = "file";
-        protected const string LangwordAttributeName = "langword";
-        protected const string NameAttributeName = "name";
-        protected const string PathAttributeName = "path";
-        protected const string TypeAttributeName = "type";
-
-        private readonly Dictionary<string, string[]> _tagMap =
+        private static readonly Dictionary<string, string[]> s_tagMap =
             new Dictionary<string, string[]>
             {
-                //                                  Open                         Before caret           $$  After caret                               Close
-                { ExceptionTagName,      new[] { $"<{ExceptionTagName}",      $" {CrefAttributeName}=\"",  "\"",                                      null } },
-                { IncludeTagName,        new[] { $"<{IncludeTagName}",        $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>" } },
-                { PermissionTagName,     new[] { $"<{PermissionTagName}",     $" {CrefAttributeName}=\"",  "\"",                                      null } },
-                { SeeTagName,            new[] { $"<{SeeTagName}",            $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
-                { SeeAlsoTagName,        new[] { $"<{SeeAlsoTagName}",        $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
-                { ListTagName,           new[] { $"<{ListTagName}",           $" {TypeAttributeName}=\"",  "\"",                                      null } },
-                { ParamRefTagName,       new[] { $"<{ParamRefTagName}",       $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
-                { TypeParamRefTagName,   new[] { $"<{TypeParamRefTagName}",   $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
-                { CompletionListTagName, new[] { $"<{CompletionListTagName}", $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                //                                              Open                                     Before caret           $$  After caret                               Close
+                { ExceptionElementName,              new[] { $"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null } },
+                { IncludeElementName,                new[] { $"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>" } },
+                { PermissionElementName,             new[] { $"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null } },
+                { SeeElementName,                    new[] { $"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                { SeeAlsoElementName,                new[] { $"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
+                { ListElementName,                   new[] { $"<{ListElementName}",                   $" {TypeAttributeName}=\"",  "\"",                                      null } },
+                { ParameterReferenceElementName,     new[] { $"<{ParameterReferenceElementName}",     $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
+                { TypeParameterReferenceElementName, new[] { $"<{TypeParameterReferenceElementName}", $" {NameAttributeName}=\"",  "\"",                                      "/>" } },
+                { CompletionListElementName,         new[] { $"<{CompletionListElementName}",         $" {CrefAttributeName}=\"",  "\"",                                      "/>" } },
             };
 
-        private readonly string[][] _attributeMap =
+        private static readonly string[][] s_attributeMap =
             new[]
             {
-                new[] { ExceptionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { PermissionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeTagName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
-                new[] { SeeAlsoTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { ListTagName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
-                new[] { ParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { ParamRefTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { TypeParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { TypeParamRefTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { IncludeTagName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
-                new[] { IncludeTagName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
+                new[] { ExceptionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
+                new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { IncludeElementName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
+                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
             };
 
-        private readonly ImmutableArray<string> _listTypeValues = ImmutableArray.Create("bullet", "number", "table");
+        private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -104,14 +80,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
 
-        private Boolean HasExistingTopLevelElement(TSyntax syntax, string name)
+        private bool HasExistingTopLevelElement(TSyntax syntax, string name)
         {
             return GetExistingTopLevelElementNames(syntax).Contains(name);
         }
 
         private CompletionItem GetItem(string name)
         {
-            if (_tagMap.TryGetValue(name, out var values))
+            if (s_tagMap.TryGetValue(name, out var values))
             {
                 return CreateCompletionItem(name,
                     beforeCaretText: values[0] + values[1],
@@ -125,130 +101,111 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes)
         {
-            return _attributeMap.Where(x => x[0] == tagName && !existingAttributes.Contains(x[1]))
-                                .Select(x => CreateCompletionItem(x[1], x[2], x[3]));
+            return s_attributeMap.Where(x => x[0] == tagName && !existingAttributes.Contains(x[1]))
+                                 .Select(x => CreateCompletionItem(x[1], x[2], x[3]));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            const string CommentPrefix = "!--";
-            const string CommentSuffix = "-->";
-            const string CDataPrefix = "![CDATA[";
-            const string CDataSuffix = "]]>";
-
-            return new[] {
-                GetItem(SeeTagName),
-                GetItem(SeeAlsoTagName),
-                CreateCompletionItem(CommentPrefix, "<" + CommentPrefix, CommentSuffix),
-                CreateCompletionItem(CDataPrefix, "<" + CDataPrefix, CDataSuffix),
-            };
+            return new[] { GetCDataItem(), GetCommentItem(), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
         }
 
-        protected IEnumerable<string> NestedTagNames
+        private CompletionItem GetCommentItem()
         {
-            get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName }; }
+            const string prefix = "!--";
+            const string suffix = "-->";
+            return CreateCompletionItem(prefix, "<" + prefix, suffix);
         }
 
-        protected IEnumerable<CompletionItem> GetNestedTags(ISymbol declaredSymbol)
+        private CompletionItem GetCDataItem()
         {
-            return NestedTagNames.Select(GetItem)
-                                 .Concat(GetParamRefItems(declaredSymbol))
-                                 .Concat(GetTypeParamRefItems(declaredSymbol));
+            const string prefix = "![CDATA[";
+            const string suffix = "]]>";
+            return CreateCompletionItem(prefix, "<" + prefix, suffix);
         }
 
-        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol declaredSymbol)
+        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol symbol)
         {
-            var parameters = declaredSymbol?.GetParameters().Select(p => p.Name).ToSet();
+            var items = s_nestedTagNames.Select(GetItem);
 
-            if (parameters == null)
+            if (symbol != null)
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                items = items.Concat(GetParamRefItems(symbol))
+                             .Concat(GetTypeParamRefItems(symbol));
             }
 
-            return parameters.Select(p => CreateCompletionItem(
-                displayText: FormatParameter(ParamRefTagName, p),
-                beforeCaretText: FormatParameterRefTag(ParamRefTagName, p),
+            return items;
+        }
+
+        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol symbol)
+        {
+            var names = symbol.GetParameters().Select(p => p.Name);
+
+            return names.Select(p => CreateCompletionItem(
+                displayText: FormatParameter(ParameterReferenceElementName, p),
+                beforeCaretText: FormatParameterRefTag(ParameterReferenceElementName, p),
                 afterCaretText: string.Empty));
         }
 
-        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol declaredSymbol)
+        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol symbol)
         {
-            var typeParameters = declaredSymbol?.GetTypeParameters().Select(t => t.Name).ToSet();
+            var names = symbol.GetTypeParameters().Select(t => t.Name);
 
-            if (typeParameters == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
-
-            return typeParameters.Select(t => CreateCompletionItem(
-                displayText: FormatParameter(TypeParamRefTagName, t),
-                beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
+            return names.Select(t => CreateCompletionItem(
+                displayText: FormatParameter(TypeParameterReferenceElementName, t),
+                beforeCaretText: FormatParameterRefTag(TypeParameterReferenceElementName, t),
                 afterCaretText: string.Empty));
         }
 
         protected IEnumerable<CompletionItem> GetAttributeValueItems(ISymbol symbol, string tagName, string attributeName)
         {
-            if (attributeName == NameAttributeName)
+            if (attributeName == NameAttributeName && symbol != null)
             {
-                if (tagName == ParamTagName || tagName == ParamRefTagName)
+                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
                 {
-                    return GetParamNameItems(symbol);
+                    return symbol.GetParameters()
+                                 .Select(parameter => CreateCompletionItem(parameter.Name));
                 }
-                else if (tagName == TypeParamTagName || tagName == TypeParamRefTagName)
+                else if (tagName == TypeParameterElementName || tagName == TypeParameterReferenceElementName)
                 {
-                    return GetTypeParamNameItems(symbol);
+                    return symbol.GetTypeParameters()
+                                 .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
                 }
             }
-            else if (attributeName == LangwordAttributeName && tagName == SeeTagName)
+            else if (attributeName == LangwordAttributeName && tagName == SeeElementName)
             {
-                return GetKeywordNames().Select(keyword => CreateCompletionItem(keyword));
+                return GetKeywordNames().Select(CreateCompletionItem);
             }
-            else if (attributeName == TypeAttributeName && tagName == ListTagName)
+            else if (attributeName == TypeAttributeName && tagName == ListElementName)
             {
-                return _listTypeValues.Select(value => CreateCompletionItem(value));
+                return s_listTypeValues.Select(CreateCompletionItem);
             }
 
             return null;
-        }
-
-        protected IEnumerable<CompletionItem> GetParamNameItems(ISymbol declaredSymbol)
-        {
-            var items = declaredSymbol?.GetParameters()
-                                       .Select(parameter => CreateCompletionItem(parameter.Name));
-
-            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
-        }
-
-        protected IEnumerable<CompletionItem> GetTypeParamNameItems(ISymbol declaredSymbol)
-        {
-            var items = declaredSymbol?.GetTypeParameters()
-                                       .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
-
-            return items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
         protected abstract IEnumerable<string> GetKeywordNames();
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
         {
-            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
+            return s_topLevelRepeatableTagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetTopLevelSingleUseItems(TSyntax syntax)
         {
-            var tagNames = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
+            var tagNames = new HashSet<string>(s_topLevelSingleUseTagNames);
             tagNames.RemoveAll(GetExistingTopLevelElementNames(syntax).WhereNotNull());
             return tagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListItems()
         {
-            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
+            return s_listTagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListHeaderItems()
         {
-            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
+            return s_listHeaderTagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetItemsForSymbol(ISymbol symbol, TSyntax syntax)
@@ -257,20 +214,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (symbol != null)
             {
-                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParamTagName));
-                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParamTagName));
+                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
                 var property = symbol as IPropertySymbol;
-                if (property != null && !HasExistingTopLevelElement(syntax, ValueTagName))
+                if (property != null && !HasExistingTopLevelElement(syntax, ValueElementName))
                 {
-                    items.Add(GetItem(ValueTagName));
+                    items.Add(GetItem(ValueElementName));
                 }
 
                 var method = symbol as IMethodSymbol;
                 var returns = method != null && !method.ReturnsVoid;
-                if (returns && !HasExistingTopLevelElement(syntax, ReturnsTagName))
+                if (returns && !HasExistingTopLevelElement(syntax, ReturnsElementName))
                 {
-                    items.Add(GetItem(ReturnsTagName));
+                    items.Add(GetItem(ReturnsElementName));
                 }
             }
 

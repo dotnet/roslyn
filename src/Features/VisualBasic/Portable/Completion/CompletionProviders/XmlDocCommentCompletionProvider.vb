@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities.DocumentationCommentXmlNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class XmlDocCommentCompletionProvider
@@ -101,23 +102,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim grandParent = parentElement.Parent
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(symbol))
+                items.AddRange(GetNestedItems(symbol))
 
-                If GetStartTagName(grandParent) = ListTagName Then
+                If GetStartTagName(grandParent) = ListElementName Then
                     items.AddRange(GetListItems())
                 End If
 
-                If GetStartTagName(grandParent) = ListHeaderTagName Then
+                If GetStartTagName(grandParent) = ListHeaderElementName Then
                     items.AddRange(GetListHeaderItems())
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(symbol))
+                items.AddRange(GetNestedItems(symbol))
 
-                If GetStartTagName(token.Parent.Parent) = ListTagName Then
+                If GetStartTagName(token.Parent.Parent) = ListElementName Then
                     items.AddRange(GetListItems())
                 End If
 
-                If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
+                If GetStartTagName(token.Parent.Parent) = ListHeaderElementName Then
                     items.AddRange(GetListHeaderItems())
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
@@ -128,11 +129,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
                 If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-                    If GetStartTagName(parentElement.Parent) = ListTagName Then
+                    If GetStartTagName(parentElement.Parent) = ListElementName Then
                         items.AddRange(GetListItems())
                     End If
 
-                    If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
+                    If GetStartTagName(parentElement.Parent) = ListHeaderElementName Then
                         items.AddRange(GetListHeaderItems())
                     End If
                 End If
@@ -229,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Sub
 
         Protected Overrides Function GetKeywordNames() As IEnumerable(Of String)
-            Return SyntaxFacts.GetKeywordKinds().Select(Function(keyword) SyntaxFacts.GetText(keyword))
+            Return SyntaxFacts.GetKeywordKinds().Select(AddressOf SyntaxFacts.GetText)
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
