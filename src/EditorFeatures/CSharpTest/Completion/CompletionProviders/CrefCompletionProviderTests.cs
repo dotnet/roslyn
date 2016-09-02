@@ -1015,6 +1015,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public void AddFirstMissingCloseBrace(SyntaxNode root, SyntaxNode contextNode, out SyntaxNode newRoot, out SyntaxNode newContextNode)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

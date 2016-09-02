@@ -1456,5 +1456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
+
+        Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
+            ' Nothing to be done.  VB doesn't have close braces
+            newRoot = root
+            newContextNode = contextNode
+        End Sub
     End Class
 End Namespace
