@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <Compile Include="Services\EmitService.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />

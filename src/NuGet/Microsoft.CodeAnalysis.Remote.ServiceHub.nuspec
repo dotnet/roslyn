@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <id>Microsoft.CodeAnalysis.Remote.Workspaces</id>
+    <id>Microsoft.CodeAnalysis.Remote.ServiceHub</id>
     <summary>
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
     </summary>
@@ -12,9 +12,7 @@ Supported Platforms:
 - .NET Framework 4.6
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
-      <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
@@ -28,8 +26,8 @@ Supported Platforms:
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Remote.Workspaces.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.Remote.ServiceHub.dll" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.Remote.ServiceHub.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>
