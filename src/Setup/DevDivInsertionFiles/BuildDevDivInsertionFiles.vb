@@ -37,7 +37,7 @@ Public Class BuildDevDivInsertionFiles
 
     Public Shared Function Main(args As String()) As Integer
         If args.Length <> 5 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version> <interactive window version>")
             Return 1
         End If
 
@@ -101,9 +101,19 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.DiaSymReader.Native.x86.dll",
         "System.AppContext.dll",
         "System.Console.dll",
+        "System.Diagnostics.Process.dll",
         "System.Diagnostics.StackTrace.dll",
+        "System.IO.Pipes.dll",
         "System.IO.FileSystem.dll",
+        "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",
+        "System.Runtime.InteropServices.RuntimeInformation.dll",
+        "System.Security.AccessControl.dll",
+        "System.Security.Claims.dll",
+        "System.Security.Cryptography.Algorithms.dll",
+        "System.Security.Cryptography.Primitives.dll",
+        "System.Security.Principal.Windows.dll",
+        "System.Threading.Thread.dll",
         "csc.exe",
         "csc.exe.config",
         "csc.rsp",
@@ -388,7 +398,7 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         ' Add just the compiler files to a separate compiler nuspec
-        GenerateRoslynCompilerNuSpec(filesToInsert)
+        GenerateRoslynCompilerNuSpec(CompilerFiles)
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -832,7 +842,7 @@ Public Class BuildDevDivInsertionFiles
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
     End Function
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As List(Of NugetFileInfo))
+    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As String())
         Const PackageName As String = "VS.Tools.Roslyn"
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
@@ -846,9 +856,9 @@ Public Class BuildDevDivInsertionFiles
                       </metadata>
                       <files>
                           <%= filesToInsert.
-                              OrderBy(Function(f) f.Path).
+                              OrderBy(Function(f) f).
                               Distinct().
-                              Select(Function(f) <file src=<%= f.Path %> target=<%= f.Target %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
+                              Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
 
