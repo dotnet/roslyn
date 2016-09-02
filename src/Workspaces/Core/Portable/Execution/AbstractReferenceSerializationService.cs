@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private void WriteMvidsTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var metadata = GetMetadata(reference);
+            var metadata = reference.GetMetadata();
 
             var assemblyMetadata = metadata as AssemblyMetadata;
             if (assemblyMetadata != null)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             writer.WriteInt32((int)metadata.Kind);
 
-            var metadataReader = GetMetadataReader(metadata);
+            var metadataReader = metadata.GetMetadataReader();
 
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
@@ -215,16 +215,10 @@ namespace Microsoft.CodeAnalysis.Execution
             PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
-            WritePortableExecutableReferenceMetadataTo(reference, writer, cancellationToken);
+
+            WriteTo(reference.GetMetadata(), writer, cancellationToken);
 
             // TODO: what I should do with documentation provider? it is not exposed outside
-        }
-
-        private void WritePortableExecutableReferenceMetadataTo(
-            PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            var metadata = GetMetadata(reference);
-            WriteTo(metadata, writer, cancellationToken);
         }
 
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -456,37 +450,20 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             writer.WriteInt32((int)metadata.Kind);
 
-            var metadataReader = GetMetadataReader(metadata);
-            WriteTo(metadataReader, writer, cancellationToken);
+            WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
         }
 
-        private void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
+        private unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var blockFieldInfo = reader.GetType().GetTypeInfo().GetDeclaredField("Block");
-            var block = blockFieldInfo.GetValue(reader);
+            var length = reader.MetadataLength;
 
-            // TODO: once things become public API, change it to copy stream over byte* and length from metadata reader
-            var toArrayFieldInfo = block.GetType().GetTypeInfo().GetDeclaredMethod("ToArray");
-            var array = (byte[])toArrayFieldInfo.Invoke(block, null);
+            // TODO: any way to avoid allocating byte array here?
+            var bytes = new byte[length];
+            Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
-            writer.WriteValue(array);
-        }
-
-        private MetadataReader GetMetadataReader(ModuleMetadata metadata)
-        {
-            // TODO: right now, use reflection, but this API will be added as public API soon. when that happen, remove reflection
-            var metadataReaderPropertyInfo = metadata.GetType().GetTypeInfo().GetDeclaredProperty("MetadataReader");
-            var metadataReader = (MetadataReader)metadataReaderPropertyInfo.GetValue(metadata);
-            return metadataReader;
-        }
-
-        private Metadata GetMetadata(PortableExecutableReference reference)
-        {
-            // TODO: right now, use reflection, but this API will be added as public API soon. when that happen, remove reflection
-            var methodInfo = reference.GetType().GetTypeInfo().GetDeclaredMethod("GetMetadataImpl");
-            return (Metadata)methodInfo.Invoke(reference, null);
+            writer.WriteValue(bytes);
         }
 
         private sealed class PinnedObject : IDisposable
