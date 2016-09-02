@@ -670,6 +670,7 @@
     <Compile Include="Symbols\Metadata\PE\PENestedNamespaceSymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PEParameterSymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PEPropertyOrEventHelpers.vb" />
+    <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.vb" />
     <Compile Include="Symbols\Metadata\PE\PEPropertySymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PETypeParameterSymbol.vb" />
     <Compile Include="Symbols\MetadataOrSourceAssemblySymbol.vb" />

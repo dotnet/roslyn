@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _containingSymbol = containingSymbol
             Dim hasNameInMetadata As Boolean
             _name = EnsureParameterNameNotEmpty(name, hasNameInMetadata)
-            _type = type
+            _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, DirectCast(containingSymbol.ContainingModule, PEModuleSymbol))
             _handle = handle
             _ordinal = CType(ordinal, UShort)
             _flags = flags
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             isBad = False
             _containingSymbol = containingSymbol
-            _type = type
+            _type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol)
             _ordinal = CType(ordinal, UShort)
             _handle = handle
 
