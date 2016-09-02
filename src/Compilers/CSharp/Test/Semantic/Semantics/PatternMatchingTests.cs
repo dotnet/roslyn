@@ -14442,7 +14442,8 @@ True").VerifyDiagnostics();
             Assert.Equal("System.Boolean", compilation.GetSemanticModel(tree).GetTypeInfo(zRef).Type.ToTestDisplayString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13417")]
+        [Fact]
+        [WorkItem(13417, "https://github.com/dotnet/roslyn/issues/13417")]
         public void FixedFieldSize()
         {
             var text = @"
@@ -14460,17 +14461,43 @@ unsafe struct S
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type.ToTestDisplayString());
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
+            VerifyModelNotSupported(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
-            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type.ToTestDisplayString());
+            VerifyModelNotSupported(model, x2Decl, x2Ref);
+            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
 
             compilation.VerifyDiagnostics(
-                // not sure what the errors should be, but there should be some.
+                // (5,17): error CS7092: A fixed buffer may only have one dimension.
+                //     fixed int F2[3 is var x2 ? 3 : 3, x2];
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3 is var x2 ? 3 : 3, x2]").WithLocation(5, 17),
+                // (5,18): error CS0133: The expression being assigned to 'S.F2' must be constant
+                //     fixed int F2[3 is var x2 ? 3 : 3, x2];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "3 is var x2 ? 3 : 3").WithArguments("S.F2").WithLocation(5, 18),
+                // (4,18): error CS0133: The expression being assigned to 'S.F1' must be constant
+                //     fixed int F1[3 is var x1 ? x1 : 3];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "3 is var x1 ? x1 : 3").WithArguments("S.F1").WithLocation(4, 18)
                 );
+        }
+
+        private static void VerifyModelNotSupported(SemanticModel model, DeclarationPatternSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            Assert.Null(model.GetDeclaredSymbol(decl));
+            Assert.Null(model.GetDeclaredSymbol((SyntaxNode)decl));
+
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Any());
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+
+            foreach (var reference in references)
+            {
+                Assert.Null(model.GetSymbolInfo(reference).Symbol);
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Any());
+                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+            }
         }
 
         private IEnumerable<DeclarationPatternSyntax> GetPatternDeclarations(SyntaxTree tree, string v)

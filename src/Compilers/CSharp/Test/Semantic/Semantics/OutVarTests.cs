@@ -19578,5 +19578,460 @@ public unsafe class X
             VerifyModelForOutVarWithoutDataFlow(model, x4Decl[0], x4Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
         }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_15()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Test3  [TakeOutParam(3, out var x3) && x3 > 0];
+
+    bool Test4  [x4 && TakeOutParam(4, out var x4)];
+
+    bool Test5  [TakeOutParam(51, out var x5) && 
+                 TakeOutParam(52, out var x5) && 
+                 x5 > 0];
+
+    bool Test61  [TakeOutParam(6, out var x6) && x6 > 0], Test62 [TakeOutParam(6, out var x6) && x6 > 0];
+
+    bool Test71  [TakeOutParam(7, out var x7) && x7 > 0]; 
+    bool Test72  [Dummy(x7, 2)]; 
+    void Test73() { Dummy(x7, 3); } 
+
+    bool Dummy(params object[] x) {return true;}
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+                                        (int)ErrorCode.ERR_ArraySizeInDeclaration,
+                                        (int)ErrorCode.WRN_UnreferencedField
+                                      };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (20,27): error CS0103: The name 'x7' does not exist in the current context
+                //     void Test73() { Dummy(x7, 3); } 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").Single();
+            AssertContainedInDeclaratorArguments(x3Decl);
+            VerifyModelNotSupported(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").Single();
+            AssertContainedInDeclaratorArguments(x4Decl);
+            VerifyModelNotSupported(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReferences(tree, "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            AssertContainedInDeclaratorArguments(x5Decl);
+            VerifyModelNotSupported(model, x5Decl[0], x5Ref);
+            VerifyModelNotSupported(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            AssertContainedInDeclaratorArguments(x6Decl);
+            VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
+            VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
+
+            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            AssertContainedInDeclaratorArguments(x7Decl);
+            VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        private static void VerifyModelNotSupported(
+            SemanticModel model,
+            DeclarationExpressionSyntax decl,
+            params IdentifierNameSyntax[] references)
+        {
+            var variableDeclaratorSyntax = GetVariableDesignation(decl);
+            Assert.Null(model.GetDeclaredSymbol(variableDeclaratorSyntax));
+            Assert.Null(model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
+
+            Assert.False(model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Any());
+
+            Assert.False(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
+            Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
+
+            Assert.Null(model.GetSymbolInfo(decl).Symbol);
+            Assert.Null(model.GetTypeInfo(decl).Type);
+            Assert.Null(model.GetDeclaredSymbol(decl));
+
+            foreach (var reference in references)
+            {
+                Assert.Null(model.GetSymbolInfo(reference).Symbol);
+                Assert.False(model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Any());
+                Assert.False(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
+                Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
+            }
+        }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_16()
+        {
+            var source =
+@"
+public unsafe struct X
+{
+    public static void Main()
+    {
+    }
+    fixed
+    bool Test3  [TakeOutParam(3, out var x3) && x3 > 0];
+    fixed
+    bool Test4  [x4 && TakeOutParam(4, out var x4)];
+    fixed
+    bool Test5  [TakeOutParam(51, out var x5) && 
+                 TakeOutParam(52, out var x5) && 
+                 x5 > 0];
+    fixed
+    bool Test61  [TakeOutParam(6, out var x6) && x6 > 0], Test62 [TakeOutParam(6, out var x6) && x6 > 0];
+    fixed
+    bool Test71  [TakeOutParam(7, out var x7) && x7 > 0]; 
+    fixed
+    bool Test72  [Dummy(x7, 2)]; 
+    void Test73() { Dummy(x7, 3); } 
+
+    bool Dummy(params object[] x) {return true;}
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+                                        (int)ErrorCode.ERR_ArraySizeInDeclaration,
+                                        (int)ErrorCode.WRN_UnreferencedField,
+                                        (int)ErrorCode.ERR_NoImplicitConv
+                                      };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (10,18): error CS0841: Cannot use local variable 'x4' before it is declared
+                //     bool Test4  [x4 && TakeOutParam(4, out var x4)];
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(10, 18),
+                // (13,43): error CS0128: A local variable named 'x5' is already defined in this scope
+                //                  TakeOutParam(52, out var x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(13, 43),
+                // (20,25): error CS0103: The name 'x7' does not exist in the current context
+                //     bool Test72  [Dummy(x7, 2)]; 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(20, 25),
+                // (21,27): error CS0103: The name 'x7' does not exist in the current context
+                //     void Test73() { Dummy(x7, 3); } 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").Single();
+            AssertContainedInDeclaratorArguments(x3Decl);
+            VerifyModelNotSupported(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").Single();
+            AssertContainedInDeclaratorArguments(x4Decl);
+            VerifyModelNotSupported(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReferences(tree, "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            AssertContainedInDeclaratorArguments(x5Decl);
+            VerifyModelNotSupported(model, x5Decl[0], x5Ref);
+            VerifyModelNotSupported(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            AssertContainedInDeclaratorArguments(x6Decl);
+            VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
+            VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
+
+            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            AssertContainedInDeclaratorArguments(x7Decl);
+            VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_17()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+    const
+    bool Test3  [TakeOutParam(3, out var x3) && x3 > 0];
+    const
+    bool Test4  [x4 && TakeOutParam(4, out var x4)];
+    const
+    bool Test5  [TakeOutParam(51, out var x5) && 
+                 TakeOutParam(52, out var x5) && 
+                 x5 > 0];
+    const
+    bool Test61  [TakeOutParam(6, out var x6) && x6 > 0], Test62 [TakeOutParam(6, out var x6) && x6 > 0];
+    const
+    bool Test71  [TakeOutParam(7, out var x7) && x7 > 0]; 
+    const
+    bool Test72  [Dummy(x7, 2)]; 
+    void Test73() { Dummy(x7, 3); } 
+
+    bool Dummy(params object[] x) {return true;}
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+                                        (int)ErrorCode.ERR_ArraySizeInDeclaration
+                                      };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (21,27): error CS0103: The name 'x7' does not exist in the current context
+                //     void Test73() { Dummy(x7, 3); } 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").Single();
+            AssertContainedInDeclaratorArguments(x3Decl);
+            VerifyModelNotSupported(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").Single();
+            AssertContainedInDeclaratorArguments(x4Decl);
+            VerifyModelNotSupported(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReferences(tree, "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            AssertContainedInDeclaratorArguments(x5Decl);
+            VerifyModelNotSupported(model, x5Decl[0], x5Ref);
+            VerifyModelNotSupported(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            AssertContainedInDeclaratorArguments(x6Decl);
+            VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
+            VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
+
+            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            AssertContainedInDeclaratorArguments(x7Decl);
+            VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_18()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+    event
+    bool Test3  [TakeOutParam(3, out var x3) && x3 > 0];
+    event
+    bool Test4  [x4 && TakeOutParam(4, out var x4)];
+    event
+    bool Test5  [TakeOutParam(51, out var x5) && 
+                 TakeOutParam(52, out var x5) && 
+                 x5 > 0];
+    event
+    bool Test61  [TakeOutParam(6, out var x6) && x6 > 0], Test62 [TakeOutParam(6, out var x6) && x6 > 0];
+    event
+    bool Test71  [TakeOutParam(7, out var x7) && x7 > 0]; 
+    event
+    bool Test72  [Dummy(x7, 2)]; 
+    void Test73() { Dummy(x7, 3); } 
+
+    bool Dummy(params object[] x) {return true;}
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            int[] exclude = new int[] { (int)ErrorCode.ERR_CStyleArray,
+                                        (int)ErrorCode.ERR_ArraySizeInDeclaration,
+                                        (int)ErrorCode.ERR_EventNotDelegate,
+                                        (int)ErrorCode.WRN_UnreferencedEvent
+                                      };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (21,27): error CS0103: The name 'x7' does not exist in the current context
+                //     void Test73() { Dummy(x7, 3); } 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(21, 27)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").Single();
+            AssertContainedInDeclaratorArguments(x3Decl);
+            VerifyModelNotSupported(model, x3Decl, x3Ref);
+
+            var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").Single();
+            AssertContainedInDeclaratorArguments(x4Decl);
+            VerifyModelNotSupported(model, x4Decl, x4Ref);
+
+            var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReferences(tree, "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            AssertContainedInDeclaratorArguments(x5Decl);
+            VerifyModelNotSupported(model, x5Decl[0], x5Ref);
+            VerifyModelNotSupported(model, x5Decl[1]);
+
+            var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
+            var x6Ref = GetReferences(tree, "x6").ToArray();
+            Assert.Equal(2, x6Decl.Length);
+            Assert.Equal(2, x6Ref.Length);
+            AssertContainedInDeclaratorArguments(x6Decl);
+            VerifyModelNotSupported(model, x6Decl[0], x6Ref[0]);
+            VerifyModelNotSupported(model, x6Decl[1], x6Ref[1]);
+
+            var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
+            var x7Ref = GetReferences(tree, "x7").ToArray();
+            Assert.Equal(3, x7Ref.Length);
+            AssertContainedInDeclaratorArguments(x7Decl);
+            VerifyModelNotSupported(model, x7Decl, x7Ref[0]);
+            VerifyNotInScope(model, x7Ref[1]);
+            VerifyNotInScope(model, x7Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_19()
+        {
+            var source =
+@"
+public unsafe struct X
+{
+    public static void Main()
+    {
+    }
+
+    fixed bool d[2], Test3 (out var x3);
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
+                                      };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
+                // (8,28): error CS1003: Syntax error, '[' expected
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 28),
+                // (8,29): error CS1525: Invalid expression term 'out'
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(8, 29),
+                // (8,29): error CS1026: ) expected
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(8, 29),
+                // (8,29): error CS1003: Syntax error, ',' expected
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 29),
+                // (8,39): error CS1003: Syntax error, ']' expected
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 39),
+                // (8,39): error CS1003: Syntax error, ',' expected
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(8, 39),
+                // (8,28): error CS7092: A fixed buffer may only have one dimension.
+                //     fixed bool d[2], Test3 (out var x3);
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "(out var x3").WithLocation(8, 28)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            AssertContainedInDeclaratorArguments(x3Decl);
+            VerifyModelNotSupported(model, x3Decl);
+        }
+
+        [Fact]
+        public void Scope_DeclaratorArguments_20()
+        {
+            var source =
+@"
+public unsafe struct X
+{
+    public static void Main()
+    {
+    }
+
+    fixed bool Test3[out var x3];
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (8,22): error CS1003: Syntax error, ',' expected
+                //     fixed bool Test3[out var x3];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 22),
+                // (8,30): error CS1003: Syntax error, ',' expected
+                //     fixed bool Test3[out var x3];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(8, 30),
+                // (8,21): error CS7092: A fixed buffer may only have one dimension.
+                //     fixed bool Test3[out var x3];
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[out var x3]").WithLocation(8, 21),
+                // (8,26): error CS0103: The name 'var' does not exist in the current context
+                //     fixed bool Test3[out var x3];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 26)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.False(GetOutVarDeclarations(tree, "x3").Any());
+        }
     }
 }
