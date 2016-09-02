@@ -15,6 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ReadOnly s_valueTupleRefs As MetadataReference() = New MetadataReference() {ValueTupleRef, SystemRuntimeFacadeRef}
+        ReadOnly s_valueTupleRefsAndDefault As MetadataReference() = New MetadataReference() {ValueTupleRef,
+                                                                                                SystemRuntimeFacadeRef,
+                                                                                                MscorlibRef,
+                                                                                                SystemRef,
+                                                                                                SystemCoreRef,
+                                                                                                MsvbRef}
+
 
         ReadOnly s_trivial2uple As String = "
 Namespace System
@@ -6583,6 +6590,201 @@ End Module
 
             ' check no duplication of original/default ItemX fields
             Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromCS001()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int Bob) foo = (2, 3);
+
+        public (int Alice, int Bob) Bar() => (4, 5);
+
+        public (int Alice, int Bob) Baz => (6, 7);
+
+    }
+
+    public class Class2
+    {
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) foo = SetBob(11);
+
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Bar() => SetBob(12);
+
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Baz => SetBob(13);
+
+        private static (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) SetBob(int x)
+        {
+            var result = default((int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob));
+            result.Bob = x;
+            return result;
+        }
+    }
+
+    public class class3: IEnumerable<(int Alice, int Bob)>
+    {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator<(Int32 Alice, Int32 Bob)> IEnumerable<(Int32 Alice, Int32 Bob)>.GetEnumerator()
+        {
+            yield return (1, 2);
+            yield return (3, 4);
+        }
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.Bar.Alice)
+        System.Console.WriteLine(x.Bar.Bob)
+        System.Console.WriteLine(x.Baz.Alice)
+        System.Console.WriteLine(x.Baz.Bob)
+
+        Dim y As New ClassLibrary1.Class2
+        System.Console.WriteLine(y.foo.Alice)
+        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.Bar.Alice)
+        System.Console.WriteLine(y.Bar.Bob)
+        System.Console.WriteLine(y.Baz.Alice)
+        System.Console.WriteLine(y.Baz.Bob)
+
+        Dim z As New ClassLibrary1.class3
+        For Each item In z
+            System.Console.WriteLine(item.Alice)
+            System.Console.WriteLine(item.Bob)
+        Next
+
+    End Sub
+End Module
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+2
+3
+4
+5
+6
+7
+0
+11
+0
+12
+0
+13
+1
+2
+3
+4")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromCS002()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, (int Alice, int Bob) Bob) foo = (2, (2, 3));
+
+        public ((int Alice, int Bob)[] Alice, int Bob) Bar() => (new(int, int)[] { (4, 5) }, 5);
+
+        public (int Alice, List<(int Alice, int Bob)?> Bob) Baz => (6, new List<(int Alice, int Bob)?>() { (8, 9) });
+
+        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> foo1;
+
+        public static void raise()
+        {
+            foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
+        }
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Bob.Bob)
+        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.Bar.Alice(0).Bob)
+        System.Console.WriteLine(x.Bar.Item1(0).Item2)
+        System.Console.WriteLine(x.Baz.Bob(0).Value)
+        System.Console.WriteLine(x.Baz.Item2(0).Value)
+
+        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+                                                  System.Console.WriteLine(p.Bob.Bob)
+                                                  System.Console.WriteLine(p.Rest.Item2.Bob)
+                                              End Sub
+
+        ClassLibrary1.Class1.raise()
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+3
+3
+5
+5
+(8, 9)
+(8, 9)
+42
+42")
+
+            vbexeVerifier.VerifyDiagnostics()
         End Sub
 
     End Class
