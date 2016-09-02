@@ -4202,7 +4202,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers..
+        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers..
         /// </summary>
         internal static string ERR_ExpressionVariableInConstructorOrFieldInitializer {
             get {
