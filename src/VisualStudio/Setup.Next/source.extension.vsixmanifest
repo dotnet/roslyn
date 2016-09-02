@@ -23,6 +23,5 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="emitService.servicehub.service.json" />
   </Assets>
 </PackageManifest>
