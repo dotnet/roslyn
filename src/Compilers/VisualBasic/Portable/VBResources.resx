@@ -1996,7 +1996,7 @@
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
   </data>
   <data name="ERR_ValueTupleTypeRefResolutionError" xml:space="preserve">
-    <value>Import of type '{0}' failed.</value>
+    <value>Predefined type '{0}' is not defined or imported.</value>
   </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
     <value>ParamArray parameters must have an array type.</value>

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.IsValueTupleType())
                     {
                         result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
-                                        CreateValueTupleTypeNotFoundError(emittedName), type);
+                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
                     }
                     else
                     {
@@ -134,14 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _lazyWellKnownTypes[index];
-        }
-
-        private CSDiagnosticInfo CreateValueTupleTypeNotFoundError(MetadataTypeName name)
-        {
-            return new CSDiagnosticInfo(
-                ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
-                name.FullName
-            );
         }
 
         internal bool IsAttributeType(TypeSymbol type)

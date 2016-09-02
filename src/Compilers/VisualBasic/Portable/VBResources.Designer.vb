@@ -11299,7 +11299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Import of type &apos;{0}&apos; failed..
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
         '''</summary>
         Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError() As String
             Get
