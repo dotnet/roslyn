@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 symbol = symbol.TupleUnderlyingType
             End If
 
-                If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
+            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
                 String.IsNullOrEmpty(symbolName) Then
 
                 symbolName = StringConstants.NamedSymbolErrorName
