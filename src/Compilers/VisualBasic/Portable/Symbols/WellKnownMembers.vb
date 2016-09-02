@@ -361,7 +361,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
-                    result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+
+                    If type.IsValueTupleType() Then
+                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName,
+                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError, t))
+                    Else
+                        result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+                    End If
                 End If
 
                 If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
