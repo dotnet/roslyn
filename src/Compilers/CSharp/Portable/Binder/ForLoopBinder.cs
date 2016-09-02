@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
                     locals.Add(localSymbol);
-                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl.Initializer?.Value);
+
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl);
                 }
             }
             else
