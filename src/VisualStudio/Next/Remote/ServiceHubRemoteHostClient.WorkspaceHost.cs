@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private class WorkspaceHost : ForegroundThreadAffinitizedObject, IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly RemoteHostClient _client;
 
             // We have to capture the solution ID because otherwise we won't know
             // what is is when we get told about OnSolutionRemoved.  If we try
@@ -23,9 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // gone.
             private SolutionId _currentSolutionId;
 
-            public WorkspaceHost(VisualStudioWorkspaceImpl workspace)
+            public WorkspaceHost(
+                VisualStudioWorkspaceImpl workspace,
+                RemoteHostClient client)
             {
                 _workspace = workspace;
+                _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
 
                 // Ensure that we populate the remote service with the initial state of
@@ -50,10 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
-                var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
-
-                using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+                using (var session = await _client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
                 {
                     await session.InvokeAsync(
                         WellKnownServiceHubServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
@@ -93,10 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                var factory = _workspace.Services.GetService<IRemoteHostClientFactory>();
-                var client = await factory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
-
-                using (var session = await client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+                using (var session = await _client.CreateServiceSessionAsync(WellKnownServiceHubServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
                 {
                     // ask remote host to sync initial asset
                     await session.InvokeAsync(
