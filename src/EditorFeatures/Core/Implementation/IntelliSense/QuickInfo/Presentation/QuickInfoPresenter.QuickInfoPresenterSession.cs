@@ -38,13 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public event EventHandler<EventArgs> Dismissed;
 
-#if false
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, textView, subjectBuffer, null, null, null, null, null)
-            {
-            }
-#endif
-
             public QuickInfoPresenterSession(
                 IQuickInfoBroker quickInfoBroker, 
                 ITextView textView, 

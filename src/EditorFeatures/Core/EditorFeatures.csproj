@@ -243,7 +243,6 @@
     <Compile Include="Extensibility\QuickInfo\IQuickInfoPresenterSession.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoPresenterNames.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoSourceProviderNames.cs" />
-    <Compile Include="Extensibility\QuickInfo\QuickInfoPresentationProvider.cs" />
     <Compile Include="Extensibility\QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="Extensibility\SignatureHelp\ISignatureHelpPresenterSession.cs" />
     <Compile Include="Extensibility\SignatureHelp\PredefinedSignatureHelpPresenterNames.cs" />
@@ -278,8 +277,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
-    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\QuickInfoPresentationProviderExtensions.cs" />
-    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\QuickInfoPresentationProviderInfo.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
