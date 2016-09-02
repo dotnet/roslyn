@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected MustOverride ReadOnly Property TypeMap As TypeSubstitution
 
-        Friend MustOverride Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+        Friend MustOverride Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
 
         ''' <summary>
         ''' The method (e.g. lambda) which is currently being rewritten. If we are 
@@ -117,10 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(rewrittenPropertySymbol,
                                Nothing,
                                node.AccessKind,
-                               node.IsWriteable,
-                               rewrittenReceiver,
-                               newArguments.AsImmutableOrNull,
-                               VisitType(node.Type))
+                               isWriteable:=node.IsWriteable,
+                               isLValue:=node.IsLValue,
+                               receiverOpt:=rewrittenReceiver,
+                               arguments:=newArguments.AsImmutableOrNull,
+                               type:=VisitType(node.Type))
         End Function
 
         Public Overrides Function VisitCall(node As BoundCall) As BoundNode
@@ -140,8 +141,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                rewrittenReceiverOpt,
                                arguments,
                                node.ConstantValueOpt,
-                               node.SuppressObjectClone,
-                               type)
+                               isLValue:=node.IsLValue,
+                               suppressObjectClone:=node.SuppressObjectClone,
+                               type:=type)
         End Function
 
         Private Function ShouldRewriteMethodSymbol(originalReceiver As BoundExpression, rewrittenReceiverOpt As BoundExpression, newMethod As MethodSymbol) As Boolean

@@ -21,6 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         private const string StorageExtension = "vbcs.cache";
         private const string PersistentStorageFileName = "storage.ide";
 
+        // cache delegates so that we don't re-create it every times
+        private readonly Func<int, object, object, object, CancellationToken, Stream> _readStreamSolution;
+        private readonly Func<EsentStorage.Key, int, object, object, CancellationToken, Stream> _readStream;
+        private readonly Func<int, Stream, object, object, CancellationToken, bool> _writeStreamSolution;
+        private readonly Func<EsentStorage.Key, int, Stream, object, CancellationToken, bool> _writeStream;
+
         private readonly ConcurrentDictionary<string, int> _nameTableCache;
         private readonly EsentStorage _esentStorage;
 
@@ -28,6 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer) :
             base(optionService, workingFolderPath, solutionFilePath, disposer)
         {
+            // cache delegates
+            _readStreamSolution = ReadStreamSolution;
+            _readStream = ReadStream;
+            _writeStreamSolution = WriteStreamSolution;
+            _writeStream = WriteStream;
+
             // solution must exist in disk. otherwise, we shouldn't be here at all.
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(solutionFilePath));
 
@@ -77,8 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            var stream = EsentExceptionWrapper(key, nameId, _readStream, cancellationToken);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -98,8 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            var stream = EsentExceptionWrapper(key, nameId, _readStream, cancellationToken);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -117,8 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            var stream = EsentExceptionWrapper(nameId, ReadStream, cancellationToken);
-            return Task.FromResult(stream);
+            var stream = EsentExceptionWrapper(nameId, _readStreamSolution, cancellationToken);
+            return SpecializedTasks.DefaultOrResult(stream);
         }
 
         private Stream ReadStream(EsentStorage.Key key, int nameId, object unused1, object unused2, CancellationToken cancellationToken)
@@ -136,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
         }
 
-        private Stream ReadStream(int nameId, object unused1, object unused2, object unused3, CancellationToken cancellationToken)
+        private Stream ReadStreamSolution(int nameId, object unused1, object unused2, object unused3, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetSolutionTableAccessor())
             using (var esentStream = accessor.GetReadStream(nameId))
@@ -169,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
-            var success = EsentExceptionWrapper(key, nameId, stream, WriteStream, cancellationToken);
+            var success = EsentExceptionWrapper(key, nameId, stream, _writeStream, cancellationToken);
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
@@ -191,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
-            var success = EsentExceptionWrapper(key, nameId, stream, WriteStream, cancellationToken);
+            var success = EsentExceptionWrapper(key, nameId, stream, _writeStream, cancellationToken);
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
@@ -211,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
-            var success = EsentExceptionWrapper(nameId, stream, WriteStream, cancellationToken);
+            var success = EsentExceptionWrapper(nameId, stream, _writeStreamSolution, cancellationToken);
 
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
@@ -226,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
         }
 
-        private bool WriteStream(int nameId, Stream stream, object unused1, object unused2, CancellationToken cancellationToken)
+        private bool WriteStreamSolution(int nameId, Stream stream, object unused1, object unused2, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetSolutionTableAccessor())
             using (var esentStream = accessor.GetWriteStream(nameId))

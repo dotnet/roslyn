@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool IsInTryBlock(BoundFixedStatement boundFixed)
         {
-            CSharpSyntaxNode node = boundFixed.Syntax.Parent;
+            SyntaxNode node = boundFixed.Syntax.Parent;
             while (node != null)
             {
                 switch (node.Kind())
@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // }
                         return true;
                     case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachComponentStatement:
                         // We're being conservative here - there's actually only
                         // a try block if the enumerator is disposable, but we
                         // can't tell that from the syntax.  Dev11 checks in the

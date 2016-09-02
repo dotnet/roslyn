@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
@@ -11,7 +12,118 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
-        internal static readonly CSharpParseOptions LocalFuncOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        [Fact]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
+        public void LocalFuncWithWhitespace()
+        {
+            var file = ParseFile(@"
+class C
+{
+    void Main()
+    {
+        int
+            foo() => 5;
+
+        int
+            foo() { return 5; }
+
+        int
+            foo<T>() => 5;
+
+        int
+            foo<T>() { return 5; }
+
+        int
+            foo<T>() where T : IFace => 5;
+
+        int
+            foo<T>() where T : IFace { return 5; }
+    }
+}");
+            Assert.NotNull(file);
+            file.SyntaxTree.GetDiagnostics().Verify();
+
+            file = ParseFile(@"
+class C
+{
+    void M()
+    {
+        int
+            foo() where T : IFace => 5;
+        int
+            foo() where T : IFace { return 5; }
+        int
+            foo<T>) { }
+    }
+}");
+            file.SyntaxTree.GetDiagnostics().Verify(
+                // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             foo() where T : IFace => 5;
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
+                // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
+                //             foo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
+                // (11,19): error CS1003: Syntax error, '(' expected
+                //             foo<T>) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19));
+
+            var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
+                .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
+                .Single());
+            Assert.All(m.Body.Statements,
+                s => Assert.Equal(SyntaxKind.LocalFunctionStatement, s.Kind()));
+        }
+
+        [Fact]
+        public void NeverEndingTest()
+        {
+            var file = ParseFile(@"public class C {
+    public void M() {
+        async public virtual M() {}
+        unsafe public M() {}
+        async override M() {}
+        unsafe private async override M() {}
+        async virtual override sealed M() {}
+    }
+}");
+            file.SyntaxTree.GetDiagnostics().Verify(
+                // (3,9): error CS0106: The modifier 'async' is not valid for this item
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "async").WithArguments("async").WithLocation(3, 9),
+                // (3,15): error CS0106: The modifier 'public' is not valid for this item
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(3, 15),
+                // (3,22): error CS1031: Type expected
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(3, 22),
+                // (3,22): error CS1001: Identifier expected
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "virtual").WithLocation(3, 22),
+                // (3,22): error CS1002: ; expected
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "virtual").WithLocation(3, 22),
+                // (3,22): error CS1513: } expected
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "virtual").WithLocation(3, 22),
+                // (3,30): error CS1520: Method must have a return type
+                //         async public virtual M() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 30),
+                // (4,23): error CS1520: Method must have a return type
+                //         unsafe public M() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(4, 23),
+                // (5,24): error CS1520: Method must have a return type
+                //         async override M() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(5, 24),
+                // (6,39): error CS1520: Method must have a return type
+                //         unsafe private async override M() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(6, 39),
+                // (7,39): error CS1520: Method must have a return type
+                //         async virtual override sealed M() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(7, 39),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+        }
 
         [Fact]
         public void DiagnosticsWithoutExperimental()
@@ -34,12 +146,12 @@ class c
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() => 0;").WithArguments("local functions", "7").WithLocation(6, 9),
-                // (10,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int local() { return 0; }").WithArguments("local functions", "7").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(10, 13)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
@@ -164,6 +276,41 @@ class c
                 Assert.True(s1.SemicolonToken.IsMissing);
                 Assert.Equal("=> ", s1.GetTrailingTrivia().ToFullString());
             }
+        }
+
+        [WorkItem(13090, "https://github.com/dotnet/roslyn/issues/13090")]
+        [Fact]
+        public void AsyncVariable()
+        {
+            var file = ParseFile(
+@"class C
+{
+    static void F(object async)
+    {
+        async.F();
+        async->F();
+        async = null;
+        async += 1;
+        async++;
+        async[0] = null;
+        async();
+    }
+    static void G()
+    {
+        async async;
+        async.T t;
+        async<object> u;
+    }
+    static void H()
+    {
+        async async() => 0;
+        async F<T>() => 1;
+        async async G<T>() { }
+        async.T t() { }
+        async<object> u(object o) => o;
+    }
+}");
+            file.SyntaxTree.GetDiagnostics().Verify();
         }
     }
 }

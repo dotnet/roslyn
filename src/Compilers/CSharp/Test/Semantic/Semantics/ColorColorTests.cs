@@ -1953,12 +1953,9 @@ class C
             Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
 
             compilation.VerifyDiagnostics(
-                // (11,9): error CS0822: Implicitly-typed variables cannot be constant
+                // (11,15): error CS0822: Implicitly-typed variables cannot be constant
                 //         const var E = E.A;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var E = E.A;").WithLocation(11, 9),
-                // (11,23): error CS0110: The evaluation of the constant value for 'E' involves a circular definition
-                //         const var E = E.A;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E").WithLocation(11, 23),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var E = E.A").WithLocation(11, 15),
                 // (11,23): error CS0841: Cannot use local variable 'E' before it is declared
                 //         const var E = E.A;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 23)
@@ -2061,12 +2058,9 @@ class C
             Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
 
             compilation.VerifyDiagnostics(
-    // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
-    //         var E = E.A;
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17),
-    // (11,17): error CS0165: Use of unassigned local variable 'E'
-    //         var E = E.A;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "E").WithArguments("E").WithLocation(11, 17)
+                // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
+                //         var E = E.A;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17)
                 );
         }
     }

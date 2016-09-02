@@ -128,17 +128,37 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+  
+  <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
+       Basically, we check for a registry key that will only exist in legacy VS installs, and assume
+       we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
+  <PropertyGroup>
+    <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+  </PropertyGroup>
 
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '15.0'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
-      </PropertyGroup>
+      <Choose>
+        <When Condition="'$(IsVSBeforeDev15Preview4)' == 'true'">
+          <PropertyGroup>
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsNuGetPackagePath>
+          </PropertyGroup>
+        </When>
+
+        <Otherwise>
+          <PropertyGroup>
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
     </When>
 
     <Otherwise>
       <PropertyGroup>
-        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25407</VisualStudioBuildToolsNuGetPackagePath>
+        <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25420</VisualStudioBuildToolsNuGetPackagePath>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -194,6 +214,7 @@
     <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
     <FileAlignment>512</FileAlignment>
     <HighEntropyVA>true</HighEntropyVA>
+    <Features>strict</Features>
   </PropertyGroup>
 
   <!--

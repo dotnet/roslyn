@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1043,5 +1042,26 @@ This version used in: {2}</value>
   </data>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
+  </data>
+  <data name="Remove_tag" xml:space="preserve">
+    <value>Remove tag</value>
+  </data>
+  <data name="Add_missing_param_nodes" xml:space="preserve">
+    <value>Add missing param nodes</value>
+  </data>
+  <data name="Make_containing_scope_async" xml:space="preserve">
+    <value>Make containing scope async</value>
+  </data>
+  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
+    <value>Make containing scope async (return Task)</value>
+  </data>
+  <data name="paren_Unknown_paren" xml:space="preserve">
+    <value>(Unknown)</value>
+  </data>
+  <data name="Implement_Abstract_Class" xml:space="preserve">
+    <value>Implement Abstract Class</value>
+  </data>
+  <data name="Use_framework_type" xml:space="preserve">
+    <value>Use framework type</value>
   </data>
 </root>

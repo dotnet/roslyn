@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     [ExportLanguageSpecificOptionSerializer(
         LanguageNames.CSharp,
-        OrganizerOptions.FeatureName,
+        GenerationOptions.FeatureName,
         SplitStringLiteralOptions.FeatureName,
         AddImportOptions.FeatureName,
         CompletionOptions.FeatureName,
@@ -62,6 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string Style_UseImplicitTypeForIntrinsicTypes = nameof(AutomationObject.Style_UseImplicitTypeForIntrinsicTypes);
         private const string Style_UseImplicitTypeWhereApparent = nameof(AutomationObject.Style_UseImplicitTypeWhereApparent);
         private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
+        private const string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration = nameof(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration);
+        private const string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess = nameof(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -88,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             Type[] types = new[]
                 {
-                    typeof(OrganizerOptions),
+                    typeof(GenerationOptions),
                     typeof(AddImportOptions),
                     typeof(SplitStringLiteralOptions),
                     typeof(CSharpCompletionOptions),
@@ -129,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         protected override bool SupportsOption(IOption option, string languageName)
         {
-            if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
+            if (option == GenerationOptions.PlaceSystemNamespaceFirst ||
                 option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
                 option == AddImportOptions.SuggestForTypesInNuGetPackages ||
                 option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
@@ -265,6 +268,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
                 return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
+            }
+
+            // code style: intrinsic/framework type.
+            if (optionKey.Option == CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            {
+                return FetchStyleBool(Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+            {
+                return FetchStyleBool(Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess, out value);
             }
 
             if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
@@ -482,6 +495,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
+            }
+
+            // code style: intrinsic/framework type.
+            if (optionKey.Option == CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+            {
+                return PersistStyleOption<bool>(Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+            {
+                return PersistStyleOption<bool>(Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value);
             }
 
             return base.TryPersist(optionKey, value);

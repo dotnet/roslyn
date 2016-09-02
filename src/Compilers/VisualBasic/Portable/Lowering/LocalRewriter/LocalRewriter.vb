@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A map from SyntaxNode to corresponding visited BoundStatement.
         ''' Used to ensure correct generation of resumable code for Unstructured Exception Handling.
         ''' </summary>
-        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
+        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of SyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
 
         Private ReadOnly _leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
 #End If
@@ -473,11 +473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteReceiverArgumentsAndGenerateAccessorCall(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             methodSymbol As MethodSymbol,
             receiverOpt As BoundExpression,
             arguments As ImmutableArray(Of BoundExpression),
             constantValueOpt As ConstantValue,
+            isLValue As Boolean,
             suppressObjectClone As Boolean,
             type As TypeSymbol
         ) As BoundExpression
@@ -497,8 +498,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      receiverOpt,
                                      arguments,
                                      constantValueOpt,
-                                     suppressObjectClone,
-                                     type)
+                                     isLValue:=isLValue,
+                                     suppressObjectClone:=suppressObjectClone,
+                                     type:=type)
 
 
             If Not temporaries.IsDefault Then
@@ -844,7 +846,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If break IsNot Nothing Then
                 ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop after the call to System.Diagnostics.Debugger.Break(),
                 ' so the debugger can determine the current instruction pointer properly. In oder to do so, we do not mark this node as compiler generated.
-                Dim boundNode = New BoundCall(nodeFactory.Syntax, break, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, True, break.ReturnType)
+                Dim boundNode = New BoundCall(
+                    nodeFactory.Syntax,
+                    break,
+                    Nothing,
+                    Nothing,
+                    ImmutableArray(Of BoundExpression).Empty,
+                    Nothing,
+                    isLValue:=False,
+                    suppressObjectClone:=True,
+                    type:=break.ReturnType)
                 rewritten = boundNode.ToStatement()
             End If
 

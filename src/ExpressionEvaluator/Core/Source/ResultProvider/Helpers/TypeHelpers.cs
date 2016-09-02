@@ -347,6 +347,79 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
         }
 
+        internal const int TupleFieldRestPosition = 8;
+        private const string TupleTypeNamePrefix = "ValueTuple`";
+        private const string TupleFieldItemNamePrefix = "Item";
+        private const string TupleFieldRestName = "Rest";
+
+        // See NamedTypeSymbol.IsTupleCompatible.
+        internal static bool IsTupleCompatible(this Type type, out int cardinality)
+        {
+            if (type.IsTupleCompatibleInternal(out cardinality) &&
+                cardinality > 1) // ValueTuple<T> is not a tuple.
+            {
+                return true;
+            }
+            cardinality = 0;
+            return false;
+        }
+
+        private static bool IsTupleCompatibleInternal(this Type type, out int cardinality)
+        {
+            if (type.IsGenericType &&
+                AreNamesEqual(type.Namespace, "System") &&
+                type.Name.StartsWith(TupleTypeNamePrefix, StringComparison.Ordinal))
+            {
+                var typeArguments = type.GetGenericArguments();
+                int n = typeArguments.Length;
+                if ((n > 0) && (n <= TupleFieldRestPosition))
+                {
+                    if (!AreNamesEqual(type.Name, TupleTypeNamePrefix + n))
+                    {
+                        cardinality = 0;
+                        return false;
+                    }
+
+                    if (n < TupleFieldRestPosition)
+                    {
+                        cardinality = n;
+                        return true;
+                    }
+
+                    var restType = typeArguments[n - 1];
+                    int restCardinality;
+                    if (restType.IsTupleCompatibleInternal(out restCardinality))
+                    {
+                        cardinality = n - 1 + restCardinality;
+                        return true;
+                    }
+                }
+            }
+
+            cardinality = 0;
+            return false;
+        }
+
+        internal static void GetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
+        {
+            while (true)
+            {
+                int n = Math.Min(cardinality, TupleFieldRestPosition - 1);
+                for (int i = 0; i < n; i++)
+                {
+                    var value = GetFieldValue(tuple, TupleFieldItemNamePrefix + (i + 1), inspectionContext);
+                    var str = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
+                    values.Add(str);
+                }
+                cardinality -= n;
+                if (cardinality == 0)
+                {
+                    return;
+                }
+                tuple = GetFieldValue(tuple, TupleFieldRestName, inspectionContext);
+            }
+        }
+
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
         {
             Debug.Assert((underlyingType.BaseType != null) || underlyingType.IsPointer || underlyingType.IsArray, "BaseType should only return null if the underlyingType is a pointer or array.");
@@ -648,8 +721,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
-                string.Equals(type.Name, name, StringComparison.Ordinal);
+            return AreNamesEqual(type.Namespace, @namespace) &&
+                AreNamesEqual(type.Name, name);
+        }
+
+        private static bool AreNamesEqual(string nameA, string nameB)
+        {
+            return string.Equals(nameA, nameB, StringComparison.Ordinal);
         }
 
         internal static MemberInfo GetOriginalDefinition(this MemberInfo member)

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!textView.TextBuffer.GetOption(EditorComponentOnOffOptions.Adornment))
+            if (!textView.TextBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Adornment))
             {
                 return;
             }

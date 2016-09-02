@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -185,6 +183,7 @@
     <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
     <Compile Include="CodeGeneration\NameGenerationTests.cs" />
     <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
+    <Compile Include="CodeLens\AbstractCodeLensTest.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
     <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
     <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
@@ -219,10 +218,10 @@
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
-    <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
-    <Compile Include="Outlining\OutliningServiceTests.cs" />
+    <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
+    <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
+    <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
+    <Compile Include="Structure\BlockStructureServiceTests.cs" />
     <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
@@ -270,8 +269,8 @@
     <Compile Include="MinimalTestExportProvider.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.Callback.cs" />
     <Compile Include="NavigateTo\NavigateToTestAggregator.cs" />
-    <Compile Include="Outlining\OutliningSpanTests.cs" />
-    <Compile Include="Outlining\OutliningTaggerTests.cs" />
+    <Compile Include="Structure\BlockSpanTests.cs" />
+    <Compile Include="Structure\StructureTaggerTests.cs" />
     <Compile Include="Preview\PreviewWorkspaceTests.cs" />
     <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
@@ -311,6 +310,7 @@
     <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
     <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
+    <Compile Include="OptionExtensions.cs" />
     <Compile Include="Workspaces\TestForegroundNotificationService.cs" />
     <Compile Include="Workspaces\TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestFormattingRuleFactoryServiceFactory.cs" />
@@ -338,8 +338,6 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

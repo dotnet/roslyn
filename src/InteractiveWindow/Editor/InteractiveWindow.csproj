@@ -1,11 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.InteractiveWindow</RootNamespace>
@@ -18,12 +14,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.InteractiveWindow.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -41,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BufferBlock.cs" />
+    <Compile Include="InteractiveClipboardFormat.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -84,6 +76,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>InteractiveWindowResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="InternalUtilities\FatalError.cs" />
     <Compile Include="Output\InlineAdornmentProvider.cs" />
     <Compile Include="Output\OutputBuffer.cs" />
     <Compile Include="Output\OutputClassifierProvider.cs" />
@@ -101,12 +95,6 @@
     <Compile Include="TextTransactionMergePolicy.cs" />
     <Compile Include="Utils\Contract.cs" />
     <Compile Include="Utils\EditorExtensions.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>InternalUtilities\FatalError.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="InteractiveWindowResources.resx">
@@ -120,17 +108,5 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
-      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
-      <Name>VisualStudioText</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

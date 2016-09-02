@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
+                    this.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode),
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
@@ -154,8 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (this.TextView.Selection.Mode == TextSelectionMode.Box)
             {
-                Trace.WriteLine("Box selection, cannot have completion");
-
                 // No completion with multiple selection
                 return false;
             }
@@ -164,8 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var caret = TextView.GetCaretPoint(SubjectBuffer);
             if (!caret.HasValue)
             {
-                Trace.WriteLine("Caret is not mappable to subject buffer, cannot have completion");
-
                 return false;
             }
 
@@ -211,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
-                Trace.WriteLine("Failed to get a workspace, cannot have a completion session.");
                 return null;
             }
 

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
         {
             rewritten = base.InstrumentExpressionStatement(original, rewritten);
-            CSharpSyntaxNode syntax = original.Syntax;
+            SyntaxNode syntax = original.Syntax;
 
             switch (syntax.Parent.Parent.Kind())
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
-                CSharpSyntaxNode parent = original.Syntax.Parent;
+                SyntaxNode parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
                     var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
@@ -198,14 +198,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on the collection expression, you can see the (uninitialized) iteration variable.
             // In Roslyn, you cannot because the iteration variable is re-declared in each iteration
             // of the loop and is, therefore, not yet in scope.
-            return new BoundSequencePoint(((ForEachStatementSyntax)original.Syntax).Expression,
+            if (original.Syntax is ForEachComponentStatementSyntax)
+            {
+                return InstrumentForEachStatementDeconstructionVariablesDeclaration(original, collectionVarDecl);
+            }
+
+            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            return new BoundSequencePoint(forEachSyntax.Expression,
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
-            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.DeconstructionVariables.Span);
+            var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
+            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.VariableComponent.Span);
         }
 
         public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
@@ -223,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
             return new BoundStatementList(forEachSyntax, 
                                             ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint,
@@ -240,10 +246,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatementIterationVarDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
-            TextSpan iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
-            return new BoundSequencePointWithSpan(forEachSyntax, 
-                                                  base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl), 
+            TextSpan iterationVarDeclSpan;
+            switch (original.Syntax.Kind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
+                        break;
+                    }
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = forEachSyntax.VariableComponent.Span;
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(original.Syntax.Kind());
+            }
+            return new BoundSequencePointWithSpan(original.Syntax,
+                                                  base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl),
                                                   iterationVarDeclSpan);
         }
 
@@ -275,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
         {
-            var syntax = (ForEachStatementSyntax)original.Syntax;
+            var syntax = (CommonForEachStatementSyntax)original.Syntax;
             return new BoundSequencePointWithSpan(syntax, 
                                                   base.InstrumentForEachStatementConditionalGotoStart(original, branchBack),
                                                   syntax.InKeyword.Span);
@@ -355,6 +377,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
                 statementOpt: base.InstrumentSwitchStatement(original, rewritten),
+                span: switchSequencePointSpan,
+                hasErrors: false);
+        }
+
+        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        {
+            SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
+            TextSpan switchSequencePointSpan = TextSpan.FromBounds(
+                switchSyntax.SwitchKeyword.SpanStart,
+                switchSyntax.CloseParenToken.Span.End);
+
+            return new BoundSequencePointWithSpan(
+                syntax: switchSyntax,
+                statementOpt: base.InstrumentBoundPatternSwitchStatement(original, rewritten),
                 span: switchSequencePointSpan,
                 hasErrors: false);
         }

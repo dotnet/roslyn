@@ -113,8 +113,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void InstrumentTestNamesFlag()
         {
             var csc = new Csc();
-            csc.Instrument = "Instrument.This.Flag";
-            Assert.Equal("/instrument:Instrument.This.Flag", csc.GenerateResponseFileContents());
+            csc.Instrument = null;
+            Assert.Equal(string.Empty, csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Instrument = "TestCoverage";
+            Assert.Equal("/instrument:TestCoverage", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Instrument = "TestCoverage,Mumble";
+            Assert.Equal("/instrument:TestCoverage,Mumble", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Instrument = "TestCoverage,Mumble;Stumble";
+            Assert.Equal("/instrument:TestCoverage,Mumble,Stumble", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -245,6 +257,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.DebugType = "portable";
             csc.SourceLink = "";
             Assert.Equal(@"/debug:portable /out:test.exe /sourcelink: test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void Embed()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.DebugType = "portable";
+            csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"test.cs", @"test.txt");
+            Assert.Equal(@"/debug:portable /out:test.exe /embed:test.cs /embed:test.txt test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.DebugType = "portable";
+            csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"C:\x y\z.json");
+            Assert.Equal(@"/debug:portable /out:test.exe /embed:""C:\x y\z.json"" test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.DebugType = "portable";
+            csc.EmbeddedFiles = null;
+            Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.DebugType = "portable";
+            csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
+            Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
         {
-            return self.Declaration.Type;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            return component.Type;
         }
 
         /// <summary>
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            return self.Declaration.Variables[0].Identifier;
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            var designation = (SingleVariableDesignationSyntax)component.Designation;
+            return designation.Identifier;
         }
 
         /// <summary>
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(syntax) && IsInContextWhichNeedsTupleNamesAttribute(syntax);
         }
 
-        internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)
+        internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
@@ -293,7 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this IndexerDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken thisKeyword,
@@ -303,30 +305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
-                refKeyword,
-                type,
-                explicitInterfaceSpecifier,
-                thisKeyword,
-                parameterList,
-                accessorList,
-                default(ArrowExpressionClauseSyntax),
-                default(SyntaxToken));
-        }
-
-        public static IndexerDeclarationSyntax Update(
-            this IndexerDeclarationSyntax syntax,
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken thisKeyword,
-            BracketedParameterListSyntax parameterList,
-            AccessorListSyntax accessorList)
-        {
-            return syntax.Update(
-                attributeLists,
-                modifiers,
-                default(SyntaxToken),
                 type,
                 explicitInterfaceSpecifier,
                 thisKeyword,
@@ -363,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this MethodDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax returnType,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -376,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
-                refKeyword,
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,
@@ -387,54 +363,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
         }
-
-        public static MethodDeclarationSyntax Update(
-            this MethodDeclarationSyntax syntax,
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax returnType,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            TypeParameterListSyntax typeParameterList,
-            ParameterListSyntax parameterList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            BlockSyntax block,
-            SyntaxToken semicolonToken)
-        {
-            return syntax.Update(
-                attributeLists,
-                modifiers,
-                default(SyntaxToken),
-                returnType,
-                explicitInterfaceSpecifier,
-                identifier,
-                typeParameterList,
-                parameterList,
-                constraintClauses,
-                block,
-                default(ArrowExpressionClauseSyntax),
-                semicolonToken);
-        }
-
-        internal static bool IsIdentifierOfOutVariableDeclaration(this SyntaxToken identifier, out DeclarationExpressionSyntax declarationExpression)
-        {
-            Debug.Assert(identifier.Kind() == SyntaxKind.IdentifierToken || identifier.Kind() == SyntaxKind.None);
-
-            SyntaxNode parent;
-            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.VariableDeclarator &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.DeclarationExpression)
-            {
-                declarationExpression = (DeclarationExpressionSyntax)parent;
-                if (declarationExpression.Identifier() == identifier && declarationExpression.Parent.Kind() == SyntaxKind.Argument)
-                {
-                    return true;
-                }
-            }
-
-            declarationExpression = null;
-            return false;
-        }
-
     }
 }

@@ -141,6 +141,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -173,6 +174,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new object() });
 
                 result.Diagnostics.Verify(
@@ -205,6 +207,7 @@ public class C
                     options: null,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
+                    embeddedTexts: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 result.Diagnostics.Verify(
@@ -2187,6 +2190,89 @@ class Program
 );
         }
 
+        [Fact]
+        public void SwitchWithPattern()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    private static List<List<int>> l = new List<List<int>>();
+
+    static void Main(string[] args)
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);  
+    }
+
+    static string Operate(Person p)
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("Program.Operate", @"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""0"" offset=""51"" />
+          <slot kind=""21"" offset=""0"" />
+          <slot kind=""0"" offset=""155"" />
+          <slot kind=""0"" offset=""242"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
+        <entry offset=""0x45"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
+        <entry offset=""0x6b"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
+        <entry offset=""0x91"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
+        <entry offset=""0xad"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
+        <entry offset=""0xc1"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xc4"">
+        <scope startOffset=""0x2e"" endOffset=""0x66"">
+          <local name=""s"" il_index=""4"" il_start=""0x2e"" il_end=""0x66"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x66"" endOffset=""0x8c"">
+          <local name=""s"" il_index=""6"" il_start=""0x66"" il_end=""0x8c"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x8c"" endOffset=""0xad"">
+          <local name=""t"" il_index=""7"" il_start=""0x8c"" il_end=""0xad"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>"
+);
+        }
         #endregion
 
         #region DoStatement
@@ -5236,6 +5322,54 @@ public class C
         <catchHandler offset=""0xa"" />
         <kickoffMethod declaringType=""C"" methodName=""M1"" />
       </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact, WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
+        public void SequencePointsForConstructorWithHiddenInitializer()
+        {
+            string initializerSource = @"
+#line hidden
+partial class C
+{
+    int i = 42;
+}
+";
+
+            string constructorSource = @"
+partial class C
+{
+    C()
+    {
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlib(
+                new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
+                options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""constructor.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""EA, D6,  A, 16, 6C, 6A, BC, C1, 5D, 98,  F, B7, 4B, 78, 13, 93, FB, C7, C2, 5A, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""8"" document=""1"" />
+        <entry offset=""0xf"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x10"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
     </method>
   </methods>
 </symbols>

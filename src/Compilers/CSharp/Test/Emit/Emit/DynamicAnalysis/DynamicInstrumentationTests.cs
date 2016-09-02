@@ -276,6 +276,7 @@ True
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload", expectedCreatePayloadIL);
             verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload", expectedFlushPayloadIL);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -468,6 +469,7 @@ True
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
             verifier.VerifyIL(".cctor", expectedPIDStaticConstructorIL);
+            verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(16, 9));
         }
 
         [Fact]
@@ -671,9 +673,11 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedReleaseGetValueIL);
-            
+            verifier.VerifyDiagnostics();
+
             verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedDebugGetValueIL);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -719,6 +723,7 @@ True
 True
 True
 True
+True
 Method 6
 File 1
 True
@@ -742,8 +747,10 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -781,6 +788,8 @@ public class Program
     {
         return l(x);
     }
+
+    // Method 11 is a synthesized static constructor.
 }
 ";
             // There is no entry for method '8' since it's a Prop2_set which is never called.
@@ -822,6 +831,9 @@ Method 9
 File 1
 True
 True
+Method 11
+File 1
+True
 Method 13
 File 1
 True
@@ -840,8 +852,10 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -853,27 +867,30 @@ using System;
 public class Program
 {
 #line 10 ""File1.cs""
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
 #line 20 ""File2.cs""
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         Fred();
-        Fred();
+        Program p = new Program();
         return;
     }
 
 #line 30 ""File3.cs""
-    static void Fred()
+    static void Fred()                                                      // Method 3
     {
         return;
     }
 
-#line 40 ""File4.cs""
+#line 40 ""File5.cs""
+
+    // The synthesized instance constructor is method 4 and
+    // appears in the original source file, which gets file index 4.
 }
 ";
 
@@ -893,8 +910,10 @@ Method 3
 File 3
 True
 True
-Method 6
+Method 4
 File 4
+Method 6
+File 5
 True
 True
 False
@@ -911,8 +930,10 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1007,6 +1028,10 @@ True
 ";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(14, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(15, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(15, 16));
         }
 
         [Fact]
@@ -1099,6 +1124,7 @@ True
 ";
            
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1176,7 +1202,7 @@ public class Program
             }
             x++;
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
             x++;
         }
@@ -1199,7 +1225,7 @@ public class Program
                 ;
             }
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
         }
 
@@ -1284,7 +1310,99 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternsCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                 // Method 2
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);
+    }
+     
+    static string Operate(Person p)                         // Method 3
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+
+    // Methods 5 and 7 are implicit constructors.
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+False
+True
+False
+False
+True
+Method 5
+File 1
+Method 7
+File 1
+Method 9
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
         }
 
         [Fact]
@@ -1359,7 +1477,8 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1460,7 +1579,326 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestFieldInitializerCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                      // Method 2
+    {
+        C local = new C(); local = new C(1, s_z);
+    }
+
+    static int Init() => 33;                                    // Method 3
+
+    C()                                                         // Method 4
+    {
+        _z = 12;
+    }
+
+    static C()                                                  // Method 5
+    {
+        s_z = 123;
+    }
+
+    int _x = Init();
+    int _y = Init() + 12;
+    int _z;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z;
+
+    C(int x)                                                    // Method 6
+    {
+        _z = x;
+    }
+
+    C(int a, int b)                                             // Method 7
+    {
+        _z = a + b;
+    }
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
+}
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+True
+Method 7
+File 1
+True
+True
+True
+True
+True
+Method 11
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestImplicitConstructorCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                      // Method 2
+    {
+        C local = new C();
+        int x = local._x + local._y + C.s_x + C.s_y + C.s_z;
+    }
+
+    static int Init() => 33;                                    // Method 3
+
+    // Method 6 is the implicit instance constructor.
+    // Method 7 is the implicit shared constructor.
+
+    int _x = Init();
+    int _y = Init() + 12;
+    static int s_x = Init();
+    static int s_y = Init() + 153;
+    static int s_z = 144;
+
+    int Prop1 { get; } = 15;
+    static int Prop2 { get; } = 255;
+}
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 6
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+True
+True
+Method 9
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestImplicitConstructorsWithLambdasCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                               // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain()                                                  // Method 2
+    {
+        int y = s_c._function();
+        D d = new D();
+        int z = d._c._function();
+        int zz = D.s_c._function();
+        int zzz = d._c1._function();
+    }
+
+    public C(Func<int> f)                                                   // Method 3
+    {
+        _function = f;
+    }
+
+    static C s_c = new C(() => 115);
+    Func<int> _function;
+}
+
+partial class D
+{
+}
+
+partial class D
+{
+}
+
+partial class D
+{
+    public C _c = new C(() => 120);
+    public static C s_c = new C(() => 144);
+    public C _c1 = new C(() => 130);
+    public static C s_c1 = new C(() => 156);
+}
+
+partial class D
+{
+}
+
+partial struct E
+{
+}
+
+partial struct E
+{
+    public static C s_c = new C(() => 1444);
+    public static C s_c1 = new C(() => { return 1567; });
+}
+
+// Method 4 is the synthesized static constructor for C.
+// Method 5 is the synthesized instance constructor for D.
+// Method 6 is the synthesized static constructor for D.
+";
+            string expectedOutput = @"
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+Method 6
+File 1
+True
+False
+True
+True
+Method 9
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1502,7 +1940,7 @@ public class Program
 }
 ";
 
-            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"));
+            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
@@ -1517,7 +1955,7 @@ public class Program
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
         private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };

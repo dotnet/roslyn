@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private IElisionBuffer CreateBuffer(IEnumerable<SnapshotSpan> spans)
             {
                 return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
-                                _editorOptionsFactoryService.GlobalOptions, spans.ToArray());
+                                _editorOptionsFactoryService.GlobalOptions, exposedSpans: spans.ToArray());
             }
         }
     }

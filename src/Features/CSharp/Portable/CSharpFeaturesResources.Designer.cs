@@ -108,6 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible tuple type element creation..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
         /// </summary>
         internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
@@ -288,6 +297,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;element name&gt; : .
+        /// </summary>
+        internal static string element_name {
+            get {
+                return ResourceManager.GetString("element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to event field.
         /// </summary>
         internal static string event_field {
@@ -392,15 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Hide_base_member {
             get {
                 return ResourceManager.GetString("Hide_base_member", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Implement Abstract Class.
-        /// </summary>
-        internal static string Implement_Abstract_Class {
-            get {
-                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
             }
         }
         
@@ -549,11 +558,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make the containing scope &apos;async&apos;..
+        ///   Looks up a localized string similar to Make method async.
         /// </summary>
-        internal static string Make_the_containing_scope_async {
+        internal static string Make_method_async {
             get {
-                return ResourceManager.GetString("Make_the_containing_scope_async", resourceCulture);
+                return ResourceManager.GetString("Make_method_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async (stay void).
+        /// </summary>
+        internal static string Make_method_async_remain_void {
+            get {
+                return ResourceManager.GetString("Make_method_async_remain_void", resourceCulture);
             }
         }
         

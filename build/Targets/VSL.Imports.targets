@@ -58,35 +58,18 @@
     </Otherwise>
   </Choose>
 
-  <!-- settings for strong name signing -->
-  <PropertyGroup>
-    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</ShouldSignBuild>
-  </PropertyGroup>
-
+  <!-- Settings for strong name signing -->
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
-        <!-- Shipping binaries in an "official" build are delay-signed with the MS key; later, the signing
-             system will finish the strong-name signing. -->
+        <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the 
+             binaries will be real signed as a post processing step. -->
         <When Condition="'$(NonShipping)' != 'true'">
-          <Choose>
-              <!-- DelaySign if we're real signing, otherwise public sign -->
-              <When Condition="'$(ShouldSignBuild)' == 'true'">
-                  <PropertyGroup>
-                      <DelaySign>true</DelaySign>
-                  </PropertyGroup>
-              </When>
-              <Otherwise>
-                  <PropertyGroup>
-                      <PublicSign>true</PublicSign>
-                  </PropertyGroup>
-              </Otherwise>
-          </Choose>
-
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <PublicKey>$(RoslynPublicKey)</PublicKey>
             <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
+            <PublicSign>true</PublicSign>
           </PropertyGroup>
         </When>
 
@@ -207,7 +190,7 @@
 
   <Target Name="VerifyBuildFlags">
     <Error 
-        Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
+        Condition="'$(OfficialBuild)' == 'true' AND '$(BuildVersion)' == '42.42.42.42'"
         Text="Must specify a build version in order to real sign a build." />
 
     <Error 
@@ -388,7 +371,7 @@
 
   <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a build definition variable -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
+          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 

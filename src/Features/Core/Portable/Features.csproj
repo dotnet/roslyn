@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -46,6 +44,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -55,6 +54,10 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
@@ -78,6 +81,9 @@
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
@@ -85,6 +91,14 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
+    <Compile Include="Structure\Syntax\AbstractBlockStructureProvider.cs" />
+    <Compile Include="Structure\BlockSpan.cs" />
+    <Compile Include="Structure\BlockStructure.cs" />
+    <Compile Include="Structure\BlockStructureContext.cs" />
+    <Compile Include="Structure\BlockStructureProvider.cs" />
+    <Compile Include="Structure\BlockStructureService.cs" />
+    <Compile Include="Structure\BlockStructureServiceWithProviders.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\CannotChangeSignatureReason.cs" />
@@ -110,13 +124,14 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Async\AbstractAddAsyncCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Async\AbstractAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAsyncCodeFix.cs" />
     <Compile Include="CodeFixes\CodeFixCollection.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
+    <Compile Include="CodeFixes\ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\PreferFrameworkType\PreferFrameworkTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
@@ -146,6 +161,14 @@
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
+    <Compile Include="CodeLens\CodeLensReferenceService.cs" />
+    <Compile Include="CodeLens\CodeLensFindReferenceProgress.cs" />
+    <Compile Include="CodeLens\ICodeLensReferencesService.cs" />
+    <Compile Include="CodeLens\ICodeLensDisplayInfoService.cs" />
+    <Compile Include="CodeLens\LocationComparer.cs" />
+    <Compile Include="CodeLens\ReferenceCount.cs" />
+    <Compile Include="CodeLens\ReferenceLocationDescriptor.cs" />
+    <Compile Include="CodeLens\ReferenceMethodDescriptor.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
@@ -223,14 +246,17 @@
     <Compile Include="Completion\SnippetsRule.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\Analyzers\PreferFrameworkTypeDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\AbstractAddDocCommentNodesCodeFixProvider.cs" />
+    <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
+    <Compile Include="DocumentSpan.cs" />
     <Compile Include="FindReferences\DefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionItem.DocumentLocationDefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionItem.NonNavigatingDefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionItem.SymbolDefinitionItem.cs" />
     <Compile Include="FindReferences\DefinitionsAndReferences.cs" />
-    <Compile Include="FindReferences\DocumentLocation.cs" />
     <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindReferences\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
@@ -247,11 +273,18 @@
     <Compile Include="QuickInfo\QuickInfoProviderNames.cs" />
     <Compile Include="QuickInfo\QuickInfoService.cs" />
     <Compile Include="QuickInfo\QuickInfoServiceWithProviders.cs" />
+    <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.Segment.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.TextChunk.cs" />
+    <Compile Include="SolutionCrawler\GlobalOperationAwareIdleProcessor.cs" />
+    <Compile Include="Structure\PredefinedStructureTypes2.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxNodeStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\AbstractSyntaxTriviaStructureProvider.cs" />
+    <Compile Include="Structure\Syntax\BlockSpanCollector.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
@@ -560,7 +593,6 @@
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Sorting.cs" />
-    <Compile Include="Shared\Options\OrganizerOptions.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptions.cs" />
     <Compile Include="Shared\TestHooks\AggregateAsynchronousOperationListener.cs" />
     <Compile Include="Shared\TestHooks\AsynchronousOperationListener.AsyncToken.cs" />
@@ -616,7 +648,7 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.HighPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.IncrementalAnalyzerProcessor.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinator.GlobalOperationAwareIdleProcessor.cs" />
+    <Compile Include="SolutionCrawler\WorkCoordinator.AbstractPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.LowPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.NormalPriorityProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
@@ -650,7 +682,5 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

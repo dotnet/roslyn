@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindReferences
@@ -8,27 +9,26 @@ namespace Microsoft.CodeAnalysis.FindReferences
     {
         /// <summary>
         /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 
-        /// <see cref="DocumentLocation"/>.
+        /// <see cref="DocumentSpan"/>.
         /// </summary>
-        private sealed class DocumentLocationDefinitionItem : DefinitionItem
+        // internal for testing purposes.
+        internal sealed class DocumentLocationDefinitionItem : DefinitionItem
         {
-            private readonly DocumentLocation _location;
+            internal override bool IsExternal => false;
 
             public DocumentLocationDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
-                ImmutableArray<DocumentLocation> additionalLocations,
-                bool displayIfNoReferences,
-                DocumentLocation location)
+                ImmutableArray<DocumentSpan> sourceSpans,
+                bool displayIfNoReferences)
                 : base(tags, displayParts, 
-                      ImmutableArray.Create(new TaggedText(TextTags.Text, location.Document.Project.Name)),
-                      additionalLocations, displayIfNoReferences)
+                      ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
+                      sourceSpans, displayIfNoReferences)
             {
-                _location = location;
             }
 
-            public override bool CanNavigateTo() => _location.CanNavigateTo();
-            public override bool TryNavigateTo() => _location.TryNavigateTo();
+            public override bool CanNavigateTo() => SourceSpans[0].CanNavigateTo();
+            public override bool TryNavigateTo() => SourceSpans[0].TryNavigateTo();
         }
     }
 }

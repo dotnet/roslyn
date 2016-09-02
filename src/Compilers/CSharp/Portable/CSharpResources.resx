@@ -240,9 +240,6 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
-  <data name="IDS_FeatureReplace" xml:space="preserve">
-    <value>replaced members</value>
-  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -1442,6 +1439,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PredefinedTypeNotFound" xml:space="preserve">
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
   </data>
@@ -1648,6 +1648,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+  </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
     <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic type.</value>
@@ -4152,9 +4155,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_FeatureDeclarationExpression" xml:space="preserve">
-    <value>declaration expression</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4215,9 +4215,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongNumberOfTypeArguments" xml:space="preserve">
     <value>Wrong number of type arguments</value>
   </data>
-  <data name="TheStreamCannotBeWritten" xml:space="preserve">
-    <value>The stream cannot be written to.</value>
-  </data>
   <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
     <value>The stream cannot be read from.</value>
   </data>
@@ -4241,12 +4238,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
-  </data>
-  <data name="SeparatorIsExpected" xml:space="preserve">
-    <value>separator is expected</value>
-  </data>
-  <data name="ElementIsExpected" xml:space="preserve">
-    <value>element is expected</value>
   </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
@@ -4407,6 +4398,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
                                generation but may be used by analyzers for producing
                                errors or warnings.
+ /embed                        Embed all source files in the PDB.
+ /embed:&lt;file list&gt;            Embed specfic files the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4428,8 +4421,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
- /instrument:options           Sets instrumentation options.
-                               If empty instrumentation is disabled.
+ /instrument:TestCoverage      Produce an assembly instrumented to collect
+                               coverage information
  /sourcelink:&lt;file&gt;            Source link info to embed into Portable PDB.
 
                         - ERRORS AND WARNINGS -
@@ -4450,7 +4443,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short 
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3, 
-                               4, 5, 6, or Default
+                               4, 5, 6, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
@@ -4738,9 +4731,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not return by {3}</value>
   </data>
-  <data name="ERR_VoidReturningMethodCannotReturnByRef" xml:space="preserve">
-    <value>Void-returning methods cannot return by reference</value>
-  </data>
   <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>
   </data>
@@ -4807,12 +4797,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnStructThis" xml:space="preserve">
     <value>Struct members cannot return 'this' or other instance members by reference</value>
   </data>
-  <data name="ERR_MustBeRefAssignable" xml:space="preserve">
-    <value>'{0}' cannot be assigned a reference because it is not a by-reference local</value>
-  </data>
-  <data name="ERR_MustBeRefAssignableLocal" xml:space="preserve">
-    <value>Expected a by-reference local</value>
-  </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>
   </data>
@@ -4868,7 +4852,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple membername '{0}' is disallowed at any position.</value>
+    <value>Tuple member name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
@@ -4910,7 +4894,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
-    <value>Cannot infer the type of implicitly-typed out variable.</value>
+    <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
@@ -4924,8 +4908,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="TypeMustBeVar" xml:space="preserve">
     <value>The type must be 'var'.</value>
   </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
+  </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
-    <value>Deconstruction `var (...)` form disallows a specific type for 'var'.</value>
+    <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
@@ -4936,7 +4926,31 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructCouldNotInferMergedType" xml:space="preserve">
     <value>The type information on the left-hand-side '{0}' and right-hand-side '{1}' of the deconstruction was insufficient to infer a merged type.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
+    <value>An expression tree may not contain an out argument variable declaration.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsIsMatch" xml:space="preserve">
+    <value>An expression tree may not contain an 'is' pattern-matching operator.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleLiteral" xml:space="preserve">
+    <value>An expression tree may not contain a tuple literal.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleConversion" xml:space="preserve">
+    <value>An expression tree may not contain a tuple conversion.</value>
+  </data>
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_OutVarDeconstructionIsNotSupported" xml:space="preserve">
+    <value>Deconstruction is not supported for an 'out' argument.</value>
+  </data>
+  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
+    <value>Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.</value>
   </data>
 </root>

@@ -32,6 +32,7 @@
         <dependency id="System.Diagnostics.Tools"                      version="$SystemDiagnosticsToolsVersion$"/>
         <dependency id="System.Dynamic.Runtime"                        version="$SystemDynamicRuntimeVersion$"/>
         <dependency id="System.Globalization"                          version="$SystemGlobalizationVersion$"/>
+        <dependency id="System.IO.Compression"                         version="$SystemIOCompressionVersion$" />
         <dependency id="System.IO.FileSystem"                          version="$SystemIOFileSystemVersion$"/>
         <dependency id="System.IO.FileSystem.Primitives"               version="$SystemIOFileSystemPrimitivesVersion$"/>
         <dependency id="System.Linq"                                   version="$SystemLinqVersion$"/>

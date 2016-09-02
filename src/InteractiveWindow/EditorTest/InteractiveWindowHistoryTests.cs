@@ -3,8 +3,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {

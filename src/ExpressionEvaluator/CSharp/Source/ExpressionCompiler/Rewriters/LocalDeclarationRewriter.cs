@@ -12,51 +12,72 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class LocalDeclarationRewriter
     {
-        internal static BoundNode Rewrite(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, BoundNode node)
+        internal static BoundStatement Rewrite(CSharpCompilation compilation, EENamedTypeSymbol container, HashSet<LocalSymbol> declaredLocals, BoundStatement node, ImmutableArray<LocalSymbol> declaredLocalsArray)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            bool hasChanged;
+
+            foreach (var local in declaredLocalsArray)
+            {
+                CreateLocal(compilation, declaredLocals, builder, local, node.Syntax);
+            }
 
             // Rewrite top-level declarations only.
             switch (node.Kind)
             {
                 case BoundKind.LocalDeclaration:
-                    RewriteLocalDeclaration(compilation, container, declaredLocals, builder, (BoundLocalDeclaration)node);
-                    hasChanged = true;
+                    Debug.Assert(declaredLocals.Contains(((BoundLocalDeclaration)node).LocalSymbol));
+                    RewriteLocalDeclaration(builder, (BoundLocalDeclaration)node);
                     break;
+
                 case BoundKind.MultipleLocalDeclarations:
                     foreach (var declaration in ((BoundMultipleLocalDeclarations)node).LocalDeclarations)
                     {
-                        RewriteLocalDeclaration(compilation, container, declaredLocals, builder, declaration);
+                        Debug.Assert(declaredLocals.Contains(declaration.LocalSymbol));
+                        RewriteLocalDeclaration(builder, declaration);
                     }
-                    hasChanged = true;
+
                     break;
+
                 default:
-                    hasChanged = false;
-                    break;
+                    if (builder.Count == 0)
+                    {
+                        builder.Free();
+                        return node;
+                    }
+
+                    builder.Add(node);
+                    break; 
             }
 
-            if (hasChanged)
-            {
-                node = BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutable());
-            }
-
-            builder.Free();
-            return node;
+            return BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutableAndFree());
         }
 
         private static void RewriteLocalDeclaration(
-            CSharpCompilation compilation,
-            EENamedTypeSymbol container,
-            HashSet<LocalSymbol> declaredLocals,
             ArrayBuilder<BoundStatement> statements,
             BoundLocalDeclaration node)
         {
             Debug.Assert(node.ArgumentsOpt.IsDefault);
 
-            var local = node.LocalSymbol;
-            var syntax = node.Syntax;
+            var initializer = node.InitializerOpt;
+            if (initializer != null)
+            {
+                var local = node.LocalSymbol;
+                var syntax = node.Syntax;
 
+                // Generate assignment to local. The assignment will
+                // be rewritten in PlaceholderLocalRewriter.
+                var assignment = new BoundAssignmentOperator(
+                    syntax,
+                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
+                    initializer,
+                    RefKind.None,
+                    local.Type);
+                statements.Add(new BoundExpressionStatement(syntax, assignment));
+            }
+        }
+
+        private static void CreateLocal(CSharpCompilation compilation, HashSet<LocalSymbol> declaredLocals, ArrayBuilder<BoundStatement> statements, LocalSymbol local, SyntaxNode syntax)
+        {
             declaredLocals.Add(local);
 
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
@@ -77,23 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 method: method,
                 arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload));
             statements.Add(new BoundExpressionStatement(syntax, call));
-
-            var initializer = node.InitializerOpt;
-            if (initializer != null)
-            {
-                // Generate assignment to local. The assignment will
-                // be rewritten in PlaceholderLocalRewriter.
-                var assignment = new BoundAssignmentOperator(
-                    syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
-                    initializer,
-                    RefKind.None,
-                    local.Type);
-                statements.Add(new BoundExpressionStatement(syntax, assignment));
-            }
         }
 
-        private static BoundExpression GetCustomTypeInfoPayloadId(CSharpSyntaxNode syntax, MethodSymbol guidConstructor, bool hasCustomTypeInfoPayload)
+        private static BoundExpression GetCustomTypeInfoPayloadId(SyntaxNode syntax, MethodSymbol guidConstructor, bool hasCustomTypeInfoPayload)
         {
             if (!hasCustomTypeInfoPayload)
             {
@@ -107,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 
-        private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, CSharpSyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
+        private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, SyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,

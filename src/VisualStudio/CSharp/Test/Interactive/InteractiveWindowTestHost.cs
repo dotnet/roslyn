@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private static readonly Lazy<AggregateCatalog> s_lazyCatalog = new Lazy<AggregateCatalog>(() =>
         {
-            var types = new[] { typeof(TestWaitIndicator), typeof(TestInteractiveEvaluator), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
+            var types = new[] { typeof(TestWaitIndicator), typeof(TestInteractiveEvaluator), typeof(IInteractiveWindow) }.Concat(GetVisualStudioTypes());
             return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
         });
 
-        internal InteractiveWindowTestHost(Action<InteractiveWindow.State> stateChangedHandler = null)
+        internal InteractiveWindowTestHost()
         {
             _exportProvider = new CompositionContainer(
                 s_lazyCatalog.Value,
@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
             var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();
             Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
-            ((InteractiveWindow)Window).StateChanged += stateChangedHandler;
             Window.InitializeAsync().Wait();
         }
 

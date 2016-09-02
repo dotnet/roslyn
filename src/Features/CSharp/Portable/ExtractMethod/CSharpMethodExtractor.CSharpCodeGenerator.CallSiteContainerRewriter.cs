@@ -59,12 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
                 {
                     node = (LocalDeclarationStatementSyntax)base.VisitLocalDeclarationStatement(node);
-
-                    if (node.Declaration.IsDeconstructionDeclaration)
-                    {
-                        return node;
-                    }
-
                     var list = new List<VariableDeclaratorSyntax>();
                     var triviaList = new List<SyntaxTrivia>();
                     // go through each var decls in decl statement
@@ -122,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return
                         SyntaxFactory.LocalDeclarationStatement(
                             node.Modifiers,
-                            node.RefKeyword,
                                 SyntaxFactory.VariableDeclaration(
                                     node.Declaration.Type,
                                     SyntaxFactory.SeparatedList(list)),
@@ -224,6 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (node != this.ContainerOfStatementsOrFieldToReplace)
                     {
                         return base.VisitForEachStatement(node);
+                    }
+
+                    return node.WithExpression(VisitNode(node.Expression))
+                               .WithStatement(ReplaceStatementIfNeeded(node.Statement));
+                }
+
+                public override SyntaxNode VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+                {
+                    if (node != this.ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitForEachComponentStatement(node);
                     }
 
                     return node.WithExpression(VisitNode(node.Expression))

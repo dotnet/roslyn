@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -63,6 +64,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
+        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                                                            s_localizableTitleSimplifyNames,
+                                                            s_localizableMessage,
+                                                            DiagnosticCategory.Style,
+                                                            DiagnosticSeverity.Hidden,
+                                                            isEnabledByDefault: true,
+                                                            customTags: DiagnosticCustomTags.Unnecessary);
+
+        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
+                                                            s_localizableTitleSimplifyNames,
+                                                            s_localizableMessage,
+                                                            DiagnosticCategory.Style,
+                                                            DiagnosticSeverity.Hidden,
+                                                            isEnabledByDefault: true,
+                                                            customTags: DiagnosticCustomTags.Unnecessary);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -73,7 +90,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     s_descriptorRemoveThisOrMeHidden,
                     s_descriptorRemoveThisOrMeInfo,
                     s_descriptorRemoveThisOrMeWarning,
-                    s_descriptorRemoveThisOrMeError);
+                    s_descriptorRemoveThisOrMeError,
+                    s_descriptorPreferIntrinsicTypeInDeclarations,
+                    s_descriptorPreferIntrinsicTypeInMemberAccess);
             }
         }
 
@@ -103,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return false;
             }
 
+            PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
             switch (diagnosticId)
             {
@@ -118,6 +138,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     descriptor = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
                     break;
 
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
+                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
+                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId, option, optionSet);
+                    break;
+
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
+                    option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                        IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId, option, optionSet);
+                    break;
+
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
@@ -129,10 +161,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["OptionName"] = nameof(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan), builder.ToImmutable());
             return true;
+        }
+
+        private DiagnosticDescriptor GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
+        {
+            var optionValue = optionSet.GetOption(option, GetLanguageName());
+
+            DiagnosticDescriptor descriptor = null;
+            if (optionValue.Notification.Value != DiagnosticSeverity.Hidden)
+            {
+                descriptor = new DiagnosticDescriptor(id,
+                        s_localizableTitleSimplifyNames,
+                        s_localizableMessage,
+                        DiagnosticCategory.Style,
+                        optionValue.Notification.Value,
+                        isEnabledByDefault: true,
+                        customTags: DiagnosticCustomTags.Unnecessary);
+            }
+
+            return descriptor;
         }
 
         private DiagnosticDescriptor GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)

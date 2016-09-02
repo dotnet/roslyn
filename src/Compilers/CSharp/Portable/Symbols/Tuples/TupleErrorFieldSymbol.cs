@@ -20,19 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// id is an index of the element (zero-based).
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
-        private readonly int _tupleFieldId;
+        private readonly int _tupleElementIndex;
 
         private readonly ImmutableArray<Location> _locations;
         private readonly DiagnosticInfo _useSiteDiagnosticInfo;
 
-        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleFieldId, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo)
+        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo)
             : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
         {
             Debug.Assert(name != null);
             _type = type;
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
-            _tupleFieldId = tupleFieldId;
+            _tupleElementIndex = tupleElementIndex;
         }
 
         public override bool IsTupleField
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _tupleFieldId;
+                return _tupleElementIndex;
             }
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override sealed int GetHashCode()
         {
-            return Hash.Combine(ContainingType.GetHashCode(), _tupleFieldId.GetHashCode());
+            return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
         public override bool Equals(object obj)
@@ -124,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _tupleFieldId == other._tupleFieldId && ContainingType == other.ContainingType;
+            return (object)other != null &&
+                _tupleElementIndex == other._tupleElementIndex &&
+                ContainingType == other.ContainingType &&
+                Name == other.Name;
         }
     }
 }

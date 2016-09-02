@@ -4039,9 +4039,14 @@ public class iii
    }
 }";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
-            DiagnosticsUtils.VerifyErrorCodes(
-                comp,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+            comp.VerifyDiagnostics(
+                // (18,15): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
+                //       switch (a)   // CS0151, compiler cannot choose between int and long
+                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(18, 15),
+                // (20,15): error CS0029: Cannot implicitly convert type 'int' to 'iii'
+                //          case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "iii").WithLocation(20, 15)
+                );
         }
 
         [Fact]
@@ -11518,15 +11523,15 @@ class A
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?"),
-// (6,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var x = 0; // CS0822.cs
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var x = 0;"),
-// (7,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (int?)null + x;")
+                // (6,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var x = 0; // CS0822.cs
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var x = 0").WithLocation(6, 15),
+                // (7,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var y = (int?)null + x").WithLocation(7, 15),
+                // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23)
                 );
         }
 
@@ -23048,6 +23053,88 @@ class C
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
                );
+        }
+
+        [WorkItem(12900, "https://github.com/dotnet/roslyn/issues/12900")]
+        [Fact]
+        public void CSharp7FeaturesInExprTrees()
+        {
+            var source = @"
+using System;
+//using System.Collections;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        // out variable declarations
+        Expression<Func<bool>> e1 = () => TryGetThree(out int x) && x == 3; // ERROR 1
+
+        // pattern matching
+        object o = 3;
+        Expression<Func<bool>> e2 = () => o is int y && y == 3; // ERROR 2
+
+        // direct tuple creation could be OK, as it is just a constructor invocation,
+        // not for long tuples the generated code is more complex, and we would
+        // prefer custom expression trees to express the semantics.
+        Expression<Func<object>> e3 = () => (1, o); // ERROR 3: tuple literal
+        Expression<Func<(int, int)>> e4 = () => (1, 2); // ERROR 4: tuple literal
+
+        // tuple conversions
+        (byte, byte) t1 = (1, 2);
+        Expression<Func<(byte a, byte b)>> e5 = () => t1; // OK, identity conversion
+        Expression<Func<(int, int)>> e6 = () => t1; // ERROR 5: tuple conversion
+
+        Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
+    }
+
+    static bool TryGetThree(out int three)
+    {
+        three = 3;
+        return true;
+    }
+
+    static int three = 3;
+    static ref int GetRefThree()
+    {
+        return ref three;
+    }
+    static int TakeRef(ref int x)
+    {
+        Console.WriteLine(""wow"");
+        return x;
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.
+                //         Expression<Func<bool>> e1 = () => TryGetThree(out int x) && x == 3; // ERROR 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOutVariable, "int x").WithLocation(10, 59),
+                // (14,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e2 = () => o is int y && y == 3; // ERROR 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, "o is int y").WithLocation(14, 43),
+                // (19,45): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<object>> e3 = () => (1, o); // ERROR 3: tuple literal
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(1, o)").WithLocation(19, 45),
+                // (20,49): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<(int, int)>> e4 = () => (1, 2); // ERROR 4: tuple literal
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(1, 2)").WithLocation(20, 49),
+                // (25,49): error CS8144: An expression tree may not contain a tuple conversion.
+                //         Expression<Func<(int, int)>> e6 = () => t1; // ERROR 5: tuple conversion
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, "t1").WithLocation(25, 49),
+                // (27,54): error CS8156: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "GetRefThree()").WithLocation(27, 54)
+                );
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
             SubsystemVersion subsystemVersion = SubsystemVersion.None;
-            LanguageVersion languageVersion = CSharpParseOptions.Default.LanguageVersion;
+            LanguageVersion languageVersion = LanguageVersion.Default;
             string mainTypeName = null;
             string win32ManifestFile = null;
             string win32ResourceFile = null;
@@ -85,7 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
+            bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
             var checksumAlgorithm = SourceHashAlgorithm.Sha1;
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
-            string instrument = "";
+            ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             bool optionsEnded = false;
@@ -310,7 +313,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                instrument = value;
+                                foreach (InstrumentationKind instrumentationKind in ParseInstrumentationKinds(value, diagnostics))
+                                {
+                                    if (!instrumentationKinds.Contains(instrumentationKind))
+                                    {
+                                        instrumentationKinds.Add(instrumentationKind);
+                                    }
+                                }
                             }
 
                             continue;
@@ -1097,7 +1106,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics));
+                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            continue;
+
+                        case "embed":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                embedAllSourceFiles = true;
+                                continue;
+                            }
+                            
+                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
                     }
                 }
@@ -1161,9 +1180,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceLink != null)
             {
-                if (!emitPdb || debugInformationFormat != DebugInformationFormat.PortablePdb && debugInformationFormat != DebugInformationFormat.Embedded)
+                if (!emitPdb || !debugInformationFormat.IsPortable())
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPortablePdb);
+                }
+            }
+            
+            if (embedAllSourceFiles)
+            {
+                embeddedFiles.AddRange(sourceFiles);
+            }
+
+            if (embeddedFiles.Count > 0)
+            {
+                // Restricted to portable PDBs for now, but the IsPortable condition should be removed
+                // and the error message adjusted accordingly when native PDB support is added.
+                if (!emitPdb || !debugInformationFormat.IsPortable())
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
                 }
             }
 
@@ -1226,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fileAlignment: fileAlignment,
                 subsystemVersion: subsystemVersion,
                 runtimeMetadataVersion: runtimeMetadataVersion,
-                instrument: instrument
+                instrumentationKinds: instrumentationKinds.ToImmutableAndFree()
             );
 
             // add option incompatibility errors if any
@@ -1273,7 +1307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
-                ReportAnalyzer = reportAnalyzer
+                ReportAnalyzer = reportAnalyzer,
+                EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }
 
@@ -1516,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
+        private static IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1537,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
+        private static IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
         {
             if (value == null)
             {
@@ -1628,6 +1663,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static IEnumerable<InstrumentationKind> ParseInstrumentationKinds(string value, IList<Diagnostic> diagnostics)
+        {
+            string[] kinds = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var kind in kinds)
+            {
+                switch (kind.ToLower())
+                {
+                    case "testcoverage":
+                        yield return InstrumentationKind.TestCoverage;
+                        break;
+
+                    default:
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidInstrumentationKind, kind);
+                        break;
+                }
+            }
+        }
+
         internal static ResourceDescription ParseResourceDescription(
             string arg,
             string resourceDescriptor,
@@ -1695,11 +1748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool TryParseLanguageVersion(string str, out LanguageVersion version)
         {
-            var defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
-
             if (str == null)
             {
-                version = defaultVersion;
+                version = LanguageVersion.Default;
                 return true;
             }
 
@@ -1718,7 +1769,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case "default":
-                    version = defaultVersion;
+                    version = LanguageVersion.Default;
+                    return true;
+
+                case "latest":
+                    version = LanguageVersion.Latest;
                     return true;
 
                 default:
@@ -1735,7 +1790,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         version = (LanguageVersion)versionNumber;
                         return true;
                     }
-                    version = defaultVersion;
+
+                    version = LanguageVersion.Default;
                     return false;
             }
         }

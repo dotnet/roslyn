@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2849,12 +2850,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,27): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
                 );
         }
 
@@ -3033,7 +3034,7 @@ class C
                 // (6,42): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(6, 42),
-                // (6,100): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,100): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 100),
                 // (6,111): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
@@ -3042,7 +3043,7 @@ class C
                 // (6,125): error CS8125: Tuple member name 'Item4' is only allowed at position 4.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item4").WithArguments("Item4", "4").WithLocation(6, 125),
-                // (6,189): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,189): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 189)
                );
@@ -3063,22 +3064,22 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (6,18): error CS8126: Tuple membername 'CompareTo' is disallowed at any position.
+                // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
-                // (6,43): error CS8126: Tuple membername 'Deconstruct' is disallowed at any position.
+                // (6,43): error CS8126: Tuple member name 'Deconstruct' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
-                // (6,59): error CS8126: Tuple membername 'Equals' is disallowed at any position.
+                // (6,59): error CS8126: Tuple member name 'Equals' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
-                // (6,70): error CS8126: Tuple membername 'GetHashCode' is disallowed at any position.
+                // (6,70): error CS8126: Tuple member name 'GetHashCode' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
-                // (6,86): error CS8126: Tuple membername 'Rest' is disallowed at any position.
+                // (6,86): error CS8126: Tuple member name 'Rest' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
-                // (6,95): error CS8126: Tuple membername 'ToString' is disallowed at any position.
+                // (6,95): error CS8126: Tuple member name 'ToString' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );
@@ -3234,12 +3235,12 @@ class C
 " + tupleattributes_cs;
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (10,12): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
-                // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
+                // (12,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -3315,9 +3316,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (8,12): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                // (8,12): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported
                 //     static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8").WithLocation(8, 12)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8").WithLocation(8, 12)
                 );
         }
 
@@ -3771,9 +3772,9 @@ class C3
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
         }
 
@@ -3794,9 +3795,9 @@ class C3
                     new CSharpCompilationReference(comp2),
                     ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (4,19): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     public void M((int, int) x) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
                 );
         }
 
@@ -4639,9 +4640,9 @@ class C3
             var comp = CreateCompilationWithMscorlib(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
@@ -4925,7 +4926,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_WithValueTuple()
         {
-            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -4934,6 +4935,7 @@ class C
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create<string>(null, null));
 
             Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
@@ -4951,6 +4953,7 @@ class C
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, default(ImmutableArray<string>));
 
             Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(tupleWithoutNames.TupleElementNames.IsDefault);
             Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElementTypes.Select(t => t.ToTestDisplayString()));
@@ -5142,6 +5145,17 @@ class C
             Assert.Equal(2, types.Length);
             Assert.Equal(SymbolKind.NamedType, types[0].Kind);
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
+        }
+
+        [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
+        public void CreateTupleTypeSymbol_UnderlyingTypeIsError()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var vt2 = comp.CreateErrorTypeSymbol(null, "ValueTuple", 2).Construct(intType, intType);
+
+            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType: vt2));
         }
 
         [Fact]
@@ -5492,7 +5506,7 @@ class C
     static void Main()
     {
         // this works
-        // (short, string) x1 = (1, ""hello"");
+        (short, string) x1 = (1, ""hello"");
 
         // this does not
         (short, string) x2 = ((long, string))(1, ""hello"");
@@ -5897,12 +5911,12 @@ class C
                 // (12,37): error CS0029: Cannot implicitly convert type 'double' to 'int'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9.1,10);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "9.1").WithArguments("double", "int").WithLocation(12, 37),
-                // (13,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                // (13,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,").WithArguments("System.ValueTuple`3").WithLocation(13, 13),
-                // (14,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,").WithArguments("System.ValueTuple`3").WithLocation(13, 13),
+                // (14,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"((0, 0),1,2,3,4,5,6,7,8,9
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"((0, 0),1,2,3,4,5,6,7,8,9
 ").WithArguments("System.ValueTuple`3").WithLocation(14, 13),
                 // (15,29): error CS0103: The name 'oops' does not exist in the current context
                 //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
@@ -5910,19 +5924,18 @@ class C
                 // (15,38): error CS0103: The name 'oopsss' does not exist in the current context
                 //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "oopsss").WithArguments("oopsss").WithLocation(15, 38),
-                // (17,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
                 // (17,13): error CS0029: Cannot implicitly convert type '((int, int), int, int, int, int, int, int, int, int, int)' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("((int, int), int, int, int, int, int, int, int, int, int)", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
-                // (18,37): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37),
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37),
                 // (18,37): error CS0029: Cannot implicitly convert type '(int, int, int)' to 'int'
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1,1,1)").WithArguments("(int, int, int)", "int").WithLocation(18, 37)
-
             );
         }
 
@@ -6384,9 +6397,21 @@ class C
 " + trivial2uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
+                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
+                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long c, long d)'.
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(long c, long d)").WithLocation(7, 54),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
+                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(int c, int d)").WithLocation(9, 50),
+                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(int c, int d)").WithLocation(9, 56),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
@@ -8618,9 +8643,9 @@ class C
             var m2Item1 = (FieldSymbol)m2Tuple.GetMembers()[0];
             var m2a2 = (FieldSymbol)m2Tuple.GetMembers()[1];
 
-            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
-            Assert.IsType<TupleFieldSymbol>(m2Item1);
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m2a2);
+            AssertNonvirtualTupleElementField(m1Item1);
+            AssertNonvirtualTupleElementField(m2Item1);
+            AssertVirtualTupleElementField(m2a2);
 
             Assert.True(m1Item1.IsTupleField);
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
@@ -8867,7 +8892,7 @@ class C
 
             var m3Item8 = (FieldSymbol)m3Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m3Item8);
+            AssertVirtualTupleElementField(m3Item8);
 
             Assert.True(m3Item8.IsTupleField);
             Assert.Same(m3Item8, m3Item8.OriginalDefinition);
@@ -9061,7 +9086,7 @@ class C
 
             var m4Item8 = (FieldSymbol)m4Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m4Item8);
+            AssertVirtualTupleElementField(m4Item8);
 
             Assert.True(m4Item8.IsTupleField);
             Assert.Same(m4Item8, m4Item8.OriginalDefinition);
@@ -9080,7 +9105,7 @@ class C
 
             var m4h4 = (FieldSymbol)m4Tuple.GetMembers("h4").Single();
 
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m4h4);
+            AssertVirtualTupleElementField(m4h4);
 
             Assert.True(m4h4.IsTupleField);
             Assert.Same(m4h4, m4h4.OriginalDefinition);
@@ -9309,7 +9334,7 @@ class C
 
             var m5Item8 = (FieldSymbol)m5Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m5Item8);
+            AssertVirtualTupleElementField(m5Item8);
 
             Assert.True(m5Item8.IsTupleField);
             Assert.Same(m5Item8, m5Item8.OriginalDefinition);
@@ -9679,7 +9704,7 @@ class C
 
             var m8Item8 = (FieldSymbol)m8Tuple.GetMembers("Item8").Single();
 
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m8Item8);
+            AssertVirtualTupleElementField(m8Item8);
 
             Assert.True(m8Item8.IsTupleField);
             Assert.Same(m8Item8, m8Item8.OriginalDefinition);
@@ -9699,7 +9724,7 @@ class C
 
             var m8Item1 = (FieldSymbol)m8Tuple.GetMembers("Item1").Last();
 
-            Assert.IsType<TupleElementFieldSymbol>(m8Item1);
+            AssertVirtualTupleElementField(m8Item1);
 
             Assert.True(m8Item1.IsTupleField);
             Assert.Same(m8Item1, m8Item1.OriginalDefinition);
@@ -9878,9 +9903,9 @@ class C
             var m2Item1 = (FieldSymbol)m2Tuple.GetMembers()[0];
             var m2a2 = (FieldSymbol)m2Tuple.GetMembers()[1];
 
-            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
-            Assert.IsType<TupleFieldSymbol>(m2Item1);
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m2a2);
+            AssertNonvirtualTupleElementField(m1Item1);
+            AssertNonvirtualTupleElementField(m2Item1);
+            AssertVirtualTupleElementField(m2a2);
 
             Assert.True(m1Item1.IsTupleField);
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
@@ -10154,21 +10179,42 @@ partial class C
 
             var c = comp.GetTypeByMetadataName("C");
             comp.VerifyDiagnostics(
+                // (8,19): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //     public static (int, int) M10()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 19),
                 // (8,19): warning CS0612: '(int, int)' is obsolete
                 //     public static (int, int) M10()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("(int, int)").WithLocation(8, 19),
+                // (13,12): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //     static (int, int, int, int, int, int, int, int, int) M101()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int, int, int, int, int, int, int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(13, 12),
+                // (23,12): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //     static (int a, int b) M102()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(23, 12),
                 // (23,12): warning CS0612: '(int a, int b)' is obsolete
                 //     static (int a, int b) M102()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b)").WithArguments("(int a, int b)").WithLocation(23, 12),
                 // (35,73): error CS8125: Tuple member name 'Item2' is only allowed at position 2.
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.ERR_TupleReservedMemberName, "Item2").WithArguments("Item2", "2").WithLocation(35, 73),
+                // (35,12): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b, int c, int d, int e, int f, int g, int h, int Item2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(35, 12),
                 // (55,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //         [System.Runtime.InteropServices.FieldOffsetAttribute(20)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(55, 10),
                 // (78,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //         [System.Runtime.InteropServices.FieldOffsetAttribute(21)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(78, 10),
+                // (10,16): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         return (101, 102);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(101, 102)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(10, 16),
+                // (15,16): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         return (1, 1, 1, 1, 1, 1, 1, 1, 1);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 1, 1, 1, 1, 1, 1, 1, 1)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(15, 16),
+                // (25,16): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         return (1, 1);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 1)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(25, 16),
                 // (58,16): error CS0843: Auto-implemented property 'ValueTuple<T1, T2>.I1.P1' must be fully assigned before control is returned to the caller.
                 //         public ValueTuple(T1 item1, T2 item2)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "ValueTuple").WithArguments("System.ValueTuple<T1, T2>.I1.P1").WithLocation(58, 16),
@@ -10187,6 +10233,9 @@ partial class C
                 // (32,34): warning CS0612: '(int a, int b).a' is obsolete
                 //         System.Console.WriteLine(M102().a);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M102().a").WithArguments("(int a, int b).a").WithLocation(32, 34),
+                // (37,16): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         return (1, 1, 1, 1, 1, 1, 1, 1, 1);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 1, 1, 1, 1, 1, 1, 1, 1)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(37, 16),
                 // (98,9): warning CS0612: '(int, int).M2()' is obsolete
                 //         M10().M2();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M10().M2()").WithArguments("(int, int).M2()").WithLocation(98, 9),
@@ -10214,9 +10263,9 @@ partial class C
             var m102Item20 = (FieldSymbol)m102Tuple.GetMembers("Item20").Single();
             var m102a = (FieldSymbol)m102Tuple.GetMembers("a").Single();
 
-            Assert.IsType<TupleElementFieldSymbol>(m10Item1);
-            Assert.IsType<TupleFieldSymbol>(m102Item20);
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m102a);
+            AssertNonvirtualTupleElementField(m10Item1);
+            AssertTupleNonElementField(m102Item20);
+            AssertVirtualTupleElementField(m102a);
 
             Assert.Equal("System.ObsoleteAttribute", m10Item1.GetAttributes().Single().ToString());
             Assert.Equal("System.ObsoleteAttribute", m102Item20.GetAttributes().Single().ToString());
@@ -10227,10 +10276,10 @@ partial class C
             var m102Item2 = (FieldSymbol)m102Tuple.GetMembers("Item2").Single();
             var m102b = (FieldSymbol)m102Tuple.GetMembers("b").Single();
 
-            Assert.IsType<TupleElementFieldSymbol>(m10Item2);
-            Assert.IsType<TupleFieldSymbol>(m102Item2);
-            Assert.IsType<TupleFieldSymbol>(m102Item21);
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m102b);
+            AssertNonvirtualTupleElementField(m10Item2);
+            AssertNonvirtualTupleElementField(m102Item2);
+            AssertTupleNonElementField(m102Item21);
+            AssertVirtualTupleElementField(m102b);
 
             Assert.Equal(20, m10Item2.TypeLayoutOffset);
             Assert.Equal(20, m102Item2.TypeLayoutOffset);
@@ -10244,8 +10293,8 @@ partial class C
             var m103Item2 = (FieldSymbol)m103Tuple.GetMembers("Item2").Last();
             var m103Item9 = (FieldSymbol)m103Tuple.GetMembers("Item9").Single();
 
-            Assert.IsType<TupleElementFieldSymbol>(m103Item2);
-            Assert.IsType<TupleRenamedElementFieldSymbol>(m103Item9);
+            AssertVirtualTupleElementField(m103Item2);
+            AssertVirtualTupleElementField(m103Item9);
             Assert.Null(m103Item2.TypeLayoutOffset);
             Assert.Equal(20, m103Item2.TupleUnderlyingField.TypeLayoutOffset);
             Assert.Null(m103Item9.TypeLayoutOffset);
@@ -10282,6 +10331,36 @@ partial class C
 
             var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
+        }
+
+        private void AssertTupleNonElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.False(sym.IsVirtualTupleField);
+
+            //it is not an element so index must be negative
+            Assert.True(sym.TupleElementIndex < 0);
+        }
+
+        private void AssertVirtualTupleElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.True(sym.IsVirtualTupleField);
+
+            //it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0);
+        }
+
+        private void AssertNonvirtualTupleElementField(FieldSymbol sym)
+        {
+            Assert.True(sym.IsTupleField);
+            Assert.False(sym.IsVirtualTupleField);
+
+            //it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0);
+
+            //if it was 8th or after, it would be virtual
+            Assert.True(sym.TupleElementIndex < TupleTypeSymbol.RestPosition - 1);
         }
 
         [Fact]
@@ -12957,9 +13036,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib(source,
@@ -12968,9 +13047,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib(source,
@@ -13019,9 +13098,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         "x".M1((1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib(source3,
@@ -13091,12 +13170,12 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,16): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3").WithLocation(6, 16),
-                // (6,16): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3").WithLocation(6, 16),
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`8' is not defined or imported
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib(source3,
@@ -13995,6 +14074,7 @@ class C
             var comp = CreateCompilationWithMscorlib(source,
                 references: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, assemblyName: "ImplicitConversions06Err");
+
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS0030: Cannot convert type '(int, (int, (int, (int, (int, (int, int))))))' to 'C.C1'
                 //         C1 y = (C1)x;   
@@ -15240,6 +15320,402 @@ class C {
             Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
         }
 
+        [Fact]
+        public void TernaryTypeInferenceWithDynamicAndTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+
+        dynamic d = null;
+        var t1 = (a: 1, b: 2);
+        var t2 = (a: 1, c: d);
+        var x2 = flag ? t1 : t2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,32): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(7, 32),
+                // (7,47): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 2").WithArguments("c", "(int a, int)").WithLocation(7, 47)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(5).First());
+            Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TernaryTypeInferenceWithNoNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: 2) : (1, 2);
+        var x2 = flag ? (1, 2) : (a: 1, b: 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,26): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a", "(int, int)").WithLocation(7, 26),
+                // (7,32): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int, int)").WithLocation(7, 32),
+                // (8,35): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a", "(int, int)").WithLocation(8, 35),
+                // (8,41): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int, int)'.
+                //         var x2 = flag ? (1, 2) : (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int, int)").WithLocation(8, 41)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32, System.Int32) x1", x1.ToTestDisplayString());
+
+            var x2 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(2).First());
+            Assert.Equal("(System.Int32, System.Int32) x2", x2.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TernaryTypeInferenceDropsCandidates()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        bool flag = true;
+        var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,59): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, long b)'.
+                //         var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 2").WithArguments("c", "(int a, long b)").WithLocation(7, 59)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int32 a, System.Int64 b) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceWithTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        if (flag)
+                        {
+                            return (a: 1, b: 2);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: 1, c: 3);
+                            }
+                            else
+                            {
+                                return (a: 1, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,43): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                //                             return (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(11, 43),
+                // (17,47): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int)'.
+                //                                 return (a: 1, c: 3);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int)").WithLocation(17, 47),
+                // (21,47): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(int a, int)'.
+                //                                 return (a: 1, d: 4);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 4").WithArguments("d", "(int a, int)").WithLocation(21, 47)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceWithDynamic()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        dynamic d = null;
+                        if (flag)
+                        {
+                            return (a: 1, b: 2);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: d, c: 3);
+                            }
+                            else
+                            {
+                                return (a: d, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (12,43): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(dynamic a, int)'.
+                //                             return (a: 1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(dynamic a, int)").WithLocation(12, 43),
+                // (18,47): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(dynamic a, int)'.
+                //                                 return (a: d, c: 3);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(dynamic a, int)").WithLocation(18, 47),
+                // (22,47): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(dynamic a, int)'.
+                //                                 return (a: d, d: 4);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 4").WithArguments("d", "(dynamic a, int)").WithLocation(22, 47)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var x1 = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("(dynamic a, System.Int32) x1", x1.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void LambdaTypeInferenceFails()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var x1 = M2(() =>
+                    {
+                        bool flag = true;
+                        dynamic d = null;
+                        if (flag)
+                        {
+                            return (a: 1, b: d);
+                        }
+                        else
+                        {
+                            if (flag)
+                            {
+                                return (a: d, c: 3);
+                            }
+                            else
+                            {
+                                return (a: d, d: 4);
+                            }
+                        }
+                    });
+    }
+    public T M2<T>(System.Func<T> f)
+    {
+        return f();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0411: The type arguments for method 'C.M2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var x1 = M2(() =>
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("C.M2<T>(System.Func<T>)").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void WarnForDroppingNamesInConversion()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (int a, int) x1 = (1, b: 2);
+        (int a, string) x2 = (1, b: null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         (int a, int) x1 = (1, b: 2);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 31),
+                // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, string)'.
+                //         (int a, string) x2 = (1, b: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int a, string)").WithLocation(7, 34)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeInferenceMergesTupleNames()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        var t = M2((a: 1, b: 2), (a: 1, c: 3));
+        System.Console.Write(t.a);
+        System.Console.Write(t.b);
+        System.Console.Write(t.c);
+        M2((1, 2), (c: 1, d: 3));
+        M2(new[] { (a: 1, b: 2) }, new[] { (1, 3) });
+    }
+    public T M2<T>(T x1, T x2)
+    {
+        return x1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.b);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(8, 32),
+                // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'c' and no extension method 'c' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.c);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32) C.M2<(System.Int32 a, System.Int32)>((System.Int32 a, System.Int32) x1, (System.Int32 a, System.Int32) x2)", invocation1.Symbol.ToTestDisplayString());
+
+            var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(4).First());
+            Assert.Equal("(System.Int32, System.Int32) C.M2<(System.Int32, System.Int32)>((System.Int32, System.Int32) x1, (System.Int32, System.Int32) x2)", invocation2.Symbol.ToTestDisplayString());
+
+            var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
+            Assert.Equal("(System.Int32, System.Int32)[] C.M2<(System.Int32, System.Int32)[]>((System.Int32, System.Int32)[] x1, (System.Int32, System.Int32)[] x2)", invocation3.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MethodTypeInferenceDropsCandidates()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
+        M2(((long)1, b: 2), (c: 1, d: (byte)3));
+        M2((a: (long)1, b: 2), ((byte)1, 3));
+    }
+    public T M2<T>(T x1, T x2)
+    {
+        return x1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,39): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
+                //         M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: (byte)3").WithArguments("c", "(int a, int b)").WithLocation(6, 39),
+                // (7,30): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(long, int b)'.
+                //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 1").WithArguments("c", "(long, int b)").WithLocation(7, 30),
+                // (7,36): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(long, int b)'.
+                //         M2(((long)1, b: 2), (c: 1, d: (byte)3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: (byte)3").WithArguments("d", "(long, int b)").WithLocation(7, 36)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("(System.Int32 a, System.Int32 b) C.M2<(System.Int32 a, System.Int32 b)>((System.Int32 a, System.Int32 b) x1, (System.Int32 a, System.Int32 b) x2)", invocation1.Symbol.ToTestDisplayString());
+
+            var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(1).First());
+            Assert.Equal("(System.Int64, System.Int32 b) C.M2<(System.Int64, System.Int32 b)>((System.Int64, System.Int32 b) x1, (System.Int64, System.Int32 b) x2)", invocation2.Symbol.ToTestDisplayString());
+
+            var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(2).First());
+            Assert.Equal("(System.Int64 a, System.Int32 b) C.M2<(System.Int64 a, System.Int32 b)>((System.Int64 a, System.Int32 b) x1, (System.Int64 a, System.Int32 b) x2)", invocation3.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MethodTypeInferenceMergesDynamic()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        (dynamic[] a, object[] b) x1 = (null, null);
+        (object[] a, dynamic[] c) x2 = (null, null);
+        M2(x1, x2);
+    }
+    public void M2<T>(T x1, T x2) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
+            Assert.Equal("void C.M2<(dynamic[] a, dynamic[])>((dynamic[] a, dynamic[]) x1, (dynamic[] a, dynamic[]) x2)", invocation1.Symbol.ToTestDisplayString());
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12267")]
         [WorkItem(12267, "https://github.com/dotnet/roslyn/issues/12267")]
         public void ConstraintsAndNames()
@@ -15725,6 +16201,76 @@ public class C3 : I0<int>, I0<int> { }
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var c1 = nodes.OfType<ClassDeclarationSyntax>().First();
+            Assert.Equal(2, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[1].ToTestDisplayString());
+
+            var c2 = nodes.OfType<ClassDeclarationSyntax>().Skip(1).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c2).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c2).AllInterfaces[0].ToTestDisplayString());
+
+            var c3 = nodes.OfType<ClassDeclarationSyntax>().Skip(2).First();
+            Assert.Equal(1, model.GetDeclaredSymbol(c3).AllInterfaces.Count());
+            Assert.Equal("I0<System.Int32>", model.GetDeclaredSymbol(c3).AllInterfaces[0].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AccessCheckLooksInsideTuples()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    (C2.C3, int) M() { throw new System.Exception(); }
+}
+public class C2
+{
+    private class C3 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0122: 'C2.C3' is inaccessible due to its protection level
+                //     (C2.C3, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadAccess, "C3").WithArguments("C2.C3").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void AccessCheckLooksInsideTuples2()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+public class C
+{
+    public (C2, int) M() { throw new System.Exception(); }
+    private class C2 { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (11,22): error CS0050: Inconsistent accessibility: return type '(C.C2, int)' is less accessible than method 'C.M()'
+                //     public (C2, int) M() { throw new System.Exception(); }
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M").WithArguments("C.M()", "(C.C2, int)").WithLocation(11, 22)
+                );
         }
 
         [Fact]
@@ -15955,6 +16501,18 @@ public class Derived : Base<(int a, int b)>
         }
 
         [Fact]
+        public void InterfaceUnification2()
+        {
+            var source = @"
+public interface I0<T1> { }
+public class Derived<T> : I0<Derived<(T, T)>>, I0<T> { }
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            // Didn't run out of memory in trying to substitute T with Derived<(T, T)> in a loop
+        }
+
+        [Fact]
         public void AmbiguousExtensionMethodWithDifferentTupleNames()
         {
             var source = @"
@@ -16155,6 +16713,1175 @@ public class C
 
             var x2 = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
             Assert.Equal("<anonymous type: (System.Int32 c, System.Int32) Tuple> x2", model.GetDeclaredSymbol(x2).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DefiniteAssignment001()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string A, string B) ss;
+
+            ss.A = ""q"";
+            ss.Item2 = ""w"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, w)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment002()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string A, string B) ss;
+
+            ss.A = ""q"";
+            ss.B = ""q"";
+            ss.Item1 = ""w"";
+            ss.Item2 = ""w"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"(w, w)");
+        }
+
+        [Fact]
+        public void DefiniteAssignment003()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string A, (string B, string C) D) ss;
+
+            ss.A = ""q"";
+            ss.D.B = ""w"";
+            ss.D.C = ""e"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, (w, e))
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment004()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            ss.I8 = ""q"";
+            ss.I9 = ""q"";
+            ss.I10 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q, q, q, q, q, q, q, q)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment005()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.Item1 = ""q"";
+            ss.Item2 = ""q"";
+            ss.Item3 = ""q"";
+            ss.Item4 = ""q"";
+            ss.Item5 = ""q"";
+            ss.Item6 = ""q"";
+            ss.Item7 = ""q"";
+            ss.Item8 = ""q"";
+            ss.Item9 = ""q"";
+            ss.Item10 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q, q, q, q, q, q, q, q)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment006()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.Item1 = ""q"";
+            ss.I2 = ""q"";
+            ss.Item3 = ""q"";
+            ss.I4 = ""q"";
+            ss.Item5 = ""q"";
+            ss.I6 = ""q"";
+            ss.Item7 = ""q"";
+            ss.I8 = ""q"";
+            ss.Item9 = ""q"";
+            ss.I10 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q, q, q, q, q, q, q, q)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment007()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.Item1 = ""q"";
+            ss.I2 = ""q"";
+            ss.Item3 = ""q"";
+            ss.I4 = ""q"";
+            ss.Item5 = ""q"";
+            ss.I6 = ""q"";
+            ss.Item7 = ""q"";
+            ss.I8 = ""q"";
+            ss.Item9 = ""q"";
+            ss.I10 = ""q"";
+
+            System.Console.WriteLine(ss.Rest);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment008()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.I8 = ""q"";
+            ss.Item9 = ""q"";
+            ss.I10 = ""q"";
+
+            System.Console.WriteLine(ss.Rest);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q)
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment009()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            Assign(out ss.Rest);
+
+            System.Console.WriteLine(ss);
+        }
+
+        static void Assign<T>(out T v)
+        {
+            v = default(T);
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"
+(q, q, q, q, q, q, q, , , )
+");
+        }
+
+        [Fact]
+        public void DefiniteAssignment010()
+        {
+            var source = @"
+using System;
+class C
+{
+        static void Main(string[] args)
+        {
+            (string I1, 
+             string I2, 
+             string I3, 
+             string I4, 
+             string I5, 
+             string I6, 
+             string I7, 
+             string I8, 
+             string I9, 
+             string I10) ss;
+
+            Assign(out ss.Rest, (""q"", ""w"", ""e""));
+
+            System.Console.WriteLine(ss.I9);
+        }
+
+        static void Assign<T>(out T r, T v)
+        {
+            r = v;
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"w");
+        }
+
+        [Fact]
+        public void DefiniteAssignment011()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        if (1.ToString() == 2.ToString())
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+        else if (1.ToString() == 3.ToString())
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            // ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+        else 
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            // ss.I7 = ""q"";
+            ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss); // should fail
+        }
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1)
+        {
+            this.Item1 = item1;
+        }
+    }
+
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        // public TRest Rest;     oops, Rest is missing
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            // Rest = rest;   
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                parseOptions: TestOptions.Regular);
+
+            comp.VerifyDiagnostics(
+                // (71,38): error CS0165: Use of unassigned local variable 'ss'
+                //             System.Console.WriteLine(ss); // should fail
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(71, 38),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+            );
+        }
+
+        [Fact]
+        public void DefiniteAssignment012()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        if (1.ToString() == 2.ToString())
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss);
+        }
+        else if (1.ToString() == 3.ToString())
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            ss.I7 = ""q"";
+            // ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss); // should fail1
+        }
+        else 
+        {
+            (string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8) ss;
+
+            ss.I1 = ""q"";
+            ss.I2 = ""q"";
+            ss.I3 = ""q"";
+            ss.I4 = ""q"";
+            ss.I5 = ""q"";
+            ss.I6 = ""q"";
+            // ss.I7 = ""q"";
+            ss.I8 = ""q"";
+
+            System.Console.WriteLine(ss); // should fail2
+        }
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                references: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular);
+
+            comp.VerifyEmitDiagnostics(
+                // (49,38): error CS0165: Use of unassigned local variable 'ss'
+                //             System.Console.WriteLine(ss); // should fail1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(49, 38),
+                // (71,38): error CS0165: Use of unassigned local variable 'ss'
+                //             System.Console.WriteLine(ss); // should fail2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(71, 38)
+            );
+        }
+
+
+        [Fact]
+        public void DefiniteAssignment013()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        (string I1, 
+            string I2, 
+            string I3, 
+            string I4, 
+            string I5, 
+            string I6, 
+            string I7, 
+            string I8) ss;
+
+        ss.I1 = ""q"";
+        ss.I2 = ""q"";
+        ss.I3 = ""q"";
+        ss.I4 = ""q"";
+        ss.I5 = ""q"";
+        ss.I6 = ""q"";
+        ss.I7 = ""q"";
+
+        ss.Item1 = ""q"";
+        ss.Item2 = ""q"";
+        ss.Item3 = ""q"";
+        ss.Item4 = ""q"";
+        ss.Item5 = ""q"";
+        ss.Item6 = ""q"";
+        ss.Item7 = ""q"";
+
+        System.Console.WriteLine(ss.Rest);
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                references: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular);
+
+            comp.VerifyEmitDiagnostics(
+                // (32,34): error CS0170: Use of possibly unassigned field 'Rest'
+                //         System.Console.WriteLine(ss.Rest);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.Rest").WithArguments("Rest").WithLocation(32, 34)
+            );
+        }
+
+        [Fact]
+        public void DefiniteAssignment014()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        (string I1, 
+            string I2, 
+            string I3, 
+            string I4, 
+            string I5, 
+            string I6, 
+            string I7, 
+            string I8) ss;
+
+        ss.I1 = ""q"";
+        ss.Item2 = ""aa"";
+
+        System.Console.WriteLine(ss.Item1);
+        System.Console.WriteLine(ss.I2);
+
+        System.Console.WriteLine(ss.I3);
+       
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                references: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular);
+
+            comp.VerifyEmitDiagnostics(
+                // (22,34): error CS0170: Use of possibly unassigned field 'I3'
+                //         System.Console.WriteLine(ss.I3);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.I3").WithArguments("I3").WithLocation(22, 34)
+            );
+        }
+
+        [Fact]
+        public void DefiniteAssignment015()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+        static void Main(string[] args)
+        {
+            var v = Test().Result;
+        }
+
+        static async Task<long> Test()
+        {
+            (long a, int b) v1;
+            (byte x, int y) v2;
+
+            v1.a = 5;  
+
+            v2.x = 5;   // no need to persist across await since it is unused after it.
+            System.Console.WriteLine(v2.Item1);
+
+            await Task.Yield();
+
+            // this is assigned and persisted across await
+            return v1.Item1;            
+        }
+    }
+" + trivial2uple;
+
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", options: TestOptions.ReleaseExe);
+
+            // NOTE: !!! There should be NO IL local for  " (long a, int b) v1 " , it should be captured instead
+            // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
+            verifier.VerifyIL("C.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      201 (0xc9)
+  .maxstack  3
+  .locals init (int V_0,
+                long V_1,
+                System.ValueTuple<byte, int> V_2, //v2
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_3,
+                System.Runtime.CompilerServices.YieldAwaitable V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0062
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_0010:  ldc.i4.5
+    IL_0011:  conv.i8
+    IL_0012:  stfld      ""long System.ValueTuple<long, int>.Item1""
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  ldc.i4.5
+    IL_001a:  stfld      ""byte System.ValueTuple<byte, int>.Item1""
+    IL_001f:  ldloc.2
+    IL_0020:  ldfld      ""byte System.ValueTuple<byte, int>.Item1""
+    IL_0025:  call       ""void System.Console.WriteLine(int)""
+    IL_002a:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+    IL_002f:  stloc.s    V_4
+    IL_0031:  ldloca.s   V_4
+    IL_0033:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+    IL_0038:  stloc.3
+    IL_0039:  ldloca.s   V_3
+    IL_003b:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+    IL_0040:  brtrue.s   IL_007e
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.0
+    IL_0044:  dup
+    IL_0045:  stloc.0
+    IL_0046:  stfld      ""int C.<Test>d__1.<>1__state""
+    IL_004b:  ldarg.0
+    IL_004c:  ldloc.3
+    IL_004d:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1.<>u__1""
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+    IL_0058:  ldloca.s   V_3
+    IL_005a:  ldarg.0
+    IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1)""
+    IL_0060:  leave.s    IL_00c8
+    IL_0062:  ldarg.0
+    IL_0063:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1.<>u__1""
+    IL_0068:  stloc.3
+    IL_0069:  ldarg.0
+    IL_006a:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1.<>u__1""
+    IL_006f:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0075:  ldarg.0
+    IL_0076:  ldc.i4.m1
+    IL_0077:  dup
+    IL_0078:  stloc.0
+    IL_0079:  stfld      ""int C.<Test>d__1.<>1__state""
+    IL_007e:  ldloca.s   V_3
+    IL_0080:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0085:  ldloca.s   V_3
+    IL_0087:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_008d:  ldarg.0
+    IL_008e:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_0093:  ldfld      ""long System.ValueTuple<long, int>.Item1""
+    IL_0098:  stloc.1
+    IL_0099:  leave.s    IL_00b4
+  }
+  catch System.Exception
+  {
+    IL_009b:  stloc.s    V_5
+    IL_009d:  ldarg.0
+    IL_009e:  ldc.i4.s   -2
+    IL_00a0:  stfld      ""int C.<Test>d__1.<>1__state""
+    IL_00a5:  ldarg.0
+    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+    IL_00ab:  ldloc.s    V_5
+    IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetException(System.Exception)""
+    IL_00b2:  leave.s    IL_00c8
+  }
+  IL_00b4:  ldarg.0
+  IL_00b5:  ldc.i4.s   -2
+  IL_00b7:  stfld      ""int C.<Test>d__1.<>1__state""
+  IL_00bc:  ldarg.0
+  IL_00bd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+  IL_00c2:  ldloc.1
+  IL_00c3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetResult(long)""
+  IL_00c8:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StructInStruct()
+        {
+            var source = @"
+public struct S
+{
+    public (S, S) field;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0523: Struct member 'S.field' of type '(S, S)' causes a cycle in the struct layout
+                //     public (S, S) field;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("S.field", "(S, S)").WithLocation(4, 19)
+                );
+        }
+
+        [Fact]
+        public void RetargetTupleErrorType()
+        {
+            var lib_cs = @"
+public class A
+{
+    public static (int, int) M() { return (1, 2); }
+}
+";
+            var source = @"
+public class B
+{
+    void M2() { return A.M(); }
+}
+";
+            var lib = CreateCompilationWithMscorlib(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { lib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0012: The type 'ValueTuple<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("System.ValueTuple<,>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                );
+
+            var methodM = comp.GetMember<MethodSymbol>("A.M");
+
+            Assert.Equal("(System.Int32, System.Int32)", methodM.ReturnType.ToTestDisplayString());
+            Assert.True(methodM.ReturnType.IsTupleType);
+            Assert.False(methodM.ReturnType.IsErrorType());
+            Assert.True(methodM.ReturnType.TupleUnderlyingType.IsErrorType());
+        }
+
+        [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
+        public void AssignNullWithMissingValueTuple()
+        {
+            var source = @"
+public class S
+{
+    (int, int) t = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 5),
+                // (4,20): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //     (int, int) t = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(4, 20)
+                );
+        }
+
+        [Fact, WorkItem(11302, "https://github.com/dotnet/roslyn/issues/11302")]
+        public void CrashInVisitCallReceiverOnBadTupleSyntax()
+        {
+            var source1 = @"
+public static class C1
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var source2 = @"
+public static class C2
+{
+    public void M1(this int x, (int, int)))
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+" + trivial2uple;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+                          parseOptions: TestOptions.Regular.WithTuplesFeature());
+
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        int x = 0;
+        x.M1((1, 1));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source,
+                        references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
+                        parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                        options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
+                //         x.M1((1, 1));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C1.M1(int, (int, int))", "C2.M1(int, (int, int))").WithLocation(7, 11)
+                );
+        }
+
+        [Fact, WorkItem(12952, "https://github.com/dotnet/roslyn/issues/12952")]
+        public void DropTupleNamesFromArray()
+        {
+            var source = @"
+public class C
+{
+    public (int c, int d)[] M()
+    {
+        return new[] { (d: 1, 2) };
+    }
+    public (int c, int d)[] M2()
+    {
+        return new[] { (d: 1, 2), (d: 1, e: 3), TupleDE() };
+    }
+    public (int d, int e) TupleDE()
+    {
+        return (1, 3);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,42): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int d, int)'.
+                //         return new[] { (d: 1, 2), (d: 1, e: 3), TupleDE() };
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 3").WithArguments("e", "(int d, int)").WithLocation(10, 42)
+                );
+        }
+
+        [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
+        public void ObsoleteValueTuple()
+        {
+            var lib_cs = @"
+namespace System
+{
+    [Obsolete]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3) { }
+    }
+    [Obsolete]
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+    }
+}
+public class D
+{
+    public static void M2((int, int) x) { }
+    public static void M3((int, string) x) { }
+}
+";
+            var source = @"
+public class C
+{
+    void M()
+    {
+        (int, int) x1 = (1, 2);
+        var x2 = (1, 2);
+        var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        var x10 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        D.M2((1, 2));
+        D.M3((1, null));
+    }
+}
+";
+
+            var compLib = CreateCompilationWithMscorlib(lib_cs, options: TestOptions.ReleaseDll);
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { compLib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         (int, int) x1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(6, 9),
+                // (6,9): warning CS0612: '(int, int)' is obsolete
+                //         (int, int) x1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int, int)").WithArguments("(int, int)").WithLocation(6, 9),
+                // (6,25): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         (int, int) x1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(6, 25),
+                // (7,18): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         var x2 = (1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(7, 18),
+                // (8,18): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 18),
+                // (8,18): warning CS0612: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' is obsolete
+                //         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>").WithLocation(8, 18),
+                // (9,19): warning CS0612: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' is obsolete
+                //         var x10 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>").WithLocation(9, 19),
+                // (10,14): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         D.M2((1, 2));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(10, 14),
+                // (11,14): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         D.M3((1, null));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14)
+                );
+        }
+
+
+        [Fact, WorkItem(10951, "https://github.com/dotnet/roslyn/issues/10951")]
+        public void ObsoleteValueTuple2()
+        {
+            var source = @"
+public class C
+{
+    void M()
+    {
+        var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+    }
+}
+namespace System
+{
+    [Obsolete]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
+                //         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(6, 18)
+                );
+        }
+
+        [Fact, WorkItem(13365, "https://github.com/dotnet/roslyn/issues/13365")]
+        public void Bug13365()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+
+public class C
+{
+    public (int, int) GetCoordinates() => (0, 0);
+    public (int x, int y) GetCoordinates2() => (0, 0);
+
+    public void PrintCoordinates()
+    {
+        (int x1, int y1) = GetCoordinates();
+        (int x2, int y2) = GetCoordinates2();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
+            comp.VerifyEmitDiagnostics(
+                // (25,9): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (int x1, int y1) = GetCoordinates();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates();").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
+                // (25,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (int x1, int y1) = GetCoordinates();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates();").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
+                // (26,9): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (int x2, int y2) = GetCoordinates2();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2();").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9),
+                // (26,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (int x2, int y2) = GetCoordinates2();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2();").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9)
+            );
+        }
+
+        [Fact, WorkItem(13494, "https://github.com/dotnet/roslyn/issues/13494")]
+        public static void Bug13494()
+        {
+            var source1 = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var(a,  )
+    }
+}
+";
+
+            var text = SourceText.From(source1);
+            var startTree = SyntaxFactory.ParseSyntaxTree(text);
+            var finalString = startTree.GetCompilationUnitRoot().ToFullString();
+
+            var pos = source1.IndexOf("var(a,  )") + 8;
+            var newText = text.WithChanges(new TextChange(new TextSpan(pos, 0), " ")); // add space before closing-paren
+            var newTree = startTree.WithChangedText(newText);
+            var finalText = newTree.GetCompilationUnitRoot().ToFullString();
+            Assert.Equal(newText.ToString(), finalText);
+            // no crash
         }
     }
 }

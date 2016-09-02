@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindObjectCreationExpression(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             type As TypeSymbol,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag) As BoundExpression
@@ -178,10 +178,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindObjectCreationExpression(
-            typeNode As VisualBasicSyntaxNode,
+            typeNode As SyntaxNode,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             objectInitializerExpressionOpt As BoundObjectInitializerExpressionBase,
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindNoPiaObjectCreationExpression(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),

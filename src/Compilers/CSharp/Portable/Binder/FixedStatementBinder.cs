@@ -28,12 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(RefKind.None, _syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
 
-                    if (declarator.Initializer != null)
-                    {
-                        PatternVariableFinder.FindPatternVariables(this, locals, declarator.Initializer.Value);
-                    }
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
                 return locals.ToImmutable();
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

@@ -2839,15 +2839,18 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "void f() { if () const int i = 0; }").WithArguments("local functions", "7").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(6, 14),
                 // (6,24): error CS1525: Invalid expression term ')'
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
                 // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26),
+                // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         void f() { if () const int i = 0; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
                 // (6,14): warning CS0168: The variable 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
@@ -2904,7 +2907,10 @@ void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
     // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
     // void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18)
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18),
+    // (2,28): warning CS0219: The variable 'i' is assigned but its value is never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 28)
                 );
         }
 

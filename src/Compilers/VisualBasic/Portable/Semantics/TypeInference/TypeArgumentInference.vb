@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -100,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride Function InferTypeAndPropagateHints() As Boolean
 
             <Conditional("DEBUG")>
-            Public Sub VerifyIncomingInferenceComplete( _
-                    ByVal nodeType As InferenceNodeType _
+            Public Sub VerifyIncomingInferenceComplete(
+                    ByVal nodeType As InferenceNodeType
                 )
                 If Not Graph.SomeInferenceHasFailed() Then
                     For Each current As InferenceNode In IncomingEdges
@@ -121,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Parameter As ParameterSymbol
             Public InferredFromObject As Boolean
             Public TypeParameter As TypeParameterSymbol
-            Public ArgumentLocation As VisualBasicSyntaxNode
+            Public ArgumentLocation As SyntaxNode
 
         End Class
 
@@ -228,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function InferTypeAndPropagateHints() As Boolean
                 Dim numberOfIncomingEdges As Integer = IncomingEdges.Count
                 Dim restartAlgorithm As Boolean = False
-                Dim argumentLocation As VisualBasicSyntaxNode
+                Dim argumentLocation As SyntaxNode
                 Dim numberOfIncomingWithNothing As Integer = 0
 
                 If numberOfIncomingEdges > 0 Then
@@ -360,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub AddTypeHint(
                 type As TypeSymbol,
                 typeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -569,16 +563,23 @@ HandleAsAGeneralExpression:
 
                         Dim arrayLiteral As BoundArrayLiteral = Nothing
                         Dim argumentTypeByAssumption As Boolean = False
+                        Dim expressionType As TypeSymbol
 
                         If Expression.Kind = BoundKind.ArrayLiteral Then
                             arrayLiteral = DirectCast(Expression, BoundArrayLiteral)
                             argumentTypeByAssumption = arrayLiteral.NumberOfCandidates <> 1
+                            expressionType = New ArrayLiteralTypeSymbol(arrayLiteral)
+
+                        ElseIf Expression.Kind = BoundKind.TupleLiteral Then
+                            expressionType = DirectCast(Expression, BoundTupleLiteral).InferredType
+                        Else
+                            expressionType = Expression.Type
                         End If
 
                         ' Need to create an ArrayLiteralTypeSymbol
                         inferenceOk = Graph.InferTypeArgumentsFromArgument(
                             Expression.Syntax,
-                            If(Expression.Kind <> BoundKind.ArrayLiteral, Expression.Type, New ArrayLiteralTypeSymbol(arrayLiteral)),
+                            expressionType,
                             argumentTypeByAssumption,
                             ParameterType,
                             Parameter,
@@ -1040,6 +1041,8 @@ HandleAsAGeneralExpression:
                         AddLambdaToGraph(argNode, argument.GetBinderFromLambda())
                     Case BoundKind.AddressOfOperator
                         AddAddressOfToGraph(argNode, DirectCast(argument, BoundAddressOfOperator).Binder)
+                    Case BoundKind.TupleLiteral
+                        AddTupleLiteralToGraph(argNode)
                     Case Else
                         AddTypeToGraph(argNode, isOutgoingEdge:=True)
                 End Select
@@ -1099,15 +1102,48 @@ HandleAsAGeneralExpression:
 
                         Dim possiblyGenericType = DirectCast(parameterType, NamedTypeSymbol)
 
-                        Do
-                            For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                                AddTypeToGraph(typeArgument, argNode, isOutgoingEdge, haveSeenTypeParameters)
+                        Dim elementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                        If possiblyGenericType.TryGetElementTypesIfTupleOrCompatible(elementTypes) Then
+                            For Each elementType In elementTypes
+                                AddTypeToGraph(elementType, argNode, isOutgoingEdge, haveSeenTypeParameters)
                             Next
+                        Else
 
-                            possiblyGenericType = possiblyGenericType.ContainingType
-                        Loop While possiblyGenericType IsNot Nothing
+                            Do
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                    AddTypeToGraph(typeArgument, argNode, isOutgoingEdge, haveSeenTypeParameters)
+                                Next
+
+                                possiblyGenericType = possiblyGenericType.ContainingType
+                            Loop While possiblyGenericType IsNot Nothing
+                        End If
                 End Select
 
+            End Sub
+
+            Private Sub AddTupleLiteralToGraph(argNode As ArgumentNode)
+                AddTupleLiteralToGraph(argNode.ParameterType, argNode)
+            End Sub
+
+            Private Sub AddTupleLiteralToGraph(
+                parameterType As TypeSymbol,
+                argNode As ArgumentNode
+            )
+                Debug.Assert(argNode.Expression.Kind = BoundKind.TupleLiteral)
+
+                Dim tupleLiteral = DirectCast(argNode.Expression, BoundTupleLiteral)
+                Dim tupleArguments = tupleLiteral.Arguments
+
+                If parameterType.IsTupleOrCompatibleWithTupleOfCardinality(tupleArguments.Length) Then
+                    Dim parameterElementTypes = parameterType.GetElementTypesOfTupleOrCompatible
+                    For i As Integer = 0 To tupleArguments.Length - 1
+                        RegisterArgument(tupleArguments(i), parameterElementTypes(i), argNode.Parameter)
+                    Next
+
+                    Return
+                End If
+
+                AddTypeToGraph(argNode, isOutgoingEdge:=True)
             End Sub
 
             Private Sub AddAddressOfToGraph(argNode As ArgumentNode, binder As Binder)
@@ -1251,7 +1287,7 @@ HandleAsAGeneralExpression:
                 genericParameter As TypeParameterSymbol,
                 inferredType As TypeSymbol,
                 inferredTypeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -1291,16 +1327,24 @@ HandleAsAGeneralExpression:
 
                         Dim possiblyGenericType = DirectCast(parameterType, NamedTypeSymbol)
 
-                        Do
-                            For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                                If RefersToGenericParameterToInferArgumentFor(typeArgument) Then
+                        Dim elementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                        If possiblyGenericType.TryGetElementTypesIfTupleOrCompatible(elementTypes) Then
+                            For Each elementType In elementTypes
+                                If RefersToGenericParameterToInferArgumentFor(elementType) Then
                                     Return True
                                 End If
                             Next
+                        Else
+                            Do
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                    If RefersToGenericParameterToInferArgumentFor(typeArgument) Then
+                                        Return True
+                                    End If
+                                Next
 
-                            possiblyGenericType = possiblyGenericType.ContainingType
-                        Loop While possiblyGenericType IsNot Nothing
-
+                                possiblyGenericType = possiblyGenericType.ContainingType
+                            Loop While possiblyGenericType IsNot Nothing
+                        End If
                 End Select
 
                 Return False
@@ -1320,7 +1364,7 @@ HandleAsAGeneralExpression:
             '   -- If P is Array Of T, and A is Array Of X, then infer X for T
             '   -- If P is ByRef T, then infer A for T
             Private Function InferTypeArgumentsFromArgumentDirectly(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1346,6 +1390,7 @@ HandleAsAGeneralExpression:
                 '   -- If P is G(Of T) and A is G(Of X), then infer X for T
                 '   -- If P is Array Of T, and A is Array Of X, then infer X for T
                 '   -- If P is ByRef T, then infer A for T
+                '   -- If P is (T, T) and A is (X, X), then infer X for T
 
                 If parameterType.IsTypeParameter() Then
 
@@ -1357,6 +1402,39 @@ HandleAsAGeneralExpression:
                         param,
                         False,
                         inferenceRestrictions)
+                    Return True
+                End If
+
+
+                Dim parameterElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                If parameterType.TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) Then
+
+                    Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
+                    If Not argumentType.TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) OrElse
+                            parameterElementTypes.Length <> argumentElementTypes.Length Then
+                        Return False
+                    End If
+
+                    For typeArgumentIndex As Integer = 0 To parameterElementTypes.Length - 1
+
+                        Dim parameterElementType = parameterElementTypes(typeArgumentIndex)
+                        Dim argumentElementType = argumentElementTypes(typeArgumentIndex)
+
+                        ' propagate restrictions to the elements
+                        If Not InferTypeArgumentsFromArgument(
+                                        argumentLocation,
+                                        argumentElementType,
+                                        argumentTypeByAssumption,
+                                        parameterElementType,
+                                        param,
+                                        digThroughToBasesAndImplements,
+                                        inferenceRestrictions
+                          ) Then
+                            Return False
+                        End If
+                    Next
+
+                    Return True
 
                 ElseIf parameterType.Kind = SymbolKind.NamedType Then
                     ' e.g. handle foo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
@@ -1424,7 +1502,7 @@ HandleAsAGeneralExpression:
                                             Case VarianceKind.In
 
                                                 paramInferenceRestrictions = Conversions.InvertConversionRequirement(
-                                                    Conversions.StrengthenConversionRequirementToReference(inferenceRestrictions))
+                                                Conversions.StrengthenConversionRequirementToReference(inferenceRestrictions))
 
                                             Case VarianceKind.Out
 
@@ -1446,14 +1524,14 @@ HandleAsAGeneralExpression:
                                         End If
 
                                         If Not InferTypeArgumentsFromArgument(
-                                                                            argumentLocation,
-                                                                            argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
-                                                                            argumentTypeByAssumption,
-                                                                            parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
-                                                                            param,
-                                                                            _DigThroughToBasesAndImplements,
-                                                                            paramInferenceRestrictions
-                                                                      ) Then
+                                                                        argumentLocation,
+                                                                        argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        argumentTypeByAssumption,
+                                                                        parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        param,
+                                                                        _DigThroughToBasesAndImplements,
+                                                                        paramInferenceRestrictions
+                                                                  ) Then
                                             ' TODO: Would it make sense to continue through other type arguments even if inference failed for 
                                             '       the current one?
                                             Return False
@@ -1479,13 +1557,13 @@ HandleAsAGeneralExpression:
 
                             ' lwischik: ??? what do array elements have to do with nullables?
                             Return InferTypeArgumentsFromArgument(
-                                    argumentLocation,
-                                    argumentType,
-                                    argumentTypeByAssumption,
-                                    parameterTypeAsNamedType.GetNullableUnderlyingType(),
-                                    param,
-                                    digThroughToBasesAndImplements,
-                                    Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement))
+                                argumentLocation,
+                                argumentType,
+                                argumentTypeByAssumption,
+                                parameterTypeAsNamedType.GetNullableUnderlyingType(),
+                                param,
+                                digThroughToBasesAndImplements,
+                                Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement))
 
                         End If
 
@@ -1542,7 +1620,7 @@ HandleAsAGeneralExpression:
             ' here (to show success at pattern-matching) and leave the downstream code to produce an error message about
             ' failing to infer T.
             Friend Function InferTypeArgumentsFromArgument(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -2262,8 +2340,5 @@ HandleAsAGeneralExpression:
             End Sub
 
         End Class
-
     End Class
-
 End Namespace
-

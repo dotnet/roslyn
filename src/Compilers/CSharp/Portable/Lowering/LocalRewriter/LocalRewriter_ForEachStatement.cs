@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement RewriteEnumeratorForEachStatement(BoundForEachStatement node)
         {
-            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)node.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             ForEachEnumeratorInfo enumeratorInfo = node.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo != null);
@@ -209,7 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposeStmt));
                 }
                 else
@@ -261,7 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (d != null) d.Dispose();
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray.Create<LocalSymbol>(disposableVar),
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposableVarDecl, ifStmt));
                 }
 
@@ -277,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
                     tryBlock: new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
-                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(whileLoop)),
                     catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
                     finallyBlockOpt: finallyBlockOpt);
@@ -288,7 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -301,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -385,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteStringForEachStatement(BoundForEachStatement node)
         {
-            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)node.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
             TypeSymbol stringType = collectionExpression.Type;
@@ -504,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     BoundExpression iterationVarValue,
                                     out ImmutableArray<LocalSymbol> iterationVariables)
         {
-            var forEachSyntax = (ForEachStatementSyntax)forEachBound.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)forEachBound.Syntax;
 
             BoundStatement iterationVarDecl;
             BoundForEachDeconstructStep deconstruction = forEachBound.DeconstructionOpt;
@@ -535,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundStatement iteratorVariableInitialization,
             BoundStatement rewrittenBody,
-            ForEachStatementSyntax forEachSyntax)
+            CommonForEachStatementSyntax forEachSyntax)
         {
             // The scope of the iteration variable is the embedded statement syntax.
             // However consider the following foreach statement:
@@ -549,7 +544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 forEachSyntax,
                 locals: iterationVariables,
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create(iteratorVariableInitialization, rewrittenBody));
         }
 
@@ -571,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteSingleDimensionalArrayForEachStatement(BoundForEachStatement node)
         {
-            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)node.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
             Debug.Assert(collectionExpression.Type.IsArray());
@@ -700,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteMultiDimensionalArrayForEachStatement(BoundForEachStatement node)
         {
-            ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)node.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
             Debug.Assert(collectionExpression.Type.IsArray());
@@ -865,7 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result = new BoundBlock(
                 forEachSyntax,
                 ImmutableArray.Create(arrayVar).Concat(upperVar.AsImmutableOrNull()),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 ImmutableArray.Create(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
 
             InstrumentForEachStatement(node, ref result);
@@ -943,8 +936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Instrument)
             {
-                ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)original.Syntax;
-                if (forEachSyntax.IsDeconstructionDeclaration)
+                CommonForEachStatementSyntax forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
+                if (forEachSyntax is ForEachComponentStatementSyntax)
                 {
                     iterationVarDecl = _instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
                 }

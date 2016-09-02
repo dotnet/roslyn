@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var writer = new ObjectWriter(stream))
             {
                 // serialize asset to bits
-                await checksumObject.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await checksumObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             await VerifyAssetSerializationAsync<SolutionChecksumObjectInfo>(
                 service, solutionId.Info, WellKnownChecksumObjects.SolutionChecksumObjectInfo,
-                (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.SerializeSolutionSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<SolutionChecksumObjectInfo>(v, k, s.SerializeSolutionChecksumObjectInfo)).ConfigureAwait(false);
 
             foreach (var checksum in solutionId.Projects)
             {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<ProjectChecksumObjectInfo>(
                 service, projectId.Info, WellKnownChecksumObjects.ProjectChecksumObjectInfo,
-                (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.SerializeProjectSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<ProjectChecksumObjectInfo>(v, k, s.SerializeProjectChecksumObjectInfo)).ConfigureAwait(false);
 
             var project = solution.GetProject(info.Id);
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<DocumentChecksumObjectInfo>(
                 service, documentId.Info, WellKnownChecksumObjects.DocumentChecksumObjectInfo,
-                (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.SerializeDocumentSnapshotInfo)).ConfigureAwait(false);
+                (v, k, s) => new Asset<DocumentChecksumObjectInfo>(v, k, s.SerializeDocumentChecksumObjectInfo)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
                 service, documentId.Text, WellKnownChecksumObjects.SourceText,
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var writer = new ObjectWriter(stream))
             {
                 // serialize asset to bits
-                await originalChecksumObject.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await originalChecksumObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                await solutionId.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await solutionId.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))

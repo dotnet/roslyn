@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -25,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly int _length;
         private readonly Encoding _encoding;
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
-            : base(checksum, checksumAlgorithm)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
+            : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             _chunks = chunks;
             _encoding = encoding;
@@ -41,17 +42,19 @@ namespace Microsoft.CodeAnalysis.Text
             _length = offset;
         }
 
-        internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
+        internal static SourceText Decode(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected, bool canBeEmbedded)
         {
             stream.Seek(0, SeekOrigin.Begin);
 
-            int length = (int)stream.Length;
-            if (length == 0)
+            long longLength = stream.Length;
+            if (longLength == 0)
             {
                 return SourceText.From(string.Empty, encoding, checksumAlgorithm);
             }
 
-            var maxCharRemainingGuess = encoding.GetMaxCharCount(length);
+            var maxCharRemainingGuess = encoding.GetMaxCharCountOrThrowIfHuge(stream);
+            Debug.Assert(longLength > 0 && longLength <= int.MaxValue); // GetMaxCharCountOrThrowIfHuge should have thrown.
+            int length = (int)longLength;
 
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(length, 4096), leaveOpen: true))
             {
@@ -91,8 +94,11 @@ namespace Microsoft.CodeAnalysis.Text
                     chunks.Add(chunk);
                 }
 
+                // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
+                // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
                 var checksum = CalculateChecksum(stream, checksumAlgorithm);
-                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, checksum, checksumAlgorithm);
+                var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
+                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, checksum, checksumAlgorithm, embeddedTextBlob);
             }
         }
 

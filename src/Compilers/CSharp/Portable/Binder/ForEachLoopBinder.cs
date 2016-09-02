@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string CurrentPropertyName = WellKnownMemberNames.CurrentPropertyName;
         private const string MoveNextMethodName = WellKnownMemberNames.MoveNextMethodName;
 
-        private readonly ForEachStatementSyntax _syntax;
+        private readonly CommonForEachStatementSyntax _syntax;
         private SourceLocalSymbol IterationVariable
         {
             get
             {
-                return _syntax.IsDeconstructionDeclaration ? null : (SourceLocalSymbol)this.Locals[0];
+                return (_syntax.Kind() == SyntaxKind.ForEachStatement) ? (SourceLocalSymbol)this.Locals[0] : null;
             }
         }
 
-        public ForEachLoopBinder(Binder enclosing, ForEachStatementSyntax syntax)
+        public ForEachLoopBinder(Binder enclosing, CommonForEachStatementSyntax syntax)
             : base(enclosing)
         {
             Debug.Assert(syntax != null);
@@ -40,28 +40,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (_syntax.IsDeconstructionDeclaration)
+            switch (_syntax.Kind())
             {
-                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-
-                CollectLocalsFromDeconstruction(
-                    _syntax.DeconstructionVariables,
-                    _syntax.DeconstructionVariables.Type,
-                    LocalDeclarationKind.ForEachIterationVariable,
-                    locals);
-
-                return locals.ToImmutableAndFree();
-            }
-            else
-            {
-                var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
-                    (MethodSymbol)this.ContainingMemberOrLambda,
-                    this,
-                    _syntax.Type,
-                    _syntax.Identifier,
-                    _syntax.Expression);
-
-                return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var syntax = (ForEachComponentStatementSyntax)_syntax;
+                        var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                        CollectLocalsFromDeconstruction(
+                            syntax.VariableComponent,
+                            LocalDeclarationKind.ForEachIterationVariable,
+                            locals,
+                            syntax);
+                        return locals.ToImmutableAndFree();
+                    }
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var syntax = (ForEachStatementSyntax)_syntax;
+                        var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
+                            (MethodSymbol)this.ContainingMemberOrLambda,
+                            this,
+                            syntax.Type,
+                            syntax.Identifier,
+                            syntax.Expression);
+                        return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
             }
         }
 
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Like BindForEachParts, but only bind the deconstruction part of the foreach, for purpose of inferring the types of the declared locals.
         /// </summary>
-        internal override void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundStatement BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue);
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
-            VariableDeclarationSyntax variables = _syntax.DeconstructionVariables;
+            VariableComponentSyntax variables = ((ForEachComponentStatementSyntax)_syntax).VariableComponent;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
                                                                     variables,
@@ -94,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                     right: null,
                                                                     diagnostics: diagnostics,
                                                                     rightPlaceholder: valuePlaceholder);
+            return new BoundExpressionStatement(_syntax, deconstruction);
         }
 
         private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
@@ -115,49 +120,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
-            if (_syntax.IsDeconstructionDeclaration)
+            switch (_syntax.Kind())
             {
-                iterationVariableType = inferredType ?? CreateErrorType("var");
+                case SyntaxKind.ForEachStatement:
+                    {
+                        var node = (ForEachStatementSyntax)_syntax;
+                        // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
+                        // binder has a local that matches!
+                        hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
-                VariableDeclarationSyntax variables = _syntax.DeconstructionVariables;
-                var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
-                                                                        variables,
-                                                                        variables,
-                                                                        right: null,
-                                                                        diagnostics: diagnostics,
-                                                                        rightPlaceholder: valuePlaceholder);
+                        // If the type in syntax is "var", then the type should be set explicitly so that the
+                        // Type property doesn't fail.
+                        TypeSyntax typeSyntax = node.Type;
 
-                deconstructStep = new BoundForEachDeconstructStep(_syntax.DeconstructionVariables, deconstruction, valuePlaceholder);
-                boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
-            }
-            else
-            {
-                // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
-                // binder has a local that matches!
-                hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
+                        bool isVar;
+                        AliasSymbol alias;
+                        TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
 
-                // If the type in syntax is "var", then the type should be set explicitly so that the
-                // Type property doesn't fail.
+                        if (isVar)
+                        {
+                            iterationVariableType = inferredType ?? CreateErrorType("var");
+                        }
+                        else
+                        {
+                            Debug.Assert((object)declType != null);
+                            iterationVariableType = declType;
+                        }
 
-                TypeSyntax typeSyntax = _syntax.Type;
+                        boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
+                        this.IterationVariable.SetType(iterationVariableType);
+                        break;
+                    }
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var node = (ForEachComponentStatementSyntax)_syntax;
+                        iterationVariableType = inferredType ?? CreateErrorType("var");
 
-                bool isVar;
-                AliasSymbol alias;
-                TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+                        var variables = node.VariableComponent;
+                        var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+                                                                                variables,
+                                                                                variables,
+                                                                                right: null,
+                                                                                diagnostics: diagnostics,
+                                                                                rightPlaceholder: valuePlaceholder);
 
-                if (isVar)
-                {
-                    iterationVariableType = inferredType ?? CreateErrorType("var");
-                }
-                else
-                {
-                    Debug.Assert((object)declType != null);
-                    iterationVariableType = declType;
-                }
-
-                boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                this.IterationVariable.SetTypeSymbol(iterationVariableType);
+                        deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
             }
 
             BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
@@ -324,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This behavior is not spec'd, but it's what Dev10 does.
             if ((object)collectionExprType != null && collectionExprType.IsNullableType())
             {
-                CSharpSyntaxNode exprSyntax = collectionExpr.Syntax;
+                SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
                 if ((object)nullableValueGetter != null)
@@ -529,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionExprType.IsDynamic())
             {
-                builder.ElementType = _syntax.Type.IsVar ?
+                builder.ElementType = ((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
                     (TypeSymbol)DynamicTypeSymbol.Instance :
                     GetSpecialType(SpecialType.System_Object, diagnostics, _syntax);
             }
@@ -961,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

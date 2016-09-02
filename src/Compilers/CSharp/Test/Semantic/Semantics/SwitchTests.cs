@@ -359,14 +359,14 @@ public class TestClass
     }
 }";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
+                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(15, 13)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
+                // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
                 //             default:            //CS0152
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(15, 13)
                 );
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
@@ -1116,19 +1116,6 @@ class C
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
-                //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
-                );
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
-                // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
-                //                 M();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17)
-                );
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case ((o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
@@ -1138,6 +1125,31 @@ class C
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
+                );
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
+                // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
+                // (8,18): error CS0150: A constant value is expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
+                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                //                 M();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
+                );
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case ((o.GetType().Name.Length)):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((o.GetType().Name.Length))").WithLocation(8, 18),
+                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                //                 M();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 0:").WithLocation(12, 13)
                 );
         }
 

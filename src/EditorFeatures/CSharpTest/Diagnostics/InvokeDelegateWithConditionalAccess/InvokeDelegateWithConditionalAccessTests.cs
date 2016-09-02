@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -44,6 +45,25 @@ class C
         a?.Invoke();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestMissingBeforeCSharp6()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]

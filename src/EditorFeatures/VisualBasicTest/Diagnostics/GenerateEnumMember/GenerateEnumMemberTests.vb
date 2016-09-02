@@ -35,6 +35,13 @@ NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n En
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        Public Async Function TestGenerateBinaryLiteral() As Task
+            Await TestAsync(
+NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Green|]) \n End Sub \n End Module \n Enum Color \n Red = &B01 \n End Enum"),
+NewLines("Module Program \n Sub Main(args As String()) \n Foo(Color.Green) \n End Sub \n End Module \n Enum Color \n Red = &B01 \n Green = &B10 \n End Enum"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Async Function TestGenerateIntoLinearIncreasingSequence() As Task
             Await TestAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n Foo([|Color.Blue|]) \n End Sub \n End Module \n Enum Color \n Red = 1 \n Green = 2 \n End Enum"),

@@ -170,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 var parent = token.Parent;
                 if (parent.IsKind(SyntaxKind.ForStatement) ||
                     parent.IsKind(SyntaxKind.ForEachStatement) ||
+                    parent.IsKind(SyntaxKind.ForEachComponentStatement) ||
                     parent.IsKind(SyntaxKind.WhileStatement) ||
                     parent.IsKind(SyntaxKind.IfStatement) ||
                     parent.IsKind(SyntaxKind.LockStatement) ||
@@ -463,15 +464,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+
             if (targetToken.Kind() == SyntaxKind.OpenParenToken ||
                 targetToken.Kind() == SyntaxKind.CommaToken)
             {
                 if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
                 {
-                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) ||
-                        targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
+                    if (targetToken.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.BaseConstructorInitializer) ||
                         targetToken.Parent.IsParentKind(SyntaxKind.ThisConstructorInitializer))
+                    {
+                        return true;
+                    }
+
+                    // var( |
+                    // var(expr, |
+                    // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
+                    if (targetToken.Parent.IsParentKind(SyntaxKind.InvocationExpression) && !targetToken.IsInvocationOfVarExpression())
                     {
                         return true;
                     }

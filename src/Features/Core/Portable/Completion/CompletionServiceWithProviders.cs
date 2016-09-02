@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -135,33 +136,54 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        private ImmutableArray<CompletionProvider> GetFilteredProviders(
+            ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
+        {
+            return FilterProviders(GetProviders(roles, trigger), trigger, options);
+        }
+
         protected virtual ImmutableArray<CompletionProvider> GetProviders(
             ImmutableHashSet<string> roles, CompletionTrigger trigger)
         {
-            var snippetsRule = this.GetRules().SnippetsRule;
+            return GetProviders(roles);
+        }
+
+        private ImmutableArray<CompletionProvider> FilterProviders(
+            ImmutableArray<CompletionProvider> providers,
+            CompletionTrigger trigger,
+            OptionSet options)
+        {
+            // If the caller passed along specific options that affect snippets,
+            // then defer to those.  Otherwise if the caller just wants the default
+            // behavior, then get the snippets behavior from our own rules.
+            var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, this.Language);
+            var snippetsRule = optionsRule != SnippetsRule.Default
+                ? optionsRule
+                : GetRules().SnippetsRule;
 
             if (snippetsRule == SnippetsRule.Default ||
                 snippetsRule == SnippetsRule.NeverInclude)
             {
-                return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
             else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
-                return GetProviders(roles);
+                return providers;
             }
             else if (snippetsRule == SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
                 if (trigger.Kind == CompletionTriggerKind.Snippets)
                 {
-                    return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                    return providers.Where(p => p.IsSnippetProvider).ToImmutableArray();
                 }
                 else
                 {
-                    return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                    return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
                 }
             }
 
             return ImmutableArray<CompletionProvider>.Empty;
+
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
@@ -191,28 +213,28 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? document.Options;
-            var providers = GetProviders(roles, trigger);
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);;
+            var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
 
             var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
             switch (trigger.Kind)
             {
-                case CompletionTriggerKind.Insertion:
-                case CompletionTriggerKind.Deletion:
-                    if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
+            case CompletionTriggerKind.Insertion:
+            case CompletionTriggerKind.Deletion:
+                if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
+                {
+                    triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                    if (triggeredProviders.Length == 0)
                     {
-                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                        if (triggeredProviders.Length == 0)
-                        {
-                            triggeredProviders = providers;
-                        }
+                        triggeredProviders = providers;
                     }
-                    break;
-                default:
-                    triggeredProviders = providers;
-                    break;
+                }
+                break;
+            default:
+                triggeredProviders = providers;
+                break;
             }
 
             // Now, ask all the triggered providers if they can provide a group.
@@ -220,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Completion
             foreach (var provider in triggeredProviders)
             {
                 var completionContext = await GetContextAsync(
-                    provider, document, caretPosition, trigger, 
+                    provider, document, caretPosition, trigger,
                     options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
                 if (completionContext != null)
                 {
@@ -235,7 +257,8 @@ namespace Microsoft.CodeAnalysis.Completion
             if (firstExclusiveContext != null)
             {
                 return MergeAndPruneCompletionLists(
-                    SpecializedCollections.SingletonEnumerable(firstExclusiveContext), defaultItemSpan,
+                    SpecializedCollections.SingletonEnumerable(firstExclusiveContext),
+                    defaultItemSpan,
                     isExclusive: true);
             }
 
@@ -277,23 +300,30 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private CompletionList MergeAndPruneCompletionLists(
-            IEnumerable<CompletionContext> completionLists, TextSpan contextSpan, bool isExclusive)
+            IEnumerable<CompletionContext> completionContexts,
+            TextSpan defaultSpan,
+            bool isExclusive)
         {
+            // See if any contexts changed the completion list span.  If so, the first context that
+            // changed it 'wins' and picks the span that will be used for all items in the completion
+            // list.  If no contexts changed it, then just use the default span provided by the service.
+            var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
+
             var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
             CompletionItem suggestionModeItem = null;
 
-            foreach (var completionList in completionLists)
+            foreach (var context in completionContexts)
             {
-                Contract.Assert(completionList != null);
+                Contract.Assert(context != null);
 
-                foreach (var item in completionList.Items)
+                foreach (var item in context.Items)
                 {
                     Contract.Assert(item != null);
                     AddToDisplayMap(item, displayNameToItemsMap);
                 }
 
                 // first one wins
-                suggestionModeItem = suggestionModeItem ?? completionList.SuggestionModeItem;
+                suggestionModeItem = suggestionModeItem ?? context.SuggestionModeItem;
             }
 
             if (displayNameToItemsMap.Count == 0)
@@ -306,7 +336,10 @@ namespace Microsoft.CodeAnalysis.Completion
             totalItems.Sort();
 
             return CompletionList.Create(
-                contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem,
+                finalCompletionListSpan,
+                totalItems.ToImmutableArray(),
+                this.GetRules(),
+                suggestionModeItem,
                 isExclusive);
         }
 
@@ -377,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             return await GetContextAsync(
-                provider, document, position, triggerInfo, 
+                provider, document, position, triggerInfo,
                 options, defaultSpan: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -430,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            var providers = this.GetProviders(roles, CompletionTrigger.Default);
+            var providers = GetFilteredProviders(roles, trigger, options);
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 

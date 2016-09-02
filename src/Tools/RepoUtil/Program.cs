@@ -21,7 +21,29 @@ namespace RepoUtil
 
         internal static int Main(string[] args)
         {
-            return Run(args) ? 0 : 1;
+            int result = 1;
+            try
+            {
+                if (Run(args))
+                    result = 0;
+            }
+            catch (ConflictingPackagesException ex)
+            {
+                Console.WriteLine(ex.Message);
+                foreach (var package in ex.ConflictingPackages)
+                {
+                    Console.WriteLine(package.PackageName);
+                    Console.WriteLine($"\t{package.Conflict.NuGetPackage.Version} - {package.Conflict.FileName}");
+                    Console.WriteLine($"\t{package.Original.NuGetPackage.Version} - {package.Original.FileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something unexpected happened.");
+                Console.WriteLine(ex.ToString());
+            }
+
+            return result;
         }
 
         private static bool Run(string[] args)
@@ -78,7 +100,7 @@ namespace RepoUtil
                 index++;
                 switch (arg.ToLower())
                 {
-                    case "-sourcesPath":
+                    case "-sourcespath":
                         {
                             if (index < args.Length)
                             {

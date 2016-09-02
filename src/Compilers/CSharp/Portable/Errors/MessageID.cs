@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
-        IDS_FeatureReplace = MessageBase + 12712,
         IDS_FeatureOutVar = MessageBase + 12713,
 
         IDS_FeatureIOperation = MessageBase + 12714,
@@ -186,7 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefLocalsReturns:
                 case MessageID.IDS_FeaturePatternMatching:
                 case MessageID.IDS_FeatureTuples:
-                case MessageID.IDS_FeatureReplace:
                 case MessageID.IDS_FeatureOutVar:
                     return LanguageVersion.CSharp7;
 

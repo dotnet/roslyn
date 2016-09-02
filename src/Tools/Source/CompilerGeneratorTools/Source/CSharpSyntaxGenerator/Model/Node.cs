@@ -13,20 +13,6 @@ namespace CSharpSyntaxGenerator
         [XmlAttribute]
         public string Errors;
 
-        /// <summary>
-        /// Even if the Node only has optional or struct fields, don't treat it as AutoCreatable.
-        /// Don't introduce a factory method with no arguments.
-        /// </summary>
-        [XmlAttribute]
-        public bool AvoidAutoCreation = false;
-
-        /// <summary>
-        /// The factory method with all the fields should be internal. The corresponding Update method as well.
-        /// Other factory methods are not generated and have to be written by hand.
-        /// </summary>
-        [XmlAttribute]
-        public bool InternalFactory = false;
-
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 

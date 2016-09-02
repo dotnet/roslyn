@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(replaceWith IsNot Nothing)
 
             Dim block As BoundBlock = node.Body
-            Dim syntax As VisualBasicSyntaxNode = node.Syntax
+            Dim syntax As SyntaxNode = node.Syntax
 
             ' We need to create a new Block with locals, initialization 
             ' statements, bound block and optional clean-up statements

@@ -14,16 +14,18 @@ namespace RepoUtil
     {
         internal string SourcesPath { get; }
         internal RepoConfig RepoConfig { get; }
+        internal ImmutableArray<NuGetFeed> NuGetFeeds { get; }
         internal ImmutableArray<NuGetPackage> FloatingBuildPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingToolsetPackages { get; }
         internal ImmutableArray<NuGetPackage> FloatingPackages { get; }
         internal ImmutableArray<NuGetPackage> FixedPackages => RepoConfig.FixedPackages;
         internal ImmutableArray<NuGetPackage> AllPackages { get; }
 
-        private RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetPackage> floatingPackages)
+        private RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetFeed> nugetFeeds, IEnumerable<NuGetPackage> floatingPackages)
         {
             SourcesPath = sourcesPath;
             RepoConfig = config;
+            NuGetFeeds = nugetFeeds.ToImmutableArray();
             FloatingToolsetPackages = floatingPackages
                 .Where(x => RepoConfig.ToolsetPackages.Contains(x.Name, Constants.NugetPackageNameComparer))
                 .OrderBy(x => x.Name)
@@ -57,7 +59,7 @@ namespace RepoUtil
             var repoData = Create(config, sourcesPath, out conflicts);
             if (conflicts?.Count > 0)
             {
-                throw new Exception("Creation failed because of conflicting packages");
+                throw new ConflictingPackagesException(conflicts);
             }
 
             return repoData;
@@ -65,12 +67,24 @@ namespace RepoUtil
 
         internal static RepoData Create(RepoConfig config, string sourcesPath, out List<NuGetPackageConflict> conflicts)
         {
+            var nugetFeeds = new List<NuGetFeed>();
+            foreach (var nugetConfig in NuGetConfigUtil.GetNuGetConfigFiles(sourcesPath))
+            {
+                var nugetFeed = NuGetConfigUtil.GetNuGetFeeds(nugetConfig);
+                nugetFeeds.AddRange(nugetFeed);
+            }
+
             conflicts = null;
 
             var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages);
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
             {
+                if (config.ProjectJsonExcludes.Any(x => x.IsMatch(filePath)))
+                {
+                    continue;
+                }
+
                 var fileName = FileName.FromFullPath(sourcesPath, filePath);
                 foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
@@ -99,7 +113,7 @@ namespace RepoUtil
                 }
             }
 
-            return new RepoData(config, sourcesPath, floatingPackageMap.Values.Select(x => x.NuGetPackage));
+            return new RepoData(config, sourcesPath, nugetFeeds, floatingPackageMap.Values.Select(x => x.NuGetPackage));
         }
     }
 }

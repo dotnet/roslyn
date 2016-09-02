@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             reason As ConnectionReason,
             subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersConnected
 
-            If Not subjectBuffers(0).GetOption(FeatureOnOffOptions.EndConstruct) Then
+            If Not subjectBuffers(0).GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
                 Return
             End If
 

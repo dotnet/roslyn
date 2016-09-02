@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Read the file contents at the resolved file path into a byte array.
             // May throw PermissionSetFileReadException, which is handled in Compilation.Emit.
-            var resolver = context.ModuleBuilder.CommonCompilation.Options.XmlReferenceResolver;
+            var resolver = context.Module.CommonCompilation.Options.XmlReferenceResolver;
 
             // If the resolver isn't available we won't get here since we had to use it to resolve the path.
             Debug.Assert(resolver != null);

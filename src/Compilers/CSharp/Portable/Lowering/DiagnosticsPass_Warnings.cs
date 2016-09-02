@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,9 +20,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arguments.Length == argumentRefKindsOpt.Length);
                 for (int i = 0; i < arguments.Length; i++)
                 {
-                    if (argumentRefKindsOpt[i] != RefKind.None && arguments[i].Kind == BoundKind.FieldAccess)
+                    if (argumentRefKindsOpt[i] != RefKind.None)
                     {
-                        CheckFieldAddress((BoundFieldAccess)arguments[i], method);
+                        var argument = arguments[i];
+                        switch (argument.Kind)
+                        {
+                            case BoundKind.FieldAccess:
+                                CheckFieldAddress((BoundFieldAccess)argument, method);
+                                break;
+                            case BoundKind.Local:
+                                var local = (BoundLocal)argument;
+                                if (local.Syntax.Kind() == SyntaxKind.DeclarationExpression)
+                                {
+                                    CheckOutDeclaration(local, method);
+                                }
+                                break;
+                        }
                     }
                 }
             }

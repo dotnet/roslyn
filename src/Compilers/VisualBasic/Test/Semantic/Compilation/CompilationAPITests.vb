@@ -242,34 +242,46 @@ End Namespace
         Public Sub Emit_BadArgs()
             Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
 
-            Assert.Throws(Of ArgumentNullException)(Sub() comp.Emit(peStream:=Nothing))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+            Assert.Throws(Of ArgumentNullException)("peStream", Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)("peStream", Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=New MemoryStream(),
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 pdbStream:=Nothing,
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream:=New MemoryStream()))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
 
-            Assert.Throws(Of ArgumentException)(Sub() comp.Emit(
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
 
@@ -1248,18 +1260,36 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported2()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_NoNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.True(tupleWithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
+            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
         End Sub
 
-        <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_WithNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Alice", "Bob"))
+
+            Assert.True(tupleWithNames.IsTupleType)
+            Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 
         <Fact()>

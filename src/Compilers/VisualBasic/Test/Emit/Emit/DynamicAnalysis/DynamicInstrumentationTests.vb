@@ -142,7 +142,7 @@ True
   IL_0038:  ret
 }
                 ]]>.Value)
-
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -197,7 +197,8 @@ True
             Dim preprocessorSymbols = ImmutableArray.Create(New KeyValuePair(Of String, Object)("_MyType", "Console"))
             Dim parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
 
-            CompileAndVerify(source, expectedOutput, TestOptions.ReleaseExe.WithParseOptions(parseOptions))
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput, TestOptions.ReleaseExe.WithParseOptions(parseOptions))
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -278,7 +279,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -417,6 +419,7 @@ True
   IL_0063:  ret
 }
                 ]]>.Value)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -438,9 +441,9 @@ Module Program
 
                                                              Return x
                                                          End Function
-
+        Dim identity As System.Func(Of Integer, Integer) = Function(x) x
         y = 75
-        If tester(20) > 50 Then
+        If tester(20) > 50 AndAlso identity(20) = 20 Then
             System.Console.WriteLine("OK")
         Else
             System.Console.WriteLine("Bad")
@@ -471,6 +474,8 @@ False
 True
 True
 True
+True
+True
 False
 True
 Method 5
@@ -489,7 +494,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -505,18 +511,18 @@ Module Program
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
     End Sub
     
-    Sub TestMain()
+    Sub TestMain()                                                      ' Method 2
         Console.WriteLine(Outer("Goo").Result)
     End Sub
 
-    Async Function Outer(s As String) As Task(Of String)
+    Async Function Outer(s As String) As Task(Of String)                ' Method 3
         Dim s1 As String = Await First(s)
         Dim s2 As String = Await Second(s)
 
         Return s1 + s2
     End Function
 
-    Async Function First(s As String) As Task(Of String)
+    Async Function First(s As String) As Task(Of String)                ' Method 4
         Dim result As String = Await Second(s) + "Glue"
         If result.Length > 2 Then
             Return result
@@ -525,7 +531,7 @@ Module Program
         End If
     End Function
 
-    Async Function Second(s As String) As Task(Of String)
+    Async Function Second(s As String) As Task(Of String)               ' Method 5
         Dim doubled As String = ""
         If s.Length > 2 Then
             doubled = s + s
@@ -574,6 +580,7 @@ True
 False
 True
 True
+True
 Method 8
 File 1
 True
@@ -590,7 +597,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -744,7 +752,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -822,7 +831,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -908,7 +918,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -972,7 +983,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1067,7 +1079,8 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1137,7 +1150,15 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithLocation(3, 16),
+                Diagnostic(ERRID.WRN_UnusedLocal, "o1").WithArguments("o1").WithLocation(14, 13),
+                Diagnostic(ERRID.WRN_UnusedLocal, "aa").WithArguments("aa").WithLocation(6, 17),
+                Diagnostic(ERRID.WRN_UnusedLocal, "o4").WithArguments("o4").WithLocation(14, 67),
+                Diagnostic(ERRID.WRN_UnusedLocal, "bb").WithArguments("bb").WithLocation(6, 21),
+                Diagnostic(ERRID.WRN_UnusedLocal, "cc").WithArguments("cc").WithLocation(7, 17),
+                Diagnostic(ERRID.WRN_UnusedLocal, "dd").WithArguments("dd").WithLocation(7, 32))
         End Sub
 
         <Fact>
@@ -1221,7 +1242,340 @@ True
 True
 ]]>
 
-            CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestFieldInitializersCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                           ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                              ' Method 2
+        Dim local As New C() : local = New C(1, 2)
+    End Sub
+End Module
+
+Class C
+    Shared Function Init() As Integer           ' Method 3
+        Return 33
+    End Function
+
+    Sub New()                                   ' Method 4
+        _z = 12
+    End Sub
+
+    Shared Sub New()                            ' Method 5
+        s_z = 123
+    End Sub
+
+    Private _x As Integer = Init()
+    Private _y As Integer = Init() + 12
+    Private _z As Integer
+    Private Shared s_x As Integer = Init()
+    Private Shared s_y As Integer = Init() + 153
+    Private Shared s_z As Integer
+
+    Sub New(x As Integer)                       ' Method 6
+        _z = x
+    End Sub
+
+    Sub New(a As Integer, b As Integer)         ' Method 7
+        _z = a + b
+    End Sub
+
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+True
+Method 5
+File 1
+True
+True
+True
+True
+True
+Method 7
+File 1
+True
+True
+True
+True
+True
+Method 14
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestImplicitConstructorConverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                           ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                              ' Method 2
+        Dim local As New C()
+        Dim x As Integer = local._x + C.s_x
+    End Sub
+End Module
+
+Class C
+
+    ' Method 3 is the implicit shared constructor.
+    ' Method 4 is the implicit instance constructor.
+
+    Shared Function Init() As Integer           ' Method 5
+        Return 33
+    End Function
+    
+    Public _x As Integer = Init()
+    Public _y As Integer = Init() + 12
+    Public Shared s_x As Integer = Init()
+    Public Shared s_y As Integer = Init() + 153
+    Public Shared s_z As Integer = 144
+    
+    Property A As Integer = 1234
+    Shared Property B As Integer = 5678
+End Class
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+True
+True
+True
+Method 4
+File 1
+True
+True
+True
+Method 5
+File 1
+True
+True
+Method 12
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestImplicitConstructorsWithLambdasCoverage()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                                                   ' Method 1
+        TestMain()
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()
+    End Sub
+
+    Sub TestMain()                                                      ' Method 2
+        Dim y As Integer = C.s_c._function()
+        Dim dd As New D()
+        Dim z As Integer = dd._c._function()
+        Dim zz As Integer = D.s_c._function()
+        Dim zzz As Integer = dd._c1._function()
+        Dim zzzz As Integer = F.s_c._function()
+    End Sub
+End Module
+
+Class C
+    Public Sub New(f As System.Func(Of Integer))                        ' Method 4
+        _function = f
+    End Sub
+
+    Shared Public s_c As New C(Function () 15)
+    Public _function as System.Func(Of Integer)
+End Class
+
+Partial Class D
+End Class
+
+Partial Class D
+    Public _c As C = New C(Function() 120)
+    Public Shared s_c As C = New C(Function() 144)
+    Public _c1 As New C(Function()
+                            Return 130
+                        End Function)
+    Public Shared s_c1 As New C(Function()
+                                    Return 156
+                                End Function)
+End Class
+
+Partial Class D
+End Class
+
+Structure E
+    Public Shared s_c As C = New C(Function() 1444)
+    Public Shared s_c1 As New C(Function()
+                                    Return 1567
+                                End Function)
+End Structure
+
+Module F
+    Public s_c As New C(Function()
+                            Return 333
+                        End Function)
+End Module
+
+' Method 3 is the synthesized shared constructor for C.
+' Method 5 is the synthesized shared constructor for D.
+' Method 6 is the synthesized instance constructor for D.
+' Method 7 (which is not called, and so does not appear in the output) is the synthesized shared constructor for E.
+' Method 8 is the synthesized shared constructor for F.
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim expectedOutput As XCData = <![CDATA[
+Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+True
+True
+True
+True
+Method 3
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+Method 5
+File 1
+True
+True
+False
+True
+Method 6
+File 1
+True
+True
+True
+True
+Method 8
+File 1
+True
+True
+Method 11
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1266,7 +1620,7 @@ End Class
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = CreateCompilation(source).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
             For Each Diagnostic As Diagnostic In diagnostics
                 If Diagnostic.Code = ERRID.ERR_MissingRuntimeHelper AndAlso Diagnostic.Arguments(0).Equals("System.Guid.Parse") Then
                     Return
@@ -1281,7 +1635,7 @@ End Class
         End Function
 
         Private Overloads Function CompileAndVerify(source As XElement, expectedOutput As XCData, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrument("Test.Flag"))
+            Return MyBase.CompileAndVerify(source, expectedOutput:=expectedOutput, additionalRefs:=s_refs, options:=If(options IsNot Nothing, options, TestOptions.ReleaseExe).WithDeterministic(True), emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
         End Function
 
         Private Shared ReadOnly s_refs As MetadataReference() = New MetadataReference() {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}

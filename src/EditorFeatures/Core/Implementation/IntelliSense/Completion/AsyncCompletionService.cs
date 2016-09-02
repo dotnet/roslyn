@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // check whether this feature is on.
-            if (!subjectBuffer.GetOption(InternalFeatureOnOffOptions.CompletionSet))
+            if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
             {
                 controller = null;
                 return false;

@@ -54,7 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
-            if (!document.Options.GetOption(FeatureOnOffOptions.LineSeparator))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!documentOptions.GetOption(FeatureOnOffOptions.LineSeparator))
             {
                 return;
             }

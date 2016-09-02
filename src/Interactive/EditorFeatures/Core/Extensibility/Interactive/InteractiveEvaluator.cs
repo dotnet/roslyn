@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
+        public int SubmissionCount => _submissionCount;
+
         public IContentType ContentType
         {
             get

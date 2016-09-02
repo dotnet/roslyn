@@ -136,6 +136,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return pooled.ToStringAndFree();
         }
 
+        internal override string GetTupleExpression(string[] values)
+        {
+            Debug.Assert(values != null);
+
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+
+            builder.Append('(');
+            bool any = false;
+            foreach (var value in values)
+            {
+                if (any)
+                {
+                    builder.Append(", ");
+                }
+                builder.Append(value);
+                any = true;
+            }
+            builder.Append(')');
+
+            return pooled.ToStringAndFree();
+        }
+
         internal override string GetNamesForFlagsEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt)
         {
             var usedFields = ArrayBuilder<EnumField>.GetInstance();

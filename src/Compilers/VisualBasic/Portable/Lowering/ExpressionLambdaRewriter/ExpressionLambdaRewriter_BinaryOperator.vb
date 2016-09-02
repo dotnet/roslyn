@@ -694,8 +694,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    [call].ReceiverOpt,
                                    newArgs.AsImmutableOrNull,
                                    [call].ConstantValueOpt,
-                                   [call].SuppressObjectClone,
-                                   methodReturnType)
+                                   isLValue:=[call].IsLValue,
+                                   suppressObjectClone:=[call].SuppressObjectClone,
+                                   type:=methodReturnType)
 
             If resultType.IsNullableType <> methodReturnType.IsNullableType Then
                 Return Me._factory.Convert(resultType, [call])

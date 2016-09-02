@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal static class PredefinedCodeFixProviderNames
     {
+        public const string AddDocCommentNodes = "Add Doc Comment Nodes";
         public const string AddAwait = "Add Await For Expression";
         public const string AddAsync = "Add Async To Member";
         public const string ApplyNamingStyle = "Apply Naming Style";
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertToAsync = "Convert To Async";
         public const string ConvertToIterator = "Convert To Iterator";
         public const string CorrectNextControlVariable = "Correct Next Control Variable";
+        public const string RemoveDocCommentNode = "Remove Doc Comment Node";
         public const string AddMissingReference = "Add Missing Reference";
         public const string AddUsingOrImport = "Add Using or Import";
         public const string FullyQualify = "Fully Qualify";
@@ -42,5 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddNew = "Add new keyword to member";
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string PreferFrameworkType = nameof(PreferFrameworkType);
     }
 }

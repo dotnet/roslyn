@@ -7,7 +7,7 @@
        not be used and the compiler exe at the ToolPath, if set, will be executed, otherwise
        the executable in the MSBuild install path will be executed. -->
 
-  <Target Name="ValidateMSBuildToolsVersion">
+  <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
     <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above"
            Condition="'$(MSBuildToolsVersion)' == '2.0'
                    OR '$(MSBuildToolsVersion)' == '3.5'

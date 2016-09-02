@@ -24,44 +24,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            var declaration = _syntax.Declaration;
-            if (declaration != null)
+            // Deconstruction, Declaration, and Initializers are mutually exclusive.
+            if (_syntax.Deconstruction != null)
             {
-                if (!declaration.IsDeconstructionDeclaration)
+                CollectLocalsFromDeconstruction(
+                    _syntax.Deconstruction.VariableComponent,
+                    LocalDeclarationKind.ForInitializerVariable,
+                    locals,
+                    _syntax);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Deconstruction.Value);
+            }
+            else if (_syntax.Declaration != null)
+            {
+                foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var refKind = _syntax.RefKeyword.Kind().GetRefKind();
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.ForInitializerVariable);
+                    locals.Add(localSymbol);
 
-                    foreach (var variable in declaration.Variables)
-                    {
-                        var localSymbol = MakeLocal(refKind,
-                                                    declaration,
-                                                    variable,
-                                                    LocalDeclarationKind.ForInitializerVariable);
-                        locals.Add(localSymbol);
-
-                        if (variable.Initializer != null)
-                        {
-                            PatternVariableFinder.FindPatternVariables(this, locals, variable.Initializer.Value);
-                        }
-                    }
-                }
-                else
-                {
-                    CollectLocalsFromDeconstruction(declaration, declaration.Type, LocalDeclarationKind.ForInitializerVariable, locals);
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl);
                 }
             }
             else
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Initializers);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
             }
 
-            if (_syntax.Condition != null)
-            {
-                PatternVariableFinder.FindPatternVariables(this, locals, node: _syntax.Condition);
-            }
-
-            PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Incrementors);
-
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, node: _syntax.Condition);
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Incrementors);
             return locals.ToImmutableAndFree();
         }
 
@@ -74,18 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundForStatement BindForParts(ForStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             BoundStatement initializer;
-            if (node.Declaration != null)
+            // Deconstruction, Declaration, and Initializers are mutually exclusive.
+            if (_syntax.Deconstruction != null)
             {
-                Debug.Assert(node.Initializers.Count == 0);
-                if (node.Declaration.IsDeconstructionDeclaration)
-                {
-                    initializer = originalBinder.BindDeconstructionDeclaration(node.Declaration, node.Declaration, diagnostics);
-                }
-                else
-                {
-                    ImmutableArray<BoundLocalDeclaration> unused;
-                    initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
-                }
+                var assignment = originalBinder.BindDeconstructionDeclaration(node.Deconstruction, node.Deconstruction.VariableComponent, node.Deconstruction.Value, diagnostics);
+                initializer = new BoundLocalDeconstructionDeclaration(node, assignment);
+            }
+            else if (_syntax.Declaration != null)
+            {
+                ImmutableArray<BoundLocalDeclaration> unused;
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.ForInitializerVariable, diagnostics, out unused);
             }
             else
             {
@@ -107,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          this.ContinueLabel);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

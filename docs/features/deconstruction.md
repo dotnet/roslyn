@@ -1,7 +1,44 @@
 
-Deconstruction
---------------
+Quickstart guide for deconstructions (C# 7.0)
+----------------------------------------------
+1. Install dev15 preview 4
+2. Start a C# project
+3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
+![Install the ValueTuple package](img/install-valuetuple.png)
+4. Use deconstructions:
+    ```C#
+public class C
+{
+        public static void Main()
+        {
+                
+              int code;
+              string message;
 
+              var pair = (42, "hello");
+              (code, message) = pair; // deconstruct a tuple into existing variables
+              Console.Write(message); // hello
+
+              (code, message) = new Deconstructable(); // deconstruct any object with a proper Deconstruct method into existing variables
+              Console.Write(message); // world
+              
+              (int code2, int message2) = pair; // deconstruct into new variables
+              var (code3, message3) = new Deconstructable(); // deconstruct into new 'var' variables
+        }
+}
+
+public class Deconstructable
+{
+        public void Deconstruct(out int x, out int y)
+        {
+                x = 43;
+                y = "world";
+        }
+}
+    ```
+
+Design
+------
 This design doc will cover two kinds of deconstruction: deconstruction into existing variables (deconstruction-assignment) and deconstruction into new variables (deconstruction-declaration).
 It is still very much work-in-progress.
 
@@ -25,9 +62,6 @@ class C
     }
 }
 ```
-
-Treat deconstruction of a tuple into existing variables as a kind of assignment, using the existing AssignmentExpression.
-
 
 ###Deconstruction-assignment (deconstruction into existing variables):
 
