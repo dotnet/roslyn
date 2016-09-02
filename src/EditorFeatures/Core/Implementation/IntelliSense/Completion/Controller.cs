@@ -182,6 +182,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     ? CompletionFilterReason.Other
                     : CompletionFilterReason.TypeChar;
 
+            FilterToSomeOrAllItems(filterItems, dismissIfEmptyAllowed, filterReason);
+
+            return true;
+        }
+
+        private void FilterToSomeOrAllItems(bool filterItems, bool dismissIfEmptyAllowed, CompletionFilterReason filterReason)
+        {
             if (filterItems)
             {
                 sessionOpt.FilterModel(
@@ -197,8 +204,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     recheckCaretPosition: false,
                     dismissIfEmptyAllowed: dismissIfEmptyAllowed);
             }
-
-            return true;
         }
 
         private CompletionService GetCompletionService()

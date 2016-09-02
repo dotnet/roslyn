@@ -98,14 +98,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     this.StopModelComputation();
                     return;
                 }
-                else if (model != null && model.Trigger.Kind != CompletionTriggerKind.Deletion)
+                else if (model != null)
                 {
-                    // Filter the model if it wasn't invoked on backspace.
-                    sessionOpt.FilterModel(
-                        CompletionFilterReason.BackspaceOrDelete,
-                        recheckCaretPosition: false,
+                    // If we were triggered on backspace/delete, and we're still deleting,
+                    // then we don't want to filter out items (i.e. we still want all items).
+                    // However, we do still want to run the code to figure out what the best 
+                    // item is to select from all those items.
+                    FilterToSomeOrAllItems(
+                        filterItems: model.Trigger.Kind != CompletionTriggerKind.Deletion,
                         dismissIfEmptyAllowed: true,
-                        filterState: null);
+                        filterReason: CompletionFilterReason.BackspaceOrDelete);
                 }
             }
         }
