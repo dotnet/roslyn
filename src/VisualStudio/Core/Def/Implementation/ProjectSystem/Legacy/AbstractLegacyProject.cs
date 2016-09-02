@@ -45,13 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt: commandLineParserServiceOpt)
         {
-            ProjectType = GetProjectType(hierarchy);
             ConnectHierarchyEvents();
             this.IsWebSite = GetIsWebsiteProject(hierarchy);
 
             // Initialize command line arguments.
-            base.SetArguments(commandlineForOptions: string.Empty);
+            base.SetArguments(commandLine: string.Empty);
         }
+
+        /// <summary>
+        /// string (Guid) of the Hierarchy project type
+        /// </summary>
+        public string ProjectType => GetProjectType(Hierarchy);
 
         public override void Disconnect()
         {
@@ -67,9 +71,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNames(itemId));
         }
 
-        protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
+        protected void SetOutputPathAndRelatedData(string objOutputPath)
         {
-            return TryGetOutputPathFromHierarchy(Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath);
+            // Update the objOutputPath and related data.
+            SetObjOutputPathAndRelatedData(objOutputPath);
+
+            // Also fetch and update the new binOutputPath.
+            string binOutputPath;
+            if (TryGetOutputPathFromHierarchy(this.Hierarchy, this.ContainingDirectoryPathOpt, out binOutputPath))
+            {
+                SetBinOutputPathAndRelatedData(binOutputPath);
+            }
         }
 
         private static bool TryGetOutputPathFromHierarchy(IVsHierarchy hierarchy, string containingDirectoryPathOpt, out string binOutputPath)
@@ -172,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private void ValidateReferencesCore()
         {
             // can happen when project is unloaded and reloaded or in Venus (aspx) case
-            if (ProjectFilePath == null || TryGetBinOutputPath() == null || TryGetObjOutputPath() == null)
+            if (ProjectFilePath == null || BinOutputPath == null || ObjOutputPath == null)
             {
                 return;
             }

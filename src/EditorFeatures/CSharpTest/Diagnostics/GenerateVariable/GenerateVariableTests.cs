@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1363,6 +1364,27 @@ index: 1);
             await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { [|Gibberish|] = 24 } ; } } ",
 @"class Foo { public int Gibberish { get ; internal set ; } } class Bar { void foo ( ) { var c = new Foo { Gibberish = 24 } ; } } ");
+        }
+
+        [WorkItem(13166, "https://github.com/dotnet/roslyn/issues/13166")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyOnNestedObjectInitializer()
+        {
+            await TestAsync(
+@"
+public class Inner { }
+public class Outer
+{
+    public Inner Inner { get; set; } = new Inner();
+    public static Outer X() => new Outer { Inner = { [|InnerValue|] = 5 } };
+}",
+@"
+public class Inner { public int InnerValue { get; internal set; } }
+public class Outer
+{
+    public Inner Inner { get; set; } = new Inner();
+    public static Outer X() => new Outer { Inner = { InnerValue = 5 } };
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]

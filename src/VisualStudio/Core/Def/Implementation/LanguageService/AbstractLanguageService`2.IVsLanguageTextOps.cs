@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var ts = selections.Single();
             int start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
-            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, document.Options, rules, cancellationToken);
+            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
             var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);

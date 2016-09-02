@@ -139,7 +139,8 @@ End Module
 
         End Sub
 
-        <Fact()>
+        ' <Fact()>
+        ' Disabling due to flakeyness: https://github.com/dotnet/roslyn/issues/13404
         Public Sub MyWinformApp()
             Dim sources = <compilation>
                               <file name="c.vb"><![CDATA[

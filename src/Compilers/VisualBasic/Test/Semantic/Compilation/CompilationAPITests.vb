@@ -277,20 +277,6 @@ End Namespace
                 options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
 
-            ' EmbeddedText not supported at all in VB for now
-            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=New MemoryStream(),
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
-
-            ' EmbeddedText not supported at all in VB for now
-            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
-                peStream:=New MemoryStream(),
-                pdbStream:=Nothing,
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
-                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
-
             Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
                 win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))

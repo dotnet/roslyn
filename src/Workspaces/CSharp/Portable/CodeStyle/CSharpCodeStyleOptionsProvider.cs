@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
                 CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
                 CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes,
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
                 CSharpCodeStyleOptions.UseBracesWherePossible
             }.ToImmutableArray();
 

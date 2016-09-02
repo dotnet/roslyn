@@ -281,9 +281,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (this.TypeId != (int)SpecialType.None)
+                    switch (this.TypeId)
                     {
-                        return new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeNotFound, MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName));
+                        case (int)SpecialType.None:
+                            break;
+
+                        case (int)WellKnownType.System_ValueTuple_T1:
+                        case (int)WellKnownType.System_ValueTuple_T2:
+                        case (int)WellKnownType.System_ValueTuple_T3:
+                        case (int)WellKnownType.System_ValueTuple_T4:
+                        case (int)WellKnownType.System_ValueTuple_T5:
+                        case (int)WellKnownType.System_ValueTuple_T6:
+                        case (int)WellKnownType.System_ValueTuple_T7:
+                        case (int)WellKnownType.System_ValueTuple_TRest:
+                            return new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName));
+
+                        default:
+                            return new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeNotFound, MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName));
                     }
 
                     return base.ErrorInfo;

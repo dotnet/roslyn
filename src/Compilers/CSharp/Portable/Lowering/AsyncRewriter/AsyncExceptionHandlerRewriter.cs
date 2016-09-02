@@ -572,10 +572,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceOpt = node.ExceptionSourceOpt;
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
                 var newFilter = sourceOpt == null ?
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     rewrittenFilter) :
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame),
                                     rewrittenFilter);

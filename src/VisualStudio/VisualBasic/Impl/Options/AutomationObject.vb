@@ -4,6 +4,7 @@ Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
@@ -141,21 +142,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration As Boolean
+        Public Property Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration As String
             Get
-                Return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                Return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value)
             End Set
         End Property
 
-        Public Property Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess As Boolean
+        Public Property Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess As String
             Get
-                Return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+                Return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value)
             End Set
         End Property
 
@@ -197,10 +198,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
-                Return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst)
+                Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value)
+                SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value)
             End Set
         End Property
 

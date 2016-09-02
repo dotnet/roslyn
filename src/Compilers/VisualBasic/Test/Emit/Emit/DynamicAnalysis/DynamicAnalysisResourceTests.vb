@@ -69,7 +69,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -184,7 +184,7 @@ End Module
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -282,7 +282,7 @@ End Module
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -307,7 +307,7 @@ End Module
         <Fact>
         Public Sub TestBranches()
             Dim testSource As XElement = <file name="c.vb">
-                <![CDATA[
+                                             <![CDATA[
 Module Program
     Sub Branches()
         Dim y As Integer = 0
@@ -342,13 +342,13 @@ MyLabel:
     End Sub
 End Module
 ]]>
-            </file>
+                                         </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -440,7 +440,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -543,7 +543,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -631,7 +631,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -658,10 +658,125 @@ End Class
                         New SpanResult(21, 36, 21, 39, "144"),
                         New SpanResult(24, 35, 24, 39, "5678"))
 
-            VerifySpans(reader, reader.Methods(3), sourceLines,                     ' implicit default constructor
+            VerifySpans(reader, reader.Methods(3), sourceLines,                     ' implicit instance constructor
                         New SpanResult(17, 28, 17, 34, "Init()"),
                         New SpanResult(18, 28, 18, 39, "Init() + 12"),
                         New SpanResult(23, 28, 23, 32, "1234"))
+        End Sub
+
+
+        <Fact>
+        Public Sub TestImplicitConstructorsWithLambdasSpans()
+            Dim testSource As XElement = <file name="c.vb">
+                                             <![CDATA[
+Module Program
+    Private x As Integer
+
+    Public Sub Main()                                   ' Method 0
+        TestMain()
+    End Sub
+
+    Sub TestMain()                                      ' Method 1
+        Dim y As Integer = C.s_c._function()
+        Dim dd As New D()
+        Dim z As Integer = dd._c._function()
+        Dim zz As Integer = D.s_c._function()
+        Dim zzz As Integer = dd._c1._function()
+    End Sub
+End Module
+
+Class C
+    Public Sub New(f As System.Func(Of Integer))        ' Method 3
+        _function = f
+    End Sub
+
+    Shared Public s_c As New C(Function () 15)
+    Public _function as System.Func(Of Integer)
+End Class
+
+Class D
+    Public _c As C = New C(Function() 120)
+    Public Shared s_c As C = New C(Function() 144)
+    Public _c1 As New C(Function()
+                            Return 130
+                        End Function)
+    Public Shared s_c1 As New C(Function()
+                                    Return 156
+                                End Function)
+End Class
+
+Partial Structure E
+End Structure
+
+Partial Structure E
+    Public Shared s_c As C = New C(Function() 1444)
+    Public Shared s_c1 As New C(Function()
+                                    Return 1567
+                                End Function)
+End Structure
+
+Module F
+    Public s_c As New C(Function()
+                            Return 333
+                        End Function)
+End Module
+]]>
+                                         </file>
+            Dim source As Xml.Linq.XElement = <compilation></compilation>
+            source.Add(testSource)
+            source.Add(InstrumentationHelperSource)
+
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+
+            Dim PEReader As New PEReader(peImage)
+            Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
+
+            VerifyDocuments(reader, reader.Documents, "'c.vb'", "'a.vb'")
+
+            Dim sourceLines As String() = testSource.ToString().Split(vbLf(0))
+
+            VerifySpans(reader, reader.Methods(0), sourceLines,
+                        New SpanResult(3, 4, 5, 11, "Public Sub Main()"),
+                        New SpanResult(4, 8, 4, 18, "TestMain()"))
+
+            VerifySpans(reader, reader.Methods(1), sourceLines,
+                        New SpanResult(7, 4, 13, 11, "Sub TestMain()"),
+                        New SpanResult(8, 27, 8, 44, "C.s_c._function()"),
+                        New SpanResult(9, 18, 9, 25, "New D()"),
+                        New SpanResult(10, 27, 10, 44, "dd._c._function()"),
+                        New SpanResult(11, 28, 11, 45, "D.s_c._function()"),
+                        New SpanResult(12, 29, 12, 47, "dd._c1._function()"))
+
+            VerifySpans(reader, reader.Methods(2), sourceLines,                                         ' Synthesized shared constructor for C
+                        New SpanResult(21, 43, 21, 45, "15"),
+                        New SpanResult(21, 25, 21, 46, "New C(Function () 15)"))
+
+            VerifySpans(reader, reader.Methods(3), sourceLines,
+                        New SpanResult(17, 4, 19, 11, "Public Sub New(f As System.Func(Of Integer))"),
+                        New SpanResult(18, 8, 18, 21, "_function = f"))
+
+            VerifySpans(reader, reader.Methods(4), sourceLines,                                         ' Synthesized shared constructor for D
+                        New SpanResult(27, 46, 27, 49, "144"),
+                        New SpanResult(27, 29, 27, 50, "New C(Function() 144)"),
+                        New SpanResult(32, 36, 32, 46, "Return 156"),
+                        New SpanResult(31, 26, 33, 45, "New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(5), sourceLines,                                         ' Synthesized instance constructor for D
+                        New SpanResult(26, 38, 26, 41, "120"),
+                        New SpanResult(26, 21, 26, 42, "New C(Function() 120)"),
+                        New SpanResult(29, 28, 29, 38, "Return 130"),
+                        New SpanResult(28, 18, 30, 37, "New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(6), sourceLines,                                         ' Synthesized shared constructor for E
+                        New SpanResult(40, 46, 40, 50, "1444"),
+                        New SpanResult(40, 29, 40, 51, "New C(Function() 1444)"),
+                        New SpanResult(42, 36, 42, 47, "Return 1567"),
+                        New SpanResult(41, 26, 43, 45, "New C(Function()"))
+
+            VerifySpans(reader, reader.Methods(7), sourceLines,                                         ' Synthesized shared constructor for F
+                        New SpanResult(48, 28, 48, 38, "Return 333"),
+                        New SpanResult(47, 18, 49, 37, "New C(Function()"))
         End Sub
 
         <Fact>

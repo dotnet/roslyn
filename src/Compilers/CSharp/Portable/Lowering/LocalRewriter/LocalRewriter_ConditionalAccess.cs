@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConditionalAccessLoweringKind.TernaryCaptureReceiverByVal:
                     // capture the receiver into a temp
-                    loweredReceiver = _factory.Sequence(
+                    loweredReceiver = _factory.MakeSequence(
                                             _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
                                             _factory.Local(temp));
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (temp != null)
                         {
-                            result = _factory.Sequence(temp, result);
+                            result = _factory.MakeSequence(temp, result);
                         }
                     }
                     break;

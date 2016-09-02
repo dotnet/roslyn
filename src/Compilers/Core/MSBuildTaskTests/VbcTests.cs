@@ -110,8 +110,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void InstrumentTestNamesFlag()
         {
             var vbc = new Vbc();
-            vbc.Instrument = "Instrument.This.Flag";
-            Assert.Equal("/optionstrict:custom /instrument:Instrument.This.Flag", vbc.GenerateResponseFileContents());
+            vbc.Instrument = null;
+            Assert.Equal("/optionstrict:custom", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Instrument = "TestCoverage";
+            Assert.Equal("/optionstrict:custom /instrument:TestCoverage", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Instrument = "TestCoverage,Mumble";
+            Assert.Equal("/optionstrict:custom /instrument:TestCoverage,Mumble", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Instrument = "TestCoverage,Mumble;Stumble";
+            Assert.Equal("/optionstrict:custom /instrument:TestCoverage,Mumble,Stumble", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -242,6 +254,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DebugType = "portable";
             vbc.SourceLink = "";
             Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe /sourcelink: test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void Embed()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"test.vb", @"test.txt");
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe /embed:test.vb /embed:test.txt test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"C:\x y\z.json");
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe /embed:""C:\x y\z.json"" test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.EmbeddedFiles = null;
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DebugType = "portable";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
+            Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
     }
 }

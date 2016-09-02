@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeConversionNode(
             BoundConversion oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             bool @checked,
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeConversionNode(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             TypeSymbol rewrittenType,
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteTupleConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             bool @checked,
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccessorsBuilder.ToImmutableAndFree());
-            return _factory.Sequence(savedTuple.LocalSymbol, assignmentToTemp, result);
+            return _factory.MakeSequence(savedTuple.LocalSymbol, assignmentToTemp, result);
         }
 
         private static bool NullableNeverHasValue(BoundExpression expression)
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteNullableConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             bool @checked,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteLiftedConversionInExpressionTree(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             bool @checked,
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteFullyLiftedBuiltInConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             Conversion conversion,
             bool @checked,
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression OptimizeLiftedUserDefinedConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             Conversion conversion,
             TypeSymbol type)
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression OptimizeLiftedBuiltInConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             Conversion conversion,
             bool @checked,
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression DistributeLiftedConversionIntoLiftedOperand(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression operand,
             Conversion conversion,
             bool @checked,
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteUserDefinedConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             TypeSymbol rewrittenType)
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteLiftedUserDefinedConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             TypeSymbol rewrittenType)
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteIntPtrConversion(
             BoundConversion oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
             bool @checked,
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteDecimalConversion(CSharpSyntaxNode syntax, BoundExpression operand, TypeSymbol fromType, TypeSymbol toType, bool isImplicit, ConstantValue constantValueOpt)
+        private BoundExpression RewriteDecimalConversion(SyntaxNode syntax, BoundExpression operand, TypeSymbol fromType, TypeSymbol toType, bool isImplicit, ConstantValue constantValueOpt)
         {
             Debug.Assert(fromType.SpecialType == SpecialType.System_Decimal || toType.SpecialType == SpecialType.System_Decimal);
 
@@ -1315,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Conversion MakeConversion(CSharpSyntaxNode syntax, Conversion conversion, TypeSymbol fromType, TypeSymbol toType)
+        private Conversion MakeConversion(SyntaxNode syntax, Conversion conversion, TypeSymbol fromType, TypeSymbol toType)
         {
             switch (conversion.Kind)
             {
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Conversion MakeConversion(CSharpSyntaxNode syntax, TypeSymbol fromType, TypeSymbol toType)
+        private Conversion MakeConversion(SyntaxNode syntax, TypeSymbol fromType, TypeSymbol toType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteDiagnostics), fromType, toType);
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private Conversion MakeUserDefinedConversion(CSharpSyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool isImplicit = true)
+        private Conversion MakeUserDefinedConversion(SyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool isImplicit = true)
         {
             Conversion fromConversion = MakeConversion(syntax, fromType, meth.Parameters[0].Type);
             Conversion toConversion = MakeConversion(syntax, meth.ReturnType, toType);

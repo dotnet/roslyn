@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Shared helper for MakeObjectCreationWithInitializer and MakeNewT
         private BoundExpression MakeObjectCreationWithInitializer(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenObjectCreation,
             BoundExpression initializerExpression,
             TypeSymbol type)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeObjectCreationWithInitializer(node.Syntax, rewrittenNewT, node.InitializerExpressionOpt, rewrittenNewT.Type);
         }
 
-        private BoundExpression MakeNewT(CSharpSyntaxNode syntax, TypeParameterSymbol typeParameter)
+        private BoundExpression MakeNewT(SyntaxNode syntax, TypeParameterSymbol typeParameter)
         {
             // "new T()" is rewritten as: "Activator.CreateInstance<T>()".
 
@@ -220,9 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // (IPiaType)System.Activator.CreateInstance(System.Type.GetTypeFromCLSID(new Guid(GUID)))
 
-            CSharpSyntaxNode oldSyntax = _factory.Syntax;
+            SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
-
 
             var ctor = _factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
             BoundExpression newGuid;

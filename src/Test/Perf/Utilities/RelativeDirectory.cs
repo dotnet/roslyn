@@ -73,20 +73,12 @@ namespace Roslyn.Test.Performance.Utilities
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            // Debug?
-            var debug = "debug";
-            var debugIndex = _workingDir.IndexOf(debug, StringComparison.CurrentCultureIgnoreCase);
-            if (debugIndex != -1)
-            {
-                return _workingDir.Substring(0, debugIndex + debug.Length);
-            }
-
-            // Release?
-            var release = "release";
-            var releaseIndex = _workingDir.IndexOf(release, StringComparison.CurrentCultureIgnoreCase);
-            if (releaseIndex != -1)
-            {
-                return _workingDir.Substring(0, releaseIndex + release.Length);
+            foreach (var configuration in new string[] {"debug", "release"}) {
+                var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
+                if (configurationIndex != -1)
+                {
+                    return _workingDir.Substring(0, configurationIndex + configuration.Length);
+                }
             }
 
             throw new Exception("Couldn't find binaries. Are you running from the binaries directory?");
@@ -111,7 +103,7 @@ namespace Roslyn.Test.Performance.Utilities
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
             {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+                logger.Log($"Didn't download and extract {zipFileName} because one already exists at {zipPath}.");
                 return;
             }
 

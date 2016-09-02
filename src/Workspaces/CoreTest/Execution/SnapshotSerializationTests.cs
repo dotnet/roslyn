@@ -278,10 +278,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     Assert.False(object.ReferenceEquals(projectId1.Documents, projectId2.Documents));
 
                     Assert.False(object.ReferenceEquals(projectId1.Info, projectId2.Info));
-                    Assert.False(object.ReferenceEquals(projectId1.ProjectReferences, projectId2.ProjectReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.MetadataReferences, projectId2.MetadataReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.AnalyzerReferences, projectId2.AnalyzerReferences));
-                    Assert.False(object.ReferenceEquals(projectId1.AdditionalDocuments, projectId2.AdditionalDocuments));
+                    Assert.True(object.ReferenceEquals(projectId1.ProjectReferences, projectId2.ProjectReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.MetadataReferences, projectId2.MetadataReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.AnalyzerReferences, projectId2.AnalyzerReferences));
+                    Assert.True(object.ReferenceEquals(projectId1.AdditionalDocuments, projectId2.AdditionalDocuments));
 
                     // actual elements are same
                     Assert.True(object.ReferenceEquals(projectId1.CompilationOptions, projectId2.CompilationOptions));
@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = new Serializer(workspace.Services);
-            var trees = new ChecksumTreeNodeCacheCollection();
-            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNodeCache(workspace.CurrentSolution));
+            var trees = new ChecksumTreeCollection();
+            var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
             {
-                await asset.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))

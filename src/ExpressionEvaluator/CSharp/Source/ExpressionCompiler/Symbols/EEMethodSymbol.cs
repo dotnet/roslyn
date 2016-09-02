@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics);
+    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals);
 
     /// <summary>
     /// Synthesized expression evaluation method.
@@ -402,7 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            var body = _generateMethodBody(this, diagnostics);
+            ImmutableArray<LocalSymbol> declaredLocalsArray;
+            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = CalculateReturnType(compilation, body);
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     // Rewrite local declaration statement.
-                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body);
+                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body, declaredLocalsArray);
 
                     // Verify local declaration names.
                     foreach (var local in declaredLocals)
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 localsSet.Free();
 
-                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
                 Debug.Assert(!diagnostics.HasAnyErrors());
                 Debug.Assert(!body.HasErrors);

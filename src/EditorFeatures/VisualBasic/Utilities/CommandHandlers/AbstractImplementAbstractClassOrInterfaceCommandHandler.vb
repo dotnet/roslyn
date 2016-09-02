@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            If Not document.Options.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
                 Return False
             End If
 

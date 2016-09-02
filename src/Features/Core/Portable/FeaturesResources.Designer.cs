@@ -144,6 +144,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add missing param nodes.
+        /// </summary>
+        internal static string Add_missing_param_nodes {
+            get {
+                return ResourceManager.GetString("Add_missing_param_nodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0_1 {
@@ -1315,6 +1324,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement Abstract Class.
+        /// </summary>
+        internal static string Implement_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement interface.
         /// </summary>
         internal static string Implement_interface {
@@ -1635,24 +1653,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_containing_scope_async_return_Task {
             get {
                 return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make method async.
-        /// </summary>
-        internal static string Make_method_async {
-            get {
-                return ResourceManager.GetString("Make_method_async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make method async (return Task).
-        /// </summary>
-        internal static string Make_method_async_return_Task {
-            get {
-                return ResourceManager.GetString("Make_method_async_return_Task", resourceCulture);
             }
         }
         
@@ -2854,6 +2854,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_auto_property {
             get {
                 return ResourceManager.GetString("Use_auto_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use framework type.
+        /// </summary>
+        internal static string Use_framework_type {
+            get {
+                return ResourceManager.GetString("Use_framework_type", resourceCulture);
             }
         }
         

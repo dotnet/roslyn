@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action) Implements ICommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
-            If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.EndConstruct) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
                 Return
             End If
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Sub
 
         Private Sub ExecuteEndConstructOnReturn(textView As ITextView, subjectBuffer As ITextBuffer, nextHandler As Action)
-            If Not subjectBuffer.GetOption(FeatureOnOffOptions.EndConstruct) OrElse
+            If Not subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) OrElse
                Not subjectBuffer.CanApplyChangeDocumentToWorkspace() Then
                 nextHandler()
                 Return

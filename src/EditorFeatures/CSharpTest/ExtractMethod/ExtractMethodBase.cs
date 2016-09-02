@@ -111,8 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
-                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
+            var originalOptions = await document.GetOptionsAsync();
+            var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
+                                         .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
@@ -144,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
                 Assert.NotNull(document);
 
-                var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
+                var options = (await document.GetOptionsAsync(CancellationToken.None))
+                    .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
 
                 var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
                 var validator = new CSharpSelectionValidator(semanticDocument, namedSpans["b"].Single(), options);
@@ -170,24 +172,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var root = await document.GetSyntaxRootAsync();
                 var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
 
-                var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
+                var originalOptions = await document.GetOptionsAsync();
+                var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
 
                 foreach (var node in iterator)
                 {
-                    try
-                    {
-                        var validator = new CSharpSelectionValidator(semanticDocument, node.Span, options);
-                        var result = await validator.GetValidSelectionAsync(CancellationToken.None);
+                    var validator = new CSharpSelectionValidator(semanticDocument, node.Span, options);
+                    var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
-                        // check the obvious case
-                        if (!(node is ExpressionSyntax) && !node.UnderValidContext())
-                        {
-                            Assert.True(result.Status.FailedWithNoBestEffortSuggestion());
-                        }
-                    }
-                    catch (ArgumentException)
+                    // check the obvious case
+                    if (!(node is ExpressionSyntax) && !node.UnderValidContext())
                     {
-                        // catch and ignore unknown issue. currently control flow analysis engine doesn't support field initializer.
+                        Assert.True(result.Status.FailedWithNoBestEffortSuggestion());
                     }
                 }
             }

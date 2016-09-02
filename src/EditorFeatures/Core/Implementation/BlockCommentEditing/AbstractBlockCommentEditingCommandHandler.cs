@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
             var subjectBuffer = args.SubjectBuffer;
             var textView = args.TextView;
 
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
             {
                 return false;
             }

@@ -307,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected static bool AreSnippetsEnabled(CommandArgs args)
         {
             Workspace workspace;
-            return args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets) &&
+            return args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
                 !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }

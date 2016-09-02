@@ -3,9 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -95,6 +93,7 @@
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
@@ -109,7 +108,7 @@
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
-    <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSnapshot.cs" />
+    <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSession.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
     <Compile Include="ServicesVisualStudioNextResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -123,7 +122,8 @@
       <LastGenOutput>ServicesVisualStudioNextResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

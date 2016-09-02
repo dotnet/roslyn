@@ -85,6 +85,78 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public static async Task InvokeAsync(
+            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            Action<Stream, CancellationToken> actionWithDirectStream, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                using (var stream = new ServerDirectStream())
+                {
+                    // send request by adding direct stream name to end of arguments
+                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+
+                    // if invoke throws an exception, make sure we raise cancellation.
+                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
+
+                    // wait for asset source to respond
+                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
+
+                    // run user task with direct stream
+                    actionWithDirectStream(stream, mergedCancellation.Token);
+
+                    // wait task to finish
+                    await task.ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // if cancelled due to us, throw cancellation exception.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // if canclled due to invocation is failed, rethrow merged cancellation
+                throw;
+            }
+        }
+
+        public static async Task<T> InvokeAsync<T>(
+            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            Func<Stream, CancellationToken, T> funcWithDirectStream, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                using (var stream = new ServerDirectStream())
+                {
+                    // send request to asset source
+                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+
+                    // if invoke throws an exception, make sure we raise cancellation.
+                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
+
+                    // wait for asset source to respond
+                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
+
+                    // run user task with direct stream
+                    var result = funcWithDirectStream(stream, mergedCancellation.Token);
+
+                    // wait task to finish
+                    await task.ConfigureAwait(false);
+
+                    return result;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // if cancelled due to us, throw cancellation exception.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // if canclled due to invocation is failed, rethrow merged cancellation
+                throw;
+            }
+        }
+
         private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource mergedCancellation, CancellationToken cancellationToken)
         {
             // if invoke throws an exception, make sure we raise cancellation

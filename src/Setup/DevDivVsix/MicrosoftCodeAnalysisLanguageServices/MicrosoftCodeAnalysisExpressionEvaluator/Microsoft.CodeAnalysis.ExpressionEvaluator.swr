@@ -2,9 +2,9 @@ use vs
 
 package name=Microsoft.CodeAnalysis.ExpressionEvaluator
         version=$(Version)
-        vs.package.language=en-us
         vs.package.type=vsix
         vs.package.vsixId=21BAC26D-2935-4D0D-A282-AD647E2592B5
+        vs.package.installSize=634880
 
 vs.localizedResources
   vs.localizedResource language=en-us

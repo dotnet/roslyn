@@ -31,13 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
 
             // enter on a token case.
-            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, document.Options, cancellationToken))
+            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, documentOptions, cancellationToken))
             {
                 return null;
             }
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             var indenter = GetIndenter(
                 document.GetLanguageService<ISyntaxFactsService>(),
                 root.SyntaxTree, lineToBeIndented, formattingRules,
-                document.Options, cancellationToken);
+                documentOptions, cancellationToken);
 
             return indenter.GetDesiredIndentation();
         }

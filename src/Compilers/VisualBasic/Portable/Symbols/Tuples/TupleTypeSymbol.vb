@@ -319,7 +319,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._locations = locations
         End Sub
 
-        Friend Shared Function Create(locationOpt As Location, elementTypes As ImmutableArray(Of TypeSymbol), elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String), compilation As VisualBasicCompilation, Optional syntax As VisualBasicSyntaxNode = Nothing, Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+        Friend Shared Function Create(
+                                     locationOpt As Location,
+                                     elementTypes As ImmutableArray(Of TypeSymbol),
+                                     elementLocations As ImmutableArray(Of Location),
+                                     elementNames As ImmutableArray(Of String),
+                                     compilation As VisualBasicCompilation,
+                                     Optional syntax As SyntaxNode = Nothing,
+                                     Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
@@ -477,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (numElements - 1) \ (RestPosition - 1) + 1
         End Function
 
-        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim numElements As Integer = elementTypes.Length
             Dim remainder As Integer
             Dim chainLength As Integer = TupleTypeSymbol.NumberOfValueTuples(numElements, remainder)
@@ -542,8 +550,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return "Item" & position
         End Function
 
+        Private Shared ForbiddenNames As HashSet(Of String) = New HashSet(Of String)(
+            {"CompareTo", "Deconstruct", "Equals", "GetHashCode", "Rest", "ToString"},
+            IdentifierComparison.Comparer)
+
         Private Shared Function IsElementNameForbidden(name As String) As Boolean
-            Return name = "CompareTo" OrElse name = "Deconstruct" OrElse name = "Equals" OrElse name = "GetHashCode" OrElse name = "Rest" OrElse name = "ToString"
+            Return ForbiddenNames.Contains(name)
         End Function
 
         Friend Shared Function IsElementNameReserved(name As String) As Integer
@@ -551,12 +563,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If TupleTypeSymbol.IsElementNameForbidden(name) Then
                 result = 0
             Else
-                If name.StartsWith("Item", StringComparison.Ordinal) Then
+                If IdentifierComparison.StartsWith(name, "Item") Then
                     Dim s As String = name.Substring(4)
                     Dim num As Integer
 
                     If Integer.TryParse(s, num) Then
-                        If num > 0 AndAlso String.Equals(name, TupleTypeSymbol.TupleMemberName(num), StringComparison.Ordinal) Then
+                        If num > 0 AndAlso IdentifierComparison.Equals(name, TupleTypeSymbol.TupleMemberName(num)) Then
                             result = num
                             Return result
                         End If
@@ -664,21 +676,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
                                     Dim defaultName As String = TupleMemberName(tupleFieldIndex + 1)
-                                    ' Add a field with default name if the given name Is different
-                                    If namesOfVirtualFields(tupleFieldIndex) <> defaultName Then
+
+                                    ' Add a field with default name regardless
+                                    members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, defaultName, -members.Count - 1, Nothing))
+
+                                    If Not IdentifierComparison.Equals(namesOfVirtualFields(tupleFieldIndex), defaultName) Then
                                         ' The name given doesn't match default name ItemTupleTypeSymbol.RestPosition, etc.
-                                        members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, defaultName, -members.Count - 1, Nothing))
-                                    End If
+                                        ' Add a field with the given name
+                                        Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
 
-                                    ' Add a field with the given name
-                                    Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
-
-                                    If field.Name = namesOfVirtualFields(tupleFieldIndex) Then
-                                        members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, location))
-                                    Else
-                                        members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
+                                        If IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
+                                            members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, location))
+                                        Else
+                                            members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
+                                        End If
                                     End If
-                                ElseIf field.Name = namesOfVirtualFields(tupleFieldIndex) Then
+                                ElseIf IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
                                     members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex,
                                                                                     If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))))
                                 Else
@@ -839,7 +852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return Me.GetMembers().WhereAsArray(Function(m As Symbol) m.Name = name)
+            Return Me.GetMembers().WhereAsArray(Function(m As Symbol) IdentifierComparison.Equals(m.Name, name))
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)

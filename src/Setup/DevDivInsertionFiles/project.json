@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
-    "System.Reflection.Metadata": "1.4.1-beta-24410-02"
+    "System.Reflection.Metadata": "1.4.1-beta-24430-01"
   },
   "frameworks": {
     "net46": {}

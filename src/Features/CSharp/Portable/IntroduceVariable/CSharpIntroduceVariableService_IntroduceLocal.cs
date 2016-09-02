@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     internal partial class CSharpIntroduceVariableService
     {
-        protected override Task<Document> IntroduceLocalAsync(
+        protected override async Task<Document> IntroduceLocalAsync(
             SemanticDocument document,
             ExpressionSyntax expression,
             bool allOccurrences,
@@ -34,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
                 : default(SyntaxTokenList);
 
+            var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, expression, isConstant, cancellationToken),
+                    this.GetTypeSyntax(document, options, expression, isConstant, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
@@ -52,18 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             if (parentLambda != null)
             {
-                return Task.FromResult(IntroduceLocalDeclarationIntoLambda(
-                    document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken));
+                return IntroduceLocalDeclarationIntoLambda(
+                    document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken);
             }
             else if (IsInExpressionBodiedMember(expression))
             {
-                return Task.FromResult(RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken));
+                return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
             }
             else
             {
-                return IntroduceLocalDeclarationIntoBlockAsync(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+                return await IntroduceLocalDeclarationIntoBlockAsync(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return null;
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
+        private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             if (typeSymbol.ContainsAnonymousType())
@@ -125,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             if (!isConstant && 
                 CanUseVar(typeSymbol) && 
-                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, document.Document.Options, cancellationToken))
+                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, options, cancellationToken))
             {
                 return SyntaxFactory.IdentifierName("var");
             }

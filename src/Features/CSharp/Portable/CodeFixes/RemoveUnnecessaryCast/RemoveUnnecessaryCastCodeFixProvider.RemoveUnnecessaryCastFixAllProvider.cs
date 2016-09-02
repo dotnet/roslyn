@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
         {
             internal static new readonly RemoveUnnecessaryCastFixAllProvider Instance = new RemoveUnnecessaryCastFixAllProvider();
 
-            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Document document, out string codeActionId, CancellationToken cancellationToken)
+            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, DocumentOptionSet options, out string codeActionId, CancellationToken cancellationToken)
             {
                 codeActionId = null;
                 return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken);

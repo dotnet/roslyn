@@ -35,13 +35,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 
         /// <summary>
-        /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
-        /// within the compilation.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
-            new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
-
-        /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
         internal static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
@@ -237,8 +230,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
             {
-                var foundMetadataTypes = await FindMetadataTypesInProjectAsync(
-                    currentMetadataTypes, project, metadataTypeMatches, cancellationToken).ConfigureAwait(false);
+                var foundMetadataTypes = await FindAllMatchingMetadataTypesInProjectAsync(
+                    currentMetadataTypes, project, metadataTypeMatches, 
+                    cancellationToken).ConfigureAwait(false);
 
                 foreach (var foundType in foundMetadataTypes)
                 {
@@ -390,7 +384,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindMetadataTypesInProjectAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindAllMatchingMetadataTypesInProjectAsync(
             HashSet<INamedTypeSymbol> metadataTypes,
             Project project,
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
@@ -402,19 +396,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var typesInCompilation = GetAllAccessibleMetadataTypesInCompilation(compilation, cancellationToken);
-
             var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
-            foreach (var type in typesInCompilation)
+            // Seed the current set of types we're searching for with the types we were given.
+            var currentTypes = metadataTypes;
+
+            while (currentTypes.Count > 0)
             {
-                if (metadataTypeMatches(metadataTypes, type))
+                var immediateDerivedTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+                foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
-                    result.Add(type);
+                    await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
+                        currentTypes, project, metadataTypeMatches,
+                        compilation, reference, immediateDerivedTypes,
+                        cancellationToken).ConfigureAwait(false);
                 }
+
+                // Add what we found to the result set.
+                result.AddRange(immediateDerivedTypes);
+
+                // Now keep looping, using the set we found to spawn the next set of searches.
+                currentTypes = immediateDerivedTypes;
             }
 
             return result;
+        }
+
+        private static async Task FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
+            HashSet<INamedTypeSymbol> metadataTypes,
+            Project project,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
+            Compilation compilation,
+            PortableExecutableReference reference,
+            HashSet<INamedTypeSymbol> result,
+            CancellationToken cancellationToken)
+        {
+            // We store an index in SymbolTreeInfo of the *simple* metadata type name
+            // to the names of the all the types that either immediately derive or 
+            // implement that type.  Because the mapping is from the simple name
+            // we might get false positives.  But that's fine as we still use 
+            // 'metadataTypeMatches' to make sure the match is correct.
+            var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // For each type we care about, see if we can find any derived types
+            // in this index.
+            foreach (var metadataType in metadataTypes)
+            {
+                var baseTypeName = metadataType.Name;
+
+                // For each derived type we find, see if we can map that back 
+                // to an actual symbol.  Then check if that symbol actually fits
+                // our criteria.
+                foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
+                {
+                    if (derivedType != null && derivedType.Locations.Any(s_isInMetadata))
+                    {
+                        if (metadataTypeMatches(metadataTypes, derivedType))
+                        {
+                            result.Add(derivedType);
+                        }
+                    }
+                }
+            }
         }
 
         private static bool TypeDerivesFrom(
@@ -636,19 +681,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             cachedModels.Add(semanticModel);
             return info.Resolve(semanticModel, cancellationToken);
-        }
-
-        private static List<INamedTypeSymbol> GetAllAccessibleMetadataTypesInCompilation(
-            Compilation compilation, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Note that we are checking the GlobalNamespace of the compilation (which includes all types).
-            return s_compilationAllAccessibleMetadataTypesTable.GetValue(compilation, c =>
-                compilation.GlobalNamespace.GetAllTypes(cancellationToken)
-                                           .Where(t => t.Locations.All(s_isInMetadata) &&
-                                                       t.DeclaredAccessibility != Accessibility.Private &&
-                                                       t.IsAccessibleWithin(c.Assembly)).ToList());
         }
 
         private class InheritanceQuery
