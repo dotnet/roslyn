@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1304,7 +1305,13 @@ public class Test
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "t").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1346,7 +1353,13 @@ class Conv
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "C").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1397,7 +1410,13 @@ class Conv
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "C").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1441,7 +1460,13 @@ struct Conv
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "D").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1480,7 +1505,13 @@ struct Conv
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "C").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1524,7 +1555,13 @@ struct Conv
 ";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "C").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.True(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [Fact]
@@ -1575,8 +1612,13 @@ class C
                 // (20,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17)
                 );
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                );
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(s => s.ToString() == "b1.F()").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.False(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
@@ -1631,8 +1673,13 @@ struct A
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
                 );
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                );
+            var compilation = CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SimpleNameSyntax>().Where(s => s.ToString() == "a").Single();
+            var typeInfo = model.GetTypeInfo(switchExpression);
+            Assert.False(typeInfo.Type.IsValidV6SwitchGoverningType());
+            Assert.False(typeInfo.ConvertedType.IsValidV6SwitchGoverningType());
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
