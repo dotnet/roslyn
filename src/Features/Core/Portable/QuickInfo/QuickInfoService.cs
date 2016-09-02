@@ -6,8 +6,25 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
+    /// <summary>
+    /// A service that is used to determine the appropriate quick info for a position in a document.
+    /// </summary>
     internal abstract class QuickInfoService : ILanguageService
     {
-        public abstract Task<QuickInfoData> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        /// <summary>
+        /// Gets the <see cref="QuickInfoService"/> associated with the document.
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        public static QuickInfoService GetService(Document document)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            return workspace.Services.GetLanguageServices(document.Project.Language).GetService<QuickInfoService>();
+        }
+
+        /// <summary>
+        /// Gets the <see cref="QuickInfoItem"/> associated with position in the document.
+        /// </summary>
+        public abstract Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

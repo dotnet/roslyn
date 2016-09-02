@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
+    // Reproduces logic in IProjectionBufferFactoryServiceExtensions (editor layer) 
+    // Used for tests currenty, but probably needed for other non-vs-editor API consumers.
     internal static class IndentationHelper
     {
         /// <summary>
@@ -30,9 +32,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             if (!spans.IsDefault && spans.Length > 0)
             {
-                // We need to figure out the shorted indentation level of the exposed lines.  We'll
+                // We need to figure out the shortest indentation level of the exposed lines.  We'll
                 // then remove that indentation from all lines.
-                var indentationColumn = DetermineIndentationColumn(text, spans, 4);
+                var indentationColumn = DetermineIndentationColumn(text, spans, tabSize);
 
                 var adjustedSpans = new List<TextSpan>();
 
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
                 {
                     var line = text.Lines[lineNumber];
-                    if (string.IsNullOrWhiteSpace(line.Text.ToString()))
+                    if (IsWhitespace(line))
                     {
                         continue;
                     }
@@ -124,6 +126,20 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return indentationColumn ?? 0;
+        }
+
+        private static bool IsWhitespace(TextLine line)
+        {
+            var text = line.Text;
+            for (int i = line.Span.Start; i < line.Span.End; i++)
+            {
+                if (!char.IsWhiteSpace(text[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

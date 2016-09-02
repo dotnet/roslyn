@@ -352,8 +352,8 @@
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
     <Compile Include="QuickInfo\CSharpQuickInfoSevice.cs" />
-    <Compile Include="QuickInfo\CSharpSemanticQuickInfoElementProvider.cs" />
-    <Compile Include="QuickInfo\CSharpSyntacticQuickInfoElementProvider.cs" />
+    <Compile Include="QuickInfo\CSharpSemanticQuickInfoProvider.cs" />
+    <Compile Include="QuickInfo\CSharpSyntacticQuickInfoProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />

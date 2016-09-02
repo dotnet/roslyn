@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IQuickInfoPresenterSession : IIntelliSensePresenterSession
     {
-        void PresentItem(ITrackingSpan triggerSpan, QuickInfoData item, bool trackMouse);
+        void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse);
     }
 }

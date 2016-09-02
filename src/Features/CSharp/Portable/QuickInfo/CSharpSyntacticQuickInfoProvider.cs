@@ -14,15 +14,16 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoElementProvider("Syntactic", LanguageNames.CSharp), Shared]
-    internal class CSharpSyntacticQuickInfoElementProvider : CommonQuickInfoElementProvider
+    [ExportQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
+    [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
+    internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
         [ImportingConstructor]
-        public CSharpSyntacticQuickInfoElementProvider()
+        public CSharpSyntacticQuickInfoProvider()
         {
         }
 
-        protected override async Task<QuickInfoElement> BuildElementAsync(
+        protected override async Task<QuickInfoItem> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             //var tabSize = document.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
             //spans = IndentationHelper.AlignSpansToIndentation(text, spans, tabSize);
-            return QuickInfoElement.Create(QuickInfoElementKinds.DocumentText, spans: spans);
+            return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }
 
         private static bool IsScopeBlock(SyntaxNode node)

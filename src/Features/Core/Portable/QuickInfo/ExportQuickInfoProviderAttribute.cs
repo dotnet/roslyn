@@ -7,13 +7,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportQuickInfoElementProviderAttribute : ExportAttribute
+    internal sealed class ExportQuickInfoProviderAttribute : ExportAttribute
     {
         public string Name { get; }
         public string Language { get; }
 
-        public ExportQuickInfoElementProviderAttribute(string name, string language)
-            : base(typeof(QuickInfoElementProvider))
+        public ExportQuickInfoProviderAttribute(string name, string language)
+            : base(typeof(QuickInfoProvider))
         {
             if (name == null)
             {

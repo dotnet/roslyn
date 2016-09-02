@@ -1,21 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
+    /// <summary>
+    /// Base class for <see cref="QuickInfoService"/>'s that delegate to <see cref="QuickInfoProvider"/>'s.
+    /// </summary>
     internal abstract class QuickInfoServiceWithProviders : QuickInfoService
     {
         private readonly Workspace _workspace;
         private readonly string _language;
-        private List<Lazy<QuickInfoElementProvider, QuickInfoProviderMetadata>> _importedProviders;
+        private List<Lazy<QuickInfoProvider, QuickInfoProviderMetadata>> _importedProviders;
 
         protected QuickInfoServiceWithProviders(Workspace workspace, string language)
         {
@@ -23,16 +25,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             _language = language;
         }
 
-        private IEnumerable<Lazy<QuickInfoElementProvider, QuickInfoProviderMetadata>> GetImportedProviders()
+        private IEnumerable<Lazy<QuickInfoProvider, QuickInfoProviderMetadata>> GetImportedProviders()
         {
             if (_importedProviders == null)
             {
-                var language = _language;
                 var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
                 var providers = ExtensionOrderer.Order(
-                        mefExporter.GetExports<QuickInfoElementProvider, QuickInfoProviderMetadata>()
-                        .Where(lz => lz.Metadata.Language == language)
+                        mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
+                        .Where(lz => lz.Metadata.Language == _language)
                         ).ToList();
 
                 Interlocked.CompareExchange(ref _importedProviders, providers, null);
@@ -41,21 +42,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return _importedProviders;
         }
 
-        public override async Task<QuickInfoData> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public override async Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var providers = GetImportedProviders();
-
-            foreach (var lazyProvider in providers)
+            // returns the first quick info provided by the providers (based on provider order)
+            foreach (var lazyProvider in GetImportedProviders())
             {
-                // this really just returns the first one that is not null?
-                var info = await lazyProvider.Value.GetQuickInfoElementAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (info != null && info != QuickInfoData.Empty)
+                var info = await lazyProvider.Value.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (info != null && !info.IsEmpty)
                 {
                     return info;
                 }
             }
 
-            return QuickInfoData.Empty;
+            return QuickInfoItem.Empty;
         }
     }
 }

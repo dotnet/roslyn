@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Generic;
 using System;
+using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
@@ -22,21 +23,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
         private static readonly object s_augmentSessionKey = new object();
 
         private readonly IQuickInfoBroker _quickInfoBroker;
-        private readonly ImmutableArray<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> _presentationProviders;
+        private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
 
         [ImportingConstructor]
         public QuickInfoPresenter(
-            IQuickInfoBroker quickInfoBroker, 
-            IEnumerable<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> lazyPresentationProviders)
+            IQuickInfoBroker quickInfoBroker,
+            ClassificationTypeMap classificationTypeMap,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
+            ITextEditorFactoryService textEditorFactoryService)
         {
             _quickInfoBroker = quickInfoBroker;
-            _presentationProviders = lazyPresentationProviders.ToImmutableArray();
+            _classificationTypeMap = classificationTypeMap;
+            _projectionBufferFactoryService = projectionBufferFactoryService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _textEditorFactoryService = textEditorFactoryService;
         }
 
         IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
         {
             AssertIsForeground();
-            return new QuickInfoPresenterSession(_quickInfoBroker, textView, subjectBuffer, sessionOpt, _presentationProviders);
+            return new QuickInfoPresenterSession(_quickInfoBroker, textView, subjectBuffer, sessionOpt, 
+                _classificationTypeMap, _projectionBufferFactoryService, _editorOptionsFactoryService, _textEditorFactoryService);
         }
 
         IQuickInfoSource IQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)

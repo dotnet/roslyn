@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     internal class Model
     {
         public ITextVersion TextVersion { get; }
-        public QuickInfoData Item { get; }
+        public QuickInfoItem Item { get; }
         public bool TrackMouse { get; }
 
         public Model(
             ITextVersion textVersion,
-            QuickInfoData item,
+            QuickInfoItem item,
             bool trackMouse)
         {
             Contract.ThrowIfNull(item);

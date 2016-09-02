@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Xunit;
 using Microsoft.CodeAnalysis.QuickInfo;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
@@ -176,80 +177,61 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 */
         }
 
-        internal Action<QuickInfoData> ElementGlyph(string elementKind, Glyph expectedGlyph)
+        internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
             return (qi) =>
             {
-                var glyphElement = qi.Element.Elements.FirstOrDefault(e => e.Kind == elementKind);
-                Assert.NotNull(glyphElement);
-                var actualGlyph = qi.Element.Tags.GetGlyph();
-                Assert.Equal(expectedGlyph, actualGlyph);
+                Assert.True(qi.Tags.GetGlyphs().Contains(expectedGlyph));
             };
         }
 
-        internal Action<QuickInfoData> SymbolGlyph(Glyph expectedGlyph)
+        internal Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
         {
-            return ElementGlyph(QuickInfoElementKinds.Symbol, expectedGlyph);
+            return SymbolGlyph(expectedGlyph);
         }
 
-        internal Action<QuickInfoData> WarningGlyph(Glyph expectedGlyph)
+        internal void AssertTaggedText(
+            string expectedText,
+            ImmutableArray<TaggedText> taggedText,
+            Tuple<string, string>[] expectedClassifications = null)
         {
-            return ElementGlyph(QuickInfoElementKinds.Warning, expectedGlyph);
+            var actualText = string.Concat(taggedText.Select(tt => tt.Text));
+            Assert.Equal(expectedText, actualText);
+
+            /*
+                            content.TypeSwitch(
+                                    (QuickInfoDisplayDeferredContent qiContent) =>
+                                    {
+                                        var actualContent = qiContent.MainDescription.ClassifiableContent;
+                                        ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                                    },
+                                    (ClassifiableDeferredContent classifiable) =>
+                                    {
+                                        var actualContent = classifiable.ClassifiableContent;
+                                        ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                                    });
+            */
         }
 
-        internal Action<QuickInfoData> ElementText(
-            string elementKind,
+        internal Action<QuickInfoItem> MainDescription(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (qi) =>
-            {
-                var md = qi.Element.Elements.FirstOrDefault(e => e.Kind == elementKind);
-                if (md != null)
-                {
-                    var actualText = md.RawText;
-                    Assert.Equal(expectedText, actualText);
-                }
-                else
-                {
-                    Assert.Equal(expectedText, string.Empty);
-                }
-
-                /*
-                                content.TypeSwitch(
-                                        (QuickInfoDisplayDeferredContent qiContent) =>
-                                        {
-                                            var actualContent = qiContent.MainDescription.ClassifiableContent;
-                                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                                        },
-                                        (ClassifiableDeferredContent classifiable) =>
-                                        {
-                                            var actualContent = classifiable.ClassifiableContent;
-                                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                                        });
-                */
-            };
+            return (qi) => AssertTaggedText(expectedText, qi.Description, expectedClassifications);
         }
 
-        internal Action<QuickInfoData> MainDescription(
+        internal Action<QuickInfoItem> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return ElementText(QuickInfoElementKinds.Description, expectedText, expectedClassifications);
+            return (qi) => AssertTaggedText(expectedText, qi.DocumentationComments, expectedClassifications);
         }
 
-        internal Action<QuickInfoData> Documentation(
+        internal Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return ElementText(QuickInfoElementKinds.Documentation, expectedText, expectedClassifications);
-        }
-
-        internal Action<QuickInfoData> TypeParameterMap(
-            string expectedText,
-            Tuple<string, string>[] expectedClassifications = null)
-        {
-            return ElementText(QuickInfoElementKinds.TypeParameterMap, expectedText, expectedClassifications);
+            return (qi) => AssertTaggedText(expectedText, qi.TypeParameters, expectedClassifications);
 
             /*
             return (content) =>
@@ -266,11 +248,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             */
         }
 
-        internal Action<QuickInfoData> AnonymousTypes(
+        internal Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return ElementText(QuickInfoElementKinds.AnonymousTypes, expectedText, expectedClassifications);
+            return (qi) => AssertTaggedText(expectedText, qi.AnonymousTypes, expectedClassifications);
 
             /*
             return (content) =>
@@ -287,11 +269,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             */
         }
 
-        internal Action<QuickInfoData> NoTypeParameterMap
+        internal Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
-                return ElementText(QuickInfoElementKinds.TypeParameterMap, string.Empty);
+                return (qi) => AssertTaggedText(string.Empty, qi.TypeParameters);
                 /*
                 return (element) =>
                 {
@@ -302,25 +284,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             }
         }
 
-        internal Action<QuickInfoData> Usage(string expectedText, bool expectsWarningGlyph = false)
+        internal Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return (qi) =>
+            return (qi) => 
             {
-                ElementText(QuickInfoElementKinds.Usage, expectedText)(qi);
+                AssertTaggedText(expectedText, qi.Usage);
                 if (expectsWarningGlyph)
                 {
                     WarningGlyph(Glyph.CompletionWarning)(qi);
                 }
                 else
                 {
-                    Assert.Null(qi.Element.Elements.FirstOrDefault(e => e.Kind == QuickInfoElementKinds.Warning));
+                    Assert.False(qi.Tags.GetGlyphs().Contains(Glyph.CompletionWarning));
                 }
             };
         }
 
-        internal Action<QuickInfoData> Exceptions(string expectedText)
+        internal Action<QuickInfoItem> Exceptions(string expectedText)
         {
-            return ElementText(QuickInfoElementKinds.Exception, expectedText);
+            return (qi) => AssertTaggedText(expectedText, qi.Exception);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
@@ -331,6 +313,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal abstract Task TestAsync(string markup, params Action<QuickInfoData>[] expectedResults);
+        internal abstract Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults);
     }
 }

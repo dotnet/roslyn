@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+#if false
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportQuickInfoPresentationProviderAttribute : ExportAttribute
@@ -17,4 +18,5 @@ namespace Microsoft.CodeAnalysis.Editor
             this.Kinds = kinds;
         }
     }
+#endif
 }

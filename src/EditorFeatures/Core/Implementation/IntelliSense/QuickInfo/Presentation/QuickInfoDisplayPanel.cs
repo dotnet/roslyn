@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             FrameworkElement typeParameterMap,
             FrameworkElement anonymousTypes,
             FrameworkElement usageText,
-            FrameworkElement exceptionText,
-            List<FrameworkElement> other)
+            FrameworkElement exceptionText)
         {
             this.MainDescription = (TextBlock)mainDescription;
             this.Documentation = (TextBlock)documentation;
@@ -117,14 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (exceptionText != null)
             {
                 this.Children.Add(exceptionText);
-            }
-
-            if (other != null)
-            {
-                foreach (var element in other)
-                {
-                    this.Children.Add(element);
-                }
             }
         }
 

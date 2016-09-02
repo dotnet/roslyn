@@ -13,14 +13,14 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
-    Friend Class SemanticQuickInfoSourceTests
+    Public Class SemanticQuickInfoSourceTests
         Inherits AbstractSemanticQuickInfoSourceTests
 
-        Friend Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
             Dim service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of QuickInfoService)
@@ -40,31 +40,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End If
         End Function
 
-        Private Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoData)) As Task
+        Private Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim info = Await service.GetQuickInfoAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
                                          position, cancellationToken:=CancellationToken.None)
 
-            If info IsNot Nothing Then
-            End If
+            Assert.NotNull(info)
 
             If expectedResults Is Nothing Then
-                Assert.Null(info)
+                Assert.True(info.IsEmpty)
             Else
-                Assert.NotNull(info)
-
                 For Each expected In expectedResults
                     expected(info)
                 Next
             End If
         End Function
 
-        Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoData)()) As Task
+        Friend Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
             Using workspace = Await TestWorkspace.CreateAsync(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
-        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
@@ -74,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End Using
         End Function
 
-        Protected Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupWithImports =
              "Imports System" & vbCrLf &
              "Imports System.Collections.Generic" & vbCrLf &
@@ -84,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestAsync(markupWithImports, expectedResults)
         End Function
 
-        Protected Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              markup & vbCrLf &
@@ -93,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestWithImportsAsync(markupInClass, expectedResults)
         End Function
 
-        Protected Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoData)) As Task
+        Friend Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              "Sub M()" & vbCrLf &

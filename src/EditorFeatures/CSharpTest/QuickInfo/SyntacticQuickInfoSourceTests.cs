@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {");
         }
 
-        private QuickInfoElementProvider CreateProvider(TestWorkspace workspace)
+        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
-            return new CSharpSyntacticQuickInfoElementProvider();
+            return new CSharpSyntacticQuickInfoProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetQuickInfoElementAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoAsync(document, position, CancellationToken.None));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -289,13 +289,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var info = await provider.GetQuickInfoElementAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await provider.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(info);
 
-            Assert.Equal(QuickInfoElementKinds.DocumentText, info.Element.Kind);
+            Assert.NotEqual(0, info.RelatedSpans.Length);
             var tabSize = document.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
             var text = await document.GetTextAsync().ConfigureAwait(false);
-            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.Element.Spans, tabSize);
+            var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.RelatedSpans, tabSize);
             var actualText = string.Concat(spans.Select(s => text.GetSubText(s).ToString()));
             Assert.Equal(expectedContent, actualText);
 

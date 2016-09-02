@@ -361,7 +361,7 @@
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
     <Compile Include="QuickInfo\VisualBasicQuickInfoService.vb" />
-    <Compile Include="QuickInfo\VisualBasicSemanticQuickInfoElementProvider.vb" />
+    <Compile Include="QuickInfo\VisualBasicSemanticQuickInfoProvider.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />

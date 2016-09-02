@@ -6,8 +6,10 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+#if false
     internal abstract class QuickInfoPresentationProvider 
     {
         public abstract FrameworkElement CreatePresentation(QuickInfoElement element, ITextSnapshot snapshot);
     }
+#endif
 }

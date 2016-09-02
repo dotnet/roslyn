@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoElementProvider("Semantic", LanguageNames.CSharp), Shared]
-    internal class CSharpSemanticQuickInfoElementProvider : CommonSemanticQuickInfoElementProvider
+    [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
+    internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
-        public CSharpSemanticQuickInfoElementProvider()
+        public CSharpSemanticQuickInfoProvider()
         {
         }
 

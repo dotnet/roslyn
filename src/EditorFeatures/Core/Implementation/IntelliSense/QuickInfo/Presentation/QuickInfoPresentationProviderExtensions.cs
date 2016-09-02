@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
+#if false
     internal static class QuickInfoPresentationProviderExtensions
     {
         public static bool TryGetValue(this ImmutableArray<Lazy<QuickInfoPresentationProvider, QuickInfoPresentationProviderInfo>> lazyProviders, 
@@ -25,4 +26,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             return false;
         }
     }
+#endif
 }
