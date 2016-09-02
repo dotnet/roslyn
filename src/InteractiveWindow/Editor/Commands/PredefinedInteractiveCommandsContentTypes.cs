@@ -3,6 +3,8 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
+#pragma warning disable CS0649 // field is not assigned to
+
 namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     public static class PredefinedInteractiveCommandsContentTypes

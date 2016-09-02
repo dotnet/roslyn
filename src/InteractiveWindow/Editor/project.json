@@ -1,9 +1,18 @@
 {
   "dependencies": {
-      "Microsoft.VisualStudio.Language.Intellisense": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
-    },
+    "Microsoft.VisualStudio.Text.Data": "14.3.25407",
+    "Microsoft.VisualStudio.Text.Logic": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407",
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": "14.3.25407",
+    "Microsoft.VisualStudio.Imaging": "14.3.25407",
+    "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
+    "Microsoft.VisualStudio.Language.StandardClassification": "14.3.25407",
+    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.3.25407",
+    "Microsoft.VisualStudio.Language.Intellisense": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    }
   },
   "frameworks": {
     "net46": { }
