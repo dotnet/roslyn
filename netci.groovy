@@ -198,6 +198,7 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+JobReport.Report.generateJobReport(out)
 
 // Make the call to generate the help job
 Utilities.createHelperJob(this, projectName, branchName,
