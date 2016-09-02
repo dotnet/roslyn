@@ -10,6 +10,7 @@
     <Exec Command='"$(OutDir)Roslyn.BuildDevDivInsertionFiles.exe" "$(OutDir)\" "$(MSBuildThisFileDirectory)\" "$(NuGetPackageRoot)" $(AssemblyVersion) $(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)' LogStandardErrorAsError="true" />
     <MSBuild Projects="DevDivPackages\Dependencies.proj" />
     <MSBuild Projects="DevDivPackages\Roslyn.proj" />
+    <MSBuild Projects="DevDivVsix\PortableFacades\PortableFacades.vsmanproj" />
     <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" />
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" />
     

@@ -9,10 +9,15 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
+Imports Roslyn.BuildDevDivInsertionFiles
+Imports System.Security.Cryptography
+Imports System.Text
+Imports System.Runtime.InteropServices
 
 Public Class BuildDevDivInsertionFiles
     Private Const DevDivInsertionFilesDirName = "DevDivInsertionFiles"
     Private Const DevDivPackagesDirName = "DevDivPackages"
+    Private Const DevDivVsixDirName = "DevDivVsix"
     Private Const ExternalApisDirName = "ExternalAPIs"
     Private Const NetFX20DirectoryName = "NetFX20"
     Private Const PublicKeyToken = "31BF3856AD364E35"
@@ -378,6 +383,7 @@ Public Class BuildDevDivInsertionFiles
         Dim dependencies = BuildDependencyMap(_binDirectory)
         GenerateContractsListMsbuild(dependencies)
         GenerateAssemblyVersionList(dependencies)
+        GeneratePortableFacadesSwrFile(dependencies)
         CopyDependencies(dependencies)
 
         ' List of files to add to VS.ExternalAPI.Roslyn.nuspec.
@@ -469,13 +475,15 @@ Public Class BuildDevDivInsertionFiles
         Public PackageVersion As String
 
         Public IsNative As Boolean
+        Public IsFacade As Boolean
 
-        Sub New(contractDir As String, implementationDir As String, packageName As String, packageVersion As String, isNative As Boolean)
+        Sub New(contractDir As String, implementationDir As String, packageName As String, packageVersion As String, isNative As Boolean, isFacade As Boolean)
             Me.ContractDir = contractDir
             Me.ImplementationDir = implementationDir
             Me.PackageName = packageName
             Me.PackageVersion = packageVersion
             Me.IsNative = isNative
+            Me.IsFacade = isFacade
         End Sub
 
         ' TODO: remove
@@ -526,6 +534,7 @@ Public Class BuildDevDivInsertionFiles
                 Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
                 Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
                 Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
+                Dim frameworkAssemblies = packageObj.Property("frameworkAssemblies")?.Value
 
                 Dim implementations = If(runtime, native)
                 If implementations Is Nothing Then
@@ -551,15 +560,20 @@ Public Class BuildDevDivInsertionFiles
                         Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
-                        result.Add(fileName, New DependencyInfo(compileTarget, runtimeTarget, packageName, packageVersion, native IsNot Nothing))
+                        result.Add(fileName, New DependencyInfo(compileTarget,
+                                                                runtimeTarget,
+                                                                packageName,
+                                                                packageVersion,
+                                                                isNative:=native IsNot Nothing,
+                                                                isFacade:=frameworkAssemblies IsNot Nothing))
                     End If
                 Next
             Next
         Next
 
         ' TODO: remove once we have a proper package
-        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
 
         Return result
     End Function
@@ -646,6 +660,48 @@ Public Class BuildDevDivInsertionFiles
             Directory.CreateDirectory(dstDir)
             File.Copy(srcPath, dstPath, overwrite:=True)
         Next
+    End Sub
+
+    Private Sub GeneratePortableFacadesSwrFile(dependencies As Dictionary(Of String, DependencyInfo))
+        Dim facades = dependencies.Where(Function(e) e.Value.IsFacade).OrderBy(Function(e) e.Key).ToArray()
+
+        Dim swrPath = Path.Combine(_setupDirectory, DevDivVsixDirName, "PortableFacades", "PortableFacades.swr")
+        Dim swrVersion As Version = Nothing
+        Dim swrFiles As IEnumerable(Of String) = Nothing
+        ParseSwrFile(swrPath, swrVersion, swrFiles)
+
+        Dim expectedFiles = New List(Of String)
+        For Each entry In facades
+            Dim dependency = entry.Value
+            Dim fileName = entry.Key
+            Dim implPath = IO.Path.Combine(dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+            expectedFiles.Add($"    file source=""$(NuGetPackageRoot)\{implPath}"" vs.file.ngen=yes")
+        Next
+
+        If Not swrFiles.SequenceEqual(expectedFiles) Then
+            Using writer = New StreamWriter(File.Open(swrPath, FileMode.Truncate, FileAccess.Write))
+                writer.WriteLine("use vs")
+                writer.WriteLine()
+                writer.WriteLine($"package name=PortableFacades")
+                writer.WriteLine($"        version={New Version(swrVersion.Major, swrVersion.Minor + 1, 0, 0)}")
+                writer.WriteLine()
+                writer.WriteLine("folder InstallDir:\Common7\IDE\PrivateAssemblies")
+
+                For Each entry In expectedFiles
+                    writer.WriteLine(entry)
+                Next
+            End Using
+
+            Throw New Exception($"The content of file {swrPath} is not up-to-date. The file has been updated to reflect the changes in dependencies made in the repo " &
+                                $"(in files {Path.Combine(_setupDirectory, DevDivPackagesDirName)}\**\project.json). Include this file change in your PR and rebuild.")
+        End If
+    End Sub
+
+    Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
+        Dim lines = File.ReadAllLines(path)
+
+        version = Version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
+        files = (From line In lines Where line.TrimStart().StartsWith("file")).ToArray()
     End Sub
 
     ''' <summary>
