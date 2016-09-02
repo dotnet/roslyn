@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    using static DocumentationCommentXmlNames;
+
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
@@ -88,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
                     token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
-                    items.AddRange(GetNestedTags(declaredSymbol));
+                    items.AddRange(GetNestedItems(declaredSymbol));
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListElementName)
                 {
                     items.AddRange(GetListItems());
                 }
@@ -99,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                 {
                     var element = (XmlElementSyntax)token.Parent.Parent.Parent;
-                    if (element.StartTag.Name.LocalName.ValueText == ListTagName)
+                    if (element.StartTag.Name.LocalName.ValueText == ListElementName)
                     {
                         items.AddRange(GetListItems());
                     }
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderTagName)
+                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderElementName)
                 {
                     items.AddRange(GetListHeaderItems());
                 }
@@ -123,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var startTag = (XmlElementStartTagSyntax)token.Parent;
 
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListTagName)
+                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListElementName)
                 {
                     items.AddRange(GetListItems());
                 }
 
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderTagName)
+                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderElementName)
                 {
                     items.AddRange(GetListHeaderItems());
                 }
@@ -144,16 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && string.IsNullOrWhiteSpace(token.Text))
             {
-                // Unlike VB, the C# lexer has a preference for leading trivia so, in the following text...
+                // Unlike VB, the C# lexer has a preference for leading trivia. In the following example...
                 //
-                //     <exception          $$
+                //    /// <exception          $$
                 //
                 // ...the trailing whitespace will not be attached as trivia to any node. Instead it will
-                // be treated as an independent XmlTextLiteralToken, so we skip backwards by one token.
+                // be treated as an independent XmlTextLiteralToken, so skip backwards by one token.
                 token = token.GetPreviousToken();
             }
 
-            // Handle the <elem$$ case by going back one token (some of the subsequent checks need to account for this)
+            // Handle the <elem$$ case by going back one token (the subsequent checks need to account for this)
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             SyntaxList<XmlAttributeSyntax> attributes = default(SyntaxList<XmlAttributeSyntax>);
@@ -179,9 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            attributeNames = attributes.Select(attribute => GetAttributeName(attribute))
-                                       .ToSet();
-
+            attributeNames = attributes.Select(GetAttributeName).ToSet();
             return elementName != null;
         }
 
@@ -192,26 +192,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             switch (node.Kind())
             {
                 case SyntaxKind.XmlEmptyElement:
-                {
                     var emptyElementSyntax = (XmlEmptyElementSyntax)node;
                     nameSyntax = emptyElementSyntax.Name;
                     attributes = emptyElementSyntax.Attributes;
                     break;
-                }
 
                 case SyntaxKind.XmlElement:
-                {
                     node = ((XmlElementSyntax)node).StartTag;
                     goto case SyntaxKind.XmlElementStartTag;
-                }
 
                 case SyntaxKind.XmlElementStartTag:
-                {
                     var startTagSyntax = (XmlElementStartTagSyntax)node;
                     nameSyntax = startTagSyntax.Name;
                     attributes = startTagSyntax.Attributes;
                     break;
-                }
 
                 default:
                     nameSyntax = null;
@@ -276,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override IEnumerable<string> GetKeywordNames()
         {
-            return SyntaxFacts.GetKeywordKinds().Select(keyword => SyntaxFacts.GetText(keyword));
+            return SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
         }
 
         protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax)

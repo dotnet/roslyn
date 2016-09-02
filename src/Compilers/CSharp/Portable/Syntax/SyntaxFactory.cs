@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
         {
             return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(
-                XmlTextAttribute(DocumentationCommentXmlNames.KeywordElementName, keyword));
+                XmlTextAttribute(DocumentationCommentXmlNames.LangwordAttributeName, keyword));
         }
 
         /// <summary>
