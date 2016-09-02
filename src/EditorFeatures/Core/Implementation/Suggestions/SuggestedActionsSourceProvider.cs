@@ -746,10 +746,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private void OnActiveContextChanged(object sender, DocumentEventArgs e)
+            private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
             {
                 // REVIEW: it would be nice for changed event to pass in both old and new document.
-                OnSuggestedActionsChanged(e.Document.Project.Solution.Workspace, e.Document.Id, e.Document.Project.Solution.WorkspaceVersion);
+                OnSuggestedActionsChanged(e.Solution.Workspace, e.NewActiveContextDocumentId, e.Solution.WorkspaceVersion);
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
