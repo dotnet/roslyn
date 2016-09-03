@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression loweredConstruction = null;
-            foreach (var constructionInfo in node.ConstructionSteps)
+            foreach (var constructionInfo in node.ConstructionStepsOpt)
             {
                 // All the input placeholders for the constructions should already be set
                 loweredConstruction = (BoundExpression)Visit(constructionInfo.Construct);

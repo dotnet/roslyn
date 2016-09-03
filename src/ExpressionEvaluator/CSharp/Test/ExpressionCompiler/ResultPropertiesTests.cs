@@ -365,6 +365,48 @@ class C
         }
 
         [Fact]
+        public void DeconstructionDeclaration()
+        {
+            var source = @"
+class C
+{
+    void Test()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "C.Test");
+
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                context.CompileExpression(
+                    "(int z1, string z2) = (1, null);",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData);
+                Assert.Null(error);
+                Assert.Empty(missingAssemblyIdentities);
+
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+            });
+        }
+
+        [Fact]
         public void Error()
         {
             var source = @"
