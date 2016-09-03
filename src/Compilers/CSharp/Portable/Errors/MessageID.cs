@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOutVar = MessageBase + 12713,
 
         IDS_FeatureIOperation = MessageBase + 12714,
+        IDS_FeatureTargetTypedDefault = MessageBase + 12715,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -167,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
+                case MessageID.IDS_FeatureTargetTypedDefault:
+                    return "targetTypedDefault";
                 default:
                     return null;
             }
@@ -178,6 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                case MessageID.IDS_FeatureTargetTypedDefault:
+                    return LanguageVersion.CSharp7;
+
                 // C# 7 features.
                 case MessageID.IDS_FeatureBinaryLiteral:
                 case MessageID.IDS_FeatureDigitSeparator:
