@@ -11299,6 +11299,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
+        '''</summary>
+        Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError() As String
+            Get
+                Return ResourceManager.GetString("ERR_ValueTupleTypeRefResolutionError", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{4}&apos; cannot be converted to &apos;{5}&apos; because &apos;{0}&apos; is not derived from &apos;{1}&apos;, as required for the &apos;In&apos; generic parameter &apos;{2}&apos; in &apos;{3}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_VarianceConversionFailedIn6() As String
