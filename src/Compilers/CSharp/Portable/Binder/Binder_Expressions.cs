@@ -552,6 +552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultExpression:
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.TargetTypedDefaultExpression:
+                    return BindTargetTypedDefaultExpression((TargetTypedDefaultExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
 
@@ -968,6 +971,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.BindType(node.Type, diagnostics);
             return new BoundDefaultOperator(node, type);
+        }
+
+        private BoundExpression BindTargetTypedDefaultExpression(TargetTypedDefaultExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            //TypeSymbol type = this.BindType(node.Type, diagnostics);
+            return new BoundDefaultPendingInference(node);
         }
 
         /// <summary>

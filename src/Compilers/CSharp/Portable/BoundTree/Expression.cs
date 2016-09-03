@@ -952,6 +952,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundDefaultPendingInference : BoundExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
     internal partial class BoundDup
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -1967,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundSourceDocumentIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;

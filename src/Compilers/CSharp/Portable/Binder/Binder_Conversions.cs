@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -95,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
+            }
+
+            if (conversion.Kind == ConversionKind.ImplicitDefault)
+            {
+                return new BoundDefaultOperator(source.Syntax, destination);
             }
 
             if (conversion.IsUserDefined)

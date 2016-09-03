@@ -815,6 +815,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.DefaultPendingInference:
+                    var defaultConversion = ClassifyDefaultConversion((BoundDefaultPendingInference)sourceExpression, destination, ref useSiteDiagnostics);
+                    if (defaultConversion.Exists)
+                    {
+                        return defaultConversion;
+                    }
+                    break;
+
                 case BoundKind.UnboundLambda:
                     if (HasAnonymousFunctionConversion(sourceExpression, destination))
                     {
@@ -876,6 +884,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (destination is PointerTypeSymbol)
             {
                 return Conversion.NullToPointer;
+            }
+
+            return Conversion.NoConversion;
+        }
+
+        private Conversion ClassifyDefaultConversion(BoundDefaultPendingInference source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)destination != null);
+
+            if (destination.IsStructType() && !destination.IsNullableType())
+            {
+                return Conversion.ImplicitDefault;
             }
 
             return Conversion.NoConversion;
