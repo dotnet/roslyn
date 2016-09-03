@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
-            OutputToOutputWindow("Beginning solution parsing");
+            OutputToOutputWindow("Parsing solution - start");
             var start = DateTimeOffset.UtcNow;
 
             // Load the solution on a threadpool thread, but *do* capture the context so that we continue on the UI thread, since we're
@@ -120,7 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename, cancellationToken), cancellationToken).ConfigureAwait(true);
             AssertIsForeground();
 
-            OutputToOutputWindow($"Done solution parsing - creating {solutionInfo.Projects.Count} projects.  Took {DateTimeOffset.UtcNow - start}");
+            OutputToOutputWindow($"Parsing solution - done (took {DateTimeOffset.UtcNow - start})");
+            OutputToOutputWindow($"Creating projects - start ({solutionInfo.Projects.Count} to create)");
             start = DateTimeOffset.UtcNow;
             var projectToProjectInfo = new Dictionary<AbstractProject, ProjectInfo>();
             foreach (var projectInfo in solutionInfo.Projects)
@@ -128,10 +129,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, projectInfo, solutionInfo);
             }
 
-            OutputToOutputWindow($"Done creating projects - pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
+            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+            OutputToOutputWindow($"Pushing to workspace - start");
             start = DateTimeOffset.UtcNow;
             FinishLoad(projectToProjectInfo.Keys, p => projectToProjectInfo[p]);
-            OutputToOutputWindow($"Done pushing to workspace. Took {DateTimeOffset.UtcNow - start}");
+            OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
         }
 
         private void OutputToOutputWindow(string message)
