@@ -2740,6 +2740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operand.Kind == BoundKind.DefaultPendingInference)
             {
+                // PROTOTYPE(default) Need to handle type parameters here (`where T : struct` for instance)
                 if (!targetType.IsStructType() || targetType.IsNullableType())
                 {
                     Error(diagnostics, ErrorCode.ERR_RefCantBeDefault, syntax, targetType);

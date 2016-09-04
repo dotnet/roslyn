@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool okToDowngradeToNeither;
                 BetterResult r;
 
-                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference)
+                if (argumentKind == BoundKind.OutVarLocalPendingInference || argumentKind == BoundKind.OutDeconstructVarPendingInference || argumentKind == BoundKind.DefaultPendingInference)
                 {
                     // If argument is an out variable that needs type inference,
                     // neither candidate is better in this argument.
@@ -2978,6 +2978,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Any parameter type is good, we'll use it for the var local.
                 return Conversion.Identity;
+            }
+
+            if (argument.Kind == BoundKind.DefaultPendingInference)
+            {
+                if (parameterType.IsStructType() && !parameterType.IsNullableType())
+                {
+                    return Conversion.Identity;
+                }
+                else
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             if (argRefKind == RefKind.None)

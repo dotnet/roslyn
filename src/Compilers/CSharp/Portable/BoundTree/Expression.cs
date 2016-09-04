@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -964,6 +965,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitNoneOperation(this, argument);
+        }
+
+        // PROTOTYPE(default) Those two methods should be in a better location
+        internal BoundDefaultOperator SetInferredType(TypeSymbol parameterType, bool success = true)
+        {
+            return new BoundDefaultOperator(this.Syntax, parameterType, hasErrors: !success);
+        }
+
+        internal BoundDefaultOperator FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        {
+            if (diagnosticsOpt != null)
+            {
+                Binder.Error(diagnosticsOpt, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDefault, this.Syntax);
+            }
+
+            return this.SetInferredType(binder.CreateErrorType("var"), success: false);
         }
     }
 

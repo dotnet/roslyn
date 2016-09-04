@@ -119,4 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { throw ExceptionUtilities.Unreachable; }
         }
     }
+
+    internal partial class BoundDefaultPendingInference
+    {
+        public override object Display
+        {
+            get { return "default"; }
+        }
+    }
 }

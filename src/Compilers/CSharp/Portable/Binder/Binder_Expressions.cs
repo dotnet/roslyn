@@ -2256,6 +2256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     arguments[arg] = ((OutVarLocalPendingInference)argument).SetInferredType(parameterType, success: !hasErrors);
                 }
+                else if (argument.Kind == BoundKind.DefaultPendingInference)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    arguments[arg] = ((BoundDefaultPendingInference)argument).SetInferredType(parameterType);
+                }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
@@ -4839,6 +4844,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
+            // No member accesses on default
+            if (boundLeft.Kind == BoundKind.DefaultPendingInference)
+            {
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
+                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
+                return BadExpression(node, boundLeft);
+            }
+
             if (boundLeft.Kind == BoundKind.UnboundLambda)
             {
                 Debug.Assert((object)leftType == null);
@@ -6077,6 +6090,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (index.Kind == BoundKind.OutVarLocalPendingInference)
             {
                 return ((OutVarLocalPendingInference)index).FailInference(this, diagnostics);
+            }
+            if (index.Kind == BoundKind.DefaultPendingInference)
+            {
+                // PROTOTYPE(default) Confirm this is needed
+                return ((BoundDefaultPendingInference)index).FailInference(this, diagnostics);
             }
 
             var result =

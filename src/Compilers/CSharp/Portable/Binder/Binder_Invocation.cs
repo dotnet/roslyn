@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference || e.Kind == BoundKind.DefaultPendingInference));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -347,6 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (argument.Kind == BoundKind.OutVarLocalPendingInference)
                         {
                             builder[i] = ((OutVarLocalPendingInference)argument).FailInference(this, diagnostics);
+                        }
+                        if (argument.Kind == BoundKind.DefaultPendingInference)
+                        {
+                            builder[i] = ((BoundDefaultPendingInference)argument).FailInference(this, diagnostics);
                         }
 
                         i++;
@@ -1205,6 +1209,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         newArguments[i] = ((OutVarLocalPendingInference)argument).SetInferredType(candidateType, success: true);
                     }
+                }
+                else if (argument.Kind == BoundKind.DefaultPendingInference)
+                {
+                    throw new Exception(); // PROTOTYPE(default) Probably need something here
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {

@@ -2380,6 +2380,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadArgType" xml:space="preserve">
     <value>Argument {0}: cannot convert from '{1}' to '{2}'</value>
   </data>
+   <data name="ERR_DefaultIsBadArg" xml:space="preserve">
+    <value>Argument {0}: cannot convert "default" to '{1}'</value>
+  </data>
   <data name="ERR_NoSourceFile" xml:space="preserve">
     <value>Source file '{0}' could not be opened -- {1}</value>
   </data>
@@ -4901,6 +4904,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
+  </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedDefault" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed default.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>

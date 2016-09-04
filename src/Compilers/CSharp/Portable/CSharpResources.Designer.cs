@@ -3149,6 +3149,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument {0}: cannot convert &quot;default&quot; to &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_DefaultIsBadArg {
+            get {
+                return ResourceManager.GetString("ERR_DefaultIsBadArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -8878,6 +8887,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeExpected {
             get {
                 return ResourceManager.GetString("ERR_TypeExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed default..
+        /// </summary>
+        internal static string ERR_TypeInferenceFailedForImplicitlyTypedDefault {
+            get {
+                return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedDefault", resourceCulture);
             }
         }
         
