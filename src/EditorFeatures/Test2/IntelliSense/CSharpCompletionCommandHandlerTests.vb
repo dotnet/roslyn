@@ -1978,5 +1978,33 @@ class Program
                 Await state.AssertSelectedCompletionItem("DateTime")
             End Using
         End Function
+
+        <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceSelection2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        DateTimeOffset.$$
+    }
+}
+            ]]></Document>)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                For Each c In "Offset."
+                    state.SendBackspace()
+                    Await state.WaitForAsynchronousOperationsAsync()
+                Next
+
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("DateTime")
+            End Using
+        End Function
     End Class
 End Namespace
