@@ -5,16 +5,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.Isam.Esent.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Esent;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// A service that enables storing and retrieving of information associated with solutions,
@@ -197,13 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return Path.Combine(Path.GetDirectoryName(solution.FilePath), ".vs", Path.GetFileNameWithoutExtension(solution.FilePath));
             }
 
-            var vsWorkspace = solution.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return null;
-            }
-
-            return vsWorkspace.ProjectTracker.GetWorkingFolderPath(solution);
+            var locationService = solution.Workspace.Services.GetService<IPersistentStorageLocationService>();
+            return locationService?.GetStorageLocation(solution);
         }
 
         private AbstractPersistentStorage TryCreateEsentStorage(string workingFolderPath, string solutionPath)
