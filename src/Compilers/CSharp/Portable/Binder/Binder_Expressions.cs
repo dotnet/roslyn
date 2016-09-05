@@ -552,8 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultExpression:
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
-                case SyntaxKind.TargetTypedDefaultExpression:
-                    return BindTargetTypedDefaultExpression((TargetTypedDefaultExpressionSyntax)node, diagnostics);
+                case SyntaxKind.DefaultLiteral:
+                    return BindDefaultLiteral((DefaultLiteralSyntax)node, diagnostics);
 
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
@@ -973,10 +973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDefaultOperator(node, type);
         }
 
-        private BoundExpression BindTargetTypedDefaultExpression(TargetTypedDefaultExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindDefaultLiteral(DefaultLiteralSyntax node, DiagnosticBag diagnostics)
         {
-            //TypeSymbol type = this.BindType(node.Type, diagnostics);
-            return new BoundDefaultPendingInference(node);
+            return new BoundDefaultOperator(node);
         }
 
         /// <summary>
@@ -1736,6 +1735,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // PROTOTYPE(default) SHould handle default literal here?
+
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
                 Debug.Assert(conversion.IsUserDefined);
@@ -2255,11 +2256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     arguments[arg] = ((OutVarLocalPendingInference)argument).SetInferredType(parameterType, success: !hasErrors);
-                }
-                else if (argument.Kind == BoundKind.DefaultPendingInference)
-                {
-                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    arguments[arg] = ((BoundDefaultPendingInference)argument).SetInferredType(parameterType);
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
@@ -4844,8 +4840,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
+            // PROTOTYPE(default) unify with case above
             // No member accesses on default
-            if (boundLeft.Kind == BoundKind.DefaultPendingInference)
+            if (boundLeft.IsLiteralDefault())
             {
                 DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
@@ -6090,11 +6087,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (index.Kind == BoundKind.OutVarLocalPendingInference)
             {
                 return ((OutVarLocalPendingInference)index).FailInference(this, diagnostics);
-            }
-            if (index.Kind == BoundKind.DefaultPendingInference)
-            {
-                // PROTOTYPE(default) Confirm this is needed
-                return ((BoundDefaultPendingInference)index).FailInference(this, diagnostics);
             }
 
             var result =

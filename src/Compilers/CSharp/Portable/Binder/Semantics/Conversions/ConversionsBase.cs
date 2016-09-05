@@ -815,11 +815,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultPendingInference:
-                    var defaultConversion = ClassifyDefaultConversion((BoundDefaultPendingInference)sourceExpression, destination, ref useSiteDiagnostics);
-                    if (defaultConversion.Exists)
+                case BoundKind.DefaultOperator:
+                    var defaultExpression = (BoundDefaultOperator)sourceExpression;
+                    if ((object)defaultExpression.Type == null)
                     {
-                        return defaultConversion;
+                        var defaultConversion = ClassifyDefaultConversion(defaultExpression, destination, ref useSiteDiagnostics);
+                        if (defaultConversion.Exists)
+                        {
+                            return defaultConversion;
+                        }
                     }
                     break;
 
@@ -889,14 +893,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion ClassifyDefaultConversion(BoundDefaultPendingInference source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyDefaultConversion(BoundDefaultOperator source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
+            Debug.Assert((object)source.Type == null);
             Debug.Assert((object)destination != null);
 
             if (destination.IsStructType() && !destination.IsNullableType())
             {
-                return Conversion.ImplicitDefault;
+                return Conversion.DefaultLiteral;
             }
 
             return Conversion.NoConversion;

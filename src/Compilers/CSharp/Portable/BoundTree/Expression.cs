@@ -953,37 +953,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultPendingInference : BoundExpression
-    {
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-
-        // PROTOTYPE(default) Those two methods should be in a better location
-        internal BoundDefaultOperator SetInferredType(TypeSymbol parameterType, bool success = true)
-        {
-            return new BoundDefaultOperator(this.Syntax, parameterType, hasErrors: !success);
-        }
-
-        internal BoundDefaultOperator FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
-        {
-            if (diagnosticsOpt != null)
-            {
-                Binder.Error(diagnosticsOpt, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDefault, this.Syntax);
-            }
-
-            return this.SetInferredType(binder.CreateErrorType("var"), success: false);
-        }
-    }
-
     internal partial class BoundDup
     {
         protected override OperationKind ExpressionKind => OperationKind.None;

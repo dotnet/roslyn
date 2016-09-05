@@ -9959,8 +9959,8 @@ tryAgain:
             }
             else
             {
-                keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureTargetTypedDefault);
-                return _syntaxFactory.TargetTypedDefaultExpression(keyword);
+                keyword = CheckFeatureAvailability(keyword, MessageID.IDS_FeatureDefaultLiteral);
+                return _syntaxFactory.DefaultLiteral(keyword);
             }
         }
 

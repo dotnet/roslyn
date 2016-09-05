@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.InterpolatedString:
-                case ConversionKind.ImplicitDefault:
+                case ConversionKind.DefaultLiteral:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:

@@ -918,8 +918,8 @@
       <summary>Creates an DefaultExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="TargetTypedDefaultExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="TargetTypedDefaultExpression"/>
+  <Node Name="DefaultLiteralSyntax" Base="ExpressionSyntax">
+    <Kind Name="DefaultLiteral"/>
     <Field Name="Keyword" Type="SyntaxToken">
       <Kind Name="DefaultKeyword"/>
       <PropertyComment>
@@ -927,10 +927,10 @@
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents the syntax node for a target-typed Default expression.</summary>
+      <summary>Class which represents the syntax node for a default literal.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an TargetTypedDefaultExpressionSyntax node.</summary>
+      <summary>Creates an DefaultLiteralSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TypeOfExpressionSyntax" Base="ExpressionSyntax">

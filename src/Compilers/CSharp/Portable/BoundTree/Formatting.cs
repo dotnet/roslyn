@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultPendingInference
+    internal partial class BoundDefaultOperator
     {
         public override object Display
         {

@@ -1437,7 +1437,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for out var
 
         ERR_RefCantBeDefault = 8300, // PROTOTYPE(default) Pick a better number
-        ERR_TypeInferenceFailedForImplicitlyTypedDefault = 8301, // PROTOTYPE(default) Pick a better number
-        ERR_DefaultIsBadArg  = 8302, // PROTOTYPE(default) Pick a better number
     }
 }

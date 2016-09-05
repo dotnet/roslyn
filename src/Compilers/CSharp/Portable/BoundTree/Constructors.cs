@@ -529,6 +529,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(syntax, type.GetDefaultValue(), type, hasErrors)
         {
         }
+
+        public BoundDefaultOperator(SyntaxNode syntax)
+          : this(syntax, constantValueOpt: null, type: null, hasErrors: false)
+        {
+        }
     }
 
     internal partial class BoundTryStatement

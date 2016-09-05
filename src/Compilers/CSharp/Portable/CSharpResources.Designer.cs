@@ -3149,15 +3149,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0}: cannot convert &quot;default&quot; to &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_DefaultIsBadArg {
-            get {
-                return ResourceManager.GetString("ERR_DefaultIsBadArg", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -8891,15 +8882,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed default..
-        /// </summary>
-        internal static string ERR_TypeInferenceFailedForImplicitlyTypedDefault {
-            get {
-                return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedDefault", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
@@ -9702,6 +9684,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to target-typed default operator.
+        /// </summary>
+        internal static string IDS_FeatureDefaultLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDefaultLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to dictionary initializer.
         /// </summary>
         internal static string IDS_FeatureDictionaryInitializer {
@@ -10022,15 +10013,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to target-typed default operator.
-        /// </summary>
-        internal static string IDS_FeatureTargetTypedDefault {
-            get {
-                return ResourceManager.GetString("IDS_FeatureTargetTypedDefault", resourceCulture);
             }
         }
         

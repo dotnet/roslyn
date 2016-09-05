@@ -98,11 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.Kind == ConversionKind.ImplicitDefault)
-            {
-                return new BoundDefaultOperator(source.Syntax, destination);
-            }
-
             if (conversion.IsUserDefined)
             {
                 return CreateUserDefinedConversion(syntax, source, conversion, isCast, destination, diagnostics);

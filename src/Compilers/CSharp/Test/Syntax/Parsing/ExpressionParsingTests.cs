@@ -2275,8 +2275,8 @@ namespace WB.Core.SharedKernels.DataCollection.Generated
             var expr = this.ParseExpression(text, TestOptions.ExperimentalParseOptions);
 
             Assert.NotNull(expr);
-            Assert.Equal(SyntaxKind.TargetTypedDefaultExpression, expr.Kind());
-            Assert.False(((TargetTypedDefaultExpressionSyntax)expr).Keyword.IsMissing);
+            Assert.Equal(SyntaxKind.DefaultLiteral, expr.Kind());
+            Assert.False(((DefaultLiteralSyntax)expr).Keyword.IsMissing);
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
         }
