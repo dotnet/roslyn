@@ -88,6 +88,7 @@
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />

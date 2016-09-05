@@ -167,6 +167,38 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Projects);
         }
 
+        public ImmutableArray<string> GetProjectPathsInSolution(string solutionFilePath)
+        {
+            if (solutionFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(solutionFilePath));
+            }
+
+            var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Directory.GetCurrentDirectory());
+            using (_dataGuard.DisposableWait(CancellationToken.None))
+            {
+                this.SetSolutionProperties(absoluteSolutionPath);
+            }
+
+            Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
+            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
+
+            var builder = ImmutableArray.CreateBuilder<string>();
+            foreach (var project in solutionFile.ProjectsInOrder)
+            {
+                if (project.ProjectType != SolutionProjectType.SolutionFolder)
+                {
+                    var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
+                    if (projectAbsolutePath != null)
+                    {
+                        builder.Add(projectAbsolutePath);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
         internal string GetAbsoluteSolutionPath(string path, string baseDirectory)
         {
             string absolutePath;

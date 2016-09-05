@@ -71,7 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (_deferredProjectLoadIsEnabled)
+            var deferredProjectWorkspaceService = _workspace.Services.GetService<IDeferredProjectWorkspaceService>();
+            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
             {
                 // Copy to avoid modifying the collection while enumerating
                 var loadedProjects = Projects.ToList();

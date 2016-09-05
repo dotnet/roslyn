@@ -59,6 +59,19 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime">
+      <HintPath>..\..\..\..\..\AnyCodeReferences\Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Workspace">
+      <HintPath>..\..\..\..\..\AnyCodeReferences\Microsoft.VisualStudio.Workspace.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Workspace.Extensions">
+      <HintPath>..\..\..\..\..\AnyCodeReferences\Microsoft.VisualStudio.Workspace.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Workspace.VSIntegration.Contracts">
+      <HintPath>..\..\..\..\..\AnyCodeReferences\Microsoft.VisualStudio.Workspace.VSIntegration.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -110,6 +123,7 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.JsonRpcSession.cs" />
@@ -129,5 +143,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

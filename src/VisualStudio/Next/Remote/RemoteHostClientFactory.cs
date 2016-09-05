@@ -8,12 +8,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            // this is the point where we can create different kind of remote host client in future (cloud or etc)
+            // this is the point where we can create different kin remote host client in future (cloud or etc)
             return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);
         }
     }

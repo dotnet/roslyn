@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class VisualStudioProjectTracker : IVsSolutionLoadEvents
     {
-        // TODO: Query the actual option and set this properly
-        private bool _deferredProjectLoadIsEnabled = true;
-
         // Temporary for prototyping purposes
         private IVsOutputWindowPane _pane;
 
@@ -29,15 +27,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            if (_deferredProjectLoadIsEnabled)
+            var deferredProjectWorkspaceService = _workspace.Services.GetService<IDeferredProjectWorkspaceService>();
+
+            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
             {
-                LoadSolutionFromMSBuild(pszSolutionFilename, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+                LoadSolutionFromMSBuild(deferredProjectWorkspaceService, pszSolutionFilename, _solutionParsingCancellationTokenSource.Token).FireAndForget();
             }
 
             return VSConstants.S_OK;
         }
 
-        private async Task LoadSolutionFromMSBuild(string pszSolutionFilename, CancellationToken cancellationToken)
+        private async Task LoadSolutionFromMSBuild(
+            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
+            string solutionFileName,
+            CancellationToken cancellationToken)
         {
             AssertIsForeground();
             var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
@@ -51,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
             await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(true);
-            await LoadSolutionInBackground(pszSolutionFilename, cancellationToken).ConfigureAwait(true);
+            await LoadSolutionInBackground(deferredProjectWorkspaceService, solutionFileName, cancellationToken).ConfigureAwait(true);
         }
 
         int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
@@ -105,7 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.S_OK;
         }
 
-        private async Task LoadSolutionInBackground(string solutionFilename, CancellationToken cancellationToken)
+        private async Task LoadSolutionInBackground(
+            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
+            string solutionFilename,
+            CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
@@ -117,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Load the solution on a threadpool thread, but *do* capture the context so that we continue on the UI thread, since we're
             // going to create projects/etc.
-            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(solutionFilename, cancellationToken), cancellationToken).ConfigureAwait(true);
+            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(deferredProjectWorkspaceService,solutionFilename, cancellationToken), cancellationToken).ConfigureAwait(true);
             AssertIsForeground();
 
             OutputToOutputWindow($"Parsing solution - done (took {DateTimeOffset.UtcNow - start})");
@@ -237,11 +243,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return projectContext;
         }
 
-        private Task<SolutionInfo> LoadSolutionInfoAsync(string solutionFilename, CancellationToken cancellationToken)
+        private async Task<SolutionInfo> LoadSolutionInfoAsync(
+            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
+            string solutionFilename,
+            CancellationToken cancellationToken)
         {
             AssertIsBackground();
             var loader = new MSBuildProjectLoader(_workspace);
-            return loader.LoadSolutionInfoAsync(solutionFilename, cancellationToken);
+            var projectFilenames = loader.GetProjectPathsInSolution(solutionFilename);
+
+            var projectInfos = new List<ProjectInfo>(projectFilenames.Length);
+            foreach (var projectFilename in projectFilenames)
+            {
+                var projectInfo = await CreateProjectInfoAsync(deferredProjectWorkspaceService, projectFilename).ConfigureAwait(false);
+                if (projectInfo != null)
+                {
+                    projectInfos.Add(projectInfo);
+                }
+            }
+
+            return SolutionInfo.Create(
+                SolutionId.CreateNewId(debugName: solutionFilename),
+                VersionStamp.Create(),
+                filePath: solutionFilename,
+                projects: projectInfos);
+        }
+
+        private async Task<ProjectInfo> CreateProjectInfoAsync(IDeferredProjectWorkspaceService deferredProjectWorkspaceService, string projectFilename)
+        {
+            var commandLine = await deferredProjectWorkspaceService.GetCommandLineArgumentsForProjectAsync(projectFilename).ConfigureAwait(false);
+            if (commandLine == null)
+            {
+                return null;
+            }
+
+            return ProjectInfo.Create(
+                ProjectId.CreateNewId(debugName: projectFilename),
+                VersionStamp.Create(),
+                name: projectFilename /*TODO: Get the actual projectname from the solution file*/,
+                assemblyName: projectFilename /*TODO: Get the assemblyname*/,
+                language: Path.GetExtension(projectFilename) == ".csproj" ? LanguageNames.CSharp : LanguageNames.VisualBasic /* TODO: Other languages? */,
+                filePath: projectFilename,
+                outputFilePath: null,
+                compilationOptions: null,
+                parseOptions: null,
+                documents: null,
+                projectReferences: null,
+                metadataReferences: null,
+                analyzerReferences: null,
+                additionalDocuments: null,
+                isSubmission: false,
+                hostObjectType: null,
+                commandLineOpt: commandLine.Join(" "));
         }
 
         private void FinishLoad(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
