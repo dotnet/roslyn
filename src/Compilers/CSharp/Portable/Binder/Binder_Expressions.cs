@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteral:
-                    return BindDefaultLiteral((DefaultLiteralSyntax)node, diagnostics);
+                    return new BoundDefaultOperator((DefaultLiteralSyntax)node);
 
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
@@ -971,11 +971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.BindType(node.Type, diagnostics);
             return new BoundDefaultOperator(node, type);
-        }
-
-        private BoundExpression BindDefaultLiteral(DefaultLiteralSyntax node, DiagnosticBag diagnostics)
-        {
-            return new BoundDefaultOperator(node);
         }
 
         /// <summary>

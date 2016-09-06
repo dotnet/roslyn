@@ -468,5 +468,137 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
         }
+
+        [Fact(Skip = "PROTOTYPE(default)")]
+        public void Switch()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 1;
+        switch (x)
+        {
+            case default: // PROTOTYPE(default) default is not recognized as constant
+            default:
+                break;
+            case 1:
+                System.Console.Write(""1"");
+                break;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void BinaryOperator()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        if (x == default)
+        {
+            System.Console.Write(""0"");
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void OptionalParameter()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        M();
+    }
+    static void M(int x = default)
+    {
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ArraySize()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = new int[default];
+        System.Console.Write(a.Length);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void TernaryOperator()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        bool flag = true;
+        var x = flag ? default : 1;
+        System.Console.Write($""{x} {x.GetType().ToString()}"");
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 System.Int32");
+        }
+
+        [Fact]
+        public void RefTernaryOperator()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        bool flag = true;
+        var x = flag ? default : ""hello"";
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'default' and 'string'
+                //         var x = flag ? default : "hello";
+                Diagnostic(ErrorCode.ERR_InvalidQM, @"flag ? default : ""hello""").WithArguments("default", "string").WithLocation(7, 17)
+                );
+        }
     }
 }
