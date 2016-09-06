@@ -22,12 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Function(r) Instance
         End Function
 
-        Public Overrides ReadOnly Property CodePrefix As String
-            Get
-                ' VB uses "BC" (for Basic Compiler) to identifier its error messages.
-                Return "BC"
-            End Get
-        End Property
+        Public Overrides ReadOnly Property CodePrefix As String = "BC" ' VB uses "BC" (for Basic Compiler) to identifier its error messages.
 
         Public Overrides Function LoadMessage(code As Integer, language As CultureInfo) As String
             Return ErrorFactory.IdToString(DirectCast(code, ERRID), language)
@@ -85,11 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Public Overrides ReadOnly Property ErrorCodeType As Type
-            Get
-                Return GetType(ERRID)
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ErrorCodeType As Type = GetType(ERRID)
 
         Public Overrides Function CreateDiagnostic(code As Integer, location As Location, ParamArray args() As Object) As Diagnostic
             Return New VBDiagnostic(ErrorFactory.ErrorInfo(CType(code, ERRID), args), location)
@@ -127,206 +118,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    hasSourceSuppression)
         End Function
 
+        Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer = ERRID.ERR_UnableToCreateTempFile
 
-        Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer
-            Get
-                Return ERRID.ERR_UnableToCreateTempFile
-            End Get
-        End Property
+#Region " command line:"
+        Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer = ERRID.ERR_ExpectedSingleScript
+        Public Overrides ReadOnly Property ERR_OpenResponseFile As Integer = ERRID.ERR_NoResponseFile
+        Public Overrides ReadOnly Property ERR_InvalidPathMap As Integer = ERRID.ERR_InvalidPathMap
+        Public Overrides ReadOnly Property FTL_InputFileNameTooLong As Integer = ERRID.FTL_InputFileNameTooLong
+        Public Overrides ReadOnly Property ERR_FileNotFound As Integer = ERRID.ERR_FileNotFound
+        Public Overrides ReadOnly Property ERR_NoSourceFile As Integer = ERRID.ERR_BadModuleFile1
+        Public Overrides ReadOnly Property ERR_CantOpenFileWrite As Integer = ERRID.ERR_CantOpenFileWrite
+        Public Overrides ReadOnly Property ERR_OutputWriteFailed As Integer = ERRID.ERR_CantOpenFileWrite
+        Public Overrides ReadOnly Property WRN_NoConfigNotOnCommandLine As Integer = ERRID.WRN_NoConfigInResponseFile
+        Public Overrides ReadOnly Property ERR_BinaryFile As Integer = ERRID.ERR_BinaryFile
+        Public Overrides ReadOnly Property WRN_AnalyzerCannotBeCreated As Integer = ERRID.WRN_AnalyzerCannotBeCreated
+        Public Overrides ReadOnly Property WRN_NoAnalyzerInAssembly As Integer = ERRID.WRN_NoAnalyzerInAssembly
+        Public Overrides ReadOnly Property WRN_UnableToLoadAnalyzer As Integer = ERRID.WRN_UnableToLoadAnalyzer
+        Public Overrides ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer As Integer = ERRID.INF_UnableToLoadSomeTypesInAnalyzer
+        Public Overrides ReadOnly Property ERR_CantReadRulesetFile As Integer = ERRID.ERR_CantReadRulesetFile
+        Public Overrides ReadOnly Property ERR_CompileCancelled As Integer = ERRID.ERR_None  ' TODO: Add an error code for CompileCancelled
+#End Region
+#Region " compilation options:"
+        Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer = ERRID.ERR_InvalidSwitchValue
+        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer = ERRID.ERR_MutuallyExclusiveOptions
+#End Region
+#Region " emit options:"
+        Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer = ERRID.ERR_InvalidDebugInformationFormat
+        Public Overrides ReadOnly Property ERR_InvalidOutputName As Integer = ERRID.ERR_InvalidOutputName
+        Public Overrides ReadOnly Property ERR_InvalidFileAlignment As Integer = ERRID.ERR_InvalidFileAlignment
+        Public Overrides ReadOnly Property ERR_InvalidSubsystemVersion As Integer = ERRID.ERR_InvalidSubsystemVersion
+#End Region
 
-        ' command line:
-        Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer
-            Get
-                Return ERRID.ERR_ExpectedSingleScript
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_OpenResponseFile As Integer
-            Get
-                Return ERRID.ERR_NoResponseFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidPathMap As Integer
-            Get
-                Return ERRID.ERR_InvalidPathMap
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property FTL_InputFileNameTooLong As Integer
-            Get
-                Return ERRID.FTL_InputFileNameTooLong
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_FileNotFound As Integer
-            Get
-                Return ERRID.ERR_FileNotFound
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_NoSourceFile As Integer
-            Get
-                Return ERRID.ERR_BadModuleFile1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_CantOpenFileWrite As Integer
-            Get
-                Return ERRID.ERR_CantOpenFileWrite
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_OutputWriteFailed As Integer
-            Get
-                Return ERRID.ERR_CantOpenFileWrite
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property WRN_NoConfigNotOnCommandLine As Integer
-            Get
-                Return ERRID.WRN_NoConfigInResponseFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_BinaryFile As Integer
-            Get
-                Return ERRID.ERR_BinaryFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property WRN_AnalyzerCannotBeCreated As Integer
-            Get
-                Return ERRID.WRN_AnalyzerCannotBeCreated
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property WRN_NoAnalyzerInAssembly As Integer
-            Get
-                Return ERRID.WRN_NoAnalyzerInAssembly
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property WRN_UnableToLoadAnalyzer As Integer
-            Get
-                Return ERRID.WRN_UnableToLoadAnalyzer
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer As Integer
-            Get
-                Return ERRID.INF_UnableToLoadSomeTypesInAnalyzer
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_CantReadRulesetFile As Integer
-            Get
-                Return ERRID.ERR_CantReadRulesetFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_CompileCancelled As Integer
-            Get
-                ' TODO: Add an error code for CompileCancelled
-                Return ERRID.ERR_None
-            End Get
-        End Property
-
-        ' compilation options:
-
-        Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer
-            Get
-                Return ERRID.ERR_InvalidSwitchValue
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer
-            Get
-                Return ERRID.ERR_MutuallyExclusiveOptions
-            End Get
-        End Property
-
-        ' emit options:
-
-        Public Overrides ReadOnly Property ERR_InvalidDebugInformationFormat As Integer
-            Get
-                Return ERRID.ERR_InvalidDebugInformationFormat
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidOutputName As Integer
-            Get
-                Return ERRID.ERR_InvalidOutputName
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidFileAlignment As Integer
-            Get
-                Return ERRID.ERR_InvalidFileAlignment
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidSubsystemVersion As Integer
-            Get
-                Return ERRID.ERR_InvalidSubsystemVersion
-            End Get
-        End Property
-
-
-        ' reference manager:
-        Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer
-            Get
-                Return ERRID.ERR_MetaDataIsNotAssembly
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_MetadataFileNotModule As Integer
-            Get
-                Return ERRID.ERR_MetaDataIsNotModule
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidAssemblyMetadata As Integer
-            Get
-                Return ERRID.ERR_BadMetaDataReference1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_InvalidModuleMetadata As Integer
-            Get
-                Return ERRID.ERR_BadModuleFile1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ErrorOpeningAssemblyFile As Integer
-            Get
-                Return ERRID.ERR_BadRefLib1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ErrorOpeningModuleFile As Integer
-            Get
-                Return ERRID.ERR_BadModuleFile1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_MetadataFileNotFound As Integer
-            Get
-                Return ERRID.ERR_LibNotFound
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_MetadataReferencesNotSupported As Integer
-            Get
-                Return ERRID.ERR_MetadataReferencesNotSupported
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_LinkedNetmoduleMetadataMustProvideFullPEImage As Integer
-            Get
-                Return ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage
-            End Get
-        End Property
+#Region "reference manager:"
+        Public Overrides ReadOnly Property ERR_MetadataFileNotAssembly As Integer = ERRID.ERR_MetaDataIsNotAssembly
+        Public Overrides ReadOnly Property ERR_MetadataFileNotModule As Integer = ERRID.ERR_MetaDataIsNotModule
+        Public Overrides ReadOnly Property ERR_InvalidAssemblyMetadata As Integer = ERRID.ERR_BadMetaDataReference1
+        Public Overrides ReadOnly Property ERR_InvalidModuleMetadata As Integer = ERRID.ERR_BadModuleFile1
+        Public Overrides ReadOnly Property ERR_ErrorOpeningAssemblyFile As Integer = ERRID.ERR_BadRefLib1
+        Public Overrides ReadOnly Property ERR_ErrorOpeningModuleFile As Integer = ERRID.ERR_BadModuleFile1
+        Public Overrides ReadOnly Property ERR_MetadataFileNotFound As Integer = ERRID.ERR_LibNotFound
+        Public Overrides ReadOnly Property ERR_MetadataReferencesNotSupported As Integer = ERRID.ERR_MetadataReferencesNotSupported
+        Public Overrides ReadOnly Property ERR_LinkedNetmoduleMetadataMustProvideFullPEImage As Integer = ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage
+#End Region
 
         Public Overrides Sub ReportDuplicateMetadataReferenceStrong(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
             diagnostics.Add(ERRID.ERR_DuplicateReferenceStrong,
@@ -342,87 +175,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If(equivalentReference.Display, equivalentIdentity.GetDisplayName()))
         End Sub
 
-        ' signing:
+#Region " signing:"
+        Public Overrides ReadOnly Property ERR_CantReadResource As Integer = ERRID.ERR_UnableToOpenResourceFile1
+        Public Overrides ReadOnly Property ERR_PublicKeyFileFailure As Integer = ERRID.ERR_PublicKeyFileFailure
+        Public Overrides ReadOnly Property ERR_PublicKeyContainerFailure As Integer = ERRID.ERR_PublicKeyContainerFailure
+        Public Overrides ReadOnly Property ERR_OptionMustBeAbsolutePath As Integer = ERRID.ERR_OptionMustBeAbsolutePath
+#End Region
 
-        Public Overrides ReadOnly Property ERR_CantReadResource As Integer
-            Get
-                Return ERRID.ERR_UnableToOpenResourceFile1
-            End Get
-        End Property
-        Public Overrides ReadOnly Property ERR_PublicKeyFileFailure As Integer
-            Get
-                Return ERRID.ERR_PublicKeyFileFailure
-            End Get
-        End Property
+#Region " resources:"
+        Public Overrides ReadOnly Property ERR_CantOpenWin32Resource As Integer = ERRID.ERR_UnableToOpenResourceFile1 'TODO: refine (DevDiv #12914)
+        Public Overrides ReadOnly Property ERR_CantOpenWin32Manifest As Integer = ERRID.ERR_UnableToReadUacManifest2
+        Public Overrides ReadOnly Property ERR_CantOpenWin32Icon As Integer = ERRID.ERR_UnableToOpenResourceFile1 'TODO: refine (DevDiv #12914)
+        Public Overrides ReadOnly Property ERR_ErrorBuildingWin32Resource As Integer = ERRID.ERR_ErrorCreatingWin32ResourceFile
+        Public Overrides ReadOnly Property ERR_BadWin32Resource As Integer = ERRID.ERR_ErrorCreatingWin32ResourceFile
+        Public Overrides ReadOnly Property ERR_ResourceFileNameNotUnique As Integer = ERRID.ERR_DuplicateResourceFileName1
+        Public Overrides ReadOnly Property ERR_ResourceNotUnique As Integer = ERRID.ERR_DuplicateResourceName1
+        Public Overrides ReadOnly Property ERR_ResourceInModule As Integer = ERRID.ERR_ResourceInModule
+#End Region
 
-        Public Overrides ReadOnly Property ERR_PublicKeyContainerFailure As Integer
-            Get
-                Return ERRID.ERR_PublicKeyContainerFailure
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_OptionMustBeAbsolutePath As Integer
-            Get
-                Return ERRID.ERR_OptionMustBeAbsolutePath
-            End Get
-        End Property
-
-        ' resources:
-        Public Overrides ReadOnly Property ERR_CantOpenWin32Resource As Integer
-            Get
-                Return ERRID.ERR_UnableToOpenResourceFile1 'TODO: refine (DevDiv #12914)
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_CantOpenWin32Manifest As Integer
-            Get
-                Return ERRID.ERR_UnableToReadUacManifest2
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_CantOpenWin32Icon As Integer
-            Get
-                Return ERRID.ERR_UnableToOpenResourceFile1 'TODO: refine (DevDiv #12914)
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ErrorBuildingWin32Resource As Integer
-            Get
-                Return ERRID.ERR_ErrorCreatingWin32ResourceFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_BadWin32Resource As Integer
-            Get
-                Return ERRID.ERR_ErrorCreatingWin32ResourceFile
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ResourceFileNameNotUnique As Integer
-            Get
-                Return ERRID.ERR_DuplicateResourceFileName1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ResourceNotUnique As Integer
-            Get
-                Return ERRID.ERR_DuplicateResourceName1
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ResourceInModule As Integer
-            Get
-                Return ERRID.ERR_ResourceInModule
-            End Get
-        End Property
-
-        ' pseudo-custom attributes
-
-        Public Overrides ReadOnly Property ERR_PermissionSetAttributeFileReadError As Integer
-            Get
-                Return ERRID.ERR_PermissionSetAttributeFileReadError
-            End Get
-        End Property
+#Region " pseudo-custom attributes"
+        Public Overrides ReadOnly Property ERR_PermissionSetAttributeFileReadError As Integer = ERRID.ERR_PermissionSetAttributeFileReadError
+#End Region
 
         Public Overrides Sub ReportInvalidAttributeArgument(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, attribute As AttributeData)
             Dim node = DirectCast(attributeSyntax, AttributeSyntax)
@@ -459,67 +232,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics.Add(ERRID.ERR_AttributeParameterRequired2, node.Name.GetLocation(), parameterName1, parameterName2)
         End Sub
 
-        ' PDB Writer
-        Public Overrides ReadOnly Property ERR_EncodinglessSyntaxTree As Integer
-            Get
-                Return ERRID.ERR_EncodinglessSyntaxTree
-            End Get
-        End Property
+#Region " PDB Writer"
+        Public Overrides ReadOnly Property ERR_EncodinglessSyntaxTree As Integer = ERRID.ERR_EncodinglessSyntaxTree
+        Public Overrides ReadOnly Property WRN_PdbUsingNameTooLong As Integer = ERRID.WRN_PdbUsingNameTooLong
+        Public Overrides ReadOnly Property WRN_PdbLocalNameTooLong As Integer = ERRID.WRN_PdbLocalNameTooLong
+        Public Overrides ReadOnly Property ERR_PdbWritingFailed As Integer = ERRID.ERR_PDBWritingFailed
+#End Region
 
-        Public Overrides ReadOnly Property WRN_PdbUsingNameTooLong As Integer
-            Get
-                Return ERRID.WRN_PdbUsingNameTooLong
-            End Get
-        End Property
+#Region " PE Writer"
+        Public Overrides ReadOnly Property ERR_MetadataNameTooLong As Integer = ERRID.ERR_TooLongMetadataName
+        Public Overrides ReadOnly Property ERR_EncReferenceToAddedMember As Integer = ERRID.ERR_EncReferenceToAddedMember
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer = ERRID.ERR_TooManyUserStrings
+        Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer = ERRID.ERR_PeWritingFailure
+        Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer = ERRID.ERR_ModuleEmitFailure
+        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer = ERRID.ERR_EncUpdateFailedMissingAttribute
+#End Region
 
-        Public Overrides ReadOnly Property WRN_PdbLocalNameTooLong As Integer
-            Get
-                Return ERRID.WRN_PdbLocalNameTooLong
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_PdbWritingFailed As Integer
-            Get
-                Return ERRID.ERR_PDBWritingFailed
-            End Get
-        End Property
-
-        ' PE Writer
-        Public Overrides ReadOnly Property ERR_MetadataNameTooLong As Integer
-            Get
-                Return ERRID.ERR_TooLongMetadataName
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_EncReferenceToAddedMember As Integer
-            Get
-                Return ERRID.ERR_EncReferenceToAddedMember
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer
-            Get
-                Return ERRID.ERR_TooManyUserStrings
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
-            Get
-                Return ERRID.ERR_PeWritingFailure
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer
-            Get
-                Return ERRID.ERR_ModuleEmitFailure
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer
-            Get
-                Return ERRID.ERR_EncUpdateFailedMissingAttribute
-            End Get
-        End Property
     End Class
 
 End Namespace

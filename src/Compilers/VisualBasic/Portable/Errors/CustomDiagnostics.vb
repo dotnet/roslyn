@@ -90,9 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Dim builder = ArrayBuilder(Of Location).GetInstance()
                 For Each sym In _symbols
-                    For Each l In sym.Locations
-                        builder.Add(l)
-                    Next
+                    builder.AddRange(sym.Locations)
                 Next
 
                 Return builder.ToImmutableAndFree()
