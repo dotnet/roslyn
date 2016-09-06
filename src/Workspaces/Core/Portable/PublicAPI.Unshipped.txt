@@ -25,7 +25,6 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeA
 Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
 Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
-Microsoft.CodeAnalysis.ProjectInfo.CommandLineOpt.get -> string
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged -> System.EventHandler<Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs>
 Microsoft.CodeAnalysis.Workspace.RaiseDocumentActiveContextChangedEventAsync(Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> System.Threading.Tasks.Task
@@ -38,7 +37,6 @@ override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.Co
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
-static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null, string commandLineOpt = null) -> Microsoft.CodeAnalysis.ProjectInfo
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
