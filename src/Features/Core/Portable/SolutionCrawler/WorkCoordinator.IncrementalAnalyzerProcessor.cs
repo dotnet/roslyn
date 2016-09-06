@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                     return providers.Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace))
+                                    .WhereNotNull()
                                     .OrderBy(a => !(a is BaseDiagnosticIncrementalAnalyzer))
                                     .ToImmutableArray();
                 }
