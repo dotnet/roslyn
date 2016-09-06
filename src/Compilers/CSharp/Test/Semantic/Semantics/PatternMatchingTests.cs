@@ -208,9 +208,9 @@ public class X
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (10,13): error CS8117: Invalid operand for pattern match.
+                // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (10,29): error CS0128: A local variable named 't' is already defined in this scope
                 //         if (null is dynamic t) { } // null not allowed
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
@@ -14531,5 +14531,69 @@ unsafe struct S
                 );
         }
 
+        [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
+        public void MethodGroupAsExpressionInIsPatternBrokenCode()
+        {
+            var source =
+@"namespace CS7
+{
+    class Program
+    {
+        static void M(object o)
+        {
+            if (o.Equals is()) {}
+            if (object.Equals is()) {}
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (7,29): error CS1525: Invalid expression term ')'
+                //             if (o.Equals is()) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
+                // (8,34): error CS1525: Invalid expression term ')'
+                //             if (object.Equals is()) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 34),
+                // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             if (o.Equals is()) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
+                // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             if (object.Equals is()) {}
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "object.Equals is()").WithLocation(8, 17)
+                );
+        }
+
+        [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
+        public void MethodGroupAsExpressionInIsPatternBrokenCode2()
+        {
+            var source =
+@"namespace CS7
+{
+    class Program
+    {
+        static void M(object o)
+        {
+            if (null is()) {}
+            if ((1, object.Equals) is()) {}
+        }
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (7,25): error CS1525: Invalid expression term ')'
+                //             if (null is()) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 25),
+                // (8,39): error CS1525: Invalid expression term ')'
+                //             if ((1, object.Equals) is()) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 39),
+                // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //             if (null is()) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
+                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             if ((1, object.Equals) is()) {}
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
+                // (8,17): error CS8117: Invalid operand for pattern match; value required, but found '(int, method group)'.
+                //             if ((1, object.Equals) is()) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "(1, object.Equals)").WithArguments("(int, method group)").WithLocation(8, 17)
+                );
+        }
     }
 }
