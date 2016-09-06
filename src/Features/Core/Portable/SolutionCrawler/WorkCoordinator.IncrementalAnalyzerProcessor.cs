@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         var local = analyzer;
+                        if (local == null)
+                        {
+                            return;
+                        }
+
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
