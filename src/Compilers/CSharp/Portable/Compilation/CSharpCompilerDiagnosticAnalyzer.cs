@@ -46,7 +46,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                     case (int)ErrorCode.ERR_MissingPredefinedMember:
                         // make it build only error.
                         continue;
-
+                    case (int)ErrorCode.ERR_NoEntryPoint:
+                    case (int)ErrorCode.WRN_InvalidMainSig:
+                    case (int)ErrorCode.ERR_MultipleEntryPoints:
+                    case (int)ErrorCode.WRN_MainIgnored:
+                    case (int)ErrorCode.ERR_MainClassNotClass:
+                    case (int)ErrorCode.WRN_MainCantBeGeneric:
+                    case (int)ErrorCode.ERR_NoMainInClass:
+                    case (int)ErrorCode.ERR_MainClassNotFound:
+                        // no entry point related errors are live
+                        continue;
                     default:
                         builder.Add(errorCode);
                         break;
