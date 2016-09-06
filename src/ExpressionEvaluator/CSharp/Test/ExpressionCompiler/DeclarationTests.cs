@@ -1686,12 +1686,13 @@ class C
                 context.CompileAssignment("x", "Test(x is string i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       73 (0x49)
+  // Code size       63 (0x3f)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
-                System.Guid V_3)
+                System.Guid V_3,
+                string V_4)
   IL_0000:  ldtoken    ""string""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -1704,15 +1705,15 @@ class C
   IL_0023:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
   IL_0028:  ldarg.0
   IL_0029:  isinst     ""string""
-  IL_002e:  stind.ref
-  IL_002f:  ldstr      ""i""
-  IL_0034:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_0039:  castclass  ""string""
-  IL_003e:  ldnull
-  IL_003f:  cgt.un
-  IL_0041:  call       ""object C.Test(bool)""
-  IL_0046:  starg.s    V_0
-  IL_0048:  ret
+  IL_002e:  dup
+  IL_002f:  stloc.s    V_4
+  IL_0031:  stind.ref
+  IL_0032:  ldloc.s    V_4
+  IL_0034:  ldnull
+  IL_0035:  cgt.un
+  IL_0037:  call       ""object C.Test(bool)""
+  IL_003c:  starg.s    V_0
+  IL_003e:  ret
 }");
             });
         }
@@ -1750,12 +1751,13 @@ class C
                 context.CompileAssignment("x", "Test(x is object i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       63 (0x3f)
+  // Code size       58 (0x3a)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
-                System.Guid V_3)
+                System.Guid V_3,
+                object V_4)
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -1767,14 +1769,15 @@ class C
   IL_001e:  ldstr      ""i""
   IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
   IL_0028:  ldarg.0
-  IL_0029:  stind.ref
-  IL_002a:  ldstr      ""i""
-  IL_002f:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_0034:  ldnull
-  IL_0035:  cgt.un
-  IL_0037:  call       ""object C.Test(bool)""
-  IL_003c:  starg.s    V_0
-  IL_003e:  ret
+  IL_0029:  dup
+  IL_002a:  stloc.s    V_4
+  IL_002c:  stind.ref
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  ldnull
+  IL_0030:  cgt.un
+  IL_0032:  call       ""object C.Test(bool)""
+  IL_0037:  starg.s    V_0
+  IL_0039:  ret
 }");
             });
         }

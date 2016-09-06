@@ -3020,7 +3020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDeclarationPattern
     {
         public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
-            : this(syntax, localSymbol, new BoundLocal(syntax, localSymbol, localSymbol.GetConstantValue(null, null, null), declaredType.Type), declaredType, isVar, hasErrors)
+            : this(syntax, localSymbol, new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
         {
         }
     }
