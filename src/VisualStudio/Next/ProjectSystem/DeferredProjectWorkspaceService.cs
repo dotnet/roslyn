@@ -32,7 +32,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         public async Task<ImmutableArray<string>> GetCommandLineArgumentsForProjectAsync(string projectFilePath)
         {
             var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(projectFilePath).ConfigureAwait(false);
-            return commandLineInfos.First().CommandLineArgs;
+            //return commandLineInfos.Any() ? commandLineInfos.First().CommandLineArgs : ImmutableArray<string>.Empty;
+            if (commandLineInfos.Any())
+            {
+                return commandLineInfos.First().CommandLineArgs;
+            }
+            else
+            {
+                return ImmutableArray<string>.Empty;
+            }
         }
     }
 }

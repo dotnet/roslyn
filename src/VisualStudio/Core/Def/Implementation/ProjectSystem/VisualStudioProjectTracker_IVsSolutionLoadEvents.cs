@@ -2,11 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -84,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
                 // Solution Explorer, or they had some files open in an .suo we need to push.
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch, s_getProjectInfoForProject);
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
             }
 
             _projectsLoadedThisBatch.Clear();
@@ -102,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             //}
             //else
             //{
-                FinishLoad(_projectMap.Values, s_getProjectInfoForProject);
+                FinishLoad();
             //}
 
             return VSConstants.S_OK;
@@ -120,25 +124,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow("Parsing solution - start");
             var start = DateTimeOffset.UtcNow;
-
-            // Load the solution on a threadpool thread, but *do* capture the context so that we continue on the UI thread, since we're
-            // going to create projects/etc.
-            var solutionInfo = await Task.Run(() => LoadSolutionInfoAsync(deferredProjectWorkspaceService,solutionFilename, cancellationToken), cancellationToken).ConfigureAwait(true);
-            AssertIsForeground();
-
+            var loader = new MSBuildProjectLoader(_workspace);
+            var projectFilenames = loader.GetProjectPathsInSolution(solutionFilename);
             OutputToOutputWindow($"Parsing solution - done (took {DateTimeOffset.UtcNow - start})");
-            OutputToOutputWindow($"Creating projects - start ({solutionInfo.Projects.Count} to create)");
+            OutputToOutputWindow($"Creating projects - start ({projectFilenames.Length} to create)");
             start = DateTimeOffset.UtcNow;
-            var projectToProjectInfo = new Dictionary<AbstractProject, ProjectInfo>();
-            foreach (var projectInfo in solutionInfo.Projects)
+
+            foreach (var projectFilename in projectFilenames)
             {
-                CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectToProjectInfo, projectInfo, solutionInfo);
+                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                var commandLineStrings = await deferredProjectWorkspaceService.GetCommandLineArgumentsForProjectAsync(projectFilename).ConfigureAwait(true);
+                AssertIsForeground();
+
+                if (commandLineStrings != null)
+                {
+                    CreateProjectFromProjectInfo(workspaceProjectContextFactory, projectFilename, commandLineStrings);
+                }
             }
 
             OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
             OutputToOutputWindow($"Pushing to workspace - start");
             start = DateTimeOffset.UtcNow;
-            FinishLoad(projectToProjectInfo.Keys, p => projectToProjectInfo[p]);
+            FinishLoad();
             OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
         }
 
@@ -150,55 +157,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private IWorkspaceProjectContext CreateProjectFromProjectInfo(IWorkspaceProjectContextFactory workspaceProjectContextFactory, Dictionary<AbstractProject, ProjectInfo> projectToProjectInfo, ProjectInfo projectInfo, SolutionInfo solutionInfo)
+        private IWorkspaceProjectContext CreateProjectFromProjectInfo(
+            IWorkspaceProjectContextFactory workspaceProjectContextFactory,
+            string projectFilename,
+            ImmutableArray<string> commandLineStrings)
         {
-            // First try to put this project's id into the list for this project.  If we can't
-            // it means that there is already an existing "real" project, so just return.
-            if (!TryAddProjectIdForPath(projectInfo.FilePath, projectInfo.Name, projectInfo.Id))
-            {
-                return null;
-            }
+            var languageName = Path.GetExtension(projectFilename) == ".csproj" ? LanguageNames.CSharp : LanguageNames.VisualBasic;
+            var commandLineParser = _workspace.Services.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
+            var projectDirectory = Path.GetDirectoryName(projectFilename);
+            var commandLineArguments = commandLineParser.Parse(
+                commandLineStrings,
+                projectDirectory,
+                isInteractive: false,
+                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            // If this project already exists, because we demand loaded it to satisfy a
-            // project reference from another project, then there is nothing to do.
-            var existingProject = Projects.SingleOrDefault(p => p.Id == projectInfo.Id);
-            if (existingProject != null)
+            // TODO: Should come from sln file?
+            var projectName = Path.GetFileNameWithoutExtension(projectFilename);
+            var projectId = GetOrCreateProjectIdForPath(projectFilename, projectName);
+
+            AbstractProject project;
+            if (_projectMap.TryGetValue(projectId, out project))
             {
-                return existingProject as IWorkspaceProjectContext;
+                return project as IWorkspaceProjectContext;
             }
 
             // TODO: We need to actually get an output path somehow.
+            OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
-                projectInfo.Language,
-                projectInfo.Name,
-                projectInfo.FilePath,
+                languageName,
+                projectName,
+                projectFilename,
                 Guid.Empty,
                 hierarchy: null,
                 binOutputPath: null);
 
-            projectContext.SetOptions(projectInfo.CommandLineOpt);
+            projectContext.SetOptions(commandLineStrings.Join(" "));
 
-            foreach (var documentInfo in projectInfo.Documents)
+            foreach (var sourceFile in commandLineArguments.SourceFiles)
             {
-                using (DocumentProvider.ProvideDocumentIdHint(documentInfo.FilePath, documentInfo.Id))
-                {
-                    projectContext.AddSourceFile(documentInfo.FilePath, folderNames: documentInfo.Folders);
-                }
+                projectContext.AddSourceFile(sourceFile.Path);
             }
 
-            foreach (var documentInfo in projectInfo.AdditionalDocuments)
+            foreach (var sourceFile in commandLineArguments.AdditionalFiles)
             {
-                using (DocumentProvider.ProvideDocumentIdHint(documentInfo.FilePath, documentInfo.Id))
-                {
-                    projectContext.AddAdditionalFile(documentInfo.FilePath);
-                }
+                projectContext.AddAdditionalFile(sourceFile.Path);
             }
 
-            foreach (var reference in projectInfo.MetadataReferences)
+            foreach (var reference in commandLineArguments.MetadataReferences)
             {
-                projectContext.AddMetadataReference(reference.Display, reference.Properties);
+                projectContext.AddMetadataReference(reference.Reference, reference.Properties);
             }
 
+#if false
             foreach (var reference in projectInfo.ProjectReferences)
             {
                 var referencedProject = (IWorkspaceProjectContext)projectToProjectInfo.SingleOrDefault(kvp => kvp.Value.Id == reference.ProjectId).Key;
@@ -233,71 +243,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
+#endif
 
-            foreach (var reference in projectInfo.AnalyzerReferences)
+            foreach (var reference in commandLineArguments.AnalyzerReferences)
             {
-                projectContext.AddAnalyzerReference(reference.FullPath);
+                projectContext.AddAnalyzerReference(reference.FilePath);
             }
 
-            projectToProjectInfo[(AbstractProject)projectContext] = projectInfo;
             return projectContext;
         }
 
-        private async Task<SolutionInfo> LoadSolutionInfoAsync(
-            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
-            string solutionFilename,
-            CancellationToken cancellationToken)
-        {
-            AssertIsBackground();
-            var loader = new MSBuildProjectLoader(_workspace);
-            var projectFilenames = loader.GetProjectPathsInSolution(solutionFilename);
-
-            var projectInfos = new List<ProjectInfo>(projectFilenames.Length);
-            foreach (var projectFilename in projectFilenames)
-            {
-                var projectInfo = await CreateProjectInfoAsync(deferredProjectWorkspaceService, projectFilename).ConfigureAwait(false);
-                if (projectInfo != null)
-                {
-                    projectInfos.Add(projectInfo);
-                }
-            }
-
-            return SolutionInfo.Create(
-                SolutionId.CreateNewId(debugName: solutionFilename),
-                VersionStamp.Create(),
-                filePath: solutionFilename,
-                projects: projectInfos);
-        }
-
-        private async Task<ProjectInfo> CreateProjectInfoAsync(IDeferredProjectWorkspaceService deferredProjectWorkspaceService, string projectFilename)
-        {
-            var commandLine = await deferredProjectWorkspaceService.GetCommandLineArgumentsForProjectAsync(projectFilename).ConfigureAwait(false);
-            if (commandLine == null)
-            {
-                return null;
-            }
-
-            return ProjectInfo.Create(
-                ProjectId.CreateNewId(debugName: projectFilename),
-                VersionStamp.Create(),
-                name: projectFilename /*TODO: Get the actual projectname from the solution file*/,
-                assemblyName: projectFilename /*TODO: Get the assemblyname*/,
-                language: Path.GetExtension(projectFilename) == ".csproj" ? LanguageNames.CSharp : LanguageNames.VisualBasic /* TODO: Other languages? */,
-                filePath: projectFilename,
-                outputFilePath: null,
-                compilationOptions: null,
-                parseOptions: null,
-                documents: null,
-                projectReferences: null,
-                metadataReferences: null,
-                analyzerReferences: null,
-                additionalDocuments: null,
-                isSubmission: false,
-                hostObjectType: null,
-                commandLineOpt: commandLine.Join(" "));
-        }
-
-        private void FinishLoad(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
+        private void FinishLoad()
         {
             // We are now completely done, so let's simply ensure all projects are added.
             StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(this.ImmutableProjects);
@@ -312,7 +268,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
         {
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-
             return componentModel.GetService<AnalyzerDependencyCheckingService>();
         }
     }

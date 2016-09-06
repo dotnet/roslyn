@@ -738,7 +738,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // This project is already pushed to listening workspace hosts, but it's possible that our target
                 // project hasn't been yet. Get the dependent project into the workspace as well.
                 var targetProject = this.ProjectTracker.GetProject(projectReference.ProjectId);
-                this.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(targetProject), p => p.CreateProjectInfoForCurrentState());
+                this.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(targetProject));
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
             }
@@ -1389,7 +1389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // it here. It's important to do this after everything else happens in this method, so we don't get
             // strange ordering issues. It's still possible that this won't actually push changes if the workspace
             // host isn't ready to receive events yet.
-            project.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project), p => p.CreateProjectInfoForCurrentState());
+            project.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
         }
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, string projectDirectory, string outputDirectory)

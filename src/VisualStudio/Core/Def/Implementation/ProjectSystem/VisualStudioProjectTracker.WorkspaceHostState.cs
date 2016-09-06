@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _pushedProjects.Clear();
             }
 
-            internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(
-                IEnumerable<AbstractProject> projects,
-                Func<AbstractProject, ProjectInfo> getProjectInfo)
+            internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
             {
                 AssertIsForeground();
 
@@ -105,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     AddToPushListIfNeeded(project, inOrderToPush, visited);
                 }
 
-                var projectInfos = inOrderToPush.Select(p => getProjectInfo(p)).ToImmutableArray();
+                var projectInfos = inOrderToPush.Select(p => p.CreateProjectInfoForCurrentState()).ToImmutableArray();
 
                 // We need to enable projects to start pushing changes to workspace hosts even before we add the solution/project to the host.
                 // This is required because between the point we capture the project info for current state and the point where we start pushing to workspace hosts,

@@ -8,8 +8,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -102,13 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             var abstractProject = (AbstractProject)project;
-            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject), s_getProjectInfoForProject);
-        }
-
-        private static readonly Func<AbstractProject, ProjectInfo> s_getProjectInfoForProject = GetProjectInfoForProject;
-        private static ProjectInfo GetProjectInfoForProject(AbstractProject project)
-        {
-            return project.CreateProjectInfoForCurrentState();
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
         }
 
         public VisualStudioProjectTracker(IServiceProvider serviceProvider, Workspace workspace)
@@ -254,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (interactiveProjects.Any())
             {
-                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects, s_getProjectInfoForProject);
+                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects);
             }
         }
 
@@ -324,7 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (_solutionLoadComplete)
             {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project), s_getProjectInfoForProject);
+                StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(SpecializedCollections.SingletonEnumerable(project));
             }
             else
             {
@@ -338,12 +334,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Otherwise, it is scheduled on foreground task scheduler.
         /// </summary>
         /// <remarks>This method may be called on a background thread.</remarks>
-        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
+        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects, getProjectInfo));
+            ExecuteOrScheduleForegroundAffinitizedAction(() => StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(projects));
         }
 
-        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects, Func<AbstractProject, ProjectInfo> getProjectInfo)
+        private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
         {
             AssertIsForeground();
 
@@ -351,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 foreach (var hostState in _workspaceHosts)
                 {
-                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects, getProjectInfo);
+                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
                 }
             }
         }
@@ -448,20 +444,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         projectToUpdate.TryProjectConversionForIntroducedOutputPath(path, existingProjects[0]);
                     }
                 }
-            }
-        }
-
-        private bool TryAddProjectIdForPath(string projectPath, string projectSystemName, ProjectId projectId)
-        {
-            string key = projectPath + projectSystemName;
-            if (!_projectPathToIdMap.ContainsKey(key))
-            {
-                _projectPathToIdMap.Add(key, projectId);
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 

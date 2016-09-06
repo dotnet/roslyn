@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            // this is the point where we can create different kin remote host client in future (cloud or etc)
+            // this is the point where we can create different kind of remote host client in future (cloud or etc)
             return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);
         }
     }
