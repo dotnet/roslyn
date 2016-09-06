@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.SolutionSize;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         private readonly SolutionSizeTracker _solutionSizeTracker;
