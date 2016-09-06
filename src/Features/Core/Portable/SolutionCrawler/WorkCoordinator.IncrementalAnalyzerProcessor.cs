@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                     return providers.Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace))
+                                    .WhereNotNull()
                                     .OrderBy(a => !(a is BaseDiagnosticIncrementalAnalyzer))
                                     .ToImmutableArray();
                 }
@@ -194,6 +195,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         var local = analyzer;
+                        if (local == null)
+                        {
+                            return;
+                        }
+
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
