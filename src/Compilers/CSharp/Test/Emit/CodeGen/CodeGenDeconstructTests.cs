@@ -455,6 +455,29 @@ class C
         }
 
         [Fact]
+        public void OutParamsDisallowed()
+        {
+            string source = @"
+class C
+{
+    public void Deconstruct(out int a, out string b, out params int[] c)
+    {
+        a = 1;
+        b = ""ignored"";
+        c = new[] { 2, 2 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public void Deconstruct(out int a, out string b, out params int[] c)
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
+                );
+        }
+
+        [Fact]
         public void DeconstructMethodHasArglist2()
         {
             string source = @"
