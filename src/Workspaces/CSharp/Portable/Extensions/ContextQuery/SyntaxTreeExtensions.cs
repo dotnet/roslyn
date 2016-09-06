@@ -1880,6 +1880,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // var(|
+            // var(id, |
+            // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) &&
+                token.IsInvocationOfVarExpression())
+            {
+                return false;
+            }
+
             // Foo(|
             // Foo(expr, |
             // this[|
@@ -2172,6 +2181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsInvocationOfVarExpression(this SyntaxToken token)
+        {
+            return token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
         }
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))

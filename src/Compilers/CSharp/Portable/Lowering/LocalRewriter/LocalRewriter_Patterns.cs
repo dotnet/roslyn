@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(input.Type == pattern.LocalSymbol.Type);
                 var assignment = _factory.AssignmentExpression(variableAccess, input);
                 var result = _factory.Literal(true);
-                return _factory.Sequence(assignment, result);
+                return _factory.MakeSequence(assignment, result);
             }
 
             return MakeDeclarationPattern(pattern.Syntax, input, variableAccess, requiresNullTest: true);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
         {
-            return IsIrrefutablePatternTest(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
+            return IsIrrefutablePatternTest(left) ? _factory.MakeSequence(left, right) : _factory.LogicalAnd(left, right);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var assignment = _factory.AssignmentExpression(target, input);
                     return requiresNullTest
                         ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
-                        : _factory.Sequence(assignment, _factory.Literal(true));
+                        : _factory.MakeSequence(assignment, _factory.Literal(true));
                 }
                 else
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is irrefutable, and we can just do the assignment and return true.
                 if (input.Type == type)
                 {
-                    return _factory.Sequence(
+                    return _factory.MakeSequence(
                         _factory.AssignmentExpression(target, input),
                         _factory.Literal(true));
                 }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                     var asg2 = _factory.AssignmentExpression(target, value);
                     var result = requiresNullTest ? MakeNullableHasValue(syntax, input) : _factory.Literal(true);
-                    return _factory.Sequence(asg2, result);
+                    return _factory.MakeSequence(asg2, result);
                 }
                 else
                 {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
                     var asg2 = _factory.AssignmentExpression(target, value);
                     var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                    return _factory.Sequence(tmp, asg1, asg2, result);
+                    return _factory.MakeSequence(tmp, asg1, asg2, result);
                 }
             }
             else // type parameter
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return s;
                 // }
                 return _factory.Conditional(_factory.Is(input, type),
-                    _factory.Sequence(_factory.AssignmentExpression(
+                    _factory.MakeSequence(_factory.AssignmentExpression(
                         target,
                         _factory.Convert(type, input)),
                         _factory.Literal(true)),

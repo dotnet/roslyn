@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _assetChannelCancellationToken = assetChannelCancellationToken;
             }
 
-            public override async Task<object> RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken callerCancellationToken)
+            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int serviceId, ISet<Checksum> checksums, CancellationToken callerCancellationToken)
             {
                 // it should succeed as long as matching VS is alive
                 // TODO: add logging mechanism using Logger
@@ -44,37 +46,46 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // 2. Request to required this asset has cancelled. (callerCancellationToken)
                 using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_assetChannelCancellationToken, callerCancellationToken))
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, serviceId, checksum, mergedCancellationToken.Token))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, serviceId, checksums, mergedCancellationToken.Token))
                 {
                     return await _rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                        new object[] { serviceId, checksum.ToArray() },
-                        (s, c) => ReadAssetAsync(s, _logger, serviceId, checksum, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        new object[] { serviceId, checksums.Select(c => c.ToArray()).ToArray() },
+                        (s, c) => ReadAssets(s, _logger, serviceId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 
-            private static Task<object> ReadAssetAsync(
-                Stream stream, TraceSource logger, int serviceId, Checksum checksum, CancellationToken cancellationToken)
+            private static IList<ValueTuple<Checksum, object>> ReadAssets(
+                Stream stream, TraceSource logger, int serviceId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
+                var results = new List<ValueTuple<Checksum, object>>();
                 using (var reader = new ObjectReader(stream))
                 {
                     var responseServiceId = reader.ReadInt32();
                     Contract.ThrowIfFalse(serviceId == responseServiceId);
 
-                    var responseChecksum = new Checksum(reader.ReadArray<byte>());
-                    Contract.ThrowIfFalse(checksum == responseChecksum);
+                    var count = reader.ReadInt32();
+                    Contract.ThrowIfFalse(count == checksums.Count);
 
-                    var kind = reader.ReadString();
+                    for (var i = 0; i < count; i++)
+                    {
+                        var responseChecksum = new Checksum(reader.ReadArray<byte>());
+                        Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
 
-                    // in service hub, cancellation means simply closed stream
-                    var @object = RoslynServices.AssetService.Deserialize<object>(kind, reader, cancellationToken);
+                        var kind = reader.ReadString();
 
-                    return Task.FromResult(@object);
+                        // in service hub, cancellation means simply closed stream
+                        var @object = RoslynServices.AssetService.Deserialize<object>(kind, reader, cancellationToken);
+
+                        results.Add(ValueTuple.Create(responseChecksum, @object));
+                    }
+
+                    return results;
                 }
             }
 
-            private static string GetRequestLogInfo(int serviceId, Checksum checksum)
+            private static string GetRequestLogInfo(int serviceId, IEnumerable<Checksum> checksums)
             {
-                return $"{serviceId} - {checksum.ToString()}";
+                return $"{serviceId} - {Checksum.GetChecksumsLogInfo(checksums)}";
             }
         }
     }

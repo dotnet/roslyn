@@ -494,10 +494,6 @@
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
-    <Compile Include="TestImpact\Diagnostic.cs" />
-    <Compile Include="TestImpact\EmitOptions.cs" />
-    <Compile Include="TestImpact\EmitResult.cs" />
-    <Compile Include="TestImpact\ResourceDescription.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -548,6 +544,7 @@
     <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\AdhocWorkspace.cs" />
+    <Compile Include="Workspace\DocumentActiveContextChangedEventArgs.cs" />
     <Compile Include="Workspace\Host\Caching\ICachedObjectOwner.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
     <Compile Include="Workspace\Host\Caching\ProjectCacheServiceFactory.cs" />
@@ -711,6 +708,7 @@
     <Compile Include="Workspace\Host\Metadata\IFrameworkAssemblyPathResolver.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataReferenceCache.cs" />
     <Compile Include="Workspace\Host\Metadata\WorkspaceMetadataFileReferenceResolver.cs" />
+    <Compile Include="Workspace\Host\PersistentStorage\IPersistentStorageLocationService.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.cs" />

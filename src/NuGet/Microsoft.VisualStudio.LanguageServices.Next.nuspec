@@ -9,6 +9,7 @@ Supported Platforms:
 - .NET Framework 4.6
     </description>
     <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Remote.ServiceHub" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="[$version$]" />
     </dependencies>
