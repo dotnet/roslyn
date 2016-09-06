@@ -99,22 +99,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ValueTuple.Create(displayText, insertionText);
         }
 
-        private static CompletionItemRules s_importDirectiveRules =
-            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
-        private static CompletionItemRules s_importDirectiveRules_preselect = s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
-
-        // '<' should not filter the completion list, even though it's in generic items like IList<>
-        private static readonly CompletionItemRules s_itemRules = CompletionItemRules.Default.
-            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
-            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
-
-        private static readonly CompletionItemRules s_itemRules_preselect = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
-
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            return context.IsInImportsDirective
-                ? preselect ? s_importDirectiveRules_preselect : s_importDirectiveRules
-                : preselect ? s_itemRules_preselect : s_itemRules;
+            return GetCachedRule(context.IsInImportsDirective, preselect, ((CSharpSyntaxContext)context).IsPossibleTupleContext);
+        }
+
+        private static readonly CompletionItemRules[,,] cachedRules = InitCachedRules(); // matrix of rules depending on contexts
+
+        private static CompletionItemRules[,,] InitCachedRules()
+        {
+            var result = new CompletionItemRules[2, 2, 2];
+
+            for (int importDirective = 0; importDirective < 2; importDirective++)
+            {
+                for (int preselect = 0; preselect < 2; preselect++)
+                {
+                    for (int tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
+                    {
+                        result[importDirective, preselect, tupleLiteral] = MakeRule(importDirective, preselect, tupleLiteral);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static CompletionItemRules GetCachedRule(bool importDirective, bool preselect, bool tupleLiteral)
+        {
+            return cachedRules[importDirective ? 1 : 0, preselect ? 1 : 0, tupleLiteral ? 1 : 0];
+        }
+
+        private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)
+        {
+            return MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
+        }
+
+        private static CompletionItemRules MakeRule(bool importDirective, bool preselect, bool tupleLiteral)
+        {
+            // '<' should not filter the completion list, even though it's in generic items like IList<>
+            var generalBaseline = CompletionItemRules.Default.
+                WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
+                WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+
+            var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
+                ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+
+            var rule = importDirective ? importDirectiveBaseline : generalBaseline;
+
+            if (preselect)
+            {
+                rule = rule.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+            }
+
+            if (tupleLiteral)
+            {
+                rule = rule
+                    .WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+            }
+
+            return rule;
         }
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context)

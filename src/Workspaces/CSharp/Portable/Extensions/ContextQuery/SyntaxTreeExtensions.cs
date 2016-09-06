@@ -1131,6 +1131,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsPossibleTupleElementNameContext(
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        {
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            return token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken);
+        }
+
         public static bool IsValidContextForFromClause(
             this SyntaxTree syntaxTree,
             int position,
