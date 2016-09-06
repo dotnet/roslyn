@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Workspace.Extensions;
 using Microsoft.VisualStudio.Workspace.VSIntegration;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -29,17 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         public bool IsDeferredProjectLoadEnabled { get; }
 
-        public async Task<ImmutableArray<string>> GetCommandLineArgumentsForProjectAsync(string projectFilePath)
+        public async Task<ValueTuple<ImmutableArray<string>, ImmutableArray<string>>> GetCommandLineArgumentsAndProjectReferencesForProjectAsync(string projectFilePath)
         {
             var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(projectFilePath).ConfigureAwait(false);
             //return commandLineInfos.Any() ? commandLineInfos.First().CommandLineArgs : ImmutableArray<string>.Empty;
             if (commandLineInfos.Any())
             {
-                return commandLineInfos.First().CommandLineArgs;
+                var commandLineInfo = commandLineInfos.First();
+                return ValueTuple.Create(commandLineInfo.CommandLineArgs, commandLineInfo.ProjectReferences);
             }
             else
             {
-                return ImmutableArray<string>.Empty;
+                return ValueTuple.Create(ImmutableArray<string>.Empty, ImmutableArray<string>.Empty);
             }
         }
     }

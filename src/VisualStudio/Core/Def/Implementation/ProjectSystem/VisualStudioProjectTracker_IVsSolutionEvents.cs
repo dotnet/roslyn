@@ -21,6 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
+            var deferredProjectWorkspaceService = _workspace.Services.GetService<IDeferredProjectWorkspaceService>();
+            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
+            {
+                LoadSolutionFromMSBuild(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+            }
+
             return VSConstants.S_OK;
         }
 

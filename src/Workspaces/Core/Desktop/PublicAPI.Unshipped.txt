@@ -1,1 +1,0 @@
-Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.GetProjectPathsInSolution(string solutionFilePath) -> System.Collections.Immutable.ImmutableArray<string>
