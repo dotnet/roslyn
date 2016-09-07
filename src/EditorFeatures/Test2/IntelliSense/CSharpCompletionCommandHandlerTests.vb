@@ -278,7 +278,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
-        Public Async Function TestTupleLiteral() As Task
+        Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
 class C
@@ -299,7 +299,7 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
-        Public Async Function TestTupleLiteral2() As Task
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
 class C
@@ -357,6 +357,30 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestDefaultKeyword() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        switch(true)
+        {
+            $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("def")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("default:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
