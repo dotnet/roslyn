@@ -130,21 +130,12 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
-BC30389: '(Integer, Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t.Item1)
-                          ~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30389: '(A As Integer, B As Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.Item1)
-                          ~~~~~~~~
-BC30389: '(A As Integer, B As Integer).A' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.A)
-                          ~~~~
 </errors>)
 
         End Sub
@@ -4257,12 +4248,6 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30389: '(first As Integer, second As Boolean).first' is not accessible in this context because it is 'Private'.
-        System.Console.Write($"{x.first} {x.second}")
-                                ~~~~~~~
-BC30389: '(first As Integer, second As Boolean).second' is not accessible in this context because it is 'Private'.
-        System.Console.Write($"{x.first} {x.second}")
-                                          ~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
