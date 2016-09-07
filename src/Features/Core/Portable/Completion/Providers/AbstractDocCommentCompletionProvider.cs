@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var items = await GetItemsWorkerAsync(
-                context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+                context.Document, context.Position, context.Trigger, context.CancellationToken).ConfigureAwait(false);
 
             if (items != null)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, TextSpan span, CompletionTrigger trigger, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
 
         protected CompletionItem GetItem(string n)
         {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
         }
 
-        protected IEnumerable<CompletionItem> GetListItems(TextSpan span)
+        protected IEnumerable<CompletionItem> GetListItems()
         {
             return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
         }
