@@ -4634,7 +4634,7 @@ BC30269: 'Public Function M(a As (String, String)) As (Integer, Integer)' has mu
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13303")>
+        <Fact>
         Public Sub TupleArrays()
 
             Dim verifier = CompileAndVerify(
@@ -4649,17 +4649,17 @@ Class C
 
     Shared Sub Main()
         Dim i As I = new C()
-        Dim r = i.M(new System.ValueTuple(Of Integer, Integer)() { new System.ValueTuple(Of Integer, Integer)(1, 2) }
+        Dim r = i.M(new System.ValueTuple(Of Integer, Integer)() { new System.ValueTuple(Of Integer, Integer)(1, 2) })
         System.Console.Write($"{r(0).Item1} {r(0).Item2}")
     End Sub
 
-    Public Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)()
+    Public Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)() Implements I.M
         Return New System.ValueTuple(Of Integer, Integer)() { (a(0).Item1, a(0).Item2) }
     End Function
 End Class
 
     </file>
-</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1 2]]>)
 
             verifier.VerifyDiagnostics()
 
