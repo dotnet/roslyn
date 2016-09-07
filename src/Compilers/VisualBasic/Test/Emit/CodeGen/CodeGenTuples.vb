@@ -6788,6 +6788,123 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TupleNamesFromCS003()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int alice) foo = (2, 3);
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Item1)
+        System.Console.WriteLine(x.foo.Item2)
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.alice)
+
+        Dim f = x.foo
+        System.Console.WriteLine(f.Item1)
+        System.Console.WriteLine(f.Item2)
+        System.Console.WriteLine(f.Alice)
+        System.Console.WriteLine(f.alice)
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            vbCompilation.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(14, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(15, 34)
+)
+        End Sub
+
+        ' Need to port the changes to the tuple field ID from C#
+        ' Otherwise the partially named tuples throw exceptions.
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13470")>
+        Public Sub TupleNamesFromCS004()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int alice, int) foo = (2, 3, 4);
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Item1)
+        System.Console.WriteLine(x.foo.Item2)
+        System.Console.WriteLine(x.foo.Item3)
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.alice)
+
+        Dim f = x.foo
+        System.Console.WriteLine(f.Item1)
+        System.Console.WriteLine(f.Item2)
+        System.Console.WriteLine(x.Item3)
+        System.Console.WriteLine(f.Alice)
+        System.Console.WriteLine(f.alice)
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            vbCompilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub BadTupleNameMetadata()
             Dim comp = CreateCompilationWithCustomILSource(<compilation>
                                                                <file name="a.vb">
