@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -12,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class AssetSource
     {
         private static int s_serviceId = 0;
+
         private readonly int _currentId = 0;
 
         protected AssetSource()
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RoslynServices.AssetService.RegisterAssetSource(_currentId, this);
         }
 
-        public abstract Task<object> RequestAssetAsync(int serviceId, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int serviceId, ISet<Checksum> checksums, CancellationToken cancellationToken);
 
         public void Done()
         {

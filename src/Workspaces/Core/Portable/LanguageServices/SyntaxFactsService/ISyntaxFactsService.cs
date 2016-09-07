@@ -185,6 +185,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        // Walks the tree, starting from contextNode, looking for the first construct
+        // with a missing close brace.  If found, the close brace will be added and the
+        // updates root will be returned.  The context node in that new tree will also
+        // be returned.
+        void AddFirstMissingCloseBrace(
+            SyntaxNode root, SyntaxNode contextNode, 
+            out SyntaxNode newRoot, out SyntaxNode newContextNode);
     }
 
     [Flags]

@@ -44,9 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
-                else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
+                else if (IsAnonymousObjectCreation(token))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
+                }
+                else if (IsPossibleTupleExpression(token))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.element_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_tuple_type_element_creation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {

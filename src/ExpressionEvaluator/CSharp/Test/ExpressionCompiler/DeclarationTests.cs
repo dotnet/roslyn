@@ -78,6 +78,87 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
 
         [Fact]
+        public void DeconstructionDeclaration()
+        {
+            var source = @"
+class C
+{
+    void Test()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+               {
+                   var context = CreateMethodContext(runtime, methodName: "C.Test");
+
+                   ResultProperties resultProperties;
+                   string error;
+                   var testData = new CompilationTestData();
+                   ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                   context.CompileExpression(
+                       "(int z1, string z2) = (1, null);",
+                       DkmEvaluationFlags.None,
+                       NoAliases,
+                       DebuggerDiagnosticFormatter.Instance,
+                       out resultProperties,
+                       out error,
+                       out missingAssemblyIdentities,
+                       EnsureEnglishUICulture.PreferredOrNull,
+                       testData);
+                   Assert.Null(error);
+                   Assert.Empty(missingAssemblyIdentities);
+
+                   Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                   Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                   Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                   Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                   Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+
+                   testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
+{
+  // Code size      103 (0x67)
+  .maxstack  4
+  .locals init (System.Guid V_0,
+                int V_1)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z1""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""string""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""z2""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.0
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldc.i4.1
+  IL_003d:  ldnull
+  IL_003e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0043:  dup
+  IL_0044:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0049:  stloc.1
+  IL_004a:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_004f:  ldstr      ""z1""
+  IL_0054:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0059:  ldloc.1
+  IL_005a:  stind.i4
+  IL_005b:  ldstr      ""z2""
+  IL_0060:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0065:  stind.ref
+  IL_0066:  ret
+}");
+               });
+        }
+
+        [Fact]
         public void ExpressionLocals_ExpressionStatement_01()
         {
             var source =
@@ -604,27 +685,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-    @"{
-  // Code size       58 (0x3a)
+@"{
+  // Code size       62 (0x3e)
   .maxstack  7
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""d""
-  IL_000f:  ldstr      ""826d6ec1-dc4b-46af-be05-cd3f1a1fd4ac""
+  IL_000f:  ldstr      ""108766ce-df68-46ee-b761-0dcb7ac805f1""
   IL_0014:  newobj     ""System.Guid..ctor(string)""
-  IL_0019:  ldc.i4.1
+  IL_0019:  ldc.i4.2
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
   IL_0020:  ldc.i4.0
   IL_0021:  ldc.i4.1
   IL_0022:  stelem.i1
-  IL_0023:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_0028:  ldstr      ""d""
-  IL_002d:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
-  IL_0032:  ldc.i4.1
-  IL_0033:  box        ""int""
-  IL_0038:  stind.ref
-  IL_0039:  ret
+  IL_0023:  dup
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  stelem.i1
+  IL_0027:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_002c:  ldstr      ""d""
+  IL_0031:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
+  IL_0036:  ldc.i4.1
+  IL_0037:  box        ""int""
+  IL_003c:  stind.ref
+  IL_003d:  ret
 }");
             });
         }

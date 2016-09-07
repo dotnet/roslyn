@@ -13,10 +13,6 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\MicrosoftVisualStudioInteractiveWindow\Microsoft.VisualStudio.InteractiveWindow.vsmanproj" />
-  </ItemGroup>
-
   <Target Name="BeforeBuild">
     <MSBuild Projects="MicrosoftCodeAnalysisExpressionEvaluator\Microsoft.CodeAnalysis.ExpressionEvaluator.swixproj" Targets="Build" />
     <MSBuild Projects="MicrosoftCodeAnalysisVisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.swixproj" Targets="Build" />
@@ -31,6 +27,5 @@
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json" />
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.VisualStudio.InteractiveWindow.json" />
   </ItemGroup>
 </Project>

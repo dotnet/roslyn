@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         /// <summary>
-        /// This will write out this object's data to bits
+        /// This will write out this object's data (the data the checksum is associated with) to bits
         /// 
         /// this hide how each data is serialized to bits
         /// </summary>
-        public abstract Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken);
+        public abstract Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public object[] Children { get; }
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             return _serializer.SerializeChecksumObjectWithChildrenAsync(this, writer, cancellationToken);
         }

@@ -4,12 +4,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class WellKnownServiceHubServices
     {
-        public const string RemoteHostService = "remoteHostService";
-        public const string RemoteHostService_Connect = "Connect";
-        public const string RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId = "PersistentStorageService_RegisterPrimarySolutionId";
-        public const string RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId = "PersistentStorageService_UnregisterPrimarySolutionId";
-        public const string RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation = "PersistentStorageService_UpdateSolutionIdStorageLocation";
-
         public const string SnapshotService = "snapshotService";
         public const string SnapshotService_Done = "Done";
 

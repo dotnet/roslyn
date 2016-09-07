@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccessorsBuilder.ToImmutableAndFree());
-            return _factory.Sequence(savedTuple.LocalSymbol, assignmentToTemp, result);
+            return _factory.MakeSequence(savedTuple.LocalSymbol, assignmentToTemp, result);
         }
 
         private static bool NullableNeverHasValue(BoundExpression expression)

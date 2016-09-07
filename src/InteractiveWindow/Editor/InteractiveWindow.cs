@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -21,7 +20,6 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -34,8 +32,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal partial class InteractiveWindow : IInteractiveWindow2, IInteractiveWindowOperations2
     {
-        internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
-
         // The following two field definitions have to stay in sync with VS editor implementation
 
         /// <summary>
@@ -49,8 +45,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// This is the same string that was used in VS9 and previous versions.
         /// </summary>
         internal const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
-
-        internal int LanguageBufferCounter = 0;
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 

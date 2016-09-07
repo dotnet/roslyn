@@ -265,6 +265,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.BoolAnd:
                         if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
                         if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
+
+                        // Note that we are using IsDefaultValue instead of False.
+                        // That is just to catch cases like default(bool) or others resulting in 
+                        // a default bool value, that we know to be "false"
+                        // bool? generally should not reach here, since it is handled by RewriteLiftedBinaryOperator.
+                        // Regardless, the following code should handle default(bool?) correctly since
+                        // default(bool?) & <expr> == default(bool?)  with sideeffects of <expr>
+                        if (loweredLeft.IsDefaultValue())
+                        {
+                            return _factory.MakeSequence(loweredRight, loweredLeft);
+                        }
+                        if (loweredRight.IsDefaultValue())
+                        {
+                            return _factory.MakeSequence(loweredLeft, loweredRight);
+                        }
+
                         goto default;
 
                     case BinaryOperatorKind.BoolOr:
@@ -390,11 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.ULongMultiplication:
                         if (loweredLeft.IsDefaultValue())
                         {
-                            return loweredLeft;
+                            return _factory.MakeSequence(loweredRight, loweredLeft);
                         }
                         if (loweredRight.IsDefaultValue())
                         {
-                            return loweredRight;
+                            return _factory.MakeSequence(loweredLeft, loweredRight);
                         }
                         if (loweredLeft.ConstantValue?.UInt64Value == 1)
                         {
@@ -784,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     BoundExpression falseExpr = MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NotEqual);
-                    return _factory.Sequence(maybeNull, falseExpr);
+                    return _factory.MakeSequence(maybeNull, falseExpr);
                 }
             }
 

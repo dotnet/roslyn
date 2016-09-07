@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Storage;
@@ -47,6 +49,31 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return _host;
+        }
+
+        public async Task SynchronizeAsync(byte[] solutionChecksum)
+        {
+            var checksum = new Checksum(solutionChecksum);
+
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_Synchronize, c => c.ToString(), checksum, CancellationToken))
+            {
+                try
+                {
+                    // cause all assets belong to the given solution to sync to remote host
+                    await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(checksum, CancellationToken).ConfigureAwait(false);
+                }
+                catch (IOException)
+                {
+                    // stream to send over assets has closed before we
+                    // had chance to check cancellation
+                }
+                catch (OperationCanceledException)
+                {
+                    // rpc connection has closed.
+                    // this can happen if client side cancelled the
+                    // operation
+                }
+            }
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()

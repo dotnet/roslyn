@@ -1,41 +1,60 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class DynamicFlagsMap
+    internal sealed class CustomTypeInfoTypeArgumentMap
     {
-        private static readonly DynamicFlagsMap s_empty = new DynamicFlagsMap();
+        private static readonly CustomTypeInfoTypeArgumentMap s_empty = new CustomTypeInfoTypeArgumentMap();
 
         private readonly Type _typeDefinition;
-        private readonly DynamicFlagsCustomTypeInfo _dynamicFlags;
-        private readonly int[] _startIndices;
+        private readonly ReadOnlyCollection<byte> _dynamicFlags;
+        private readonly int[] _dynamicFlagStartIndices;
+        private readonly ReadOnlyCollection<string> _tupleElementNames;
+        private readonly int[] _tupleElementNameStartIndices;
 
-        private DynamicFlagsMap()
+        private CustomTypeInfoTypeArgumentMap()
         {
         }
 
-        private DynamicFlagsMap(
+        private CustomTypeInfoTypeArgumentMap(
             Type typeDefinition,
-            DynamicFlagsCustomTypeInfo dynamicFlagsArray,
-            int[] startIndices)
+            ReadOnlyCollection<byte> dynamicFlags,
+            int[] dynamicFlagStartIndices,
+            ReadOnlyCollection<string> tupleElementNames,
+            int[] tupleElementNameStartIndices)
         {
             Debug.Assert(typeDefinition != null);
-            Debug.Assert(startIndices != null);
+            Debug.Assert((dynamicFlags != null) == (dynamicFlagStartIndices != null));
+            Debug.Assert((tupleElementNames != null) == (tupleElementNameStartIndices != null));
 
+#if DEBUG
             Debug.Assert(typeDefinition.IsGenericTypeDefinition);
-            Debug.Assert(startIndices.Length == typeDefinition.GetGenericArguments().Length + 1);
+            int n = typeDefinition.GetGenericArguments().Length;
+            Debug.Assert(dynamicFlagStartIndices == null || dynamicFlagStartIndices.Length == n + 1);
+            Debug.Assert(tupleElementNameStartIndices == null || tupleElementNameStartIndices.Length == n + 1);
+#endif
 
             _typeDefinition = typeDefinition;
-            _dynamicFlags = dynamicFlagsArray;
-            _startIndices = startIndices;
+            _dynamicFlags = dynamicFlags;
+            _dynamicFlagStartIndices = dynamicFlagStartIndices;
+            _tupleElementNames = tupleElementNames;
+            _tupleElementNameStartIndices = tupleElementNameStartIndices;
         }
 
-        internal static DynamicFlagsMap Create(TypeAndCustomInfo typeAndInfo)
+        internal static CustomTypeInfoTypeArgumentMap Create(TypeAndCustomInfo typeAndInfo)
         {
+            var typeInfo = typeAndInfo.Info;
+            if (typeInfo == null)
+            {
+                return s_empty;
+            }
+
             var type = typeAndInfo.Type;
             Debug.Assert(type != null);
             if (!type.IsGenericType)
@@ -43,20 +62,114 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return s_empty;
             }
 
-            var dynamicFlags = DynamicFlagsCustomTypeInfo.Create(typeAndInfo.Info);
-            if (!dynamicFlags.Any())
-            {
-                return s_empty;
-            }
+            ReadOnlyCollection<byte> dynamicFlags;
+            ReadOnlyCollection<string> tupleElementNames;
+            CustomTypeInfo.Decode(typeInfo.PayloadTypeId, typeInfo.Payload, out dynamicFlags, out tupleElementNames);
+            Debug.Assert(dynamicFlags != null || tupleElementNames != null);
 
             var typeDefinition = type.GetGenericTypeDefinition();
             Debug.Assert(typeDefinition != null);
 
+            var dynamicFlagStartIndices = (dynamicFlags == null) ? null : GetDynamicFlagStartIndices(type);
+            var tupleElementNameStartIndices = (tupleElementNames == null) ? null : GetTupleElementNameStartIndices(type);
+
+            return new CustomTypeInfoTypeArgumentMap(
+                typeDefinition,
+                dynamicFlags,
+                dynamicFlagStartIndices,
+                tupleElementNames,
+                tupleElementNameStartIndices);
+        }
+
+        internal DkmClrCustomTypeInfo SubstituteCustomTypeInfo(Type type, DkmClrCustomTypeInfo customInfo)
+        {
+            if (_typeDefinition == null)
+            {
+                return customInfo;
+            }
+
+            ReadOnlyCollection<byte> dynamicFlags = null;
+            ReadOnlyCollection<string> tupleElementNames = null;
+            if (customInfo != null)
+            {
+                CustomTypeInfo.Decode(
+                    customInfo.PayloadTypeId,
+                    customInfo.Payload,
+                    out dynamicFlags,
+                    out tupleElementNames);
+            }
+
+            var substitutedFlags = SubstituteDynamicFlags(type, dynamicFlags);
+            var substitutedNames = SubstituteTupleElementNames(type, tupleElementNames);
+            return CustomTypeInfo.Create(substitutedFlags, substitutedNames);
+        }
+
+        private ReadOnlyCollection<byte> SubstituteDynamicFlags(Type type, ReadOnlyCollection<byte> dynamicFlagsOpt)
+        {
+            var builder = ArrayBuilder<bool>.GetInstance();
+            int f = 0;
+
+            foreach (Type curr in new TypeWalker(type))
+            {
+                if (curr.IsGenericParameter && curr.DeclaringType.Equals(_typeDefinition))
+                {
+                    AppendRangeFor(
+                        curr,
+                        _dynamicFlags,
+                        _dynamicFlagStartIndices,
+                        DynamicFlagsCustomTypeInfo.GetFlag,
+                        builder);
+                }
+                else
+                {
+                    builder.Add(DynamicFlagsCustomTypeInfo.GetFlag(dynamicFlagsOpt, f));
+                }
+
+                f++;
+            }
+
+            var result = DynamicFlagsCustomTypeInfo.ToBytes(builder);
+            builder.Free();
+            return result;
+        }
+
+        private ReadOnlyCollection<string> SubstituteTupleElementNames(Type type, ReadOnlyCollection<string> tupleElementNamesOpt)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            int i = 0;
+
+            foreach (Type curr in new TypeWalker(type))
+            {
+                if (curr.IsGenericParameter && curr.DeclaringType.Equals(_typeDefinition))
+                {
+                    AppendRangeFor(
+                        curr,
+                        _tupleElementNames,
+                        _tupleElementNameStartIndices,
+                        CustomTypeInfo.GetTupleElementNameIfAny,
+                        builder);
+                }
+                else
+                {
+                    int n = GetTupleCardinalityIfAny(curr);
+                    AppendRange(tupleElementNamesOpt, i, i + n, CustomTypeInfo.GetTupleElementNameIfAny, builder);
+                    i += n;
+                }
+            }
+
+            var result = (builder.Count == 0) ? null : builder.ToImmutable();
+            builder.Free();
+            return result;
+        }
+
+        private static int[] GetDynamicFlagStartIndices(Type type)
+        {
             var typeArgs = type.GetGenericArguments();
             Debug.Assert(typeArgs.Length > 0);
 
             int pos = 1; // Consider "type" to have already been consumed.
             var startsBuilder = ArrayBuilder<int>.GetInstance();
+            var tupleElementNameStartIndices = ArrayBuilder<int>.GetInstance();
             foreach (var typeArg in typeArgs)
             {
                 startsBuilder.Add(pos);
@@ -69,49 +182,73 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             Debug.Assert(pos > 1);
             startsBuilder.Add(pos);
-
-            return new DynamicFlagsMap(typeDefinition, dynamicFlags, startsBuilder.ToArrayAndFree());
+            return startsBuilder.ToArrayAndFree();
         }
 
-        internal DynamicFlagsCustomTypeInfo SubstituteDynamicFlags(Type type, DynamicFlagsCustomTypeInfo originalDynamicFlags)
+        private static int[] GetTupleElementNameStartIndices(Type type)
         {
-            if (_typeDefinition == null)
+            var typeArgs = type.GetGenericArguments();
+            Debug.Assert(typeArgs.Length > 0);
+
+            int pos = GetTupleCardinalityIfAny(type);
+            var startsBuilder = ArrayBuilder<int>.GetInstance();
+            var tupleElementNameStartIndices = ArrayBuilder<int>.GetInstance();
+            foreach (var typeArg in typeArgs)
             {
-                return originalDynamicFlags;
+                startsBuilder.Add(pos);
+
+                foreach (Type curr in new TypeWalker(typeArg))
+                {
+                    pos += GetTupleCardinalityIfAny(curr);
+                }
             }
 
-            var substitutedFlags = ArrayBuilder<bool>.GetInstance();
-            int f = 0;
-
-            foreach (Type curr in new TypeWalker(type))
-            {
-                if (curr.IsGenericParameter && curr.DeclaringType.Equals(_typeDefinition))
-                {
-                    AppendFlagsFor(curr, substitutedFlags);
-                }
-                else
-                {
-                    substitutedFlags.Add(originalDynamicFlags[f]);
-                }
-
-                f++;
-            }
-
-            var result = DynamicFlagsCustomTypeInfo.Create(substitutedFlags);
-            substitutedFlags.Free();
-            return result;
+            Debug.Assert(pos > 1);
+            startsBuilder.Add(pos);
+            return startsBuilder.ToArrayAndFree();
         }
 
-        private void AppendFlagsFor(Type type, ArrayBuilder<bool> builder)
+        // Returns cardinality if tuple type, otherwise 0.
+        private static int GetTupleCardinalityIfAny(Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
+        }
+
+        private delegate U Map<T, U>(ReadOnlyCollection<T> collection, int index);
+
+        private static void AppendRangeFor<T, U>(
+            Type type,
+            ReadOnlyCollection<T> collection,
+            int[] startIndices,
+            Map<T, U> map,
+            ArrayBuilder<U> builder)
         {
             Debug.Assert(type.IsGenericParameter);
-
-            var genericParameterPosition = type.GenericParameterPosition;
-            var start = _startIndices[genericParameterPosition];
-            var nextStart = _startIndices[genericParameterPosition + 1];
-            for (int i = start; i < nextStart; i++)
+            if (startIndices == null)
             {
-                builder.Add(_dynamicFlags[i]);
+                return;
+            }
+            var genericParameterPosition = type.GenericParameterPosition;
+            AppendRange(
+                collection,
+                startIndices[genericParameterPosition],
+                startIndices[genericParameterPosition + 1],
+                map,
+                builder);
+        }
+
+        private static void AppendRange<T, U>(
+            ReadOnlyCollection<T> collection,
+            int start,
+            int end,
+            Map<T, U> map,
+            ArrayBuilder<U> builder)
+        {
+            for (int i = start; i < end; i++)
+            {
+                builder.Add(map(collection, i));
             }
         }
     }

@@ -355,13 +355,16 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
+                DocumentId oldActiveContextDocumentId;
+
                 using (_stateLock.DisposableWait())
                 {
+                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
                     _bufferToDocumentInCurrentContextMap[container] = documentId;
                 }
 
                 // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(this.CurrentSolution.GetDocument(documentId));
+                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
         }
 

@@ -27,13 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await primary.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
 
                 // make sure connection is done right
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
-                var host = await instance._rpc.InvokeAsync<string>(WellKnownServiceHubServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
