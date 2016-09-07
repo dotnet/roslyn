@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,21 +12,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// </summary>
     internal abstract class GraphicsTag : ITag
     {
-        private IEditorFormatMapService _editorFormatMapService;
         private IEditorFormatMap _editorFormatMap;
+        protected Brush _graphicsTagBrush;
+        protected Color _graphicsTagColor;
 
-        protected virtual void Initialize(IWpfTextView view, 
-            ref Brush graphicsTagBrush,
-            ref Color graphicsTagColor)
+        protected GraphicsTag(IEditorFormatMap editorFormatMap)
         {
-            if (graphicsTagBrush != null)
+            _editorFormatMap = editorFormatMap;
+        }
+
+        protected virtual void Initialize(IWpfTextView view)
+        {
+            if (_graphicsTagBrush != null)
             {
                 return;
             }
-
-            Debug.Assert(_editorFormatMap == null);
-            _editorFormatMap = _editorFormatMapService.GetEditorFormatMap("text");
-            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
 
             // TODO: Refresh this when the user changes fonts and colors
 
@@ -37,29 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
             var color = this.GetColor(view, _editorFormatMap) ?? lightGray;
 
-            graphicsTagColor = color;
-            graphicsTagBrush = new SolidColorBrush(graphicsTagColor);
+            _graphicsTagColor = color;
+            _graphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
         }
 
         protected abstract Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap);
-
-        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
-            _editorFormatMap.FormatMappingChanged -= OnFormatMappingChanged;
-            _editorFormatMap = null;
-            this.ClearCachedFormatData();
-        }
-
-        protected abstract void ClearCachedFormatData();
 
         /// <summary>
         /// This method allows corresponding adornment manager to ask for a graphical glyph.
         /// </summary>
         public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds);
 
-        internal void RegisterService(IEditorFormatMapService editorFormatMapService)
+        internal void RegisterFormatMap(IEditorFormatMap editorFormatMap)
         {
-            _editorFormatMapService = editorFormatMapService;
+            _editorFormatMap = editorFormatMap;
         }
     }
 }

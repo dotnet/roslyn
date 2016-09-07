@@ -31,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     /// </summary>
     internal class SuggestionTag : GraphicsTag
     {
-        private static Brush s_graphicsTagBrush;
-        private static Color s_graphicsTagColor;
-        private static Pen s_graphicsTagPen;
+        private Pen _graphicsTagPen;
 
-        public static readonly SuggestionTag Instance = new SuggestionTag();
+        public SuggestionTag(IEditorFormatMap editorFormatMap) 
+            : base(editorFormatMap)
+        {
+        }
 
         protected override Color? GetColor(
             IWpfTextView view, IEditorFormatMap editorFormatMap)
@@ -44,26 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return property as Color?;
         }
 
-        protected override void ClearCachedFormatData()
+        protected override void Initialize(IWpfTextView view)
         {
-            s_graphicsTagBrush = null;
-            s_graphicsTagColor = default(Color);
-            s_graphicsTagPen = null;
-        }
+            base.Initialize(view);
 
-        protected override void Initialize(IWpfTextView view, 
-            ref Brush graphicsTagBrush, 
-            ref Color graphicsTagColor)
-        {
-            base.Initialize(view, ref graphicsTagBrush, ref graphicsTagColor);
-
-            if (s_graphicsTagPen != null)
+            if (_graphicsTagPen != null)
             {
                 return;
             }
 
-            var color = graphicsTagColor;
-            s_graphicsTagPen = new Pen
+            var color = _graphicsTagColor;
+            _graphicsTagPen = new Pen
             {
                 Brush = new SolidColorBrush(color),
                 DashStyle = DashStyles.Dot,
@@ -74,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry geometry)
         {
-            Initialize(view, ref s_graphicsTagBrush, ref s_graphicsTagColor);
+            Initialize(view);
 
             // We clip off a bit off the start of the line to prevent a half-square being
             // drawn.
@@ -84,17 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var line = new Line
             {
                 X1 = geometry.Bounds.Left,
-                Y1 = geometry.Bounds.Bottom - s_graphicsTagPen.Thickness,
+                Y1 = geometry.Bounds.Bottom - _graphicsTagPen.Thickness,
                 X2 = geometry.Bounds.Right,
-                Y2 = geometry.Bounds.Bottom - s_graphicsTagPen.Thickness,
+                Y2 = geometry.Bounds.Bottom - _graphicsTagPen.Thickness,
                 Clip = new RectangleGeometry { Rect = clipRectangle }
             };
             // RenderOptions.SetEdgeMode(line, EdgeMode.Aliased);
 
-            ApplyPen(line, s_graphicsTagPen);
+            ApplyPen(line, _graphicsTagPen);
 
             // Shift the line over to offset the clipping we did.
-            line.RenderTransform = new TranslateTransform(-s_graphicsTagPen.Thickness, 0);
+            line.RenderTransform = new TranslateTransform(-_graphicsTagPen.Thickness, 0);
             return new GraphicsResult(line, null);
         }
 

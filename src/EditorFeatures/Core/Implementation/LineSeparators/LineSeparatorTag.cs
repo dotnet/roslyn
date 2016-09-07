@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     /// </summary>
     internal class LineSeparatorTag : GraphicsTag
     {
-        private static Brush s_graphicsTagBrush;
-        private static Color s_graphicsTagColor;
-
-        public static readonly LineSeparatorTag Instance = new LineSeparatorTag();
+        public LineSeparatorTag(IEditorFormatMap editorFormatMap)
+            : base(editorFormatMap)
+        {
+        }
 
         protected override Color? GetColor(
             IWpfTextView view, IEditorFormatMap editorFormatMap)
@@ -27,21 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             return brush?.Color;
         }
 
-        protected override void ClearCachedFormatData()
-        {
-            s_graphicsTagBrush = null;
-            s_graphicsTagColor = default(Color);
-        }
-
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
-            Initialize(view, ref s_graphicsTagBrush, ref s_graphicsTagColor);
+            Initialize(view);
 
             var border = new Border();
-            border.BorderBrush = s_graphicsTagBrush;
+            border.BorderBrush = _graphicsTagBrush;
             border.BorderThickness = new Thickness(0, 0, 0, bottom: 1);
             border.Height = 1;
             border.Width = view.ViewportWidth;

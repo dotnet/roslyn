@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
+        private readonly IEditorFormatMap _editorFormatMap;
+
         protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+
+        private readonly object _lineSeperatorTagGate = new object();
+        private LineSeparatorTag _lineSeparatorTag;
 
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
@@ -40,13 +45,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
                 : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
-            LineSeparatorTag.Instance.RegisterService(editorFormatMapService);
+            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
+            _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+        }
+
+        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
+        {
+            lock (_lineSeperatorTagGate)
+            {
+                _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+            }
         }
 
         protected override ITaggerEventSource CreateEventSource(
             ITextView textView, ITextBuffer subjectBuffer)
         {
-            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnEditorFormatMapChanged(_editorFormatMap, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
@@ -65,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
+            LineSeparatorTag tag;
+            lock (_lineSeperatorTagGate)
+            {
+                tag = _lineSeparatorTag;
+            }
+
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
             {
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
@@ -74,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
                 foreach (var span in lineSeparatorSpans)
                 {
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), LineSeparatorTag.Instance));
+                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
                 }
             }
         }
