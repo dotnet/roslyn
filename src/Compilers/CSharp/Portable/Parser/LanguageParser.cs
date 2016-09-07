@@ -9852,11 +9852,6 @@ tryAgain:
                 {
                     expression = this.ParseSubExpression(Precedence.Expression);
 
-                    // See if the expression is an invocation that could also be successfully parsed and interpreted
-                    // as a deconstruction target. I.e. something like "var (x, y)" or "var (x, (y, z))".
-                    // We should report an error in this case because we plan to support deconstruction for out arguments
-                    // in the future. We need to ensure that we do not successfully interpret this as an invocation of a
-                    // ref-returning method named var with two, or more arguments.
                     if (refOrOutKeyword != null)
                     {
                         expression = CheckValidLvalue(expression);
@@ -9874,6 +9869,14 @@ tryAgain:
                 : expression;
         }
 
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
         private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
         {
             if (expression.Kind == SyntaxKind.InvocationExpression)
