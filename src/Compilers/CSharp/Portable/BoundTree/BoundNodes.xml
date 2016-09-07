@@ -1563,6 +1563,12 @@
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         in the lowered form in either an lvalue or rvalue position. We maintain it separately
+         from the LocalSymbol to facilitate lowerings in which the variable is no longer a simple
+         local access (e.g. the expression evaluator). It is expected to be logically side-effect
+         free. -->
+    <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
