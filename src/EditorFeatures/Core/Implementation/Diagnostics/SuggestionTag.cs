@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            var color = Color.FromArgb(100, VerticalRuleColor.R, VerticalRuleColor.G, VerticalRuleColor.B);
+            var color = Color.FromArgb(200, VerticalRuleColor.R, VerticalRuleColor.G, VerticalRuleColor.B);
             s_pen = new Pen
             {
                 Brush = new SolidColorBrush(color),
