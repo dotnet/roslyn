@@ -78,6 +78,8 @@ namespace Roslyn.Test.Utilities
 
                 process.WaitForExit();
 
+                Debug.Assert(process.HasExited);
+
                 return new ProcessResult(process.ExitCode, outputBuilder.ToString(), errorBuilder.ToString());
             }
         }
