@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// </summary>
     internal abstract class GraphicsTag : ITag
     {
-        private IEditorFormatMap _editorFormatMap;
+        private readonly IEditorFormatMap _editorFormatMap;
         protected Brush _graphicsTagBrush;
         protected Color _graphicsTagColor;
 
@@ -46,10 +46,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// This method allows corresponding adornment manager to ask for a graphical glyph.
         /// </summary>
         public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds);
-
-        internal void RegisterFormatMap(IEditorFormatMap editorFormatMap)
-        {
-            _editorFormatMap = editorFormatMap;
-        }
     }
 }
