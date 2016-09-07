@@ -101,17 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            return GetCachedRule(context.IsInImportsDirective, preselect, ((CSharpSyntaxContext)context).IsPossibleTupleContext);
+            return cachedRules[Tuple.Create(context.IsInImportsDirective, preselect,
+                ((CSharpSyntaxContext)context).IsPossibleTupleContext)] ??
+                CompletionItemRules.Default;
         }
 
-        // matrix of rules depending on contexts, with the following dimensions:
-        // - isImportDirective, !isImportDirective && isLiteral, !isImportDirective && !isLiteral
-        // - !preselect, preselect
-        private static readonly CompletionItemRules[,] cachedRules = InitCachedRules();
+        private static readonly Dictionary<Tuple<bool, bool, bool>, CompletionItemRules> cachedRules = InitCachedRules();
 
-        private static CompletionItemRules[,] InitCachedRules()
+        private static Dictionary<Tuple<bool, bool, bool>, CompletionItemRules> InitCachedRules()
         {
-            var result = new CompletionItemRules[3, 2];
+            var result = new Dictionary<Tuple<bool, bool, bool>, CompletionItemRules>();
 
             for (int importDirective = 0; importDirective < 2; importDirective++)
             {
@@ -119,22 +118,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     for (int tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
                     {
-                        int x = (importDirective == 1) ? 0 : (tupleLiteral == 1 ? 1 : 2);
-                        if (result[x, preselect] == null)
+                        if (importDirective == 1 && tupleLiteral == 1)
                         {
-                            result[x, preselect] = MakeRule(importDirective, preselect, tupleLiteral);
+                            // this combination doesn't make sense, we can skip it
+                            continue;
                         }
+
+                        var context = Tuple.Create(importDirective == 1, preselect == 1, tupleLiteral == 1);
+                        result[context] = MakeRule(importDirective, preselect, tupleLiteral);
                     }
                 }
             }
 
             return result;
-        }
-
-        private static CompletionItemRules GetCachedRule(bool importDirective, bool preselect, bool tupleLiteral)
-        {
-            int x = importDirective ? 0 : (tupleLiteral ? 1 : 2);
-            return cachedRules[x, preselect ? 1 : 0];
         }
 
         private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)

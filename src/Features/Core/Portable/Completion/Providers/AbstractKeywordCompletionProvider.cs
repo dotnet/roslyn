@@ -51,12 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var completionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    async (doc, ct) =>
-                    {
-                        var syntaxContext = await CreateContextAsync(doc, position, ct).ConfigureAwait(false);
-                        var keywords = await RecommendKeywordsAsync(doc, position, syntaxContext, ct).ConfigureAwait(false);
-                        return keywords?.Select(k => CreateItem(k, syntaxContext));
-                    },
+                    (doc, ct) => RecommendCompletionItemsAsync(doc, position, ct),
                     cancellationToken).ConfigureAwait(false);
 
                 foreach (var completionItem in completionItems)
@@ -64,6 +59,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     context.AddItem(completionItem);
                 }
             }
+        }
+
+        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document doc, int position, CancellationToken ct)
+        {
+            var syntaxContext = await CreateContextAsync(doc, position, ct).ConfigureAwait(false);
+            var keywords = await RecommendKeywordsAsync(doc, position, syntaxContext, ct).ConfigureAwait(false);
+            return keywords?.Select(k => CreateItem(k, syntaxContext));
         }
 
         private static ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.Intrinsic);

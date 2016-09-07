@@ -1137,7 +1137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken);
+            return token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) &&
+                !token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression);
         }
 
         public static bool IsValidContextForFromClause(

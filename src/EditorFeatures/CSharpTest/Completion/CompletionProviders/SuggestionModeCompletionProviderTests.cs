@@ -422,6 +422,20 @@ class Program
             await VerifyNotBuilderAsync(markup);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaInActionDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a$$, b)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
         public async Task TupleExpressionAfterComma()
         {
             var markup = @"using System;
