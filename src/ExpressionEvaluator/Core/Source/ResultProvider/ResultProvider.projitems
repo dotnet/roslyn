@@ -15,8 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsMap.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AttributeHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\CustomTypeInfoTypeArgumentMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDkmClrFormatter2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDkmClrFullNameProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultProvider.cs" />

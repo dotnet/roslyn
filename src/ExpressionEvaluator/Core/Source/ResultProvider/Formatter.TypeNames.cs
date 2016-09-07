@@ -384,12 +384,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out bool sawInvalidIdentifier)
         {
             sawInvalidIdentifier = false;
+#if DEBUG
+            int lastNameIndex = tupleElementIndex + cardinality;
+#endif
             int nameIndex = tupleElementIndex;
-            tupleElementIndex += cardinality;
             builder.Append('(');
             bool any = false;
             while (true)
             {
+                tupleElementIndex += cardinality;
                 var typeArguments = type.GetGenericArguments();
                 int nTypeArgs = typeArguments.Length;
                 Debug.Assert(nTypeArgs > 0);
@@ -424,7 +427,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert(!DynamicFlagsCustomTypeInfo.GetFlag(dynamicFlags, dynamicFlagIndex));
                 dynamicFlagIndex++;
                 type = typeArguments[nTypeArgs - 1];
+                cardinality = type.GetTupleCardinalityIfAny();
             }
+#if DEBUG
+            Debug.Assert(nameIndex == lastNameIndex);
+#endif
             builder.Append(')');
         }
 

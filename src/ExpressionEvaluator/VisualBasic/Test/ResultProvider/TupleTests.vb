@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
+Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
 Imports Xunit
 
@@ -58,6 +59,36 @@ End Class"
                         "(15, 16, 17)",
                         "(Short, Short, Short)",
                         "o._17.Rest.Rest",
+                        DkmEvaluationResultFlags.Expandable))
+            End Using
+        End Sub
+
+        <WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/12347")>
+        Public Sub Names_LongTuple()
+            Const source =
+"Class C
+    Private F As (K As (A As Integer, D As (B As Integer, C As Integer), E As Integer, F As Integer, G As Integer, H As Integer, I As Integer, J As Integer), O As (L As Integer, M As Integer, N As Integer)) =
+        ((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))
+End Class"
+            Dim assembly0 = GenerateTupleAssembly()
+            Dim reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference()
+            Dim compilation1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
+            Dim assembly1 = compilation1.EmitToArray()
+            Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)))
+            Using runtime.Load()
+                Dim type = runtime.GetType("C")
+                Dim value = type.Instantiate()
+                Dim result = FormatResult("o", value)
+                Verify(result,
+                       EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
+                Dim children = GetChildren(result)
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))",
+                        "(K As (A As Integer, D As (B As Integer, C As Integer), E As Integer, F As Integer, G As Integer, H As Integer, I As Integer, J As Integer), O As (L As Integer, M As Integer, N As Integer))",
+                        "o.F",
                         DkmEvaluationResultFlags.Expandable))
             End Using
         End Sub
