@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 tupleElementNameStartIndices);
         }
 
+        internal ReadOnlyCollection<string> TupleElementNames => _tupleElementNames;
+
         internal DkmClrCustomTypeInfo SubstituteCustomTypeInfo(Type type, DkmClrCustomTypeInfo customInfo)
         {
             if (_typeDefinition == null)
@@ -181,7 +183,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            Debug.Assert(pos > 1);
             startsBuilder.Add(pos);
             return startsBuilder.ToArrayAndFree();
         }
