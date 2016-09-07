@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
@@ -27,11 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         [ImportingConstructor]
         public DiagnosticsSuggestionTaggerProvider(
+            IEditorFormatMapService editorFormatMapService,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
             : base(diagnosticService, notificationService, listeners)
         {
+            SuggestionTag.Instance.RegisterService(editorFormatMapService);
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)

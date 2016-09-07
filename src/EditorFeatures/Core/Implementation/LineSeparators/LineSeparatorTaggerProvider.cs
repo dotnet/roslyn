@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -34,13 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
+            IEditorFormatMapService editorFormatMapService,
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
                 : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
+            LineSeparatorTag.Instance.RegisterService(editorFormatMapService);
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(
+            ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
         }
