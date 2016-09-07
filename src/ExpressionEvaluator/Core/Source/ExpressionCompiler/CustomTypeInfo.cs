@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (length > byte.MaxValue)
                 {
                     // Length exceeds capacity of byte.
+                    builder.Free();
                     return null;
                 }
                 builder.Add((byte)length);
