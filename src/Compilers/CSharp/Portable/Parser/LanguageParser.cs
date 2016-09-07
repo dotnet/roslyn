@@ -2702,10 +2702,13 @@ parse_member_name:;
                 }
 
                 BlockSyntax body;
+                ArrowExpressionClauseSyntax expressionBody;
                 SyntaxToken semicolon;
-                this.ParseBodyOrSemicolon(out body, out semicolon);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon,
+                                                                requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
-                return _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, semicolon);
+                var decl = _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
+                return CheckForBlockAndExpressionBody(body, expressionBody, decl);
             }
             finally
             {
@@ -2771,11 +2774,16 @@ parse_member_name:;
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             BlockSyntax body;
+            ArrowExpressionClauseSyntax expressionBody;
             SyntaxToken semicolon;
-            this.ParseBodyOrSemicolon(out body, out semicolon);
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon,
+                                                            requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
-            return _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToList(), tilde, name, parameterList, body, semicolon);
+
+            var decl = _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToList(), tilde, name, parameterList, body, expressionBody, semicolon);
+            return CheckForBlockAndExpressionBody(body, expressionBody, decl);
         }
 
         /// <summary>
@@ -2786,7 +2794,8 @@ parse_member_name:;
             out BlockSyntax blockBody,
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
-            bool parseSemicolonAfterBlock = true)
+            bool parseSemicolonAfterBlock = true,
+            MessageID requestedExpressionBodyFeature = MessageID.IDS_FeatureExpressionBodiedMethod)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -2807,8 +2816,12 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
+                Debug.Assert(requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedMethod
+                                || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedAccessor
+                                || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
+                                "Only IDS_FeatureExpressionBodiedMethod, IDS_FeatureExpressionBodiedAccessor or IDS_FeatureExpressionBodiedDeOrConstructor can be requested");
                 expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedMethod);
+                expressionBody = CheckFeatureAvailability(expressionBody, requestedExpressionBodyFeature);
             }
 
             semicolon = null;
@@ -2838,13 +2851,19 @@ parse_member_name:;
                 {
                     code = ErrorCode.ERR_BlockBodyAndExpressionBody;
                 }
+                else if (syntax is AccessorDeclarationSyntax)
+                {
+                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
+                }
                 else
                 {
                     Debug.Assert(syntax is BasePropertyDeclarationSyntax);
                     code = ErrorCode.ERR_AccessorListAndExpressionBody;
                 }
+
                 return AddError(syntax, code);
             }
+
             return syntax;
         }
 
@@ -3729,16 +3748,31 @@ parse_member_name:;
                     accessorKind = SyntaxKind.UnknownAccessorDeclaration;
                 }
 
-                BlockSyntax body = null;
+                BlockSyntax blockBody = null;
+                ArrowExpressionClauseSyntax expressionBody = null;
+
                 SyntaxToken semicolon = null;
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || (validAccName && !currentTokenIsSemicolon && !IsTerminator()))
+                bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
+                bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+
+                if (!currentTokenIsArrow && !currentTokenIsSemicolon && !currentTokenIsOpenBraceToken && validAccName && !IsTerminator())
                 {
-                    body = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                    // if there is no body, we "expect" a block for an accessor.
+                    blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                }
+                else if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
+                {
+                    this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon,
+                                                                    requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
                 }
                 else if (currentTokenIsSemicolon || validAccName)
                 {
-                    semicolon = this.EatToken(SyntaxKind.SemicolonToken, ErrorCode.ERR_SemiOrLBraceExpected);
+                    semicolon = this.EatToken(SyntaxKind.SemicolonToken,
+                                        IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                                            : ErrorCode.ERR_SemiOrLBraceExpected
+                                );
 
                     if (isEvent)
                     {
@@ -3746,7 +3780,8 @@ parse_member_name:;
                     }
                 }
 
-                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, body, semicolon);
+                var decl = _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, blockBody, expressionBody, semicolon);
+                return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
             }
             finally
             {
@@ -7244,9 +7279,6 @@ tryAgain:
         // missing.  Also, "isMethodBody" must be true.
         private BlockSyntax ParseBlock(bool isMethodBody = false, bool isAccessorBody = false)
         {
-            // This makes logical sense, but isn't actually required.
-            Debug.Assert(!isAccessorBody || isMethodBody, "An accessor body is a method body.");
-
             // Check again for incremental re-use, since ParseBlock is called from a bunch of places
             // other than ParseStatementCore()
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.Block)
@@ -7256,7 +7288,11 @@ tryAgain:
 
             // There's a special error code for a missing token after an accessor keyword
             var openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
-                ? this.AddError(SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken), ErrorCode.ERR_SemiOrLBraceExpected)
+                ? this.AddError(
+                    SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
+                    IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                            : ErrorCode.ERR_SemiOrLBraceExpected)
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();

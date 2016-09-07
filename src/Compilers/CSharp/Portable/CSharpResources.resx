@@ -210,6 +210,12 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
+  <data name="IDS_FeatureExpressionBodiedAccessor" xml:space="preserve">
+    <value>expression body property accessor</value>
+  </data>
+  <data name="IDS_FeatureExpressionBodiedDeOrConstructor" xml:space="preserve">
+    <value>expression body constructor and destructor</value>
+  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -4572,7 +4578,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Properties cannot combine accessor lists with expression bodies.</value>
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Methods cannot combine block bodies with expression bodies.</value>
+    <value>Methods and accessors cannot combine block bodies with expression bodies.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>
@@ -4952,5 +4958,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
     <value>Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.</value>
+  </data>
+  <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
+    <value>{ or ; or =&gt; expected</value>
   </data>
 </root>

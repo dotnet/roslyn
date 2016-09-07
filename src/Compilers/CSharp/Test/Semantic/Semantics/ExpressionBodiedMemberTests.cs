@@ -451,28 +451,36 @@ public class C
             var comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
-
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
@@ -481,28 +489,37 @@ public class C
             var comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     ~C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
@@ -523,16 +540,15 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (10,9): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(10, 9),
-    // (10,12): error CS1014: A get or set accessor expected
-    //         => P1;
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "P1").WithLocation(10, 12)
+                // (8,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //         get
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"get
+        { return 1; }
+        => P1;").WithLocation(8, 9)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
 
 

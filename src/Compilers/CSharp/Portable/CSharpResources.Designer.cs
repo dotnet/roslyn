@@ -2222,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Methods cannot combine block bodies with expression bodies..
+        ///   Looks up a localized string similar to Methods and accessors cannot combine block bodies with expression bodies..
         /// </summary>
         internal static string ERR_BlockBodyAndExpressionBody {
             get {
@@ -8396,6 +8396,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to { or ; or =&gt; expected.
+        /// </summary>
+        internal static string ERR_SemiOrLBraceOrArrowExpected {
+            get {
+                return ResourceManager.GetString("ERR_SemiOrLBraceOrArrowExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key file &apos;{0}&apos; is missing the private key needed for signing.
         /// </summary>
         internal static string ERR_SignButNoPrivateKey {
@@ -9707,6 +9716,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExceptionFilter {
             get {
                 return ResourceManager.GetString("IDS_FeatureExceptionFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression body property accessor.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedAccessor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to expression body constructor and destructor.
+        /// </summary>
+        internal static string IDS_FeatureExpressionBodiedDeOrConstructor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExpressionBodiedDeOrConstructor", resourceCulture);
             }
         }
         
