@@ -104,11 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return GetCachedRule(context.IsInImportsDirective, preselect, ((CSharpSyntaxContext)context).IsPossibleTupleContext);
         }
 
-        private static readonly CompletionItemRules[,,] cachedRules = InitCachedRules(); // matrix of rules depending on contexts
+        // matrix of rules depending on contexts, with the following dimensions:
+        // - isImportDirective, !isImportDirective && isLiteral, !isImportDirective && !isLiteral
+        // - !preselect, preselect
+        private static readonly CompletionItemRules[,] cachedRules = InitCachedRules();
 
-        private static CompletionItemRules[,,] InitCachedRules()
+        private static CompletionItemRules[,] InitCachedRules()
         {
-            var result = new CompletionItemRules[2, 2, 2];
+            var result = new CompletionItemRules[3, 2];
 
             for (int importDirective = 0; importDirective < 2; importDirective++)
             {
@@ -116,7 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     for (int tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
                     {
-                        result[importDirective, preselect, tupleLiteral] = MakeRule(importDirective, preselect, tupleLiteral);
+                        int x = (importDirective == 1) ? 0 : (tupleLiteral == 1 ? 1 : 2);
+                        if (result[x, preselect] == null)
+                        {
+                            result[x, preselect] = MakeRule(importDirective, preselect, tupleLiteral);
+                        }
                     }
                 }
             }
@@ -126,7 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static CompletionItemRules GetCachedRule(bool importDirective, bool preselect, bool tupleLiteral)
         {
-            return cachedRules[importDirective ? 1 : 0, preselect ? 1 : 0, tupleLiteral ? 1 : 0];
+            int x = importDirective ? 0 : (tupleLiteral ? 1 : 2);
+            return cachedRules[x, preselect ? 1 : 0];
         }
 
         private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)

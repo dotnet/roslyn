@@ -167,6 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
+        private static readonly CompletionItemRules s_itemRules = CompletionItemRules.Default.
+           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
         protected override CompletionItem CreateItem(RecommendedKeyword keyword)
         {
             return CommonCompletionItem.Create(
@@ -174,7 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 shouldFormatOnCommit: keyword.ShouldFormatOnCommit,
-                matchPriority: keyword.MatchPriority);
+                matchPriority: keyword.MatchPriority,
+                rules: s_itemRules);
         }
 
         internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)

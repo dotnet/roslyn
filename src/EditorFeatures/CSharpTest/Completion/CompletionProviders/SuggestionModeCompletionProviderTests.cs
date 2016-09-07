@@ -391,7 +391,7 @@ class Program
         Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -405,7 +405,7 @@ class Program
         var x = (a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -419,7 +419,7 @@ class Program
         var x = (a$$, b)
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         public async Task TupleExpressionAfterComma()
