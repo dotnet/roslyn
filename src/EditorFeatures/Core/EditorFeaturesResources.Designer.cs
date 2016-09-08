@@ -1468,6 +1468,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggestion ellipses (…).
+        /// </summary>
+        internal static string Suggestion_ellipses {
+            get {
+                return ResourceManager.GetString("Suggestion_ellipses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;symbol&apos; cannot be a namespace..
         /// </summary>
         internal static string symbol_cannot_be_a_namespace {
