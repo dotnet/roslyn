@@ -911,6 +911,8 @@ Public Class BuildDevDivInsertionFiles
                           <version>0.0</version>
                       </metadata>
                       <files>
+                          <file src="System.Collections.Immutable.dll"/>
+                          <file src="System.Reflection.Metadata.dll"/>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
                               Distinct().
