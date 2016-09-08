@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Is this applicable operator better than every other applicable method?
                 for (int j = 0; j < i; ++j)
                 {
-                    if (candidates[j].Kind != OperatorAnalysisResultKind.Applicable)
+                    if (candidates[j].Kind == OperatorAnalysisResultKind.Inapplicable)
                     {
                         continue;
                     }
