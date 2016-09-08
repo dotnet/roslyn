@@ -10,7 +10,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.VisualStudio.Setup.Interactive</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup.Interactive</AssemblyName>
-    <UseCodebase>true</UseCodebase>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>

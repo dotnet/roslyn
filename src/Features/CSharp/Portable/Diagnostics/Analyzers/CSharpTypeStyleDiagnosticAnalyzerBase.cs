@@ -18,29 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         private readonly string _diagnosticId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
-        private readonly DiagnosticDescriptor _noneDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _infoDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _warningDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _errorDiagnosticDescriptor;
-        private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToDescriptorMap;
 
         public CSharpTypeStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
         {
             _diagnosticId = diagnosticId;
             _title = title;
             _message = message;
-            _noneDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden);
-            _infoDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Info);
-            _warningDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Warning);
-            _errorDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Error);
-            _severityToDescriptorMap =
-                new Dictionary<DiagnosticSeverity, DiagnosticDescriptor>
-                {
-                    {DiagnosticSeverity.Hidden, _noneDiagnosticDescriptor },
-                    {DiagnosticSeverity.Info, _infoDiagnosticDescriptor },
-                    {DiagnosticSeverity.Warning, _warningDiagnosticDescriptor },
-                    {DiagnosticSeverity.Error, _errorDiagnosticDescriptor },
-                };
         }
 
         private DiagnosticDescriptor CreateDiagnosticDescriptor(DiagnosticSeverity severity) =>
@@ -52,9 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 severity,
                 isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(_noneDiagnosticDescriptor, _infoDiagnosticDescriptor,
-                                  _warningDiagnosticDescriptor, _errorDiagnosticDescriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden));
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
         public bool RunInProcess => true;
@@ -118,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
                 {
-                    var descriptor = _severityToDescriptorMap[state.GetDiagnosticSeverityPreference()];
+                    // The severity preference is not Hidden, as indicated by shouldAnalyze.
+                    var descriptor = CreateDiagnosticDescriptor(state.GetDiagnosticSeverityPreference());
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }

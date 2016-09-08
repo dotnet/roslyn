@@ -263,32 +263,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (containingType == null ||
                  (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
             {
-                switch (symbol.DeclaredAccessibility)
-                {
-                    case Accessibility.Private:
-                        AddKeyword(SyntaxKind.PrivateKeyword);
-                        break;
-                    case Accessibility.Internal:
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.ProtectedAndInternal:
-                    case Accessibility.Protected:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        break;
-                    case Accessibility.ProtectedOrInternal:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        AddSpace();
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.Public:
-                        AddKeyword(SyntaxKind.PublicKeyword);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
-                }
-
-                AddSpace();
+                AddAccessibility(symbol);
             }
+        }
+
+        private void AddAccessibility(ISymbol symbol)
+        {
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Private:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    break;
+                case Accessibility.Internal:
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.Protected:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.ProtectedOrInternal:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.Public:
+                    AddKeyword(SyntaxKind.PublicKeyword);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+            }
+
+            AddSpace();
         }
 
         private bool ShouldVisitNamespace(ISymbol containingSymbol)

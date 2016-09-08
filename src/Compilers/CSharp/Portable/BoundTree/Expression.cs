@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -3013,6 +3014,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal partial class BoundDeclarationPattern
+    {
+        public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
+            : this(syntax, localSymbol, new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
+        {
         }
     }
 }

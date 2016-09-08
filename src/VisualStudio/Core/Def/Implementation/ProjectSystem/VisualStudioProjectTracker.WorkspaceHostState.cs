@@ -80,7 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _pushedProjects.Clear();
             }
 
-            internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
+            internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(
+                IEnumerable<AbstractProject> projects)
             {
                 AssertIsForeground();
 

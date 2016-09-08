@@ -588,6 +588,12 @@ namespace Microsoft.CodeAnalysis
             return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable;
         }
 
+        public static bool IsValueTupleType(this WellKnownType typeId)
+        {
+            Debug.Assert(typeId != WellKnownType.ExtSentinel);
+            return typeId >= WellKnownType.System_ValueTuple_T1 && typeId <= WellKnownType.System_ValueTuple_TRest;
+        }
+
         public static bool IsValid(this WellKnownType typeId)
         {
             return typeId >= WellKnownType.First && typeId < WellKnownType.NextAvailable && typeId != WellKnownType.ExtSentinel;

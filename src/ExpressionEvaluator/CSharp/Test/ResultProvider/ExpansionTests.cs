@@ -1789,6 +1789,21 @@ class B : A { }
             Verify(children);
         }
 
+        [Fact]
+        public void DeclaredTypeAndRuntimeTypeDifferByCase()
+        {
+            var source =
+@"class Object { }";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var value = runtime.GetType("Object").Instantiate();
+                var evalResult = FormatResult("o", value, declaredType: runtime.GetType("System.Object"));
+                Verify(evalResult,
+                    EvalResult("o", "{Object}", "object {Object}", "o", DkmEvaluationResultFlags.None));
+            }
+        }
+
         /// <summary>
         /// Full name should be null for members of thrown
         /// exception since there's no valid expression.

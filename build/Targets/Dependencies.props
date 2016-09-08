@@ -3,6 +3,8 @@
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
+    <MicrosoftBuildVersion>14.3.0-prerelease01</MicrosoftBuildVersion>
+    <MicrosoftBuildTasksCoreVersion>14.3.0-prerelease01</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -49,8 +51,10 @@
     <SystemRuntimeLoaderVersion>4.0.0</SystemRuntimeLoaderVersion>
     <SystemRuntimeNumericsVersion>4.0.1</SystemRuntimeNumericsVersion>
     <SystemSecurityAccessControlVersion>4.0.0</SystemSecurityAccessControlVersion>
+    <SystemSecurityClaimsVersion>4.0.1</SystemSecurityClaimsVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.2.0</SystemSecurityCryptographyAlgorithmsVersion>
     <SystemSecurityCryptographyEncodingVersion>4.0.0</SystemSecurityCryptographyEncodingVersion>
+    <SystemSecurityCryptographyPrimitivesVersion>4.0.0</SystemSecurityCryptographyPrimitivesVersion>
     <SystemSecurityCryptographyX509CertificatesVersion>4.1.0</SystemSecurityCryptographyX509CertificatesVersion>
     <SystemSecurityPrincipalWindowsVersion>4.0.0</SystemSecurityPrincipalWindowsVersion>
     <SystemTextEncodingVersion>4.0.11</SystemTextEncodingVersion>

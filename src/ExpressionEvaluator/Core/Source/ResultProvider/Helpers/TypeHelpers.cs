@@ -355,17 +355,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // See NamedTypeSymbol.IsTupleCompatible.
         internal static bool IsTupleCompatible(this Type type, out int cardinality)
         {
-            if (type.IsTupleCompatibleInternal(out cardinality) &&
-                cardinality > 1) // ValueTuple<T> is not a tuple.
-            {
-                return true;
-            }
-            cardinality = 0;
-            return false;
-        }
-
-        private static bool IsTupleCompatibleInternal(this Type type, out int cardinality)
-        {
             if (type.IsGenericType &&
                 AreNamesEqual(type.Namespace, "System") &&
                 type.Name.StartsWith(TupleTypeNamePrefix, StringComparison.Ordinal))
@@ -388,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     var restType = typeArguments[n - 1];
                     int restCardinality;
-                    if (restType.IsTupleCompatibleInternal(out restCardinality))
+                    if (restType.IsTupleCompatible(out restCardinality))
                     {
                         cardinality = n - 1 + restCardinality;
                         return true;
@@ -398,6 +387,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             cardinality = 0;
             return false;
+        }
+
+        // Returns cardinality if tuple type, otherwise 0.
+        internal static int GetTupleCardinalityIfAny(this Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
         }
 
         internal static void GetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)

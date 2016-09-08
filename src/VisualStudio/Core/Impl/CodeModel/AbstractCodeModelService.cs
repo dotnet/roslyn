@@ -542,7 +542,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.ProjectTracker.Projects)
+            foreach (var project in workspace.ProjectTracker.ImmutableProjects)
             {
                 nodeKeyValidation.AddProject(project);
             }

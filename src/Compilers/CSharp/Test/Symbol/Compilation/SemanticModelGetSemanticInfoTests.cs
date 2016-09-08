@@ -10467,7 +10467,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAValue, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { private get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10623,7 +10623,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10665,7 +10665,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);

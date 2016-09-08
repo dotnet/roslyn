@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private sealed class RootTreeNode : SubTreeNode, IRootChecksumTreeNode
         {
+            // cache to remove lambda allocation
+            private readonly static Func<ConcurrentDictionary<Checksum, Asset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, Asset>(concurrencyLevel: 2, capacity: 10);
+
+            // cache to remove lambda allocation
+            private readonly Func<Checksum, ChecksumObject> _checksumObjectFromAdditionalAssetsGetter;
+
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, Asset> _additionalAssets;
 
@@ -26,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 base(owner, GetOrCreateSerializer(solutionState.Workspace.Services))
             {
                 SolutionState = solutionState;
+
+                _checksumObjectFromAdditionalAssetsGetter = GetChecksumObjectFromAdditionalAssets;
             }
 
             public SolutionState SolutionState { get; }
@@ -34,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                LazyInitialization.EnsureInitialized(ref _additionalAssets, () => new ConcurrentDictionary<Checksum, Asset>(concurrencyLevel: 2, capacity: 10));
+                LazyInitialization.EnsureInitialized(ref _additionalAssets, s_additionalAssetsCreator);
 
                 _additionalAssets.TryAdd(asset.Checksum, asset);
             }
@@ -56,6 +65,45 @@ namespace Microsoft.CodeAnalysis.Execution
                 // this cache has no reference to the given checksum
                 return null;
             }
+
+            public override void AppendChecksumObjects(Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
+            {
+                // call base one to do common search
+                base.AppendChecksumObjects(map, searchingChecksumsLeft, cancellationToken);
+                if (searchingChecksumsLeft.Count == 0)
+                {
+                    // there is no checksum left to find
+                    return;
+                }
+
+                // root tree node has extra data that we need to search as well
+                if (_additionalAssets == null)
+                {
+                    // this can't be reached
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                AppendChecksumObjectsFromAdditionalAssets(map, searchingChecksumsLeft, cancellationToken);
+            }
+
+            private void AppendChecksumObjectsFromAdditionalAssets(
+                Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
+            {
+                AppendChecksumObjects(map, searchingChecksumsLeft, _additionalAssets.Count, _additionalAssets.Keys, _checksumObjectFromAdditionalAssetsGetter, cancellationToken);
+            }
+
+            private ChecksumObject GetChecksumObjectFromAdditionalAssets(Checksum checksum)
+            {
+                Asset asset;
+                if (_additionalAssets.TryGetValue(checksum, out asset))
+                {
+                    return asset;
+                }
+
+                // given checksum doesn't exist in this additional assets. but will exist
+                // in one of tree nodes/additional assets/global assets
+                return null;
+            }
         }
 
         /// <summary>
@@ -67,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         private class SubTreeNode : IChecksumTreeNode
         {
+            // cache to remove lambda allocation
             private static readonly Func<object, ChecksumObjectCache> s_cacheCreator = _ => new ChecksumObjectCache();
 
             private readonly ChecksumTreeCollection _owner;
@@ -90,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public virtual ChecksumObject TryGetChecksumObject(Checksum checksum, CancellationToken cancellationToken)
             {
-                // search needed to be improved.
                 ChecksumObject checksumObject;
                 foreach (var entry in _cache.Values)
                 {
@@ -119,6 +167,40 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 return null;
+            }
+
+            public virtual void AppendChecksumObjects(Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, CancellationToken cancellationToken)
+            {
+                if (searchingChecksumsLeft.Count == 0)
+                {
+                    // there is no checksum left to find
+                    return;
+                }
+
+                foreach (var entry in _cache.Values)
+                {
+                    AppendChecksumObjects(map, searchingChecksumsLeft, entry, cancellationToken);
+                    if (searchingChecksumsLeft.Count == 0)
+                    {
+                        // there is no checksum left to find
+                        return;
+                    }
+
+                    var cache = entry.TryGetSubTreeNode();
+                    if (cache == null)
+                    {
+                        // this entry doesn't have sub tree cache
+                        continue;
+                    }
+
+                    // ask its sub tree cache
+                    cache.AppendChecksumObjects(map, searchingChecksumsLeft, cancellationToken);
+                    if (searchingChecksumsLeft.Count == 0)
+                    {
+                        // there is no checksum left to find
+                        return;
+                    }
+                }
             }
 
             public ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)
@@ -177,6 +259,70 @@ namespace Microsoft.CodeAnalysis.Execution
                 where TAsset : Asset
             {
                 return GetOrCreateChecksumObjectAsync(key, value, kind, valueGetterAsync, cancellationToken);
+            }
+
+            protected static void AppendChecksumObjects(
+                Dictionary<Checksum, ChecksumObject> map,
+                HashSet<Checksum> searchingChecksumsLeft,
+                int currentNodeChecksumCount,
+                IEnumerable<Checksum> currentNodeChecksums,
+                Func<Checksum, ChecksumObject> checksumGetterForCurrentNode, 
+                CancellationToken cancellationToken)
+            {
+                // this will iterate through candidate checksums to see whether that checksum exists in both
+                // checksum set we are currently searching for and checksums current node contains
+                using (var removed = Creator.CreateList<Checksum>())
+                {
+                    // we have 2 sets of checksums. one we are searching for and ones this node contains.
+                    // we only need to iterate one of them to see this node contains what we are looking for.
+                    // so, we check two set and use one that has smaller number of checksums.
+                    foreach (var checksum in GetSmallerChecksumList(searchingChecksumsLeft.Count, searchingChecksumsLeft, currentNodeChecksumCount, currentNodeChecksums))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // if checksumGetter return null for given checksum, that means current node doesn't have given checksum
+                        var checksumObject = checksumGetterForCurrentNode(checksum);
+                        if (checksumObject != null && searchingChecksumsLeft.Contains(checksum))
+                        {
+                            // found given checksum in current node
+                            map[checksum] = checksumObject;
+                            removed.Object.Add(checksum);
+
+                            // we found all checksums we are looking for
+                            if (removed.Object.Count == searchingChecksumsLeft.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    searchingChecksumsLeft.ExceptWith(removed.Object);
+                }
+            }
+
+            private static IEnumerable<Checksum> GetSmallerChecksumList(int count1, IEnumerable<Checksum> checksums1, int count2, IEnumerable<Checksum> checksums2)
+            {
+                // return smaller checksum list from given two list
+                return count1 < count2 ? checksums1 : checksums2;
+            }
+
+            private void AppendChecksumObjects(
+                Dictionary<Checksum, ChecksumObject> map, HashSet<Checksum> searchingChecksumsLeft, ChecksumObjectCache cache, CancellationToken cancellationToken)
+            {
+                AppendChecksumObjects(map, searchingChecksumsLeft, cache.Count, cache.GetChecksums(), c => GetChecksumObjectFromTreeNode(cache, c), cancellationToken);
+            }
+
+            private ChecksumObject GetChecksumObjectFromTreeNode(ChecksumObjectCache cache, Checksum checksum)
+            {
+                ChecksumObject checksumObject;
+                if (cache.TryGetValue(checksum, out checksumObject))
+                {
+                    return checksumObject;
+                }
+
+                // given checksum doesn't exist in this entry of tree node. but will exist
+                // in one of tree nodes/additional assets/global assets
+                return null;
             }
 
             private async Task<TChecksumObject> GetOrCreateChecksumObjectAsync<TKey, TValue, TChecksumObject>(

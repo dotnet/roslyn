@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -153,7 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
-                nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
+                nodeToBind.Kind() == SyntaxKind.VariableDeclarator && 
+                    new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
+                        Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
             return typeSyntax.IsVar
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
@@ -752,23 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // This occurs, for example, in
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
-                        var declarator = (VariableDeclaratorSyntax)_nodeToBind;
-                        if (declarator.ArgumentList != null)
-                        {
-                            foreach (var arg in declarator.ArgumentList.Arguments)
-                            {
-                                var expression = arg.Expression;
-                                if (expression.Kind() == SyntaxKind.DeclarationExpression)
-                                {
-                                    this.SetType(_nodeBinder.CreateErrorType("var"));
-                                    // no error is necessary, as they would be dropped on the floor by the caller
-                                }
-                                else
-                                {
-                                    _nodeBinder.BindExpression(expression, diagnostics);
-                                }
-                            }
-                        }
+                        _nodeBinder.BindDeclaratorArguments((VariableDeclaratorSyntax)_nodeToBind, diagnostics);
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

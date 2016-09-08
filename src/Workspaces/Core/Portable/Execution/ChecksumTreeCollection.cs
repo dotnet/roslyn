@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,48 @@ namespace Microsoft.CodeAnalysis.Execution
 
             // as long as solution snapshot is pinned. it must exist in one of the trees.
             throw ExceptionUtilities.UnexpectedValue(checksum);
+        }
+
+        public IReadOnlyDictionary<Checksum, ChecksumObject> GetChecksumObjects(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        {
+            using (var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums))
+            {
+                var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
+                var result = new Dictionary<Checksum, ChecksumObject>();
+
+                // search checksum trees we have
+                foreach (var cache in _rootTreeNodes.Values)
+                {
+                    cache.AppendChecksumObjects(result, searchingChecksumsLeft.Object, cancellationToken);
+                    if (result.Count == numberOfChecksumsToSearch)
+                    {
+                        // no checksum left to find
+                        Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                        return result;
+                    }
+                }
+
+                // search global assets
+                foreach (var asset in _globalAssets.Values)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
+                    {
+                        result[asset.Checksum] = asset;
+
+                        if (result.Count == numberOfChecksumsToSearch)
+                        {
+                            // no checksum left to find
+                            Contract.Requires(searchingChecksumsLeft.Object.Count == 0);
+                            return result;
+                        }
+                    }
+                }
+
+                // as long as solution snapshot is pinned. it must exist in one of the trees.
+                throw ExceptionUtilities.UnexpectedValue(result.Count);
+            }
         }
 
         private ChecksumObjectCache TryGetChecksumObjectEntry(object key, string kind, CancellationToken cancellationToken)

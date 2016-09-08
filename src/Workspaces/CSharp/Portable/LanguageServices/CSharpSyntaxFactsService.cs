@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -1759,6 +1760,89 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsDeclaration(SyntaxNode node)
         {
             return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
+        }
+
+        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+
+        public void AddFirstMissingCloseBrace(
+            SyntaxNode root, SyntaxNode contextNode, 
+            out SyntaxNode newRoot, out SyntaxNode newContextNode)
+        {
+            // First, annotate the context node in the tree so that we can find it again
+            // after we've done all the rewriting.
+            // var currentRoot = root.ReplaceNode(contextNode, contextNode.WithAdditionalAnnotations(s_annotation));
+            newRoot = new AddFirstMissingCloseBaceRewriter(contextNode).Visit(root);
+            newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
+        }
+
+        private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
+        {
+            private readonly SyntaxNode _contextNode; 
+            private bool _seenContextNode = false;
+            private bool _addedFirstCloseCurly = false;
+
+            public AddFirstMissingCloseBaceRewriter(SyntaxNode contextNode)
+            {
+                _contextNode = contextNode;
+            }
+
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                if (node == _contextNode)
+                {
+                    _seenContextNode = true;
+
+                    // Annotate the context node so we can find it again in the new tree
+                    // after we've added the close curly.
+                    return node.WithAdditionalAnnotations(s_annotation);
+                }
+
+                // rewrite this node normally.
+                var rewritten = base.Visit(node);
+                if (rewritten == node)
+                {
+                    return rewritten;
+                }
+
+                // This node changed.  That means that something underneath us got
+                // rewritten.  (i.e. we added the annotation to the context node).
+                Debug.Assert(_seenContextNode);
+
+                // Ok, we're past the context node now.  See if this is a node with 
+                // curlies.  If so, if it has a missing close curly then add in the 
+                // missing curly.  Also, even if it doesn't have missing curlies, 
+                // then still ask to format its close curly to make sure all the 
+                // curlies up the stack are properly formatted.
+                var braces = rewritten.GetBraces();
+                if (braces.Item1.Kind() == SyntaxKind.None && 
+                    braces.Item2.Kind() == SyntaxKind.None)
+                {
+                    // Not an item with braces.  Just pass it up.
+                    return rewritten;
+                }
+
+                // See if the close brace is missing.  If it's the first missing one 
+                // we're seeing then definitely add it.
+                if (braces.Item2.IsMissing)
+                {
+                    if (!_addedFirstCloseCurly)
+                    {
+                        var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                            .WithAdditionalAnnotations(Formatter.Annotation);
+                        rewritten = rewritten.ReplaceToken(braces.Item2, closeBrace);
+                        _addedFirstCloseCurly = true;
+                    }
+                }
+                else
+                {
+                    // Ask for the close brace to be formatted so that all the braces
+                    // up the spine are in the right location.
+                    rewritten = rewritten.ReplaceToken(braces.Item2,
+                        braces.Item2.WithAdditionalAnnotations(Formatter.Annotation));
+                }
+
+                return rewritten;
+            }
         }
     }
 }

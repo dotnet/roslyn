@@ -85,9 +85,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     dkmAlias.Name,
                     dkmAlias.FullName,
                     dkmAlias.Type,
-                    new CustomTypeInfo(
-                        dkmAlias.CustomTypeInfoPayloadTypeId,
-                        dkmAlias.CustomTypeInfoPayload)));
+                    dkmAlias.CustomTypeInfoPayloadTypeId,
+                    dkmAlias.CustomTypeInfoPayload));
             }
             return builder.ToImmutableAndFree();
         }
@@ -384,13 +383,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = local.GetCustomTypeInfo(out customTypeInfo);
             return DkmClrLocalVariableInfo.Create(
                 local.LocalDisplayName,
                 local.LocalName,
                 local.MethodName,
                 local.Flags,
                 DkmEvaluationResultCategory.Data,
-                local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+                customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
         }
 
         private struct GetLocalsResult

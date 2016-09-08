@@ -18,7 +18,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
@@ -114,10 +113,10 @@
     <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdator.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
     <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
+    <Compile Include="Implementation\Remote\WellKnownRemoteHostServices.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
-    <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
@@ -160,9 +159,6 @@
     <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
@@ -172,6 +168,7 @@
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
+    <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
     <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
@@ -276,6 +273,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
@@ -285,6 +283,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
@@ -662,31 +661,10 @@
     <Compile Include="Implementation\Venus\VenusCommandFilter.cs" />
     <Compile Include="Implementation\VisualStudioMetadataAsSourceFileSupportService.cs" />
     <Compile Include="Implementation\VsRefactorNotifyService.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentPersistentStorage_IdentifierTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.AbstractTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.DocumentTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.DocumentTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierLocationTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierLocationTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.NameTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.OpenSession.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.Pool.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.SolutionTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.SolutionTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.StringNameTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.TableKinds.cs" />
     <Compile Include="Implementation\Workspace\GlobalOperationNotificationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
-    <Compile Include="Implementation\Workspace\PersistenceServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\PersistentStorageService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />
@@ -751,6 +729,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Implementation\Options\Style\" />
+    <Folder Include="Implementation\Workspace\Esent\" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
