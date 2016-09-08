@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _type;
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
-        /// id is an index of the element (zero-based).
+        /// If this field represents a tuple element with index X
+        /// - 2X      if this field represents Default-named element
+        /// - 2X + 1  if this field represents Friendly-named element
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
         private readonly int _tupleElementIndex;
@@ -44,15 +45,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this field represents a tuple element (including the name match), 
+        /// If this field represents a tuple element, 
         /// id is an index of the element (zero-based).
         /// Otherwise, (-1 - [index in members array]);
-        /// </summary>
+        /// </summary>i
         public override int TupleElementIndex
         {
             get
             {
-                return _tupleElementIndex;
+                if (_tupleElementIndex < 0)
+                {
+                    return -1;
+                }
+
+                return _tupleElementIndex >> 1;
+            }
+        }
+
+        public override bool IsDefaultTupleElement
+        {
+            get
+            {
+                // not negative and even
+                return (_tupleElementIndex & ((1 << 31) | 1)) == 0;
             }
         }
 
@@ -126,8 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                ContainingType == other.ContainingType &&
-                Name == other.Name;
+                ContainingType == other.ContainingType;
         }
     }
 }

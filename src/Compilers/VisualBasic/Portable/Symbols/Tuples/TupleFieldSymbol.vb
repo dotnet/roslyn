@@ -15,7 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _containingTuple As TupleTypeSymbol
 
-        Private _tupleFieldId As Integer
+        ''' <summary>
+        ''' If this field represents a tuple element with index X, the field contains
+        ''' - 2X      if this field represents a Default-named element
+        ''' - 2X + 1  if this field represents a Friendly-named element
+        ''' Otherwise, (-1 - [index in members array]);
+        ''' </summary>
+        Private _tupleElementIndex As Integer
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -31,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property TupleFieldId As Integer
             Get
-                Return Me._tupleFieldId
+                Return Me._tupleElementIndex
             End Get
         End Property
 
@@ -59,10 +65,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer)
             MyBase.New(underlyingField)
-            Me._containingTuple = container
-            Me._tupleFieldId = tupleFieldId
+
+            Debug.Assert(container.UnderlyingNamedType.IsSameTypeIgnoringCustomModifiers(underlyingField.ContainingType) OrElse TypeOf Me Is TupleVirtualElementFieldSymbol,
+                                            "virtual fields should be represented by " + NameOf(TupleVirtualElementFieldSymbol))
+
+            _containingTuple = container
+            _tupleElementIndex = tupleElementIndex
         End Sub
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
@@ -76,7 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._containingTuple.GetHashCode(), Me._tupleFieldId.GetHashCode())
+            Return Hash.Combine(
+                Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode()),
+                             Me.Name.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -84,8 +96,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleFieldSymbol) As Boolean
-            Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me._containingTuple = other._containingTuple)
+            Return other IsNot Nothing AndAlso
+                _tupleElementIndex = other._tupleElementIndex AndAlso
+                _containingTuple = other._containingTuple
         End Function
     End Class
 
@@ -152,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an element field of a tuple type (such as (int a, byte b).a, or (int a, byte b).b)
     ''' that is backed by a real field with a different name within the tuple underlying type.
     ''' </summary>
-    Friend NotInheritable Class TupleRenamedElementFieldSymbol
+    Friend NotInheritable Class TupleVirtualElementFieldSymbol
         Inherits TupleElementFieldSymbol
 
         Private _name As String

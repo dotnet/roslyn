@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (srcType.IsTupleType)
             {
-                srcElementFields = ((TupleTypeSymbol)srcType).TupleElementFields;
+                srcElementFields = ((TupleTypeSymbol)srcType).TupleDefaultElementFields;
             }
             else
             {
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
                 //       in the type symbols that can actually be tuple compatible
-                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleElementFields;
+                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleDefaultElementFields;
             }
 
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);

@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Dim defaultName As String = TupleMemberName(tupleFieldIndex + 1)
 
                                     ' Add a field with default name regardless
-                                    members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, defaultName, -members.Count - 1, Nothing))
+                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, defaultName, -members.Count - 1, Nothing))
 
                                     If Not IdentifierComparison.Equals(namesOfVirtualFields(tupleFieldIndex), defaultName) Then
                                         ' The name given doesn't match default name ItemTupleTypeSymbol.RestPosition, etc.
@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         If IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
                                             members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, location))
                                         Else
-                                            members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
+                                            members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
                                         End If
                                     End If
                                 ElseIf IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     members.Add(New TupleFieldSymbol(Me, FieldSymbol, -members.Count - 1))
 
                                     ' Add a field with the given name
-                                    members.Add(New TupleRenamedElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex,
+                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex,
                                                                                             If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))))
                                 End If
 
