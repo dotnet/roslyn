@@ -4181,7 +4181,8 @@ public class Methods2
             await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(13462, "https://github.com/dotnet/roslyn/issues/13462")]
         public async Task MethodOverloadStaticMethodsOnInstance()
         {
             var markup = @"<Workspace>
