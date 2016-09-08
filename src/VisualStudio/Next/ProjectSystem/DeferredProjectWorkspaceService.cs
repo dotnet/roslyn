@@ -33,11 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         public async Task<ValueTuple<ImmutableArray<string>, ImmutableArray<string>>> GetCommandLineArgumentsAndProjectReferencesForProjectAsync(string projectFilePath)
         {
             var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(projectFilePath).ConfigureAwait(false);
-            //return commandLineInfos.Any() ? commandLineInfos.First().CommandLineArgs : ImmutableArray<string>.Empty;
-            if (commandLineInfos.Any())
+
+            // Due to https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=260811,
+            // try to find any configuration that has commandlineinfo.
+            var info = commandLineInfos.FirstOrDefault(cli => !cli.CommandLineArgs.IsDefaultOrEmpty);
+            if (!info.CommandLineArgs.IsDefaultOrEmpty)
             {
-                var commandLineInfo = commandLineInfos.First();
-                return ValueTuple.Create(commandLineInfo.CommandLineArgs, commandLineInfo.ProjectReferences);
+                return ValueTuple.Create(info.CommandLineArgs, info.ProjectReferences);
             }
             else
             {
