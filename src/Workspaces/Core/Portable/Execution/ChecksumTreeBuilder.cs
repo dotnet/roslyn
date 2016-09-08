@@ -152,7 +152,13 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 for (var i = 0; i < tasks.Count; i++)
                 {
-                    checksums[i] = (await tasks[i].ConfigureAwait(false)).Checksum;
+                    var task = tasks[i];
+
+                    // we use await here to make sure when exception is raised, especially cancellation exception,
+                    // right exception is raised from task. if we use .Result directly, it will raise aggregated exception
+                    // rather than cancellation exception.
+                    // since task is already completed, when there is no exception for the task. await will be no-op
+                    checksums[i] = (await task.ConfigureAwait(false)).Checksum;
                 }
 
                 return new ChecksumCollection(_serializer, kind, checksums);
