@@ -101,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            return cachedRules[Tuple.Create(context.IsInImportsDirective, preselect,
+            return cachedRules[ValueTuple.Create(context.IsInImportsDirective, preselect,
                 ((CSharpSyntaxContext)context).IsPossibleTupleContext)] ??
                 CompletionItemRules.Default;
         }
 
-        private static readonly Dictionary<Tuple<bool, bool, bool>, CompletionItemRules> cachedRules = InitCachedRules();
+        private static readonly Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules> cachedRules = InitCachedRules();
 
-        private static Dictionary<Tuple<bool, bool, bool>, CompletionItemRules> InitCachedRules()
+        private static Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules> InitCachedRules()
         {
-            var result = new Dictionary<Tuple<bool, bool, bool>, CompletionItemRules>();
+            var result = new Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules>();
 
             for (int importDirective = 0; importDirective < 2; importDirective++)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             continue;
                         }
 
-                        var context = Tuple.Create(importDirective == 1, preselect == 1, tupleLiteral == 1);
+                        var context = ValueTuple.Create(importDirective == 1, preselect == 1, tupleLiteral == 1);
                         result[context] = MakeRule(importDirective, preselect, tupleLiteral);
                     }
                 }

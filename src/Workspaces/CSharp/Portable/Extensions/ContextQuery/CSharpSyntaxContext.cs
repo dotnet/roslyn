@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
-        public readonly bool IsPossibleTupleContext;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), cancellationToken)
+                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -137,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
-            this.IsPossibleTupleContext = isPossibleTupleContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -243,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext,
-                syntaxTree.IsPossibleTupleElementNameContext(position, leftToken, cancellationToken),
+                leftToken.IsPossibleTupleElementNameContext(position),
                 cancellationToken);
         }
 

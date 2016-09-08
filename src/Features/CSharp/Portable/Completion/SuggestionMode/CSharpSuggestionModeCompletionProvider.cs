@@ -125,6 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 }
             }
 
+            // A lambda that is being typed may be parsed as a tuple without names 
+            if (token.IsPossibleTupleElementNameContext(position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
+               !((TupleExpressionSyntax)token.Parent).HasNames())
+            {
+                position = token.Parent.SpanStart;
+            }
+
             // Walk up a single level to allow for typing the beginning of a lambda:
             // new AssemblyLoadEventHandler(($$
             if (token.Kind() == SyntaxKind.OpenParenToken &&

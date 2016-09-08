@@ -1131,14 +1131,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsPossibleTupleElementNameContext(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsPossibleTupleElementNameContext(this SyntaxToken token, int position)
         {
-            var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression)) ||
-                 (token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression));
+            if (token.IsKind(SyntaxKind.OpenParenToken))
+            {
+                return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) || token.Parent.IsKind(SyntaxKind.TupleExpression);
+            }
+
+            return token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression);
+        }
+
+        public static bool HasNames(this TupleExpressionSyntax tuple)
+        {
+            return tuple.Arguments.Any(a => a.NameColon != null);
         }
 
         public static bool IsValidContextForFromClause(
