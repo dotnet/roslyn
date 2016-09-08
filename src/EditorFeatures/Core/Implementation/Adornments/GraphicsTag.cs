@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return;
             }
 
-            // TODO: Refresh this when the user changes fonts and colors
-
             // If we can't get the color for some reason, fall back to a hardcoded value
             // the editor has for outlining.
             var lightGray = Color.FromRgb(0xA5, 0xA5, 0xA5);
