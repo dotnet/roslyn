@@ -9,7 +9,6 @@
     <AssemblyName>Roslyn.VisualStudio.Test.Utilities.Next</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <PropertyGroup>
