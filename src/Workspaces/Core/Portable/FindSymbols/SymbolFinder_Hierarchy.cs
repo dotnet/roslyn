@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (type == null)
@@ -150,7 +150,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            return DependentTypeFinder.FindTransitivelyDerivedClassesAsync(type, solution, projects, cancellationToken);
+            var result = await DependentTypeFinder.FindTransitivelyDerivedClassesAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
+            return result.Select(s => s.Symbol).ToList();
         }
 
         /// <summary>
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var namedTypeSymbol = (INamedTypeSymbol)symbol;
                 var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
-                return implementingTypes.Where(IsAccessible);
+                return implementingTypes.Select(s => s.Symbol).Where(IsAccessible).ToList();
             }
             else if (symbol.IsImplementableMember())
             {
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 List<ISymbol> results = null;
                 foreach (var t in allTypes)
                 {
-                    foreach (var m in t.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
+                    foreach (var m in t.Symbol.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
                     {
                         var s = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false) ?? m;
                         if (IsAccessible(s))
