@@ -343,6 +343,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return TupleTypeSymbol.Create(ImmutableArray(Of Location).Empty, tupleCompatibleType, Nothing, Nothing)
         End Function
 
+        Public Shared Function Create(tupleCompatibleType As NamedTypeSymbol, elementNames As ImmutableArray(Of String)) As TupleTypeSymbol
+            Return TupleTypeSymbol.Create(ImmutableArray(Of Location).Empty, tupleCompatibleType, Nothing, elementNames)
+        End Function
+
         Public Shared Function Create(locationOpt As Location, tupleCompatibleType As NamedTypeSymbol, elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String)) As TupleTypeSymbol
             Return TupleTypeSymbol.Create(If((locationOpt Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(locationOpt)), tupleCompatibleType, elementLocations, elementNames)
         End Function

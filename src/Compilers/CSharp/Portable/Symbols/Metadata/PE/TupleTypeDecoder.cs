@@ -220,9 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = elementNames.IsDefault
-                    ? TupleTypeSymbol.Create(decodedType)
-                    : TupleTypeSymbol.Create(decodedType, elementNames);
+                decodedType = TupleTypeSymbol.Create(decodedType, elementNames);
             }
 
             return decodedType;
