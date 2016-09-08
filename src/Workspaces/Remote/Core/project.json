@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": {
-    "RoslynDependencies.Microsoft.Build.Desktop": "14.3.25407",
     "System.Collections.Immutable": "1.2.0"
   },
   "frameworks": {
