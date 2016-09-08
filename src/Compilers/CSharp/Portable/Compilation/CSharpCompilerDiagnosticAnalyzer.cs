@@ -56,6 +56,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                     case (int)ErrorCode.ERR_MainClassNotFound:
                         // no entry point related errors are live
                         continue;
+                    case (int)ErrorCode.ERR_BadDelegateConstructor:
+                    case (int)ErrorCode.ERR_InsufficientStack:
+                    case (int)ErrorCode.ERR_ModuleEmitFailure:
+                    case (int)ErrorCode.ERR_TooManyLocals:
+                    case (int)ErrorCode.ERR_BindToBogus:
+                    case (int)ErrorCode.ERR_ExportedTypeConflictsWithDeclaration:
+                    case (int)ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration:
+                    case (int)ErrorCode.ERR_ExportedTypesConflict:
+                    case (int)ErrorCode.ERR_ForwardedTypeConflictsWithExportedType:
+                    case (int)ErrorCode.ERR_ByRefTypeAndAwait:
+                    case (int)ErrorCode.ERR_RefReturningCallAndAwait:
+                    case (int)ErrorCode.ERR_SpecialByRefInLambda:
+                    case (int)ErrorCode.ERR_DynamicRequiredTypesMissing:
+                        // known build only errors which GetDiagnostics doesn't produce
+                        continue;
                     default:
                         builder.Add(errorCode);
                         break;
