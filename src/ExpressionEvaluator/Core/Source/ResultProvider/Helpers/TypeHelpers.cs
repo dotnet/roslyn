@@ -389,6 +389,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
+        // Returns cardinality if tuple type, otherwise 0.
+        internal static int GetTupleCardinalityIfAny(this Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
+        }
+
         internal static void GetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
         {
             while (true)

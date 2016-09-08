@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -26,6 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
     {
         internal class Tag : GraphicsTag
         {
+            public Tag(IEditorFormatMap editorFormatMap) : base(editorFormatMap)
+            {
+            }
+
+            protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
+            {
+                return Colors.Black;
+            }
+
             public override GraphicsResult GetGraphics(IWpfTextView textView, Geometry bounds)
             {
                 return new GraphicsResult(null, null);
@@ -120,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 _aggregator.Setup(a => a.GetTags(It.IsAny<SnapshotSpan>())).Returns(new[] { mappingTagSpan.Object });
                 mappingTagSpan.SetupGet(mts => mts.Span).Returns(_mappingSpan.Object);
-                mappingTagSpan.SetupGet(mts => mts.Tag).Returns(new Tag());
+                mappingTagSpan.SetupGet(mts => mts.Tag).Returns(new Tag(null));
 
                 _mappingSpan.Setup(ms => ms.GetSpans(It.IsAny<ITextSnapshot>())).Returns(new NormalizedSnapshotSpanCollection(MySnapshotSpan));
             }
