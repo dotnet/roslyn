@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var projectReference in commandLineArgumentsAndProjectReferences.Item2)
             {
                 var projectReferencePath = projectReference.Substring("/ProjectReference:".Length);
-                var referencedProject = Projects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
+                var referencedProject = ImmutableProjects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
                 if (referencedProject == null)
                 {
                     // Capture the context so that we come back on the UI thread, and do the actual project creation there.

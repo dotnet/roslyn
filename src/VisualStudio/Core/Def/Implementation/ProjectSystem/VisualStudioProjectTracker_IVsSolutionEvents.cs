@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled ?? false)
             {
                 // Copy to avoid modifying the collection while enumerating
-                var loadedProjects = Projects.ToList();
+                var loadedProjects = ImmutableProjects.ToList();
                 foreach (var p in loadedProjects)
                 {
                     p.Disconnect();
