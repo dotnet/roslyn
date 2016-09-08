@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -345,7 +344,7 @@ class C
         }
 
         [WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
-        [Fact(Skip = "13625")]
+        [Fact]
         public void Names_LongTuple()
         {
             var source =
@@ -375,8 +374,7 @@ class C
             }
         }
 
-        [WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
-        [Fact(Skip = "13625")]
+        [Fact]
         public void PartialNames()
         {
             var source =
@@ -582,8 +580,7 @@ class C
             }
         }
 
-        [WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
-        [Fact(Skip = "13625")]
+        [Fact]
         public void NamesFromTypeArguments_LongTuples()
         {
             var source =
@@ -632,7 +629,7 @@ class B
                     EvalResult(
                         "G",
                         "{A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
-                        "A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1, (C2 C1, dynamic C4))> {A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
+                        "A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1 C1, (C2 C2, dynamic C3) C4)> {A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
                         "o.G",
                         DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[0]);
@@ -640,7 +637,7 @@ class B
                     EvalResult(
                         "F",
                         "({A1}, {A2}, ((null, null), null, null, null, null, null, null, null, null), {A4}, {A5}, (null, (null, null)), {A7}, {A8}, (((null, null), null, null, null, null, null, null, null, null), (null, (null, null))))",
-                        "(dynamic A1, A2 A2, ((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A3, A4 A4, A5 A5, (C1, (C2 C2, dynamic C3) C4) A6, A7 A7, A8 A8, (((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A9, (C1, (C2 C2, dynamic C3) C4)) A10) A11) {(object, A2, ((object, B2), B4, object, B6, B7, object, B9, B10, object), A4, A5, (C1, (C2, object)), A7, A8, (((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))))}",
+                        "(dynamic A1, A2 A2, ((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A3, A4 A4, A5 A5, (C1 C1, (C2 C2, dynamic C3) C4) A6, A7 A7, A8 A8, (((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A9, (C1 C1, (C2 C2, dynamic C3) C4) A10) A11) {(object, A2, ((object, B2), B4, object, B6, B7, object, B9, B10, object), A4, A5, (C1, (C2, object)), A7, A8, (((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))))}",
                         "o.G.F",
                         DkmEvaluationResultFlags.Expandable));
             }

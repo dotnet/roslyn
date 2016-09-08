@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var typeDefinition = type.GetGenericTypeDefinition();
             Debug.Assert(typeDefinition != null);
 
-            var dynamicFlagStartIndices = (dynamicFlags == null) ? null : GetDynamicFlagStartIndices(type);
-            var tupleElementNameStartIndices = (tupleElementNames == null) ? null : GetTupleElementNameStartIndices(type);
+            var dynamicFlagStartIndices = (dynamicFlags == null) ? null : GetStartIndices(type, t => 1);
+            var tupleElementNameStartIndices = (tupleElementNames == null) ? null : GetStartIndices(type, TypeHelpers.GetTupleCardinalityIfAny);
 
             return new CustomTypeInfoTypeArgumentMap(
                 typeDefinition,
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
-                    int n = GetTupleCardinalityIfAny(curr);
+                    int n = curr.GetTupleCardinalityIfAny();
                     AppendRange(tupleElementNamesOpt, i, i + n, CustomTypeInfo.GetTupleElementNameIfAny, builder);
                     i += n;
                 }
@@ -162,58 +162,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        private static int[] GetDynamicFlagStartIndices(Type type)
+        private delegate int GetIndexCount(Type type);
+
+        private static int[] GetStartIndices(Type type, GetIndexCount getIndexCount)
         {
             var typeArgs = type.GetGenericArguments();
             Debug.Assert(typeArgs.Length > 0);
 
-            int pos = 1; // Consider "type" to have already been consumed.
+            int pos = getIndexCount(type); // Consider "type" to have already been consumed.
             var startsBuilder = ArrayBuilder<int>.GetInstance();
-            var tupleElementNameStartIndices = ArrayBuilder<int>.GetInstance();
             foreach (var typeArg in typeArgs)
             {
                 startsBuilder.Add(pos);
 
                 foreach (Type curr in new TypeWalker(typeArg))
                 {
-                    pos++;
+                    pos += getIndexCount(curr);
                 }
             }
 
             Debug.Assert(pos > 1);
             startsBuilder.Add(pos);
             return startsBuilder.ToArrayAndFree();
-        }
-
-        private static int[] GetTupleElementNameStartIndices(Type type)
-        {
-            var typeArgs = type.GetGenericArguments();
-            Debug.Assert(typeArgs.Length > 0);
-
-            int pos = GetTupleCardinalityIfAny(type);
-            var startsBuilder = ArrayBuilder<int>.GetInstance();
-            var tupleElementNameStartIndices = ArrayBuilder<int>.GetInstance();
-            foreach (var typeArg in typeArgs)
-            {
-                startsBuilder.Add(pos);
-
-                foreach (Type curr in new TypeWalker(typeArg))
-                {
-                    pos += GetTupleCardinalityIfAny(curr);
-                }
-            }
-
-            Debug.Assert(pos > 1);
-            startsBuilder.Add(pos);
-            return startsBuilder.ToArrayAndFree();
-        }
-
-        // Returns cardinality if tuple type, otherwise 0.
-        private static int GetTupleCardinalityIfAny(Type type)
-        {
-            int cardinality;
-            type.IsTupleCompatible(out cardinality);
-            return cardinality;
         }
 
         private delegate U Map<T, U>(ReadOnlyCollection<T> collection, int index);
