@@ -404,7 +404,11 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         ' Add just the compiler files to a separate compiler nuspec
-        GenerateRoslynCompilerNuSpec(CompilerFiles)
+        ' (with the Immutable collections and System.Reflection.Metadata, which
+        '  are normally inserted separately)
+        Dim allCompilerFiles = CompilerFiles.Concat({
+            "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"})
+        GenerateRoslynCompilerNuSpec(allCompilerFiles)
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -898,8 +902,11 @@ Public Class BuildDevDivInsertionFiles
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
     End Function
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As String())
+    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
+
+        ' No duplicates are allowed
+        filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -913,7 +920,6 @@ Public Class BuildDevDivInsertionFiles
                       <files>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Distinct().
                               Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
