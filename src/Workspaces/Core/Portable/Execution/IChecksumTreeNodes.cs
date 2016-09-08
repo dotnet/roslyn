@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
         IChecksumTreeNode GetOrCreateSubTreeNode<TKey>(TKey key);
 
-        // TResult since Task doesn't allow covariant
         Task<TResult> GetOrCreateChecksumObjectWithChildrenAsync<TKey, TValue, TResult>(
             TKey key, TValue value, string kind,
             Func<TKey, TValue, string, CancellationToken, Task<TResult>> valueGetterAsync,
@@ -37,12 +36,17 @@ namespace Microsoft.CodeAnalysis.Execution
             where TKey : class
             where TResult : ChecksumObjectWithChildren;
 
-        // TResult since Task doesn't allow covariant
-        Task<TResult> GetOrCreateAssetAsync<TKey, TValue, TResult>(
+        TResult GetOrCreateChecksumObjectWithChildren<TKey, TValue, TResult>(
             TKey key, TValue value, string kind,
-            Func<TValue, string, CancellationToken, Task<TResult>> valueGetterAsync,
+            Func<TKey, TValue, string, CancellationToken, TResult> valueGetter,
             CancellationToken cancellationToken)
             where TKey : class
-            where TResult : Asset;
+            where TResult : ChecksumObjectWithChildren;
+
+        Asset GetOrCreateAsset<TKey, TValue>(
+            TKey key, TValue value, string kind,
+            Func<TValue, string, CancellationToken, Asset> valueGetter,
+            CancellationToken cancellationToken)
+            where TKey : class;
     }
 }
