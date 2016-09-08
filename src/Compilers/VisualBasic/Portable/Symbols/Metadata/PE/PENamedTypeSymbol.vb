@@ -271,10 +271,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
                     Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
-                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
-                    namedTypeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(namedTypeSymbol, interfaceHandle, moduleSymbol), NamedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle)
+
+                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceHandle, moduleSymbol), NamedTypeSymbol)
 
                     'TODO: how to pass reason to unsupported
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"
                     i = i + 1
                 Next

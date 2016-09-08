@@ -304,7 +304,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 builder.Add(_elementNames(start + i))
             Next
 
-            _namesIndex = start
             Return builder.ToImmutableAndFree()
         End Function
     End Structure
