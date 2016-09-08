@@ -50,20 +50,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
-            {
-                var finders = ReferenceFinders.DefaultReferenceFinders;
-                progress = progress ?? FindReferencesProgress.Instance;
-                var engine = new FindReferencesSearchEngine(solution, documents, finders, progress, cancellationToken);
-                return await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
-            }
+            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
+            return engineService.FindReferencesAsync(symbol, solution, progress, documents, cancellationToken);
         }
 
         internal static Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
