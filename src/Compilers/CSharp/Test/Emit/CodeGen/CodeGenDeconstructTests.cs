@@ -1468,7 +1468,7 @@ static class Extension
         }
 
         [Fact]
-        public void AmbiguousDeconstructGenericExtensionMethod()
+        public void UnspecifiedGenericMethodIsNotCandidate()
         {
             string source = @"
 class C
