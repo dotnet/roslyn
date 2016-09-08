@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If hasNames Then
                     Dim name = elementNames(i)
                     If name IsNot Nothing Then
-                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames(i), noEscaping:=False))
+                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
                         AddSpace()
                         AddPunctuation(SyntaxKind.AsKeyword)
                         AddSpace()

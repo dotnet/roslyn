@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Threading
-Imports System.Reflection
 Imports System.Reflection.Metadata
-Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' <summary>
@@ -80,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' If we have the TupleElementNamesAttribute, but no names, that's
             ' bad metadata
-            If (hasTupleElementNamesAttribute AndAlso elementNames.IsDefaultOrEmpty) Then
+            If hasTupleElementNamesAttribute AndAlso elementNames.IsDefaultOrEmpty Then
                 Return New UnsupportedMetadataTypeSymbol()
             End If
 
@@ -190,15 +186,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      decodedArgs.ZipAsArray(type.TypeArgumentsCustomModifiers, Function(t, m) New TypeWithModifiers(t, m)),
                                      decodedArgs.SelectAsArray(Function(t) New TypeWithModifiers(t, Nothing)))
 
-                If (containerChanged) Then
+                If containerChanged Then
                     decodedType = decodedType.OriginalDefinition.AsMember(decodedContainingType)
                     ' If the type is nested, e.g. Outer(of T).Inner(of V), then Inner is definitely
                     ' not a tuple, since we know all tuple-compatible types (System.ValueTuple)
                     ' are not nested types. Thus, it is safe to return without checking if
                     ' Inner is a tuple.
-                    Return If(type.TypeParameters.IsEmpty,
-                                type,
-                                Construct(type, newTypeArgs))
+                    Return If(decodedType.TypeParameters.IsEmpty,
+                                decodedType,
+                                Construct(decodedType, newTypeArgs))
                 End If
 
                 decodedType = Construct(type, newTypeArgs)
@@ -211,17 +207,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 Debug.Assert(elementNames.IsDefault OrElse elementNames.Length = tupleCardinality)
 
-                decodedType = If(elementNames.IsDefault,
-                                TupleTypeSymbol.Create(decodedType),
-                                TupleTypeSymbol.Create(decodedType, elementNames))
+                decodedType = TupleTypeSymbol.Create(decodedType, elementNames)
             End If
 
             Return decodedType
         End Function
 
         Private Shared Function Construct(type As NamedTypeSymbol, newTypeArgs As ImmutableArray(Of TypeWithModifiers)) As NamedTypeSymbol
-            Dim definition = type.ConstructedFrom
-            Dim subst = TypeSubstitution.Create(definition, definition.TypeParameters, newTypeArgs, False)
+            Dim definition = type.OriginalDefinition
+
+            Dim parentSubst = type.ConstructedFrom.ContainingType?.TypeSubstitution
+            Dim subst As TypeSubstitution
+            If parentSubst IsNot Nothing Then
+                subst = TypeSubstitution.Create(parentSubst, definition, newTypeArgs, False)
+            Else
+                subst = TypeSubstitution.Create(definition, definition.TypeParameters, newTypeArgs, False)
+            End If
+
             Return definition.Construct(subst)
         End Function
 
@@ -236,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             For i As Integer = typeArgs.Length - 1 To 0 Step -1
                 Dim typeArg = typeArgs(i)
                 Dim decoded = DecodeType(typeArg)
-                anyDecoded = anyDecoded Or Not ReferenceEquals(decoded, typeArg)
+                anyDecoded = anyDecoded Or decoded IsNot typeArg
                 decodedArgs.Add(decoded)
             Next
 
@@ -283,15 +285,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' Check to see if all the elements are null
             Dim start = _namesIndex - numberOfElements
             Dim allNull = True
+            _namesIndex = start
 
             For i As Integer = 0 To numberOfElements - 1
                 If _elementNames(start + i) IsNot Nothing Then
                     allNull = False
+                    Exit For
                 End If
             Next
 
             If allNull Then
-                _namesIndex = start
                 Return Nothing
             End If
 
@@ -302,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
 
             _namesIndex = start
-                    Return builder.ToImmutableAndFree()
+            Return builder.ToImmutableAndFree()
         End Function
     End Structure
 End Namespace
