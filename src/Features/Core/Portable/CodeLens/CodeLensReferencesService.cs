@@ -15,8 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
-    [ExportWorkspaceService(typeof(ICodeLensReferencesService)), Shared]
-    internal sealed class CodeLensReferenceService : ICodeLensReferencesService
+    internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
             new SymbolDisplayFormat(

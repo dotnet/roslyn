@@ -92,6 +92,7 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\WellKnownServiceHubServices.cs">
       <Link>Shared\WellKnownServiceHubServices.cs</Link>
     </Compile>
+    <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
     <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
