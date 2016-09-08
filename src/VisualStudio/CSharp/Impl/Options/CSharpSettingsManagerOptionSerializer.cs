@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
         private const string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration = nameof(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration);
         private const string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess = nameof(AutomationObject.Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
-        private const string Style_UseBracesWherePossible = nameof(AutomationObject.Style_UseBracesWherePossible);
+        private const string Style_AlwaysUseBraces = nameof(AutomationObject.Style_AlwaysUseBraces);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
             {
-                return FetchStyleBool(Style_UseBracesWherePossible, out value);
+                return FetchStyleBool(Style_AlwaysUseBraces, out value);
             }
 
             // code style: intrinsic/framework type.
@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // code style: brace options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
             {
-                return PersistStyleOption<bool>(Style_UseBracesWherePossible, value);
+                return PersistStyleOption<bool>(Style_AlwaysUseBraces, value);
             }
 
             // code style: intrinsic/framework type.

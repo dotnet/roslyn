@@ -5,11 +5,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using System.Collections.Generic;
+using System;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpAddBracesDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class CSharpBracesDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly LocalizableString s_addBracesLocalizableTitle =
             new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager,
@@ -27,58 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             new LocalizableResourceString(nameof(WorkspacesResources.Remove_braces_from_0_statement), WorkspacesResources.ResourceManager,
                 typeof(WorkspacesResources));
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(_noneAddBracesDiagnosticDescriptor,
-                                  _infoAddBracesDiagnosticDescriptor,
-                                  _warningAddBracesDiagnosticDescriptor,
-                                  _errorAddBracesDiagnosticDescriptor,
-                                  _noneRemoveBracesDiagnosticDescriptor,
-                                  _infoRemoveBracesDiagnosticDescriptor,
-                                  _warningRemoveBracesDiagnosticDescriptor,
-                                  _errorRemoveBracesDiagnosticDescriptor);
-
-        private readonly DiagnosticDescriptor _noneAddBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _infoAddBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _warningAddBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _errorAddBracesDiagnosticDescriptor;
-        private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToAddBracesDescriptorMap;
-
-        private readonly DiagnosticDescriptor _noneRemoveBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _infoRemoveBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _warningRemoveBracesDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _errorRemoveBracesDiagnosticDescriptor;
-        private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToRemoveBracesDescriptorMap;
-
-        public CSharpAddBracesDiagnosticAnalyzer()
-        {
-            _noneAddBracesDiagnosticDescriptor = CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity.Hidden);
-            _infoAddBracesDiagnosticDescriptor = CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity.Info);
-            _warningAddBracesDiagnosticDescriptor = CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity.Warning);
-            _errorAddBracesDiagnosticDescriptor = CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity.Error);
-
-            _severityToAddBracesDescriptorMap =
-                new Dictionary<DiagnosticSeverity, DiagnosticDescriptor>
-                {
-                    {DiagnosticSeverity.Hidden, _noneAddBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Info, _infoAddBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Warning, _warningAddBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Error, _errorAddBracesDiagnosticDescriptor },
-                };
-
-            _noneRemoveBracesDiagnosticDescriptor = CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity.Hidden);
-            _infoRemoveBracesDiagnosticDescriptor = CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity.Info);
-            _warningRemoveBracesDiagnosticDescriptor = CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity.Warning);
-            _errorRemoveBracesDiagnosticDescriptor = CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity.Error);
-
-            _severityToRemoveBracesDescriptorMap =
-                new Dictionary<DiagnosticSeverity, DiagnosticDescriptor>
-                {
-                    {DiagnosticSeverity.Hidden, _noneRemoveBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Info, _infoRemoveBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Warning, _warningRemoveBracesDiagnosticDescriptor },
-                    {DiagnosticSeverity.Error, _errorRemoveBracesDiagnosticDescriptor },
-                };
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(
+                CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity.Hidden),
+                CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity.Hidden));
 
         private DiagnosticDescriptor CreateAddBracesDiagnosticDescriptor(DiagnosticSeverity severity) =>
             new DiagnosticDescriptor(
@@ -89,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 severity,
                 isEnabledByDefault: true);
 
-
         private DiagnosticDescriptor CreateRemoveBracesDiagnosticDescriptor(DiagnosticSeverity severity) =>
             new DiagnosticDescriptor(
                 IDEDiagnosticIds.RemoveBracesDiagnosticId,
@@ -99,26 +51,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 severity,
                 isEnabledByDefault: true);
 
-        public bool RunInProcess => false;
+        public bool RunInProcess => true;
 
         public override void Initialize(AnalysisContext context)
         {
             var syntaxKindsOfInterest =
-            ImmutableArray.Create(SyntaxKind.IfStatement,
-                SyntaxKind.ElseClause,
-                SyntaxKind.ForStatement,
-                SyntaxKind.ForEachStatement,
-                SyntaxKind.ForEachComponentStatement,
-                SyntaxKind.WhileStatement,
-                SyntaxKind.DoStatement,
-                SyntaxKind.UsingStatement,
-                SyntaxKind.LockStatement,
-                SyntaxKind.FixedStatement);
+                ImmutableArray.Create(SyntaxKind.IfStatement,
+                    SyntaxKind.ElseClause,
+                    SyntaxKind.ForStatement,
+                    SyntaxKind.ForEachStatement,
+                    SyntaxKind.ForEachComponentStatement,
+                    SyntaxKind.WhileStatement,
+                    SyntaxKind.DoStatement,
+                    SyntaxKind.UsingStatement,
+                    SyntaxKind.LockStatement,
+                    SyntaxKind.FixedStatement);
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, syntaxKindsOfInterest);
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxAnalysis;
 
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -151,87 +103,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var ifStatement = (IfStatementSyntax)node;
                 if (AnalyzeIfStatement(ifStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         ifStatement.IfKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.IfKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.ElseClause))
+            else if (node.IsKind(SyntaxKind.ElseClause))
             {
                 var elseClause = (ElseClauseSyntax)node;
                 if (AnalyzeElseClause(elseClause))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         elseClause.ElseKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ElseKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.ForStatement))
+            else if (node.IsKind(SyntaxKind.ForStatement))
             {
                 var forStatement = (ForStatementSyntax)node;
                 if (AnalyzeForStatement(forStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         forStatement.ForKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachComponentStatement))
+            else if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachComponentStatement))
             {
                 var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         forEachStatement.ForEachKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForEachKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.WhileStatement))
+            else if (node.IsKind(SyntaxKind.WhileStatement))
             {
                 var whileStatement = (WhileStatementSyntax)node;
                 if (AnalyzeWhileStatement(whileStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         whileStatement.WhileKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.WhileKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.DoStatement))
+            else if (node.IsKind(SyntaxKind.DoStatement))
             {
                 var doStatement = (DoStatementSyntax)node;
                 if (AnalyzeDoStatement(doStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         doStatement.DoKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.DoKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.UsingStatement))
+            else if (node.IsKind(SyntaxKind.UsingStatement))
             {
                 var usingStatement = (UsingStatementSyntax)node;
                 if (AnalyzeUsingStatement(usingStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         usingStatement.UsingKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.UsingKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.LockStatement))
+            else if (node.IsKind(SyntaxKind.LockStatement))
             {
                 var lockStatement = (LockStatementSyntax)node;
                 if (AnalyzeLockStatement(lockStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         lockStatement.LockKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
                 }
             }
-
-            if (node.IsKind(SyntaxKind.FixedStatement))
+            else if (node.IsKind(SyntaxKind.FixedStatement))
             {
                 var fixedStatement = (FixedStatementSyntax)node;
                 if (AnalyzeFixedStatement(fixedStatement))
                 {
-                    return Diagnostic.Create(_severityToAddBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
                         fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
                 }
             }
@@ -246,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var ifStatement = (IfStatementSyntax)node;
                 if (AnalyzeBlockedIfStatement(ifStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         ifStatement.IfKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.IfKeyword));
                 }
             }
@@ -256,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var elseClause = (ElseClauseSyntax)node;
                 if (AnalyzeBlockedElseClause(elseClause))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         elseClause.ElseKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ElseKeyword));
                 }
             }
@@ -266,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var forStatement = (ForStatementSyntax)node;
                 if (AnalyzeBlockedForStatement(forStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         forStatement.ForKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForKeyword));
                 }
             }
@@ -276,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeBlockedForEachStatement(forEachStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         forEachStatement.ForEachKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForEachKeyword));
                 }
             }
@@ -286,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var whileStatement = (WhileStatementSyntax)node;
                 if (AnalyzeBlockedWhileStatement(whileStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         whileStatement.WhileKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.WhileKeyword));
                 }
             }
@@ -296,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var doStatement = (DoStatementSyntax)node;
                 if (AnalyzeBlockedDoStatement(doStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         doStatement.DoKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.DoKeyword));
                 }
             }
@@ -306,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var usingStatement = (UsingStatementSyntax)node;
                 if (AnalyzeBlockedUsingStatement(usingStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         usingStatement.UsingKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.UsingKeyword));
                 }
             }
@@ -316,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var lockStatement = (LockStatementSyntax)node;
                 if (AnalyzeBlockedLockStatement(lockStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         lockStatement.LockKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
                 }
             }
@@ -326,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var fixedStatement = (FixedStatementSyntax)node;
                 if (AnalyzeBlockedFixedStatement(fixedStatement))
                 {
-                    return Diagnostic.Create(_severityToRemoveBracesDescriptorMap[severity],
+                    return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
                         fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
                 }
             }
@@ -367,38 +311,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private bool AnalyzeBlockedIfStatement(IfStatementSyntax ifStatement) =>
             ifStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)ifStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)ifStatement.Statement);
 
         private bool AnalyzeBlockedElseClause(ElseClauseSyntax elseClause) =>
             elseClause.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)elseClause.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)elseClause.Statement);
 
         private bool AnalyzeBlockedForStatement(ForStatementSyntax forStatement) =>
             forStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)forStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)forStatement.Statement);
 
         private bool AnalyzeBlockedForEachStatement(CommonForEachStatementSyntax forEachStatement) =>
             forEachStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)forEachStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)forEachStatement.Statement);
 
         private bool AnalyzeBlockedWhileStatement(WhileStatementSyntax whileStatement) =>
             whileStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)whileStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)whileStatement.Statement);
 
         private bool AnalyzeBlockedDoStatement(DoStatementSyntax doStatement) =>
             doStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)doStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)doStatement.Statement);
 
         private bool AnalyzeBlockedUsingStatement(UsingStatementSyntax usingStatement) =>
             usingStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)usingStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)usingStatement.Statement);
 
         private bool AnalyzeBlockedLockStatement(LockStatementSyntax lockStatement) =>
             lockStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)lockStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)lockStatement.Statement);
 
         private bool AnalyzeBlockedFixedStatement(FixedStatementSyntax fixedStatement) =>
             fixedStatement.Statement.IsKind(SyntaxKind.Block) &&
-            ((BlockSyntax)fixedStatement.Statement).Statements.Count == 1;
+            BlockStatementHasSingleStatement((BlockSyntax)fixedStatement.Statement);
+
+        private bool BlockStatementHasSingleStatement(BlockSyntax statement) =>
+            statement.Statements.Count == 1;
+
     }
 }

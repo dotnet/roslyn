@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveBraces), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.Remove_braces,
                     c => RemoveBracesAsync(context, c)),
                 context.Diagnostics);
 
@@ -39,53 +38,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             var statement = root.FindNode(diagnosticSpan);
 
-            var newRoot = root.ReplaceNode(statement, GetReplacementNode(statement).WithAdditionalAnnotations(Formatter.Annotation));
+            var blockSyntaxNode = GetBlockSyntax(statement);
+            var newNode = GetNewNode(statement, blockSyntaxNode).WithTrailingTrivia(blockSyntaxNode.GetTrailingTrivia());
+            var newRoot = root.ReplaceNode(statement, newNode.WithAdditionalAnnotations(Formatter.Annotation));
             return context.Document.WithSyntaxRoot(newRoot);
         }
 
-        private SyntaxNode GetReplacementNode(SyntaxNode statement)
+        private BlockSyntax GetBlockSyntax(SyntaxNode statement)
         {
             switch (statement.Kind())
             {
                 case SyntaxKind.IfStatement:
                     var ifSyntax = (IfStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)ifSyntax.Statement).WithTrailingTrivia(ifSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)ifSyntax.Statement;
 
                 case SyntaxKind.ElseClause:
                     var elseClause = (ElseClauseSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)elseClause.Statement).WithTrailingTrivia(elseClause.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)elseClause.Statement;
 
                 case SyntaxKind.ForStatement:
                     var forSyntax = (ForStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)forSyntax.Statement).WithTrailingTrivia(forSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)forSyntax.Statement;
 
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachComponentStatement:
                     var forEachSyntax = (CommonForEachStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)forEachSyntax.Statement).WithTrailingTrivia(forEachSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)forEachSyntax.Statement;
 
                 case SyntaxKind.WhileStatement:
                     var whileSyntax = (WhileStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)whileSyntax.Statement).WithTrailingTrivia(whileSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)whileSyntax.Statement;
 
                 case SyntaxKind.DoStatement:
                     var doSyntax = (DoStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)doSyntax.Statement).WithTrailingTrivia(doSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)doSyntax.Statement;
 
                 case SyntaxKind.UsingStatement:
                     var usingSyntax = (UsingStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)usingSyntax.Statement).WithTrailingTrivia(usingSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)usingSyntax.Statement;
 
                 case SyntaxKind.LockStatement:
                     var lockSyntax = (LockStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)lockSyntax.Statement).WithTrailingTrivia(lockSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)lockSyntax.Statement;
 
                 case SyntaxKind.FixedStatement:
                     var fixedSyntax = (FixedStatementSyntax)statement;
-                    return GetNewNode(statement, (BlockSyntax)fixedSyntax.Statement).WithTrailingTrivia(fixedSyntax.Statement.GetTrailingTrivia());
+                    return (BlockSyntax)fixedSyntax.Statement;
             }
 
-            return default(SyntaxNode);
+            return default(BlockSyntax);
         }
 
         private SyntaxNode GetNewNode(SyntaxNode statement, BlockSyntax block) =>
@@ -93,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(FeaturesResources.Remove_braces, createChangedDocument)
             {
             }
         }

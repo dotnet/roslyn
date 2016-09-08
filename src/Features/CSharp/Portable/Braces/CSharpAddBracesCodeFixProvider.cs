@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddBraces), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.Add_braces,
                     c => AddBracesAsync(context, c)),
                 context.Diagnostics);
 
@@ -92,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(FeaturesResources.Add_braces, createChangedDocument)
             {
             }
         }

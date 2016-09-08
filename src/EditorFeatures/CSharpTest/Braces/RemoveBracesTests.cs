@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -19,20 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpAddBracesDiagnosticAnalyzer(),
+            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpBracesDiagnosticAnalyzer(),
                 new CSharpRemoveBracesCodeFixProvider());
         }
 
         private IDictionary<OptionKey, object> RemoveBraces() =>
-            Options(CSharpCodeStyleOptions.UseBracesWherePossible, new CodeStyleOption<bool>(false, NotificationOption.None));
-
-        private IDictionary<OptionKey, object> Options(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
-
+            new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.UseBracesWherePossible, new CodeStyleOption<bool>(false, NotificationOption.Warning) } };
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForIfWithoutBraces()
         {
