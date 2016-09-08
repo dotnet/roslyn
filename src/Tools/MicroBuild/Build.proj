@@ -25,6 +25,9 @@
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
 
+    <!-- Prepare copies of the VSIX packages for insertion into the official VS build. -->
+    <MSBuild Projects="$(MSBuildThisFileDirectory)PrepareInsertion.proj" Properties="BinariesPath=$(BinariesPath)" />
+
     <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
