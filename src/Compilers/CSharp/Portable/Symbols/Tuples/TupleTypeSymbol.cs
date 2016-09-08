@@ -820,7 +820,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var providedName = _elementNames.IsDefault ? null : _elementNames[tupleFieldIndex];
                                 var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
                                 var defaultName = TupleMemberName(tupleFieldIndex + 1);
-                                var providedIsNotDefault = providedName != defaultName;
+                                // if provided name does not match the default one, 
+                                // then default element as declared implicitly
+                                var defaultImplicitlyDeclared = providedName != defaultName;
 
                                 var fieldSymbol = field.AsMember(currentUnderlying);
 
@@ -831,29 +833,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // Add a field with default name. It should be present regardless.
                                     // Make it virtual since we are not at the top level
                                     // tupleFieldIndex << 1 because this is a default element
-                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, tupleFieldIndex << 1, location));
+                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
 
-                                    if (providedIsNotDefault && providedName != null)
+                                    if (defaultImplicitlyDeclared && providedName != null)
                                     {
                                         // The name given doesn't match default name Item8, etc.
                                         // Add a field with the given name
                                         // tupleFieldIndex << 1 + 1, because this is not a default element
-                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location));
+                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
                                     }
                                 }
-                                else if (providedIsNotDefault)
+                                else if (defaultImplicitlyDeclared)
                                 {
                                     Debug.Assert(fieldSymbol.Name == defaultName, "top level underlying field must match default name");
 
                                     // Add the underlying field as an element. It should have the default name.
                                     // tupleFieldIndex << 1 because this is a default element
-                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location));
+                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
 
                                     if (providedName != null)
                                     {
                                         // Add a field with the given name
                                         // tupleFieldIndex << 1 + 1, because this is not a default element
-                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location));
+                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
                                     }
                                 }
                                 else
@@ -861,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     Debug.Assert(fieldSymbol.Name == defaultName, "top level underlying field must match default name");
 
                                     // tupleFieldIndex << 1 because this is a default element
-                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location));
+                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location, isImplicitlyDeclared: false));
                                 }
 
                                 elementsMatchedByFields[tupleFieldIndex] = true; // mark as handled
@@ -944,18 +946,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var providedName = _elementNames.IsDefault ? null : _elementNames[i];
                     var location = _elementLocations.IsDefault ? null : _elementLocations[i];
                     var defaultName = TupleMemberName(i + 1);
-                    var providedIsNotDefault = providedName != defaultName;
+                    // if provided name does not match the default one, 
+                    // then default element as declared implicitly
+                    var defaultImplicitlyDeclared = providedName != defaultName;
 
                     // Add default element field. 
                     // i << 1 because this is a default element
-                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, providedIsNotDefault ? null: location, _elementTypes[i], diagnosticInfo));
+                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, defaultImplicitlyDeclared ? null: location, _elementTypes[i], diagnosticInfo, defaultImplicitlyDeclared));
 
 
-                    if (providedIsNotDefault && providedName != null)
+                    if (defaultImplicitlyDeclared && providedName != null)
                     {
                         // Add frieldly named element field. 
                         // (i << 1) + 1, because this is not a default element
-                        members.Add(new TupleErrorFieldSymbol(this, providedName, (i << 1) + 1, location, _elementTypes[i], diagnosticInfo));
+                        members.Add(new TupleErrorFieldSymbol(this, providedName, (i << 1) + 1, location, _elementTypes[i], diagnosticInfo, isImplicitlyDeclared: false));
                     }
                 }
             }

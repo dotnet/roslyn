@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
+                if (sourceSymbol.IsImplicitlyDeclared || !sourceSymbol.Locations.All(loc => loc.IsInSource))
                 {
                     return TriggerIdentifierKind.NotRenamable;
                 }

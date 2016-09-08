@@ -1194,5 +1194,121 @@ class C
                 Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleField()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int) x = (1, 2);
+        var y = x.Item1$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameImplicitTupleFieldExtended()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    }
+}
+";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+                await state.AssertNoTag();
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            }
+        }
+
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleField()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int Item1, int) x = (1, 2);
+        var y = x.Item1$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item1", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void M()
+    {
+        (int Ite, int) x = (1, 2);
+        var y = x.Ite;
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameExplicitTupleFieldExtended()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int Item9, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Item9$$;
+    }
+}";
+            using (var state = await RenameTrackingTestState.CreateAsync(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.Backspace();
+
+                await state.AssertTag("Item9", "Ite", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void M()
+    {
+        (int, int, int, int, int, int, int, int, int Ite, int) x = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        var y = x.Ite;
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
     }
 }

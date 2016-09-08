@@ -147,10 +147,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<Location> _locations;
 
-        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex, Location location)
+        // default tuple elements like Item1 or Item20 could be provided by the user or
+        // otherwise implicitly declared by compiler
+        private readonly bool _isImplicitlyDeclared;
+
+        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
             : base(container, underlyingField, tupleElementIndex)
         {
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
+            _isImplicitlyDeclared = isImplicitlyDeclared;
         }
 
         public override ImmutableArray<Location> Locations
@@ -165,7 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
+                return _isImplicitlyDeclared ? 
+                    ImmutableArray<SyntaxReference>.Empty : 
+                    GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
 
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return false;
+                return _isImplicitlyDeclared;
             }
         }
 
@@ -223,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
 
-        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementIndex, Location location)
-            : base(container, underlyingField, tupleElementIndex, location)
+        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
+            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared)
         {
             Debug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),

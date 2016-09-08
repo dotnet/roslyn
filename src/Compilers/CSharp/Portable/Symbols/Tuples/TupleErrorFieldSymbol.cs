@@ -26,7 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;
         private readonly DiagnosticInfo _useSiteDiagnosticInfo;
 
-        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo)
+        // default tuple elements like Item1 or Item20 could be provided by the user or
+        // otherwise implicitly declared by compiler
+        private readonly bool _isImplicitlyDeclared;
+
+        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo, bool isImplicitlyDeclared)
             : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
         {
             Debug.Assert(name != null);
@@ -34,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
             _tupleElementIndex = tupleElementIndex;
+            _isImplicitlyDeclared = isImplicitlyDeclared;
         }
 
         public override bool IsTupleField
@@ -92,7 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
+                return _isImplicitlyDeclared ?
+                    ImmutableArray<SyntaxReference>.Empty :
+                    GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
 
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return false;
+                return _isImplicitlyDeclared;
             }
         }
 
