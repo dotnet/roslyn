@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), ServiceLayer.Host), Shared]
-    internal class VisualStudioPersistenStorageLocationService : IPersistentStorageLocationService
+    internal class VisualStudioPersistentStorageLocationService : IPersistentStorageLocationService
     {
         public bool IsSupported(Workspace workspace)
             => workspace is VisualStudioWorkspaceImpl;

@@ -107,8 +107,9 @@
     <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
-    <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
+    <Compile Include="Remote\RemoteHostClientFactory.cs" />
+    <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
     <Compile Include="ServicesVisualStudioNextResources.Designer.cs">
       <AutoGen>True</AutoGen>
