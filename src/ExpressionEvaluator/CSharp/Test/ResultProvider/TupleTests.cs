@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using Xunit;
 
@@ -38,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal(0, cardinality);
 
                 type = runtime.GetType("System.ValueTuple`1", typeof(int));
-                Assert.False(type.GetLmrType().IsTupleCompatible(out cardinality));
-                Assert.Equal(0, cardinality);
+                Assert.True(type.GetLmrType().IsTupleCompatible(out cardinality));
+                Assert.Equal(1, cardinality);
 
                 type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(string));
                 Assert.True(type.GetLmrType().IsTupleCompatible(out cardinality));
@@ -141,7 +142,7 @@ namespace Other
         public void IsTupleCompatible_InvalidName()
         {
             var source =
-@".class System.ValueTuple`3<T1, T2>
+@".class sealed System.ValueTuple`3<T1, T2> extends [mscorlib]System.ValueType
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
   {
@@ -342,6 +343,306 @@ class C
             }
         }
 
+        [WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
+        [Fact]
+        public void Names_LongTuple()
+        {
+            var source =
+@"class C
+{
+    ((int A, (int B, int C) D, int E, int F, int G, int H, int I, int J) K, (int L, int M, int N) O) F =
+        ((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12));
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))",
+                        "((int A, (int B, int C) D, int E, int F, int G, int H, int I, int J) K, (int L, int M, int N) O)",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void PartialNames()
+        {
+            var source =
+@"class C
+{
+    ((int A, (int B, int C) D, int, int F, int G, int, int I, int J, int K, int L) M, (int N, int, int P) Q) F =
+        ((1, (2, 3), 4, 5, 6, 7, 8, 9, 10, 11), (12, 13, 14));
+    (int A, (int B, int)[] C, (object, object), (int, int D, int E, int F, int G, int H, int I, int J, int) K)[] G =
+        new[] { (1, new[] { (2, 3) }, ((object, object))(4, 5), (6, 7, 8, 9, 10, 11, 12, 13, 14)) };
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "((1, (2, 3), 4, 5, 6, 7, 8, 9, 10, 11), (12, 13, 14))",
+                        "((int A, (int B, int C) D, int, int F, int G, int, int I, int J, int K, int L) M, (int N, int, int P) Q)",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "G",
+                        "{(int, (int, int)[], (object, object), (int, int, int, int, int, int, int, int, int))[1]}",
+                        "(int A, (int B, int)[] C, (object, object), (int, int D, int E, int F, int G, int H, int I, int J, int) K)[]",
+                        "o.G",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[1]);
+                Verify(children,
+                    EvalResult(
+                        "[0]",
+                        "(1, {(int, int)[1]}, (4, 5), (6, 7, 8, 9, 10, 11, 12, 13, 14))",
+                        "(int A, (int B, int)[] C, (object, object), (int, int D, int E, int F, int G, int H, int I, int J, int) K)",
+                        "o.G[0]",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void NamesAndValueTuple1()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    internal C(T t) { }
+}
+class C
+{
+    (ValueTuple<int> A, int B) F = (new ValueTuple<int>(1), 2);
+    (int A, ValueTuple<int> B) G = (3, new ValueTuple<int>(4));
+    ValueTuple<(int A, int B)> H = new ValueTuple<(int, int)>((5, 6));
+    (int A, ValueTuple<(int B, int C)> D) I = (7, new ValueTuple<(int, int)>((8, 9)));
+    C<(int A, int B)> J = new C<(int, int)>((10, 11));
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "({System.ValueTuple<int>}, 2)", "(System.ValueTuple<int> A, int B)", "o.F", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("G", "(3, {System.ValueTuple<int>})", "(int A, System.ValueTuple<int> B)", "o.G", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("H", "{System.ValueTuple<(int, int)>}", "System.ValueTuple<(int A, int B)>", "o.H", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("I", "(7, {System.ValueTuple<(int, int)>})", "(int A, System.ValueTuple<(int B, int C)> D)", "o.I", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("J", "{C<(int, int)>}", "C<(int A, int B)>", "o.J"));
+            }
+        }
+
+        [Fact]
+        public void NamesAndDynamic()
+        {
+            var source =
+@"class C
+{
+    (dynamic A, (int B, dynamic C)[] D, dynamic E, (int F, dynamic G, int H, int I, int J, int K, int L, int M, int N) O) F =
+        (1, new (int, dynamic)[] { (2, 3) }, (4, 5), (6, 7, 8, 9, 10, 11, 12, 13, 14));
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "(1, {(int, object)[1]}, (4, 5), (6, 7, 8, 9, 10, 11, 12, 13, 14))",
+                        "(dynamic A, (int B, dynamic C)[] D, dynamic E, (int F, dynamic G, int H, int I, int J, int K, int L, int M, int N) O) {(object, (int, object)[], object, (int, object, int, int, int, int, int, int, int))}",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void NamesAndDynamic_Other()
+        {
+            var source =
+@"class C1 { }
+class C2 { }
+class C3 { }
+class C4 { }
+class C5 { }
+class C6 { }
+class C7 { }
+class C8 { }
+class C9 { }
+class C10 { }
+class C11 { }
+class C12 { }
+class C
+{
+    (((C1 C1, dynamic C2) B1, (C3 C3, dynamic C4)) A1, (dynamic B3, (C7 C7, C8 C8) B4) A2, ((C9 C9, C10 C10), dynamic B6) A3) F =
+        ((
+            ((new C1(), new C2()), (new C3(), new C4())),
+            ((new C5(), new C6()), (new C7(), new C8())),
+            ((new C9(), new C10()), (new C11(), new C12()))
+        ));
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "((({C1}, {C2}), ({C3}, {C4})), (({C5}, {C6}), ({C7}, {C8})), (({C9}, {C10}), ({C11}, {C12})))",
+                        "(((C1 C1, dynamic C2) B1, (C3 C3, dynamic C4)) A1, (dynamic B3, (C7 C7, C8 C8) B4) A2, ((C9 C9, C10 C10), dynamic B6) A3) {(((C1, object), (C3, object)), (object, (C7, C8)), ((C9, C10), object))}",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void NamesFromTypeArguments()
+        {
+            var source =
+@"class A<T, U>
+{
+    T F;
+    U[] G = new U[0];
+}
+class B<T>
+{
+    internal struct S { }
+    (dynamic X, T Y) F = (null, default(T));
+}
+class C
+{
+    A<(dynamic A, object B)[], (object C, dynamic[] D)> F = new A<(dynamic A, object B)[], (object, dynamic[])>();
+    B<(object E, B<(object F, dynamic G)>.S H)> G = new B<(object E, B<(object F, dynamic G)>.S H)>();
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "{A<(object, object)[], (object, object[])>}", "A<(dynamic A, object B)[], (object C, dynamic[] D)> {A<(object, object)[], (object, object[])>}", "o.F", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("G", "{B<(object, B<(object, object)>.S)>}", "B<(object E, B<(object F, dynamic G)>.S H)> {B<(object, B<(object, object)>.S)>}", "o.G", DkmEvaluationResultFlags.Expandable));
+                var moreChildren = GetChildren(children[0]);
+                Verify(moreChildren,
+                    EvalResult("F", "null", "(dynamic A, object B)[] {(object, object)[]}", "o.F.F"),
+                    EvalResult("G", "{(object, object[])[0]}", "(object C, dynamic[] D)[] {(object, object[])[]}", "o.F.G"));
+                moreChildren = GetChildren(children[1]);
+                Verify(moreChildren,
+                    EvalResult("F", "(null, (null, {B<(object, object)>.S}))", "(dynamic X, (object E, B<(object F, dynamic G)>.S H) Y) {(object, (object, B<(object, object)>.S))}", "o.G.F", DkmEvaluationResultFlags.Expandable));
+                moreChildren = GetChildren(moreChildren[0]);
+                Verify(moreChildren,
+                    EvalResult("Item1", "null", "dynamic {object}", "o.G.F.Item1"),
+                    EvalResult("Item2", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void NamesFromTypeArguments_LongTuples()
+        {
+            var source =
+@"class A1 { }
+class A2 { }
+class A3 { }
+class A4 { }
+class A5 { }
+class A6 { }
+class A7 { }
+class A8 { }
+class B1 { }
+class B2 { }
+class B3 { }
+class B4 { }
+class B5 { }
+class B6 { }
+class B7 { }
+class B8 { }
+class B9 { }
+class B10 { }
+class C1 { }
+class C2 { }
+class A<T, U>
+{
+    (dynamic A1, A2 A2, T A3, A4 A4, A5 A5, U A6, A7 A7, A8 A8, (T A9, U A10) A11) F =
+        (new A1(), new A2(), default(T), new A4(), new A5(), default(U), new A7(), new A8(), (default(T), default(U)));
+}
+class B
+{
+    A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1 C1, (C2 C2, dynamic C3) C4)> G =
+        new A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1 C1, (C2 C2, dynamic C3) C4)>();
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("B");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "G",
+                        "{A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
+                        "A<((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11), (C1 C1, (C2 C2, dynamic C3) C4)> {A<((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))>}",
+                        "o.G",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0]);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "({A1}, {A2}, ((null, null), null, null, null, null, null, null, null, null), {A4}, {A5}, (null, (null, null)), {A7}, {A8}, (((null, null), null, null, null, null, null, null, null, null), (null, (null, null))))",
+                        "(dynamic A1, A2 A2, ((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A3, A4 A4, A5 A5, (C1 C1, (C2 C2, dynamic C3) C4) A6, A7 A7, A8 A8, (((dynamic B1, B2 B2) B3, B4 B4, dynamic B5, B6 B6, B7 B7, dynamic B8, B9 B9, B10 B10, dynamic B11) A9, (C1 C1, (C2 C2, dynamic C3) C4) A10) A11) {(object, A2, ((object, B2), B4, object, B6, B7, object, B9, B10, object), A4, A5, (C1, (C2, object)), A7, A8, (((object, B2), B4, object, B6, B7, object, B9, B10, object), (C1, (C2, object))))}",
+                        "o.G.F",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
         [Fact]
         public void Keywords()
         {
@@ -354,7 +655,8 @@ class C
 }
 class async
 {
-    (async @var, @namespace.@struct @class) F;
+    static (async @var, @namespace.@struct @class) F() => (null, default(@namespace.@struct));
+    object _f = F();
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
@@ -370,7 +672,11 @@ class async
                     EvalResult("o", "{async}", "async", "o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "(null, {namespace.struct})", "(async, namespace.struct)", "o.F", DkmEvaluationResultFlags.Expandable));
+                    EvalResult("_f", "(null, {namespace.struct})", "object {(async, namespace.struct)}", "o._f", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0]);
+                Verify(children,
+                    EvalResult("Item1", "null", "async", "(((@async, @namespace.@struct))o._f).Item1"),
+                    EvalResult("Item2", "{namespace.struct}", "namespace.struct", "(((@async, @namespace.@struct))o._f).Item2"));
             }
         }
 

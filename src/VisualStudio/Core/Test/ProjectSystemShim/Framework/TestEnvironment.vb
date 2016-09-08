@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            For Each project In _projectTracker.Projects.ToArray()
+            For Each project In _projectTracker.ImmutableProjects.ToArray()
                 project.Disconnect()
             Next
 

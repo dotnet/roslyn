@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            var unsortedNodes = ImmutableArray.CreateBuilder<Node>();
-            unsortedNodes.Add(new Node(assembly.GlobalNamespace.Name, Node.RootNodeParentIndex));
+            var unsortedNodes = ImmutableArray.CreateBuilder<BuilderNode>();
+            unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // generate nodes for the global namespace an all descendants
         private static void GenerateSourceNodes(
             INamespaceSymbol globalNamespace,
-            ImmutableArray<Node>.Builder list,
+            ImmutableArray<BuilderNode>.Builder list,
             Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
             // Add all child members
@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string name,
             int parentIndex,
             MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
-            ImmutableArray<Node>.Builder list,
+            ImmutableArray<BuilderNode>.Builder list,
             Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
-            var node = new Node(name, parentIndex);
+            var node = new BuilderNode(name, parentIndex);
             var nodeIndex = list.Count;
             list.Add(node);
 

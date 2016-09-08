@@ -69,7 +69,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
         #endregion
 
-        internal ImmutableArray<AbstractProject> Projects
+        /// <summary>
+        /// Provided to not break CodeLens which has a dependency on this API until there is a
+        /// public release which calls <see cref="ImmutableProjects"/>.  Once there is, we should
+        /// change this back to returning <see cref="ImmutableArray{AbstractProject}"/>, and 
+        /// Obsolete <see cref="ImmutableProjects"/> instead, and then remove that after a
+        /// second public release.
+        /// </summary>
+        [Obsolete("Use '" + nameof(ImmutableProjects) + "' instead.", true)]
+        internal IEnumerable<AbstractProject> Projects => ImmutableProjects;
+
+        internal ImmutableArray<AbstractProject> ImmutableProjects
         {
             get
             {
@@ -80,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.Projects;
+        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.ImmutableProjects;
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
         {
@@ -228,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             hostData.HostReadyForEvents = true;
 
             // If any of the projects are already interactive, then we better catch up the host.
-            var interactiveProjects = this.Projects.Where(p => p.PushingChangesToWorkspaceHosts);
+            var interactiveProjects = this.ImmutableProjects.Where(p => p.PushingChangesToWorkspaceHosts);
 
             if (interactiveProjects.Any())
             {
@@ -408,7 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (existingProjects.Length == 1)
                 {
-                    foreach (var projectToUpdate in Projects)
+                    foreach (var projectToUpdate in ImmutableProjects)
                     {
                         projectToUpdate.UndoProjectReferenceConversionForDisappearingOutputPath(path);
                     }
@@ -421,7 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (existingProjects.Length == 1)
                 {
-                    foreach (var projectToUpdate in Projects)
+                    foreach (var projectToUpdate in ImmutableProjects)
                     {
                         projectToUpdate.TryProjectConversionForIntroducedOutputPath(path, existingProjects[0]);
                     }

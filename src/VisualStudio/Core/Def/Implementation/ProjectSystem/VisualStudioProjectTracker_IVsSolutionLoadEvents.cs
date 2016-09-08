@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             // We are now completely done, so let's simply ensure all projects are added.
-            StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(this.Projects);
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(this.ImmutableProjects);
 
             // Also, all remaining project adds need to immediately pushed as well, since we're now "interactive"
             _solutionLoadComplete = true;

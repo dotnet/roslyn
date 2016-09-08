@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(temp.Kind == BoundKind.Local);
-                return LocalRewriter.MakeDeclarationPattern(_factory.Syntax, input, ((BoundLocal)temp).LocalSymbol, requiresNullTest: false);
+                return LocalRewriter.MakeDeclarationPattern(_factory.Syntax, input, temp, requiresNullTest: false);
             }
 
             private void LowerDecisionTree(DecisionTree.ByValue byValue)

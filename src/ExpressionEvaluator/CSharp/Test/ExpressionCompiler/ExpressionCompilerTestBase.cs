@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
         {
-            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ObjectIdAlias(uint id, Type type = null)
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             Assert.NotEqual(0u, id); // Not a valid id.
             var name = $"${id}";
-            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ReturnValueAlias(int id = -1, Type type = null)
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
             var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
-            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
         }
 
         internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
@@ -337,12 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var name = "Error";
             var fullName = stowed ? "$stowedexception" : "$exception";
             var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
-            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
         }
 
-        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, ReadOnlyCollection<byte> payload)
         {
-            return new Alias(kind, name, fullName, type, customTypeInfo);
+            return new Alias(kind, name, fullName, type, (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId, payload);
         }
 
         internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName, int ilOffset = 0)

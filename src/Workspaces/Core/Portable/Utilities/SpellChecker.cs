@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -22,7 +23,7 @@ namespace Roslyn.Utilities
             _bkTree = bKTree;
         }
 
-        public SpellChecker(VersionStamp version, IEnumerable<string> corpus) 
+        public SpellChecker(VersionStamp version, IEnumerable<StringSlice> corpus) 
             : this(version, BKTree.Create(corpus))
         {
         }

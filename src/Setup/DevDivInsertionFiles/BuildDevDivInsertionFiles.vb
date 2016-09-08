@@ -950,7 +950,7 @@ Public Class BuildDevDivInsertionFiles
     ''' </summary>
     Private Sub RewritePkgDef(fileToRewrite As String)
         ' Our VSIXes normally contain a number of CodeBase attributes in our .pkgdefs so Visual Studio knows where
-        ' to load assemblies. These come in one of three forms:
+        ' to load assemblies. These come in one of two forms:
         '
         ' 1) as a part of a binding redirection:
         '
@@ -971,20 +971,11 @@ Public Class BuildDevDivInsertionFiles
         '     "version"="1.9.2.0"
         '     "codeBase"="$PackageFolder$\Esent.Interop.dll"
         '
-        ' 3) as part of a package definition:
-        '
-        '     [$RootKey$\Packages\{13c3bbb4-f18f-4111-9f54-a0fb010d9194}]
-        '     @="CSharpPackage"
-        '     "InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
-        '     "Class"="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
-        '     "CodeBase"="$PackageFolder$\Microsoft.VisualStudio.LanguageServices.CSharp.dll"
-        '
         ' Each of these use $PackageFolder$ as a way to specify the VSIX-relative path. When we convert our VSIXes
         ' to be installed as MSIs, we don't want the DLLs in the CommonExtensions next to our .pkgdefs. Instead
         ' we want them in PrivateAssemblies so they're in the loading path to enable proper ngen. Thus, these CodeBase
         ' attributes have to go. For #1, we can just delete the codeBase key, and leave the rest of the redirection
-        ' in place. For #2, we can delete the entire section. For #3, it's a bit tricker; we have to convert it to
-        ' an Assembly key which is just the name of the assembly without the path.
+        ' in place. For #2, we can delete the entire section.
 
         Dim lines = File.ReadAllLines(fileToRewrite)
         Dim inBindingRedirect = False
@@ -1008,11 +999,6 @@ Public Class BuildDevDivInsertionFiles
                 If inBindingRedirect Then
                     ' Drop CodeBase from all binding redirects -- they're only for VSIX installs
                     lines(i) = Nothing
-                ElseIf parts(1).StartsWith("""") AndAlso parts(1).EndsWith("""") Then
-                    Dim valueWithoutQuotes = parts(1).Substring(1, parts(1).Length - 2)
-                    Dim assemblyName = Path.GetFileNameWithoutExtension(valueWithoutQuotes)
-                    Dim qualifiedName = assemblyName + ", Version=" + _assemblyVersion + ", Culture=neutral, PublicKeyToken=" + PublicKeyToken
-                    lines(i) = """Assembly""=""" + qualifiedName + """"
                 End If
             ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
                 ' We always need to drop this, since this is only for experimental VSIXes

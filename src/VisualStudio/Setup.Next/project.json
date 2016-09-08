@@ -6,9 +6,9 @@
     }
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
-    "win7": {}
+    "win7": { }
   }
 }

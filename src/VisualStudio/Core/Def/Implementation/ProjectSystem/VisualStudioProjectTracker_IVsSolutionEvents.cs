@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _solutionIsClosing = true;
 
-            foreach (var p in this.Projects)
+            foreach (var p in this.ImmutableProjects)
             {
                 p.StopPushingToWorkspaceHosts();
             }

@@ -4837,7 +4837,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
   </data>
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
-    <value>Invalid operand for pattern match.</value>
+    <value>Invalid operand for pattern match; value required, but found '{0}'.</value>
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
@@ -4951,6 +4951,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Deconstruction is not supported for an 'out' argument.</value>
   </data>
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.</value>
+    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
   </data>
 </root>
