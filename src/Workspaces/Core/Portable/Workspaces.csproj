@@ -388,6 +388,8 @@
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
+    <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
