@@ -50,6 +50,10 @@
 		"version": "14.3.25407",
 		"suppressParent": "all"
 	},
+    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
     "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
     "Roslyn.Microsoft.Build": "0.0.2",
     "NuGet.VisualStudio": {

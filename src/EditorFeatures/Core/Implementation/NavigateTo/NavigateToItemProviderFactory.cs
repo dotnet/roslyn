@@ -9,8 +9,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    [Export(typeof(INavigateToItemProviderFactory))]
-    [Shared]
+    [Export(typeof(INavigateToItemProviderFactory)), Shared]
     internal class NavigateToItemProviderFactory : INavigateToItemProviderFactory
     {
         private readonly IGlyphService _glyphService;

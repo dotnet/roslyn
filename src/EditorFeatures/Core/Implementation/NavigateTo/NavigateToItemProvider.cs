@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -52,12 +53,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
+            var optionsService = _workspace.Services.GetService<INavigateToOptionsService>();
+            var searchCurrentDocument = optionsService.GetSearchCurrentDocument(callback.Options);
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
                 _displayFactory,
                 callback,
                 searchValue,
+                searchCurrentDocument,
                 _cancellationTokenSource.Token);
 
             searcher.Search();
