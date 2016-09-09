@@ -49,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             // TODO: make this configurable
             _languageMap = BidirectionalMap<string, Guid>.Empty.Add(LanguageNames.CSharp, Guids.CSharpLanguageServiceId)
-                                                               .Add(LanguageNames.VisualBasic, Guids.VisualBasicLanguageServiceId);
+                                                               .Add(LanguageNames.VisualBasic, Guids.VisualBasicLanguageServiceId)
+                                                               .Add("TypeScript", new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77"));
 
             foreach (var languageGuid in _languageMap.Values)
             {
