@@ -1,7 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    /// <summary>
+    /// Represents a symbol and the project it was acquired from.
+    /// It should always be the case that if you have the original solution
+    /// that this symbol came from, that you'll be able to find this symbol
+    /// in the compilation for the specified project.
+    /// </summary>
     internal struct SymbolAndProjectId
     {
         public readonly ISymbol Symbol;
@@ -13,10 +23,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ProjectId = projectId;
         }
 
+        public override bool Equals(object obj) => Equals((SymbolAndProjectId)obj);
+
+        public bool Equals(SymbolAndProjectId other)
+        {
+            return Equals(this.Symbol, other.Symbol);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Symbol.GetHashCode();
+        }
+
+        public static SymbolAndProjectId Create(
+            ISymbol symbol, ProjectId projectId)
+        {
+            return new SymbolAndProjectId(symbol, projectId);
+        }
+
         public static SymbolAndProjectId<TSymbol> Create<TSymbol>(
             TSymbol symbol, ProjectId projectId) where TSymbol : ISymbol
         {
             return new SymbolAndProjectId<TSymbol>(symbol, projectId);
+        }
+
+        public SymbolAndProjectId<TOther> WithSymbol<TOther>(TOther other)
+            where TOther : ISymbol
+        {
+            return new SymbolAndProjectId<TOther>(other, this.ProjectId);
+        }
+
+        public SymbolAndProjectId WithSymbol(ISymbol other)
+        {
+            return new SymbolAndProjectId(other, this.ProjectId);
         }
     }
 
@@ -34,6 +73,103 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static implicit operator SymbolAndProjectId(SymbolAndProjectId<TSymbol> value)
         {
             return new SymbolAndProjectId(value.Symbol, value.ProjectId);
+        }
+
+        public SymbolAndProjectId<TOther> WithSymbol<TOther>(TOther other)
+            where TOther : ISymbol
+        {
+            return new SymbolAndProjectId<TOther>(other, this.ProjectId);
+        }
+
+        public SymbolAndProjectId WithSymbol(ISymbol other)
+        {
+            return new SymbolAndProjectId(other, this.ProjectId);
+        }
+    }
+
+    internal static class SymbolAndProjectIdExtensions
+    {
+        public static IEnumerable<SymbolAndProjectId<TConvert>> Convert<TOriginal, TConvert>(
+            this IEnumerable<SymbolAndProjectId<TOriginal>> list)
+            where TOriginal : ISymbol
+            where TConvert : ISymbol
+        {
+            return list.Select(s => SymbolAndProjectId.Create((TConvert)(object)s.Symbol, s.ProjectId));
+        }
+    }
+
+    /// <summary>
+    /// Provides a way for us to store and compare SymbolAndProjectId in the
+    /// sets that we're using.  For the purposes of the operations in 
+    /// <see cref="DependentTypeFinder"/> these entities are the same if they
+    /// point to Symbols that are considered the same.  For example, if
+    /// we find a derived type of 'X' called 'Y' in a metadata assembly 'M'
+    /// in project A and we also find a derived type of 'X' called 'Y' in a 
+    /// metadata assembly 'M' in project B, then we consider these the same.
+    /// What project we were searching in does not matter to us in terms of
+    /// deciding if these symbols are the same or not.  We're only keeping
+    /// the projects to return to the caller information about what project
+    /// we were searching when we found the symbol.
+    /// </summary>
+    internal class SymbolAndProjectIdComparer<TSymbol> : IEqualityComparer<SymbolAndProjectId<TSymbol>>
+        where TSymbol : ISymbol
+    {
+        public static readonly SymbolAndProjectIdComparer<TSymbol> SymbolEquivalenceInstance = new SymbolAndProjectIdComparer<TSymbol>();
+
+        /// <summary>
+        /// Note(cyrusn): We're using SymbolEquivalenceComparer.Instance as the underlying 
+        /// way of comparing symbols.  That's probably not correct as it won't appropriately
+        /// deal with forwarded types.  However, that's the behavior that we've already had
+        /// in this type for a while, so this is just preserving that logic.  If this is an 
+        /// issue in the future, this underlying comparer can absolutely be changed to something
+        /// more appropriate.
+        /// </summary>
+        private static readonly IEqualityComparer<ISymbol> _underlyingComparer = 
+            SymbolEquivalenceComparer.Instance;
+
+        private SymbolAndProjectIdComparer()
+        {
+        }
+
+        public bool Equals(SymbolAndProjectId<TSymbol> x, SymbolAndProjectId<TSymbol> y)
+        {
+            return _underlyingComparer.Equals(x.Symbol, y.Symbol);
+        }
+
+        public int GetHashCode(SymbolAndProjectId<TSymbol> obj)
+        {
+            return _underlyingComparer.GetHashCode(obj.Symbol);
+        }
+    }
+
+    internal class SymbolAndProjectIdComparer : IEqualityComparer<SymbolAndProjectId>
+    {
+        /// <summary>
+        /// Note(cyrusn): We're using SymbolEquivalenceComparer.Instance as the underlying 
+        /// way of comparing symbols.  That's probably not correct as it won't appropriately
+        /// deal with forwarded types.  However, that's the behavior that we've already had
+        /// in this type for a while, so this is just preserving that logic.  If this is an 
+        /// issue in the future, this underlying comparer can absolutely be changed to something
+        /// more appropriate.
+        /// </summary>
+        public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance = 
+            new SymbolAndProjectIdComparer(SymbolEquivalenceComparer.Instance);
+
+        private readonly IEqualityComparer<ISymbol> _underlyingComparer;
+
+        public SymbolAndProjectIdComparer(IEqualityComparer<ISymbol> underlyingComparer)
+        {
+            _underlyingComparer = underlyingComparer;
+        }
+
+        public bool Equals(SymbolAndProjectId x, SymbolAndProjectId y)
+        {
+            return _underlyingComparer.Equals(x.Symbol, y.Symbol);
+        }
+
+        public int GetHashCode(SymbolAndProjectId obj)
+        {
+            return _underlyingComparer.GetHashCode(obj.Symbol);
         }
     }
 }

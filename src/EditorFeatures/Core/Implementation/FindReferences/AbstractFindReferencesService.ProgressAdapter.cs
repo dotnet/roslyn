@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         /// <summary>
         /// Forwards IFindReferencesProgress calls to a FindRefrencesContext instance.
         /// </summary>
-        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IFindReferencesProgress
+        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly FindReferencesContext _context;
@@ -41,13 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public void OnStarted() { }
-            public void OnCompleted() { }
-            public void OnFindInDocumentStarted(Document document) { }
-            public void OnFindInDocumentCompleted(Document document) { }
+            public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
+            public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
 
             // Simple context forwarding functions.
-            public void ReportProgress(int current, int maximum) => _context.ReportProgress(current, maximum);
+            public Task ReportProgressAsync(int current, int maximum)
+            {
+                _context.ReportProgress(current, maximum);
+                return SpecializedTasks.EmptyTask;
+            }
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
@@ -58,20 +66,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 return _definitionToItem.GetOrAdd(definition, _definitionFactory);
             }
 
-            public void OnDefinitionFound(ISymbol definition)
+            public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
             {
-                _context.OnDefinitionFound(GetDefinitionItem(definition));
+                _context.OnDefinitionFound(GetDefinitionItem(definition.Symbol));
+                return SpecializedTasks.EmptyTask;
             }
 
-            public void OnReferenceFound(ISymbol definition, ReferenceLocation location)
+            public Task OnReferenceFoundAsync(
+                SymbolAndProjectId definition, ReferenceLocation location)
             {
                 var referenceItem = location.TryCreateSourceReferenceItem(
-                    GetDefinitionItem(definition));
+                    GetDefinitionItem(definition.Symbol));
 
                 if (referenceItem != null)
                 {
                     _context.OnReferenceFound(referenceItem);
                 }
+
+                return SpecializedTasks.EmptyTask;
             }
 
             public void CallThirdPartyExtensions()

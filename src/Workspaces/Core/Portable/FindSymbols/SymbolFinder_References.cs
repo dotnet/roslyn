@@ -22,7 +22,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindReferencesAsync(symbol, solution, progress: null, documents: null, cancellationToken: cancellationToken);
+            return FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindReferencesAsync(symbolAndProjectId, solution, progress: null, documents: null, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -57,12 +67,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
-            return engineService.FindReferencesAsync(symbol, solution, progress, documents, cancellationToken);
+            progress = progress ?? FindReferencesProgress.Instance;
+            return FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, new StreamingFindReferencesProgressAdapter(progress), documents, cancellationToken);
         }
 
-        internal static Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
-            ISymbol symbol,
+        internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            IStreamingFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var engineService = solution.Workspace.Services.GetService<ISymbolFinderEngineService>();
+            return engineService.FindReferencesAsync(symbolAndProjectId, solution, progress, documents, cancellationToken);
+        }
+
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -73,10 +96,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     solution,
                     documents,
                     ReferenceFinders.DefaultRenameReferenceFinders,
-                    FindReferencesProgress.Instance,
+                    StreamingFindReferencesProgress.Instance,
                     cancellationToken);
 
-                return engine.FindReferencesAsync(symbol);
+                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
             }
         }
     }

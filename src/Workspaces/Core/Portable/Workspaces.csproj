@@ -389,6 +389,8 @@
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
     <Compile Include="Execution\SolutionChecksumService.cs" />
     <Compile Include="FindSymbols\ISymbolFinderEngineService.cs" />
+    <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
+    <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
@@ -398,6 +400,8 @@
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IStreamingProgressTracker.cs" />
+    <Compile Include="Shared\Utilities\StreamingProgressTracker.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />

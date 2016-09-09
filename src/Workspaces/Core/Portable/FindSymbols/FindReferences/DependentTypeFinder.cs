@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
+        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(SymbolAndProjectId{INamedTypeSymbol}, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
         public static Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
             INamedTypeSymbol type,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync"/> for 
+        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(SymbolAndProjectId, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
         public static async Task<IEnumerable<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
-            type = SymbolAndProjectId.Create(type.Symbol.OriginalDefinition, type.ProjectId);
+            type = type.WithSymbol(type.Symbol.OriginalDefinition);
             projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
             var searchInMetadata = type.Symbol.Locations.Any(s_isInMetadata);
 
@@ -712,49 +712,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolAndProjectIdSet CreateSymbolAndProjectIdSet()
         {
-            return new SymbolAndProjectIdSet(SymbolAndProjectIdComparer.Instance);
-        }
-
-        /// <summary>
-        /// Provides a way for us to store and compare SymbolAndProjectId in the
-        /// sets that we're using.  For the purposes of the operations in 
-        /// <see cref="DependentTypeFinder"/> these entities are the same if they
-        /// point to Symbols that are considered the same.  For example, if
-        /// we find a derived type of 'X' called 'Y' in a metadata assembly 'M'
-        /// in project A and we also find a derived type of 'X' called 'Y' in a 
-        /// metadata assembly 'M' in project B, then we consider these the same.
-        /// What project we were searching in does not matter to us in terms of
-        /// deciding if these symbols are the same or not.  We're only keeping
-        /// the projects to return to the caller information about what project
-        /// we were searching when we found the symbol.
-        /// </summary>
-        private class SymbolAndProjectIdComparer : IEqualityComparer<SymbolAndProjectId<INamedTypeSymbol>>
-        {
-            public static readonly SymbolAndProjectIdComparer Instance = new SymbolAndProjectIdComparer();
-
-            /// <summary>
-            /// Note(cyrusn): We're using SymbolEquivalenceComparer.Instance as the underlying 
-            /// way of comparing symbols.  That's probably not correct as it won't appropriately
-            /// deal with forwarded types.  However, that's the behavior that we've already had
-            /// in this type for a while, so this is just preserving that logic.  If this is an 
-            /// issue in the future, this underlying comparer can absolutely be changed to something
-            /// more appropriate.
-            /// </summary>
-            private static readonly IEqualityComparer<INamedTypeSymbol> _underlyingComparer = SymbolEquivalenceComparer.Instance;
-
-            private SymbolAndProjectIdComparer()
-            {
-            }
-
-            public bool Equals(SymbolAndProjectId<INamedTypeSymbol> x, SymbolAndProjectId<INamedTypeSymbol> y)
-            {
-                return _underlyingComparer.Equals(x.Symbol, y.Symbol);
-            }
-
-            public int GetHashCode(SymbolAndProjectId<INamedTypeSymbol> obj)
-            {
-                return _underlyingComparer.GetHashCode(obj.Symbol);
-            }
+            return new SymbolAndProjectIdSet(
+                SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance);
         }
     }
 }
