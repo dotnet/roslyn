@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return new SymbolAndProjectId<TOther>(other, this.ProjectId);
         }
+
+        public SymbolAndProjectId WithSymbol(ISymbol other)
+        {
+            return new SymbolAndProjectId(other, this.ProjectId);
+        }
     }
 
     internal struct SymbolAndProjectId<TSymbol> where TSymbol : ISymbol

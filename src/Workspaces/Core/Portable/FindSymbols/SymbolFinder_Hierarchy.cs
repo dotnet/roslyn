@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // speed this up?
                 var containingType = symbol.ContainingType.OriginalDefinition;
                 var derivedTypes = await FindDerivedClassesAsync(
-                    SymbolAndProjectId.Create(containingType, symbolAndProjectId.ProjectId),
+                    symbolAndProjectId.WithSymbol(containingType),
                     solution, projects, cancellationToken).ConfigureAwait(false);
 
                 List<SymbolAndProjectId> results = null;
@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var explicitImplementations = symbol.ExplicitInterfaceImplementations();
                 if (explicitImplementations.Length > 0)
                 {
-                    return explicitImplementations.Select(
-                        ei => SymbolAndProjectId.Create(ei, symbolAndProjectId.ProjectId));
+                    return explicitImplementations.Select(symbolAndProjectId.WithSymbol);
                 }
                 else if (
                     symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic &&
@@ -115,8 +114,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     //
                     // In this case, Base.Foo *does* implement IFoo.Foo in the context of the type
                     // Derived.
-                    var containingType = SymbolAndProjectId.Create(
-                        symbol.ContainingType.OriginalDefinition, symbolAndProjectId.ProjectId);
+                    var containingType = symbolAndProjectId.WithSymbol(
+                        symbol.ContainingType.OriginalDefinition);
                     var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
                         containingType, solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
@@ -163,15 +162,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static IEnumerable<SymbolAndProjectId> GetMembers(
             SymbolAndProjectId<INamedTypeSymbol> interfaceType, string name)
         {
-            return interfaceType.Symbol.GetMembers(name).Select(
-                s => SymbolAndProjectId.Create(s, interfaceType.ProjectId));
+            return interfaceType.Symbol.GetMembers(name).Select(interfaceType.WithSymbol);
         }
 
         private static IEnumerable<SymbolAndProjectId<INamedTypeSymbol>> GetAllInterfaces(
             SymbolAndProjectId<ITypeSymbol> type)
         {
-            return type.Symbol.AllInterfaces.Select(t =>
-                SymbolAndProjectId.Create(t, type.ProjectId));
+            return type.Symbol.AllInterfaces.Select(type.WithSymbol);
         }
 
         /// <summary>
@@ -250,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (IsAccessible(bestDef))
                         {
                             results = results ?? new List<SymbolAndProjectId>();
-                            results.Add(SymbolAndProjectId.Create(bestDef.Symbol.OriginalDefinition, bestDef.ProjectId));
+                            results.Add(bestDef.WithSymbol(bestDef.Symbol.OriginalDefinition));
                         }
                     }
                 }

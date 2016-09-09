@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (enumerable != null)
             {
                 result = result ?? new List<SymbolAndProjectId>();
-                result.AddRange(enumerable.Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s)));
+                result.AddRange(enumerable.Select(s => symbolAndProjectId.WithSymbol(s)));
             }
 
             return result;
