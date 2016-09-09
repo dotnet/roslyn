@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var progressCollector = new StreamingProgressCollector(null);
+            var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
             await FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
                 solution, progress: progressCollector,
