@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this field represents a tuple element, 
-        /// id is an index of the element (zero-based).
-        /// Otherwise, (-1 - [index in members array]);
+        /// If this is a field representing a tuple element,
+        /// returns the index of the element (zero-based).
+        /// Otherwise returns -1
         /// </summary>
         public override int TupleElementIndex
         {

@@ -135,11 +135,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim destElementTypes = destinationType.GetElementTypesOfTupleOrCompatible()
             Dim numElements = destElementTypes.Length
 
-            Dim srcElementFields As ImmutableArray(Of FieldSymbol)
             Dim srcType As TypeSymbol = rewrittenOperand.Type
+            Dim tupleTypeSymbol As TupleTypeSymbol
 
-            If (srcType.IsTupleType) Then
-                srcElementFields = DirectCast(srcType, TupleTypeSymbol).TupleDefaultElementFields
+            If srcType.IsTupleType Then
+                tupleTypeSymbol = DirectCast(srcType, TupleTypeSymbol)
             Else
                 ' The following codepath should be very uncommon (if reachable at all)
                 ' we should generally not see tuple compatible types in bound trees and 
@@ -148,8 +148,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
                 '       in the type symbols that can actually be tuple compatible
-                srcElementFields = TupleTypeSymbol.Create(DirectCast(srcType, NamedTypeSymbol)).TupleDefaultElementFields
+                tupleTypeSymbol = TupleTypeSymbol.Create(DirectCast(srcType, NamedTypeSymbol))
             End If
+
+            Dim srcElementFields = tupleTypeSymbol.TupleDefaultElementFields
 
             Dim fieldAccessorsBuilder = ArrayBuilder(Of BoundExpression).GetInstance(numElements)
             Dim assignmentToTemp As BoundExpression = Nothing

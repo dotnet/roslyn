@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' If this field represents a tuple element (including the name match), 
-        ''' id is an index of the element (zero-based).
-        ''' Otherwise, (-1 - [index in members array]);
+        ''' If this is a field representing a tuple element,
+        ''' returns the index of the element (zero-based).
+        ''' Otherwise returns -1
         ''' </summary>
         Public Overrides ReadOnly Property TupleElementIndex As Integer
             Get

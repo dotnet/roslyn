@@ -617,9 +617,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim field = DirectCast(member, FieldSymbol)
-                Dim index = field.TupleElementIndex
 
                 If field.IsDefaultTupleElement Then
+                    Dim index = field.TupleElementIndex
                     Debug.Assert(builder(index) Is Nothing)
                     builder(index) = field
                 End If
@@ -676,42 +676,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
                                 Dim defaultName = TupleMemberName(tupleFieldIndex + 1)
                                 ' if provided name does not match the default one, 
-                                ' then default element as declared implicitly
+                                ' then default element is declared implicitly
                                 Dim defaultImplicitlyDeclared = Not IdentifierComparison.Equals(providedName, defaultName)
 
                                 Dim FieldSymbol = field.AsMember(currentUnderlying)
 
+                                ' Add a field with default name. It should be present regardless.
                                 If currentNestingLevel <> 0 Then
                                     ' This is a matching field, but it is in the extension tuple
-
-                                    ' Add a field with default name. It should be present regardless.
                                     ' Make it virtual since we are not at the top level
                                     ' tupleFieldIndex << 1 because this is a default element
                                     members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, defaultName, tupleFieldIndex << 1, location, defaultImplicitlyDeclared))
-
-                                    If defaultImplicitlyDeclared AndAlso providedName IsNot Nothing Then
-                                        ' The name given doesn't match default name Item8, etc.
-                                        ' Add a field with the given name
-                                        ' tupleFieldIndex << 1 + 1, because this is not a default element
-                                        members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared:=False))
-                                    End If
-                                ElseIf defaultImplicitlyDeclared Then
+                                Else
                                     Debug.Assert(IdentifierComparison.Equals(FieldSymbol.Name, defaultName), "top level underlying field must match default name")
 
                                     ' Add the underlying field as an element. It should have the default name.
                                     ' tupleFieldIndex << 1 because this is a default element
                                     members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex << 1, location, defaultImplicitlyDeclared))
+                                End If
 
-                                    If providedName IsNot Nothing Then
-                                        ' Add a field with the given name
-                                        ' tupleFieldIndex << 1 + 1, because this is not a default element
-                                        members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared:=False))
-                                    End If
-                                Else
-                                    Debug.Assert(IdentifierComparison.Equals(FieldSymbol.Name, defaultName), "top level underlying field must match default name")
-
-                                    ' tupleFieldIndex << 1 because this is a default element
-                                    members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex << 1, location, isImplicitlyDeclared:=False))
+                                If defaultImplicitlyDeclared AndAlso providedName IsNot Nothing Then
+                                    ' The name given doesn't match the default name Item8, etc.
+                                    ' Add a virtual field with the given name
+                                    ' tupleFieldIndex << 1 + 1, because this is not a default element
+                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared:=False))
                                 End If
 
                                 elementsMatchedByFields(tupleFieldIndex) = True ' mark as handled
@@ -777,7 +765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(i))
                     Dim defaultName = TupleMemberName(i + 1)
                     ' if provided name does not match the default one, 
-                    ' then default element as declared implicitly
+                    ' then default element is declared implicitly
                     Dim defaultImplicitlyDeclared = Not IdentifierComparison.Equals(providedName, defaultName)
 
                     ' Add default element field. 
@@ -786,7 +774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
                     If defaultImplicitlyDeclared AndAlso providedName IsNot Nothing Then
-                        ' Add frieldly named element field. 
+                        ' Add friendly named element field. 
                         ' (i << 1) + 1, because this is not a default element
                         members.Add(New TupleErrorFieldSymbol(Me, providedName, (i << 1) + 1, location, _elementTypes(i), diagnosticInfo, isImplicitlyDeclared:=False))
                     End If

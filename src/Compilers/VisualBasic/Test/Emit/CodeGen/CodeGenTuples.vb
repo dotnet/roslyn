@@ -4293,7 +4293,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.CustomModifiers.IsEmpty)
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
-            Assert.False(mFirst.Locations.IsDefaultOrEmpty)
+            Assert.False(mFirst.Locations.IsEmpty)
             Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
