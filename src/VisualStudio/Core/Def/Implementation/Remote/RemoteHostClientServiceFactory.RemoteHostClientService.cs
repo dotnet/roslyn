@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
-                await AddGlobalAssetsAsync(cancellationToken).ConfigureAwait(false);
+                AddGlobalAssets(cancellationToken);
 
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return instance;
             }
 
-            private async Task AddGlobalAssetsAsync(CancellationToken cancellationToken)
+            private void AddGlobalAssets(CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
-                        var asset = await assetBuilder.BuildAsync(reference, cancellationToken).ConfigureAwait(false);
+                        var asset = assetBuilder.Build(reference, cancellationToken);
                         snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
                     }
                 }
