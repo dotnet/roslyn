@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// Serializes settings marked with <see cref="RoamingProfilePersistence"/> to and from the user's roaming profile.
+    /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
     [Export(typeof(IOptionPersister))]
     internal sealed class RoamingVisualStudioProfileOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.Persistences.OfType<RoamingProfilePersistence>().SingleOrDefault();
+            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
 
             if (roamingSerialization == null)
             {
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.Persistences.OfType<RoamingProfilePersistence>().SingleOrDefault();
+            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
 
             if (roamingSerialization == null)
             {

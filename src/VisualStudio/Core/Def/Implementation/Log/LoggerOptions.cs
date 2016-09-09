@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ExportOption]
         public static readonly Option<bool> EtwLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "EtwLogger"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "EtwLogger"));
 
         [ExportOption]
         public static readonly Option<bool> TraceLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "TraceLoggerKey"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLoggerKey"));
     }
 }

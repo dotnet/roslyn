@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public T DefaultValue { get; }
 
-        public ImmutableArray<OptionPersistence> Persistences { get; }
+        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
         {
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        public PerLanguageOption(string feature, string name, T defaultValue, params OptionPersistence[] persistences)
+        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
             : this(feature, name, defaultValue)
         {
-            Persistences = persistences.ToImmutableArray();
+            StorageLocations = storageLocations.ToImmutableArray();
         }
 
         object IOption.DefaultValue => this.DefaultValue;

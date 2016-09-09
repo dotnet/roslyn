@@ -14,24 +14,24 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
 
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
         public static readonly PerLanguageOption<bool?> TriggerOnDeletion = new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(TriggerOnDeletion), defaultValue: null,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
 
         public static readonly PerLanguageOption<EnterKeyRule> EnterKeyBehavior =
             new PerLanguageOption<EnterKeyRule>(nameof(CompletionOptions), nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default,
-                persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
 
         public static readonly PerLanguageOption<SnippetsRule> SnippetsBehavior =
             new PerLanguageOption<SnippetsRule>(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
-                persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
 
         // Dev15 options
         public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
 
         public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {

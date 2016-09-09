@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     {
         // TODO: get sign off on public api changes.
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(nameof(CSharpCodeStyleOptions), nameof(UseVarWhenDeclaringLocals), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.UseVarWhenDeclaringLocals"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseVarWhenDeclaringLocals"));
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = new Option<CodeStyleOption<bool>>(nameof(CSharpCodeStyleOptions), nameof(UseImplicitTypeForIntrinsicTypes), defaultValue: CodeStyleOption<bool>.Default,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes"));
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWhereApparent = new Option<CodeStyleOption<bool>>(nameof(CSharpCodeStyleOptions), nameof(UseImplicitTypeWhereApparent), defaultValue: CodeStyleOption<bool>.Default,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent"));
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWherePossible = new Option<CodeStyleOption<bool>>(nameof(CSharpCodeStyleOptions), nameof(UseImplicitTypeWherePossible), defaultValue: CodeStyleOption<bool>.Default,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible"));
     }
 }

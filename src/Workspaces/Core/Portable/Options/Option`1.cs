@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public Type Type => typeof(T);
 
-        public ImmutableArray<OptionPersistence> Persistences { get; }
+        public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public Option(string feature, string name)
             : this(feature, name, default(T))
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        public Option(string feature, string name, T defaultValue, params OptionPersistence[] persistences)
+        public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
             : this(feature, name, defaultValue)
         {
-            Persistences = persistences.ToImmutableArray();
+            StorageLocations = storageLocations.ToImmutableArray();
         }
 
         object IOption.DefaultValue => this.DefaultValue;

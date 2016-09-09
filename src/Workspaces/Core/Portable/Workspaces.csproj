@@ -395,9 +395,9 @@
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
-    <Compile Include="Options\OptionPersistence.cs" />
-    <Compile Include="Options\LocalUserProfilePersistence.cs" />
-    <Compile Include="Options\RoamingProfilePersistence.cs" />
+    <Compile Include="Options\OptionStorageLocation.cs" />
+    <Compile Include="Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />

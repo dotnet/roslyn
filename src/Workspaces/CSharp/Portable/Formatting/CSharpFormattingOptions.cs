@@ -7,142 +7,142 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     public static class CSharpFormattingOptions
     {
         public static Option<bool> SpacingAfterMethodDeclarationName { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpacingAfterMethodDeclarationName), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpacingAfterMethodDeclarationName"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAfterMethodDeclarationName"));
 
         public static Option<bool> SpaceWithinMethodDeclarationParenthesis { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinMethodDeclarationParenthesis), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinMethodDeclarationParenthesis"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinMethodDeclarationParenthesis"));
 
         public static Option<bool> SpaceBetweenEmptyMethodDeclarationParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBetweenEmptyMethodDeclarationParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodDeclarationParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodDeclarationParentheses"));
 
         public static Option<bool> SpaceAfterMethodCallName { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterMethodCallName), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterMethodCallName"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterMethodCallName"));
 
         public static Option<bool> SpaceWithinMethodCallParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinMethodCallParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinMethodCallParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinMethodCallParentheses"));
 
         public static Option<bool> SpaceBetweenEmptyMethodCallParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBetweenEmptyMethodCallParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodCallParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodCallParentheses"));
 
         public static Option<bool> SpaceAfterControlFlowStatementKeyword { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterControlFlowStatementKeyword), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterControlFlowStatementKeyword"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterControlFlowStatementKeyword"));
 
         public static Option<bool> SpaceWithinExpressionParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinExpressionParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses"));
 
         public static Option<bool> SpaceWithinCastParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinCastParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinCastParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinCastParentheses"));
 
         public static Option<bool> SpaceWithinOtherParentheses { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinOtherParentheses), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinOtherParentheses"));
 
         public static Option<bool> SpaceAfterCast { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterCast), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterCast"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterCast"));
 
         public static Option<bool> SpacesIgnoreAroundVariableDeclaration { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpacesIgnoreAroundVariableDeclaration), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpacesIgnoreAroundVariableDeclaration"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacesIgnoreAroundVariableDeclaration"));
 
         public static Option<bool> SpaceBeforeOpenSquareBracket { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeOpenSquareBracket), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBeforeOpenSquareBracket"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeOpenSquareBracket"));
 
         public static Option<bool> SpaceBetweenEmptySquareBrackets { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBetweenEmptySquareBrackets), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBetweenEmptySquareBrackets"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptySquareBrackets"));
 
         public static Option<bool> SpaceWithinSquareBrackets { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceWithinSquareBrackets), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceWithinSquareBrackets"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinSquareBrackets"));
 
         public static Option<bool> SpaceAfterColonInBaseTypeDeclaration { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterColonInBaseTypeDeclaration), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterColonInBaseTypeDeclaration"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterColonInBaseTypeDeclaration"));
 
         public static Option<bool> SpaceAfterComma { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterComma), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterComma"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterComma"));
 
         public static Option<bool> SpaceAfterDot { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterDot), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterDot"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterDot"));
 
         public static Option<bool> SpaceAfterSemicolonsInForStatement { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceAfterSemicolonsInForStatement), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceAfterSemicolonsInForStatement"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterSemicolonsInForStatement"));
 
         public static Option<bool> SpaceBeforeColonInBaseTypeDeclaration { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeColonInBaseTypeDeclaration), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBeforeColonInBaseTypeDeclaration"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeColonInBaseTypeDeclaration"));
 
         public static Option<bool> SpaceBeforeComma { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeComma), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBeforeComma"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeComma"));
 
         public static Option<bool> SpaceBeforeDot { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeDot), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBeforeDot"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeDot"));
 
         public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeSemicolonsInForStatement), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.SpaceBeforeSemicolonsInForStatement"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeSemicolonsInForStatement"));
 
         // This property is currently serialized into multiple properties
         public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(nameof(CSharpFormattingOptions), nameof(SpacingAroundBinaryOperator), defaultValue: BinaryOperatorSpacingOptions.Single);
 
         public static Option<bool> IndentBraces { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentBraces), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.OpenCloseBracesIndent"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.OpenCloseBracesIndent"));
 
         public static Option<bool> IndentBlock { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentBlock), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.IndentBlock"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentBlock"));
 
         public static Option<bool> IndentSwitchSection { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentSwitchSection), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.IndentSwitchSection"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchSection"));
 
         public static Option<bool> IndentSwitchCaseSection { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentSwitchCaseSection), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.IndentSwitchCaseSection"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSection"));
 
         // This property is currently serialized into multiple properties
         public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(nameof(CSharpFormattingOptions), nameof(LabelPositioning), defaultValue: LabelPositionOptions.OneLess);
 
         public static Option<bool> WrappingPreserveSingleLine { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(WrappingPreserveSingleLine), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.WrappingPreserveSingleLine"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingPreserveSingleLine"));
 
         public static Option<bool> WrappingKeepStatementsOnSingleLine { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(WrappingKeepStatementsOnSingleLine), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine"));
 
         public static Option<bool> NewLinesForBracesInTypes { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInTypes), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesBracesType"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesBracesType"));
 
         public static Option<bool> NewLinesForBracesInMethods { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInMethods), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInMethods"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInMethods"));
 
         public static Option<bool> NewLinesForBracesInProperties { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInProperties), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInProperties"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInProperties"));
 
         public static Option<bool> NewLinesForBracesInAccessors { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInAccessors), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInAccessors"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInAccessors"));
 
         public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInAnonymousMethods), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods"));
 
         public static Option<bool> NewLinesForBracesInControlBlocks { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInControlBlocks), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks"));
 
         public static Option<bool> NewLinesForBracesInAnonymousTypes { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInAnonymousTypes), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes"));
 
         public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInObjectCollectionArrayInitializers), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers"));
 
         public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLinesForBracesInLambdaExpressionBody), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody"));
 
         public static Option<bool> NewLineForElse { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForElse), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForElse"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForElse"));
 
         public static Option<bool> NewLineForCatch { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForCatch), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForCatch"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForCatch"));
 
         public static Option<bool> NewLineForFinally { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForFinally), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForFinally"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForFinally"));
 
         public static Option<bool> NewLineForMembersInObjectInit { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForMembersInObjectInit), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForMembersInObjectInit"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForMembersInObjectInit"));
 
         public static Option<bool> NewLineForMembersInAnonymousTypes { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForMembersInAnonymousTypes), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForMembersInAnonymousTypes"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForMembersInAnonymousTypes"));
 
         public static Option<bool> NewLineForClausesInQuery { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(NewLineForClausesInQuery), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.CSharp.Specific.NewLineForClausesInQuery"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForClausesInQuery"));
     }
 
     public enum LabelPositionOptions

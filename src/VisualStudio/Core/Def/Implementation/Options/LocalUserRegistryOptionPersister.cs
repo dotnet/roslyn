@@ -14,7 +14,7 @@ using Microsoft.Win32;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// Serializes options marked with <see cref="LocalUserProfilePersistence"/> to the local hive-specific registry.
+    /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
     /// </summary>
     [Export(typeof(IOptionPersister))]
     internal sealed class LocalUserRegistryOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private static bool TryGetKeyPathAndName(IOption option, out string path, out string key)
         {
-            var serialization = option.Persistences.OfType<LocalUserProfilePersistence>().SingleOrDefault();
+            var serialization = option.StorageLocations.OfType<LocalUserProfileStorageLocation>().SingleOrDefault();
 
             if (serialization == null)
             {

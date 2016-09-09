@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editing
     internal class GenerationOptions
     {
         public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions), nameof(PlaceSystemNamespaceFirst), defaultValue: true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
     }
 }

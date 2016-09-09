@@ -15,73 +15,73 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// if the user had initially not used the Alias
         /// </summary>
         public static Option<bool> PreferAliasToQualification { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferAliasToQualification), true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PreferAliasToQualification"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferAliasToQualification"));
 
         /// <summary>
         /// This option influences the name reduction of members of a module in VB. If set to true, the 
         /// name reducer will e.g. reduce Namespace.Module.Member to Namespace.Member.
         /// </summary>
         public static Option<bool> PreferOmittingModuleNamesInQualification { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferOmittingModuleNamesInQualification), true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PreferOmittingModuleNamesInQualification"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferOmittingModuleNamesInQualification"));
 
         /// <summary>
         /// This option says that if we should simplify the Generic Name which has the type argument inferred
         /// </summary>
         public static Option<bool> PreferImplicitTypeInference { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInference), true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInference"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInference"));
 
         /// <summary>
         /// This option says if we should simplify the Explicit Type in Local Declarations
         /// </summary>
         public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInLocalDeclaration"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInLocalDeclaration"));
 
         /// <summary>
         /// This option says if we should simplify to NonGeneric Name rather than GenericName
         /// </summary>
         public static Option<bool> AllowSimplificationToGenericType { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(AllowSimplificationToGenericType), false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToGenericType"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToGenericType"));
 
         /// <summary>
         /// This option says if we should simplify from Derived types to Base types in Static Member Accesses
         /// </summary>
         public static Option<bool> AllowSimplificationToBaseType { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(AllowSimplificationToBaseType), true,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToBaseType"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToBaseType"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/> or <see langword="Me"/> in member access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyMemberAccessWithThisOrMe), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.QualifyMemberAccessWithThisOrMe"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyMemberAccessWithThisOrMe"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyFieldAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyFieldAccess), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.QualifyFieldAccess"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyFieldAccess"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyPropertyAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyPropertyAccess), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.QualifyPropertyAccess"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyPropertyAccess"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyMethodAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyMethodAccess), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.QualifyMethodAccess"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyMethodAccess"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyEventAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyEventAccess), defaultValue: false,
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.QualifyEventAccess"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyEventAccess"));
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations
@@ -100,6 +100,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// and the level to which those rules should be enforced.
         /// </summary>
         public static PerLanguageOption<string> NamingPreferences { get; } = new PerLanguageOption<string>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: "",
-            persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
     }
 }

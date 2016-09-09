@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             var name = Enum.GetName(typeof(FunctionId), id);
 
             return new Option<bool>(nameof(FunctionIdOptions), name, defaultValue: false,
-                persistences: new LocalUserProfilePersistence(@"Roslyn\Internal\Performance\FunctionId\" + name));
+                storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));
         }
 
         public static Option<bool> GetOption(FunctionId id)

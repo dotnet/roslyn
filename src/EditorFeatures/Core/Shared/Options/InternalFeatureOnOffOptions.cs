@@ -10,80 +10,80 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         [ExportOption]
         public static readonly Option<bool> BraceMatching = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(BraceMatching), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Brace Matching"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Brace Matching"));
 
         [ExportOption]
         public static readonly Option<bool> Classification = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(Classification), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Classification"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Classification"));
 
         [ExportOption]
         public static readonly Option<bool> SemanticColorizer = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(SemanticColorizer), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Semantic Colorizer"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Semantic Colorizer"));
 
         [ExportOption]
         public static readonly Option<bool> SyntacticColorizer = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(SyntacticColorizer), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Syntactic Colorizer"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Syntactic Colorizer"));
 
         [ExportOption]
         public static readonly Option<bool> AutomaticPairCompletion = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(AutomaticPairCompletion), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Automatic Pair Completion"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Automatic Pair Completion"));
 
         [ExportOption]
         public static readonly Option<bool> AutomaticLineEnder = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(AutomaticLineEnder), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Automatic Line Ender"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Automatic Line Ender"));
 
         [ExportOption]
         public static readonly Option<bool> SmartIndenter = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(SmartIndenter), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Smart Indenter"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Smart Indenter"));
 
         [ExportOption]
         public static readonly Option<bool> CompletionSet = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(CompletionSet), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Completion Set"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Completion Set"));
 
         [ExportOption]
         public static readonly Option<bool> KeywordHighlight = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(KeywordHighlight), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Keyword Highlight"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Keyword Highlight"));
 
         [ExportOption]
         public static readonly Option<bool> QuickInfo = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(QuickInfo), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Quick Info"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Quick Info"));
 
         [ExportOption]
         public static readonly Option<bool> Squiggles = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(Squiggles), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Squiggles"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Squiggles"));
 
         [ExportOption]
         public static readonly Option<bool> FormatOnSave = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(FormatOnSave), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "FormatOnSave"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "FormatOnSave"));
 
         [ExportOption]
         public static readonly Option<bool> RenameTracking = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RenameTracking), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Rename Tracking"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Rename Tracking"));
 
         [ExportOption]
         public static readonly Option<bool> EventHookup = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(EventHookup), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Event Hookup"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Event Hookup"));
 
         /// Due to https://github.com/dotnet/roslyn/issues/5393, the name "Snippets" is unusable for serialization.
         /// (Summary: Some builds incorrectly set it without providing a way to clear it so it exists in many registries.)
         [ExportOption]
         public static readonly Option<bool> Snippets = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(Snippets), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Snippets2"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Snippets2"));
 
         [ExportOption]
         public static readonly Option<bool> TodoComments = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(TodoComments), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Todo Comments"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Todo Comments"));
 
         [ExportOption]
         public static readonly Option<bool> DesignerAttributes = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(DesignerAttributes), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Designer Attribute"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Designer Attribute"));
 
         [ExportOption]
         public static readonly Option<bool> FullSolutionAnalysisMemoryMonitor = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(FullSolutionAnalysisMemoryMonitor), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Full Solution Analysis Memory Monitor"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Full Solution Analysis Memory Monitor"));
 
         [ExportOption]
         public static readonly Option<bool> ProjectReferenceConversion = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(ProjectReferenceConversion), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Project Reference Conversion"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Project Reference Conversion"));
     }
 }

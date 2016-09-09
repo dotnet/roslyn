@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         [ExportOption]
         public static readonly Option<bool> Adornment = new Option<bool>(nameof(EditorComponentOnOffOptions), nameof(Adornment), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Adornment"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Adornment"));
 
         [ExportOption]
         public static readonly Option<bool> Tagger = new Option<bool>(nameof(EditorComponentOnOffOptions), nameof(Tagger), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Tagger"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Tagger"));
 
         [ExportOption]
         public static readonly Option<bool> CodeRefactorings = new Option<bool>(nameof(EditorComponentOnOffOptions), nameof(CodeRefactorings), defaultValue: true,
-            persistences: new LocalUserProfilePersistence(LocalRegistryPath + "Code Refactorings"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Code Refactorings"));
     }
 }

@@ -6,10 +6,10 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
             new PerLanguageOption<bool>(nameof(AddImportOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: false,
-                persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
         public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
             new PerLanguageOption<bool>(nameof(AddImportOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: false,
-                persistences: new RoamingProfilePersistence("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }

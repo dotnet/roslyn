@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Options
         object DefaultValue { get; }
         bool IsPerLanguage { get; }
 
-        ImmutableArray<OptionPersistence> Persistences { get; }
+        ImmutableArray<OptionStorageLocation> StorageLocations { get; }
     }
 }
