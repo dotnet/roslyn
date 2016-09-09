@@ -15,15 +15,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(IFieldSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IFieldSymbol> symbolAndProjectId,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                return Task.FromResult<IEnumerable<ISymbol>>(new ISymbol[] { symbol.AssociatedSymbol });
+                return Task.FromResult(
+                    SpecializedCollections.SingletonEnumerable(
+                        SymbolAndProjectId.Create(symbol.AssociatedSymbol, symbolAndProjectId.ProjectId)));
             }
             else
             {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
             }
         }
 

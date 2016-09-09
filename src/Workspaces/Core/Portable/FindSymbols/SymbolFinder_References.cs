@@ -22,7 +22,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindReferencesAsync(symbol, solution, progress: null, documents: null, cancellationToken: cancellationToken);
+            return FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindReferencesAsync(symbolAndProjectId, solution, progress: null, documents: null, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -50,8 +60,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
+            Solution solution,
+            IFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, progress, documents, cancellationToken);
+        }
+
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             IFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -62,12 +84,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var finders = ReferenceFinders.DefaultReferenceFinders;
                 progress = progress ?? FindReferencesProgress.Instance;
                 var engine = new FindReferencesSearchEngine(solution, documents, finders, progress, cancellationToken);
-                return await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
+                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
             }
         }
 
-        internal static Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
-            ISymbol symbol,
+        internal static async Task<IEnumerable<ReferencedSymbol>> FindRenamableReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -81,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     FindReferencesProgress.Instance,
                     cancellationToken);
 
-                return engine.FindReferencesAsync(symbol);
+                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
             }
         }
     }

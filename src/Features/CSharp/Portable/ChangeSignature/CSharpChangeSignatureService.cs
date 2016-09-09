@@ -505,8 +505,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return separators;
         }
 
-        public override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsFromDelegateInvoke(IMethodSymbol symbol, Document document, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -537,7 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         })
                 .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
-            return convertedMethodGroups;
+            return convertedMethodGroups.Select(
+                m => SymbolAndProjectId.Create(m, symbolAndProjectId.ProjectId));
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

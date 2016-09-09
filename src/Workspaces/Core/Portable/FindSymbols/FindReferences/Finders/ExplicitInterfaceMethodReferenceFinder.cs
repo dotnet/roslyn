@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -15,14 +16,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             // An explicit interface method will cascade to all the methods that it implements.
-            return Task.FromResult<IEnumerable<ISymbol>>(symbol.ExplicitInterfaceImplementations);
+            return Task.FromResult(
+                symbol.Symbol.ExplicitInterfaceImplementations.Select(
+                    ei => SymbolAndProjectId.Create((ISymbol)ei, symbol.ProjectId)));
         }
 
         protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(

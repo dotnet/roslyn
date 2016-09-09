@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsFromDelegateInvoke(IMethodSymbol symbol, Document document, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
             Document document,
@@ -139,7 +140,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
             }
 
-            return new ChangeSignatureAnalyzedContext(document.Project.Solution, symbol, parameterConfiguration);
+            return new ChangeSignatureAnalyzedContext(
+                document.Project, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
@@ -160,7 +162,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(
+            ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
             var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
@@ -169,8 +172,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
         }
 
-        private static Task<IEnumerable<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
-            ISymbol symbol,
+        private static async Task<IEnumerable<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -184,11 +187,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     FindReferencesProgress.Instance,
                     cancellationToken);
 
-                return engine.FindReferencesAsync(symbol);
+                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
             }
         }
 
-        private bool TryCreateUpdatedSolution(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
+        private bool TryCreateUpdatedSolution(
+            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
         {
             updatedSolution = context.Solution;
             var declaredSymbol = context.Symbol;
@@ -198,7 +202,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             bool hasLocationsInMetadata = false;
 
-            var symbols = FindChangeSignatureReferencesAsync(declaredSymbol, context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = FindChangeSignatureReferencesAsync(
+                SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
+                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
 
             foreach (var symbol in symbols)
             {

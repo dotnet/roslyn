@@ -19,33 +19,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeKind != TypeKind.Error;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            INamedTypeSymbol symbol,
+        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            List<ISymbol> result = null;
+            List<SymbolAndProjectId> result = null;
+
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                result = Add(result, SpecializedCollections.SingletonEnumerable(symbol.AssociatedSymbol));
+                result = Add(result, symbolAndProjectId, SpecializedCollections.SingletonEnumerable(symbol.AssociatedSymbol));
             }
 
             // cascade to constructors
-            result = Add(result, symbol.Constructors);
+            result = Add(result, symbolAndProjectId, symbol.Constructors);
 
             // cascade to destructor
-            result = Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+            result = Add(result, symbolAndProjectId, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return Task.FromResult<IEnumerable<ISymbol>>(result ?? SpecializedCollections.EmptyList<ISymbol>());
+            return Task.FromResult<IEnumerable<SymbolAndProjectId>>(
+                result ?? SpecializedCollections.EmptyList<SymbolAndProjectId>());
         }
 
-        private List<ISymbol> Add(List<ISymbol> result, IEnumerable<ISymbol> enumerable)
+        private List<SymbolAndProjectId> Add(
+            List<SymbolAndProjectId> result,
+            SymbolAndProjectId symbolAndProjectId,
+            IEnumerable<ISymbol> enumerable)
         {
             if (enumerable != null)
             {
-                result = result ?? new List<ISymbol>();
-                result.AddRange(enumerable);
+                result = result ?? new List<SymbolAndProjectId>();
+                result.AddRange(enumerable.Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s)));
             }
 
             return result;

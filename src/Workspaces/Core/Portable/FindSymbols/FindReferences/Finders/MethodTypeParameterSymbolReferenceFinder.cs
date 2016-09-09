@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeParameterKind == TypeParameterKind.Method;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            ITypeParameterSymbol symbol,
+        protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             var method = (IMethodSymbol)symbol.ContainingSymbol;
             var ordinal = method.TypeParameters.IndexOf(symbol);
 
@@ -28,16 +29,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal]));
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable(
+                        SymbolAndProjectId.Create((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal], symbolAndProjectId.ProjectId)));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal]));
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable(
+                        SymbolAndProjectId.Create((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal], symbolAndProjectId.ProjectId)));
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
         }
 
         protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(

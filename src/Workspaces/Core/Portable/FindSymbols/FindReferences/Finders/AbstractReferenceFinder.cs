@@ -35,18 +35,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : SpecializedTasks.EmptyEnumerable<Document>();
         }
 
-        public Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
+        public Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             return symbol is TSymbol && CanFind((TSymbol)symbol)
                 ? FindReferencesInDocumentAsync((TSymbol)symbol, document, cancellationToken)
                 : SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
         }
 
-        public Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        public Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            return symbol is TSymbol && CanFind((TSymbol)symbol)
-                ? DetermineCascadedSymbolsAsync((TSymbol)symbol, solution, projects, cancellationToken)
-                : SpecializedTasks.EmptyEnumerable<ISymbol>();
+            var symbol = symbolAndProjectId.Symbol;
+            if (symbol is TSymbol && CanFind((TSymbol)symbol))
+            {
+                return DetermineCascadedSymbolsAsync(
+                    SymbolAndProjectId.Create((TSymbol)symbol, symbolAndProjectId.ProjectId),
+                    solution, projects, cancellationToken);
+            }
+
+            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
         }
 
         protected virtual Task<IEnumerable<Project>> DetermineProjectsToSearchAsync(TSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
@@ -54,9 +63,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return DependentProjectsFinder.GetDependentProjectsAsync(symbol, solution, projects, cancellationToken);
         }
 
-        protected virtual Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(TSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<TSymbol> symbolAndProject, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            return SpecializedTasks.EmptyEnumerable<SymbolAndProjectId>();
         }
 
         protected static bool TryGetNameWithoutAttributeSuffix(
