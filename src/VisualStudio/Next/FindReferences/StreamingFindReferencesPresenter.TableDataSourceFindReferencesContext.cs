@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private async Task<TaggedTextAndHighlightSpan> GetTaggedTextForReferenceAsync(
                 Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
             {
-                var classificationService = document.GetLanguageService<IEditorClassificationService>();
+                var classificationService = document.GetLanguageService<ClassificationService>();
                 if (classificationService == null)
                 {
                     return new TaggedTextAndHighlightSpan(ImmutableArray<TaggedText>.Empty, new TextSpan());
@@ -376,10 +376,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+                syntaxSpans.AddRange(
+                    await classificationService.GetSyntacticClassificationsAsync(document, widenedSpan, cancellationToken).ConfigureAwait(false));
+
+                semanticSpans.AddRange(
+                    await classificationService.GetSemanticClassificationsAsync(document, widenedSpan, cancellationToken).ConfigureAwait(false));
 
                 var allParts = MergeClassifiedSpans(
                     syntaxSpans, semanticSpans, widenedSpan, sourceText);
@@ -406,9 +407,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
                 // also produce parts for the regions between the sections that the classifiers
                 // returned results for (i.e. for things like spaces and plain text).
-                var syntaxParts = Classifier.ConvertClassifications(
+                var syntaxParts = Microsoft.CodeAnalysis.LanguageServices.SymbolDisplayClassificationHelper.ConvertClassifications(
                     sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
-                var semanticParts = Classifier.ConvertClassifications(
+                var semanticParts = Microsoft.CodeAnalysis.LanguageServices.SymbolDisplayClassificationHelper.ConvertClassifications(
                     sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
 
                 // Now merge the lists together, taking all the results from syntaxParts

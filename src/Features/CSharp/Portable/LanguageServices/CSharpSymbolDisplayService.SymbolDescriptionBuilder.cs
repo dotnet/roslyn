@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
                     if (semanticModel != null)
                     {
-                        return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                        return await GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
                             this.Workspace, cancellationToken: this.CancellationToken).ConfigureAwait(false);
                     }

@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
-        private IEditorClassificationService _classificationService;
+        private ClassificationService _classificationService;
 
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (_classificationService == null)
             {
                 var document = spanToTag.Document;
-                _classificationService = document?.Project.LanguageServices.GetService<IEditorClassificationService>();
+                _classificationService = document?.Project.LanguageServices.GetService<ClassificationService>();
             }
 
             if (_classificationService == null)

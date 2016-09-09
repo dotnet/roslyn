@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
-            private IEditorClassificationService _classificationService;
+            private ClassificationService _classificationService;
 
             public Tagger(SemanticClassificationBufferTaggerProvider owner, ITextBuffer subjectBuffer)
             {
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return Array.Empty<ITagSpan<IClassificationTag>>();
                     }
 
-                    _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
+                    _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<ClassificationService>();
 
                     var context = new TaggerContext<IClassificationTag>(document, snapshot, cancellationToken: cancellationToken);
 

@@ -11,26 +11,26 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    [ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpClassificationService : AbstractClassificationService
+    [ExportLanguageService(typeof(ClassificationService), LanguageNames.CSharp), Shared]
+    internal class CSharpClassificationService : CommonClassificationService
     {
         public override IEnumerable<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
         {
             return SyntaxClassifier.DefaultSyntaxClassifiers;
         }
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        protected override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
         }
 
-        public override void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        protected override void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = syntaxTree.GetRoot(cancellationToken);
             Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
         }
 
-        public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
+        public override ClassifiedSpan AdjustClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
         {
             return ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
         }

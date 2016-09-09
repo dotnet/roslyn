@@ -80,7 +80,6 @@
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.vb" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
-    <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentCommandHandler.vb" />
@@ -217,6 +216,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Classification\" />
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>

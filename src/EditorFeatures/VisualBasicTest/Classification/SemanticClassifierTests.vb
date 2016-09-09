@@ -14,21 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-
-                Dim service = document.GetLanguageService(Of IClassificationService)()
-
-                Dim tree = Await document.GetSyntaxTreeAsync()
-
-                Dim result = New List(Of ClassifiedSpan)
-                Dim classifiers = service.GetDefaultSyntaxClassifiers()
-                Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
-
-                Await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, Function(c) c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
-                    result, CancellationToken.None)
-
-                Return result
+                Dim service = document.GetLanguageService(Of ClassificationService)()
+                Return Await service.GetSemanticClassificationsAsync(document, textSpan, CancellationToken.None)
             End Using
         End Function
 

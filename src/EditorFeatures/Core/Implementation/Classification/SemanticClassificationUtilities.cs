@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal static class SemanticClassificationUtilities
     {
         public static async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+            ClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpan(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+            ClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         private static async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
-            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
+            ClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             try
             {
@@ -109,8 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    await classificationService.AddSemanticClassificationsAsync(
-                        document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var newSpans = await classificationService.GetSemanticClassificationsAsync(
+                        document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+
+                    CombineSpans(classifiedSpans, newSpans);
 
                     ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
@@ -125,6 +129,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static void CombineSpans(List<ClassifiedSpan> spans, IEnumerable<ClassifiedSpan> newSpans)
+        {
+            var spanSet = SharedPools.Default<HashSet<ClassifiedSpan>>().Allocate();
+            try
+            {
+                spanSet.AddAll(spans);
+
+                foreach (var span in newSpans)
+                {
+                    if (!spanSet.Contains(span))
+                    {
+                        spanSet.Add(span);
+                        spans.Add(span);
+                    }
+                }
+            }
+            finally
+            {
+                SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(spanSet);
             }
         }
     }

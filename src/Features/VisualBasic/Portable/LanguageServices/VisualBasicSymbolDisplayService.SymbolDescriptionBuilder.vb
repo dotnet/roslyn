@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 If equalsValue IsNot Nothing AndAlso equalsValue.Value IsNot Nothing Then
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
-                        Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                        Return Await GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
                             Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
                     End If
