@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var project = symbolAndProject.Item2;
 
             var displayName = GetDisplayName(symbol);
-            context.SetSearchLabel(displayName);
+            await context.SetSearchLabelAsync(displayName).ConfigureAwait(false);
 
             var progressAdapter = new ProgressAdapter(project.Solution, context);
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            progressAdapter.CallThirdPartyExtensions();
+            await progressAdapter.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
         }
     }
 }
