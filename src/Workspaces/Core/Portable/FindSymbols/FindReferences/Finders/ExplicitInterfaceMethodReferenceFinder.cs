@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbol,
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             // An explicit interface method will cascade to all the methods that it implements.
             return Task.FromResult(
-                symbol.Symbol.ExplicitInterfaceImplementations.Select(
-                    ei => SymbolAndProjectId.Create((ISymbol)ei, symbol.ProjectId)));
+                symbolAndProjectId.Symbol.ExplicitInterfaceImplementations.Select(
+                    ei => symbolAndProjectId.WithSymbol((ISymbol)ei)));
         }
 
         protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(

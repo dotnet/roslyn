@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            yield return SymbolAndProjectId.Create(result, typeSymbolAndProjectId.ProjectId);
+                            yield return typeSymbolAndProjectId.WithSymbol(result);
                             break;
                         }
                     }

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (string.Equals(member.MetadataName, symbol.MetadataName, StringComparison.Ordinal) && member is IMethodSymbol && !member.Equals(symbol))
                         {
-                            yield return SymbolAndProjectId.Create(member, symbolAndProjectId.ProjectId);
+                            yield return symbolAndProjectId.WithSymbol(member);
                         }
                     }
                 }

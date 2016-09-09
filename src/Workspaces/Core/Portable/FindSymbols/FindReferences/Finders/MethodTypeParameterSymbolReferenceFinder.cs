@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
                     return Task.FromResult(SpecializedCollections.SingletonEnumerable(
-                        SymbolAndProjectId.Create((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal], symbolAndProjectId.ProjectId)));
+                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
                     return Task.FromResult(SpecializedCollections.SingletonEnumerable(
-                        SymbolAndProjectId.Create((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal], symbolAndProjectId.ProjectId)));
+                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
                 }
             }
 

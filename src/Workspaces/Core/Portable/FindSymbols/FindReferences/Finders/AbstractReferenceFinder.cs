@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol is TSymbol && CanFind((TSymbol)symbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    SymbolAndProjectId.Create((TSymbol)symbol, symbolAndProjectId.ProjectId),
+                    symbolAndProjectId.WithSymbol((TSymbol)symbol),
                     solution, projects, cancellationToken);
             }
 

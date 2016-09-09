@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
                 return SpecializedCollections.SingletonEnumerable(
-                    SymbolAndProjectId.Create((ISymbol)symbol.ContainingType, symbolAndProjectId.ProjectId));
+                    symbolAndProjectId.WithSymbol((ISymbol)symbol.ContainingType));
             }
             else
             {

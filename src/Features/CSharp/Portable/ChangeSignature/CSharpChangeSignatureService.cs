@@ -541,8 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         })
                 .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
-            return convertedMethodGroups.Select(
-                m => SymbolAndProjectId.Create(m, symbolAndProjectId.ProjectId));
+            return convertedMethodGroups.Select(symbolAndProjectId.WithSymbol);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

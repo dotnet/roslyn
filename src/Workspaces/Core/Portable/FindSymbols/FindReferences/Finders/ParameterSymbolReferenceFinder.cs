@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                             results = new List<SymbolAndProjectId>();
                         }
 
-                        results.Add(SymbolAndProjectId.Create(
-                            invokeMethod.Parameters[ordinal], parameterAndProjectId.ProjectId));
+                        results.Add(parameterAndProjectId.WithSymbol(
+                            invokeMethod.Parameters[ordinal]));
                     }
                 }
             }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                         if (convertedType1.Equals(convertedType2))
                         {
-                            yield return SymbolAndProjectId.Create(symbol, parameterAndProjectId.ProjectId);
+                            yield return parameterAndProjectId.WithSymbol(symbol);
                         }
                     }
                 }

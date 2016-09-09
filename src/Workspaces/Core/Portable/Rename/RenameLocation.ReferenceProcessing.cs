@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Rename
                             var ordinal = containingMethod.Parameters.IndexOf((IParameterSymbol)symbol);
                             if (ordinal < associatedPropertyOrEvent.Parameters.Length)
                             {
-                                return SymbolAndProjectId.Create(
-                                    associatedPropertyOrEvent.Parameters[ordinal], bestSymbolAndProjectId.ProjectId);
+                                return bestSymbolAndProjectId.WithSymbol(
+                                    associatedPropertyOrEvent.Parameters[ordinal]);
                             }
                         }
                     }
@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     var typeSymbol = (INamedTypeSymbol)symbol;
                     if (typeSymbol.IsImplicitlyDeclared && typeSymbol.IsDelegateType() && typeSymbol.AssociatedSymbol != null)
                     {
-                        return SymbolAndProjectId.Create(
-                            typeSymbol.AssociatedSymbol, bestSymbolAndProjectId.ProjectId);
+                        return bestSymbolAndProjectId.WithSymbol(
+                            typeSymbol.AssociatedSymbol);
                     }
                 }
 
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Rename
                         methodSymbol.MethodKind == MethodKind.StaticConstructor ||
                         methodSymbol.MethodKind == MethodKind.Destructor)
                     {
-                        return SymbolAndProjectId.Create(
-                            methodSymbol.ContainingType, bestSymbolAndProjectId.ProjectId);
+                        return bestSymbolAndProjectId.WithSymbol(
+                            methodSymbol.ContainingType);
                     }
                 }
 
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     if (fieldSymbol.IsImplicitlyDeclared &&
                         fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property))
                     {
-                        return SymbolAndProjectId.Create(
-                            fieldSymbol.AssociatedSymbol, bestSymbolAndProjectId.ProjectId);
+                        return bestSymbolAndProjectId.WithSymbol(
+                            fieldSymbol.AssociatedSymbol);
                     }
                 }
 
@@ -204,14 +204,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 var symbol = symbolAndProjectId.Symbol;
                 if (symbol.IsPropertyAccessor())
                 {
-                    return SymbolAndProjectId.Create(
-                        ((IMethodSymbol)symbol).AssociatedSymbol, symbolAndProjectId.ProjectId);
+                    return symbolAndProjectId.WithSymbol(
+                        ((IMethodSymbol)symbol).AssociatedSymbol);
                 }
 
                 if (symbol.IsOverride && symbol.OverriddenMember() != null)
                 {
                     var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                        SymbolAndProjectId.Create(symbol.OverriddenMember(), symbolAndProjectId.ProjectId),
+                        symbolAndProjectId.WithSymbol(symbol.OverriddenMember()),
                         solution, cancellationToken).ConfigureAwait(false);
 
                     if (originalSourceSymbol.Symbol != null)

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
-            type = SymbolAndProjectId.Create(type.Symbol.OriginalDefinition, type.ProjectId);
+            type = type.WithSymbol(type.Symbol.OriginalDefinition);
             projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
             var searchInMetadata = type.Symbol.Locations.Any(s_isInMetadata);
 

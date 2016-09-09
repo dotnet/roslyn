@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var overrides = await SymbolFinder.FindOverridesAsync(
                         symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    var overriddenMember = SymbolAndProjectId.Create(
-                        symbol.OverriddenMember(), symbolAndProjectId.ProjectId);
+                    var overriddenMember = symbolAndProjectId.WithSymbol(symbol.OverriddenMember());
                     return overriddenMember.Symbol == null
                         ? interfaceMembersImplemented.Concat(overrides)
                         : interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 return Task.FromResult(
                     SpecializedCollections.SingletonEnumerable(
-                        SymbolAndProjectId.Create(symbol.AssociatedSymbol, symbolAndProjectId.ProjectId)));
+                        symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol)));
             }
             else
             {

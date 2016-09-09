@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = symbol.ContainingType;
             }
 
-            return SymbolAndProjectId.Create(searchSymbol, symbolAndProjectId.ProjectId);
+            return symbolAndProjectId.WithSymbol(searchSymbol);
         }
     }
 }
