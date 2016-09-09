@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(SpaceBeforeSemicolonsInForStatement), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeSemicolonsInForStatement"));
 
-        // This property is currently serialized into multiple properties
-        public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(nameof(CSharpFormattingOptions), nameof(SpacingAroundBinaryOperator), defaultValue: BinaryOperatorSpacingOptions.Single);
+        public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(nameof(CSharpFormattingOptions), nameof(SpacingAroundBinaryOperator), defaultValue: BinaryOperatorSpacingOptions.Single,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAroundBinaryOperator"));
 
         public static Option<bool> IndentBraces { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentBraces), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.OpenCloseBracesIndent"));
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option<bool> IndentSwitchCaseSection { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentSwitchCaseSection), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSection"));
 
-        // This property is currently serialized into multiple properties
-        public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(nameof(CSharpFormattingOptions), nameof(LabelPositioning), defaultValue: LabelPositionOptions.OneLess);
+        public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(nameof(CSharpFormattingOptions), nameof(LabelPositioning), defaultValue: LabelPositionOptions.OneLess,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.LabelPositioning"));
 
         public static Option<bool> WrappingPreserveSingleLine { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(WrappingPreserveSingleLine), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingPreserveSingleLine"));
