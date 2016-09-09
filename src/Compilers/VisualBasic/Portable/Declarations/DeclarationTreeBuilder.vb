@@ -562,7 +562,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim field = DirectCast(statement, FieldDeclarationSyntax)
                         If Not anyMemberHasAttributes Then
-
                             If field.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             End If
@@ -578,7 +577,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
                         If Not anyMemberHasAttributes Then
-
                             If methodDecl.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             End If
@@ -589,7 +587,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim propertyDecl = DirectCast(statement, PropertyBlockSyntax)
                         If Not anyMemberHasAttributes Then
-
                             If propertyDecl.PropertyStatement.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             Else
@@ -612,7 +609,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim methodDecl = DirectCast(statement, MethodBaseSyntax)
                         If Not anyMemberHasAttributes Then
-
                             If methodDecl.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             End If
@@ -623,7 +619,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim eventDecl = DirectCast(statement, EventBlockSyntax)
                         If Not anyMemberHasAttributes Then
-
                             If eventDecl.EventStatement.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             Else
@@ -642,7 +637,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         anyNonTypeMembers = True
                         Dim eventDecl = DirectCast(statement, EventStatementSyntax)
                         If Not anyMemberHasAttributes Then
-
                             If eventDecl.AttributeLists.Any Then
                                 anyMemberHasAttributes = True
                             End If
