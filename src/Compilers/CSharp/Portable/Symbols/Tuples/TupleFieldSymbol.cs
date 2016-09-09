@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this field represents a tuple element with index X
-        /// - 2X      if this field represents Default-named element
-        /// - 2X + 1  if this field represents Friendly-named element
+        ///  2X      if this field represents Default-named element
+        ///  2X + 1  if this field represents Friendly-named element
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
         private readonly int _tupleElementIndex;

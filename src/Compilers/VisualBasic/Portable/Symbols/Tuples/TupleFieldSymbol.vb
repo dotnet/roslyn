@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' If this field represents a tuple element with index X, the field contains
-        ''' - 2X      if this field represents a Default-named element
-        ''' - 2X + 1  if this field represents a Friendly-named element
+        '''  2X      if this field represents a Default-named element
+        '''  2X + 1  if this field represents a Friendly-named element
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
         Private _tupleElementIndex As Integer
