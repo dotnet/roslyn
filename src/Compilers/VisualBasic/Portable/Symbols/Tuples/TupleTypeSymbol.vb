@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CollectTupleElementFields() As ImmutableArray(Of FieldSymbol)
-            Dim builder = ArrayBuilder(Of FieldSymbol).GetInstance(_elementTypes.Length, Nothing)
+            Dim builder = ArrayBuilder(Of FieldSymbol).GetInstance(_elementTypes.Length, fillWithValue:=Nothing)
 
             For Each member In GetMembers()
                 If member.Kind <> SymbolKind.Field Then
@@ -639,7 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CreateMembers() As ImmutableArray(Of Symbol)
-            Dim elementsMatchedByFields = ArrayBuilder(Of Boolean).GetInstance(_elementTypes.Length, False)
+            Dim elementsMatchedByFields = ArrayBuilder(Of Boolean).GetInstance(_elementTypes.Length, fillWithValue:=False)
             Dim members = ArrayBuilder(Of Symbol).GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length))
 
             Dim currentUnderlying As NamedTypeSymbol = _underlyingType

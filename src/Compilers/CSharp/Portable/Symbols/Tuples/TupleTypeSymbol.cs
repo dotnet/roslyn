@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<FieldSymbol> CollectTupleElementFields()
         {
-            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, fillWithValue: null);
 
             foreach (var member in GetMembers())
             {
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> CreateMembers()
         {
-            var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(_elementTypes.Length, false);
+            var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(_elementTypes.Length, fillWithValue: false);
             var members = ArrayBuilder<Symbol>.GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length));
 
             NamedTypeSymbol currentUnderlying = _underlyingType;
