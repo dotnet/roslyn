@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface ISymbolFinderEngineService : IWorkspaceService
     {
-        Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, 
             IStreamingFindReferencesProgress progress, 
             IImmutableSet<Document> documents,
@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     [ExportWorkspaceService(typeof(ISymbolFinderEngineService)), Shared]
     internal class DefaultSymbolFinderEngineService : ISymbolFinderEngineService
     {
-        public async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public async Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, 
             IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents, 
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                return await FindReferencesInCurrentProcessAsync(
+                await FindReferencesInCurrentProcessAsync(
                     symbolAndProjectId, solution, progress, 
                     documents, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesInCurrentProcessAsync(
+        public static Task FindReferencesInCurrentProcessAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, 
             IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents, 
             CancellationToken cancellationToken)

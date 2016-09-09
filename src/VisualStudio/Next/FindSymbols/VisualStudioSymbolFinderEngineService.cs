@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindSymbols
     [ExportWorkspaceService(typeof(ISymbolFinderEngineService), ServiceLayer.Host), Shared]
     internal class VisualStudioSymbolFinderEngineService : ISymbolFinderEngineService
     {
-        public Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public Task FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, 
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents, CancellationToken cancellationToken)
