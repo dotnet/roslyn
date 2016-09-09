@@ -23,30 +23,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new CSharpRemoveBracesCodeFixProvider());
         }
 
-        private IDictionary<OptionKey, object> RemoveBraces() =>
+        private IDictionary<OptionKey, object> RemoveBraces =>
             new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.UseBracesWherePossible, new CodeStyleOption<bool>(false, NotificationOption.Warning) } };
-        
+
+        private async Task TestRemoveBraces(string originalMarkup)
+        {
+            await TestMissingAsync(originalMarkup, options: RemoveBraces);
+        }
+
+        private async Task TestRemoveBraces(string originalMarkup, string expectedMarkup)
+        {
+            await TestAsync(originalMarkup, expectedMarkup, options: RemoveBraces);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForIfWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
         [|if|] (true) return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForElseWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -54,15 +62,14 @@ class Program
         [|else|] return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForElseWithChildIf()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -70,75 +77,70 @@ class Program
         [|else|] if (false) return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForForWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
         [|for|] (var i = 0; i < 5; i++) return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForForEachWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
         [|foreach|] (var c in ""test"") return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForWhileWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
         [|while|] (true) return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForDoWhileWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
         [|do|] return; while (true);
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForUsingWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -154,15 +156,14 @@ class Fizz : IDisposable
         throw new NotImplementedException();
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForUsingWithChildUsing()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -187,15 +188,14 @@ class Buzz : IDisposable
         throw new NotImplementedException();
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForLockWithoutBraces()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -204,15 +204,14 @@ class Program
             return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForLockWithChildLock()
         {
-            await TestMissingAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -224,15 +223,14 @@ class Program
             return;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForFixedoutWithBraces()
         {
-            await TestMissingAsync(
-            @"
-class Point 
+            await TestRemoveBraces(
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -247,15 +245,14 @@ class Program
             *p = 1;
     }
 }
-", options: RemoveBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task DoNotFireForFixedWithChildFixed()
         {
-            await TestMissingAsync(
-            @"
-class Point 
+            await TestRemoveBraces(
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -273,15 +270,14 @@ class Program
         }
     }
 }
-", options: RemoveBraces());
+");
         }
         
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForIfWithBraces()
         {
-            await TestAsync(
-   @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -289,25 +285,20 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         if (true) return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForElseWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -316,26 +307,21 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         if (true) { return; }
         else return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForIfNestedInElseWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -344,26 +330,21 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         if (true) return;
         else if (false) return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForForWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -374,26 +355,21 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         for (var i = 0; i < 5; i++)
             return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForForEachWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -401,25 +377,20 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         foreach (var c in ""test"") return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForWhileWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -427,25 +398,20 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
         while (true) return;
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForDoWhileWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -456,8 +422,7 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -465,18 +430,14 @@ class Program
             return;
         while (true);
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForUsingWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -495,8 +456,7 @@ class Fizz : IDisposable
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -511,19 +471,14 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForUsingWithBracesNestedInUsing()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -551,8 +506,7 @@ class Buzz : IDisposable
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -576,19 +530,14 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForLockWithBraces()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -600,8 +549,7 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -609,19 +557,14 @@ class Program
         lock (str)
             return;
     }
-}",
-
-   index: 0,
-   compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForLockWithBracesNestedInLock()
         {
-            await TestAsync(
-            @"
-class Program
+            await TestRemoveBraces(
+@"class Program
 {
     static void Main()
     {
@@ -636,8 +579,7 @@ class Program
     }
 }",
 
-   @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -648,19 +590,14 @@ class Program
             lock (str2)
                 return;
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForFixedWithBraces()
         {
-            await TestAsync(
-            @"
-class Point 
+            await TestRemoveBraces(
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -678,8 +615,7 @@ class Program
     }
 }",
 
-   @"
-class Point 
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -693,19 +629,14 @@ class Program
         fixed (int* p = &pt.x)
             *p = 1;
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveBraces)]
         public async Task FireForFixedWithoutBracesNestedInLock()
         {
-            await TestAsync(
-            @"
-class Point 
+            await TestRemoveBraces(
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -724,8 +655,7 @@ class Program
     }
 }",
 
-   @"
-class Point 
+@"class Point 
 { 
     public int x;
     public int y; 
@@ -740,11 +670,7 @@ class Program
         fixed (int* q = &pt.y)
             *p = 1;
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: RemoveBraces());
+}");
         }
 
         [Fact]
@@ -826,7 +752,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: RemoveBraces());
+            await TestRemoveBraces(input, expected);
         }
 
         [Fact]
@@ -904,7 +830,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: RemoveBraces());
+            await TestRemoveBraces(input, expected);
         }
 
         [Fact]
@@ -982,7 +908,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: RemoveBraces());
+            await TestRemoveBraces(input, expected);
         }
     }
 }

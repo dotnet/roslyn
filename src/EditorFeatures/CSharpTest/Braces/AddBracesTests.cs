@@ -23,13 +23,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
                 new CSharpAddBracesCodeFixProvider());
         }
 
-        private IDictionary<OptionKey, object> AddBraces() =>
+        private IDictionary<OptionKey, object> AddBraces =>
             new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.UseBracesWherePossible, new CodeStyleOption<bool>(true, NotificationOption.Warning) } };
+
+        private async Task TestAddBraces(string originalMarkup)
+        {
+            await TestMissingAsync(originalMarkup, options: AddBraces);
+        }
+
+        private async Task TestAddBraces(string originalMarkup, string expectedMarkup)
+        {
+            await TestAsync(originalMarkup, expectedMarkup, options: AddBraces);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForIfWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -38,13 +48,13 @@ class Program
         [|if|] (true) { return; }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -54,13 +64,13 @@ class Program
         [|else|] { return; }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithChildIf()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -70,13 +80,13 @@ class Program
         [|else|] if (false) return;
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -85,13 +95,13 @@ class Program
         [|for|] (var i = 0; i < 5; i++) { return; }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForEachWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -100,13 +110,13 @@ class Program
         [|foreach|] (var c in ""test"") { return; }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForWhileWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -115,13 +125,13 @@ class Program
         [|while|] (true) { return; }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForDoWhileWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -130,13 +140,13 @@ class Program
         [|do|] { return; } while (true);
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -156,13 +166,13 @@ class Fizz : IDisposable
         throw new NotImplementedException();
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithChildUsing()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -189,13 +199,13 @@ class Buzz : IDisposable
         throw new NotImplementedException();
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -208,13 +218,13 @@ class Program
         }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithChildLock()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -228,13 +238,13 @@ class Program
             return;
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForFixedWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Point 
 { 
@@ -253,13 +263,13 @@ class Program
         }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForFixedWithChildFixed()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Point 
 { 
@@ -279,13 +289,13 @@ class Program
         }
     }
 }
-", options: AddBraces());
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
    @"
 class Program
 {
@@ -305,16 +315,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForElseWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -336,16 +343,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfNestedInElseWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -367,16 +371,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -396,16 +397,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForEachWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -425,16 +423,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -454,16 +449,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForDoWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -484,16 +476,13 @@ class Program
         }
         while (true);
     }
-}",
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -530,17 +519,13 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBracesNestedInUsing()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -595,17 +580,13 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -628,17 +609,13 @@ class Program
             return;
         }
     }
-}",
-
-   index: 0,
-   compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBracesNestedInLock()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -667,17 +644,13 @@ class Program
                 return;
             }
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForFixedWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Point 
 { 
@@ -712,17 +685,13 @@ class Program
             *p = 1;
         }
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForFixedWithoutBracesNestedInLock()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Point 
 { 
@@ -759,11 +728,7 @@ class Program
             *p = 1;
         }
     }
-}",
-
-            index: 0,
-            compareTokens: false,
-            options: AddBraces());
+}");
         }
 
         [Fact]
@@ -850,7 +815,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: AddBraces());
+            await TestAddBraces(input, expected);
         }
 
         [Fact]
@@ -934,7 +899,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: AddBraces());
+            await TestAddBraces(input, expected);
         }
 
         [Fact]
@@ -1021,7 +986,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null, options: AddBraces());
+            await TestAddBraces(input, expected);
         }
     }
 }
