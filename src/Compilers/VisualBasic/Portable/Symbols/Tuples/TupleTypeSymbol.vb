@@ -85,7 +85,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleElementFields As ImmutableArray(Of FieldSymbol)
+        ''' <summary>
+        ''' Get the default fields for the tuple's elements (in order and cached).
+        ''' </summary>
+        Public ReadOnly Property TupleDefaultElementFields As ImmutableArray(Of FieldSymbol)
             Get
                 Dim isDefault As Boolean = Me._lazyFields.IsDefault
                 If isDefault Then
@@ -613,16 +616,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Dim index = If(TryCast(member, TupleFieldSymbol)?.TupleFieldId,
-                                DirectCast(member, TupleErrorFieldSymbol).TupleFieldId)
+                Dim field = DirectCast(member, FieldSymbol)
+                Dim index = field.TupleElementIndex
 
-                If index >= 0 Then
+                If field.IsDefaultTupleElement Then
                     Debug.Assert(builder(index) Is Nothing)
-                    builder(index) = DirectCast(member, FieldSymbol)
+                    builder(index) = field
                 End If
             Next
 
-            Debug.Assert(builder.All(Function(symbol) symbol IsNot Nothing))
+            Debug.Assert(builder.All(Function(s) s IsNot Nothing))
 
             Return builder.ToImmutableAndFree()
         End Function
@@ -636,16 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function CreateMembers() As ImmutableArray(Of Symbol)
-            Dim namesOfVirtualFields = ArrayBuilder(Of String).GetInstance(_elementTypes.Length)
-
-            If _elementNames.IsDefault Then
-                For i As Integer = 1 To _elementTypes.Length
-                    namesOfVirtualFields.Add(TupleMemberName(i))
-                Next
-            Else
-                namesOfVirtualFields.AddRange(_elementNames)
-            End If
-
+            Dim elementsMatchedByFields = ArrayBuilder(Of Boolean).GetInstance(_elementTypes.Length, False)
             Dim members = ArrayBuilder(Of Symbol).GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length))
 
             Dim currentUnderlying As NamedTypeSymbol = _underlyingType
@@ -671,44 +665,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             Dim tupleFieldIndex = currentFieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance)
                             If tupleFieldIndex >= 0 Then
-                                ' This Is a tuple backing field
+                                ' This is a tuple backing field
+
+                                ' adjust tuple index for nesting
+                                If currentNestingLevel <> 0 Then
+                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel
+                                End If
+
+                                Dim providedName = If(_elementNames.IsDefault, Nothing, _elementNames(tupleFieldIndex))
+                                Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
+                                Dim defaultName = TupleMemberName(tupleFieldIndex + 1)
+                                ' if provided name does not match the default one, 
+                                ' then default element as declared implicitly
+                                Dim defaultImplicitlyDeclared = Not IdentifierComparison.Equals(providedName, defaultName)
+
                                 Dim FieldSymbol = field.AsMember(currentUnderlying)
 
                                 If currentNestingLevel <> 0 Then
                                     ' This is a matching field, but it is in the extension tuple
-                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel
 
+                                    ' Add a field with default name. It should be present regardless.
+                                    ' Make it virtual since we are not at the top level
+                                    ' tupleFieldIndex << 1 because this is a default element
+                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, defaultName, tupleFieldIndex << 1, location, defaultImplicitlyDeclared))
 
-                                    Dim defaultName As String = TupleMemberName(tupleFieldIndex + 1)
-
-                                    ' Add a field with default name regardless
-                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, defaultName, -members.Count - 1, Nothing))
-
-                                    If Not IdentifierComparison.Equals(namesOfVirtualFields(tupleFieldIndex), defaultName) Then
-                                        ' The name given doesn't match default name ItemTupleTypeSymbol.RestPosition, etc.
+                                    If defaultImplicitlyDeclared AndAlso providedName IsNot Nothing Then
+                                        ' The name given doesn't match default name Item8, etc.
                                         ' Add a field with the given name
-                                        Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))
-
-                                        If IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
-                                            members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex, location))
-                                        Else
-                                            members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex, location))
-                                        End If
+                                        ' tupleFieldIndex << 1 + 1, because this is not a default element
+                                        members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared:=False))
                                     End If
-                                ElseIf IdentifierComparison.Equals(field.Name, namesOfVirtualFields(tupleFieldIndex)) Then
-                                    members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex,
-                                                                                    If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))))
-                                Else
-                                    ' Add a field with default name
-                                    members.Add(New TupleFieldSymbol(Me, FieldSymbol, -members.Count - 1))
+                                ElseIf defaultImplicitlyDeclared Then
+                                    Debug.Assert(IdentifierComparison.Equals(FieldSymbol.Name, defaultName), "top level underlying field must match default name")
 
-                                    ' Add a field with the given name
-                                    members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, namesOfVirtualFields(tupleFieldIndex), tupleFieldIndex,
-                                                                                            If(_elementLocations.IsDefault, Nothing, _elementLocations(tupleFieldIndex))))
+                                    ' Add the underlying field as an element. It should have the default name.
+                                    ' tupleFieldIndex << 1 because this is a default element
+                                    members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex << 1, location, defaultImplicitlyDeclared))
+
+                                    If providedName IsNot Nothing Then
+                                        ' Add a field with the given name
+                                        ' tupleFieldIndex << 1 + 1, because this is not a default element
+                                        members.Add(New TupleVirtualElementFieldSymbol(Me, FieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared:=False))
+                                    End If
+                                Else
+                                    Debug.Assert(IdentifierComparison.Equals(FieldSymbol.Name, defaultName), "top level underlying field must match default name")
+
+                                    ' tupleFieldIndex << 1 because this is a default element
+                                    members.Add(New TupleElementFieldSymbol(Me, FieldSymbol, tupleFieldIndex << 1, location, isImplicitlyDeclared:=False))
                                 End If
 
-                                namesOfVirtualFields(tupleFieldIndex) = Nothing ' mark as handled
-
+                                elementsMatchedByFields(tupleFieldIndex) = True ' mark as handled
                             ElseIf currentNestingLevel = 0 Then
                                 ' field at the top level didn't match a tuple backing field, simply add.
                                 members.Add(New TupleFieldSymbol(Me, field.AsMember(currentUnderlying), -members.Count - 1))
@@ -754,12 +760,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             currentFieldsForElements.Free()
 
-            ' At the end, add remaining virtual fields
-            For i As Integer = 0 To namesOfVirtualFields.Count - 1
-                Dim Name As String = namesOfVirtualFields(i)
-                If Name IsNot Nothing Then
-                    ' We couldn't find a backing field for this vitual field. It will be an error to access it. 
-                    Dim fieldRemainder As Integer ' one - based
+            ' At the end, add unmatched fields as error symbols
+            For i As Integer = 0 To elementsMatchedByFields.Count - 1
+                If Not elementsMatchedByFields(i) Then
+                    ' We couldn't find a backing field for this element. It will be an error to access it. 
+                    Dim fieldRemainder As Integer ' one-based
                     Dim fieldChainLength = NumberOfValueTuples(i + 1, fieldRemainder)
                     Dim container As NamedTypeSymbol = GetNestedTupleUnderlyingType(_underlyingType, fieldChainLength - 1).OriginalDefinition
 
@@ -768,16 +773,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                           ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper,
                                                                                container.Name & "." & TupleMemberName(fieldRemainder)))
 
-                    Dim defaultName As String = TupleMemberName(i + 1)
-                    ' Add a field with default name if the given name Is different
-                    If Name <> defaultName Then
-                        members.Add(New TupleErrorFieldSymbol(Me, defaultName, -members.Count - 1, Nothing, _elementTypes(i), diagnosticInfo))
-                    End If
+                    Dim providedName = If(_elementNames.IsDefault, Nothing, _elementNames(i))
+                    Dim location = If(_elementLocations.IsDefault, Nothing, _elementLocations(i))
+                    Dim defaultName = TupleMemberName(i + 1)
+                    ' if provided name does not match the default one, 
+                    ' then default element as declared implicitly
+                    Dim defaultImplicitlyDeclared = Not IdentifierComparison.Equals(providedName, defaultName)
 
-                    members.Add(New TupleErrorFieldSymbol(Me, Name, i,
-                                                      If(_elementLocations.IsDefault, Nothing, _elementLocations(i)),
-                                                      _elementTypes(i),
-                                                      diagnosticInfo))
+                    ' Add default element field. 
+                    ' i << 1 because this is a default element
+                    members.Add(New TupleErrorFieldSymbol(Me, defaultName, i << 1, If(defaultImplicitlyDeclared, Nothing, location), _elementTypes(i), diagnosticInfo, defaultImplicitlyDeclared))
+
+
+                    If defaultImplicitlyDeclared AndAlso providedName IsNot Nothing Then
+                        ' Add frieldly named element field. 
+                        ' (i << 1) + 1, because this is not a default element
+                        members.Add(New TupleErrorFieldSymbol(Me, providedName, (i << 1) + 1, location, _elementTypes(i), diagnosticInfo, isImplicitlyDeclared:=False))
+                    End If
                 End If
             Next
 

@@ -35,9 +35,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleFieldId As Integer
+        ''' <summary>
+        ''' If this field represents a tuple element (including the name match), 
+        ''' id is an index of the element (zero-based).
+        ''' Otherwise, (-1 - [index in members array]);
+        ''' </summary>
+        Public Overrides ReadOnly Property TupleElementIndex As Integer
             Get
-                Return Me._tupleElementIndex
+                If _tupleElementIndex < 0 Then
+                    Return -1
+                End If
+
+                Return _tupleElementIndex >> 1
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsDefaultTupleElement As Boolean
+            Get
+                ' not negative and even
+                Return (_tupleElementIndex And ((1 << 31) Or 1)) = 0
             End Get
         End Property
 
@@ -86,9 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(
-                Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode()),
-                             Me.Name.GetHashCode())
+            Return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -111,6 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _locations As ImmutableArray(Of Location)
 
+        ' default tuple elements like Item1 Or Item20 could be provided by the user or
+        ' otherwise implicitly declared by compiler
+        Private ReadOnly _isImplicitlyDeclared As Boolean
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._locations
@@ -119,13 +137,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Symbol.GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Me._locations)
+                Return If(_isImplicitlyDeclared,
+                    ImmutableArray(Of SyntaxReference).Empty,
+                    GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(_locations))
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return False
+                Return _isImplicitlyDeclared
             End Get
         End Property
 
@@ -155,9 +175,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location, isImplicitlyDeclared As Boolean)
             MyBase.New(container, underlyingField, tupleFieldId)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
+            Me._isImplicitlyDeclared = isImplicitlyDeclared
         End Sub
     End Class
 
@@ -188,8 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementOrdinal As Integer, location As Location)
-            MyBase.New(container, underlyingField, tupleElementOrdinal, location)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementOrdinal As Integer, location As Location, isImplicitlyDeclared As Boolean)
+            MyBase.New(container, underlyingField, tupleElementOrdinal, location, isImplicitlyDeclared)
             Debug.Assert(name <> Nothing)
             Debug.Assert(name <> underlyingField.Name)
             Me._name = name

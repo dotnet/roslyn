@@ -4313,7 +4313,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mItem1.GetAttributes().IsEmpty)
             'Assert.Null(mItem1.GetUseSiteDiagnostic())
             Assert.True(mItem1.Locations.IsEmpty)
-            Assert.False(mItem1.IsImplicitlyDeclared)
+            Assert.True(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
 
         End Sub

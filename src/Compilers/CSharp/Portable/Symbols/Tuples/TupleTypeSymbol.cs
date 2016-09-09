@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Get the fields for the tuple's elements (in order and cached).
+        /// Get the default fields for the tuple's elements (in order and cached).
         /// </summary>
         public override ImmutableArray<FieldSymbol> TupleDefaultElementFields
         {
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> CreateMembers()
         {
-            var elementsMatchedByFields = new bool[_elementTypes.Length];
+            var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(_elementTypes.Length, false);
             var members = ArrayBuilder<Symbol>.GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length));
 
             NamedTypeSymbol currentUnderlying = _underlyingType;
@@ -926,8 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             currentFieldsForElements.Free();
 
-            // At the end, add remaining virtual fields
-            for (int i = 0; i < elementsMatchedByFields.Length; i++)
+            // At the end, add unmatched fields as error symbols
+            for (int i = 0; i < elementsMatchedByFields.Count; i++)
             {
                 if (!elementsMatchedByFields[i])
                 {
@@ -964,6 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            elementsMatchedByFields.Free();
             return members.ToImmutableAndFree();
         }
 
