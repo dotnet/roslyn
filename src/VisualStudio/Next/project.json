@@ -7,9 +7,9 @@
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
-		"version": "14.3.25407",
-		"suppressParent": "all"
-	},
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
     "Microsoft.ServiceHub.Client": "1.0.103-rc",
     "Newtonsoft.Json": "8.0.3",
     "System.Collections.Immutable": "1.2.0"
