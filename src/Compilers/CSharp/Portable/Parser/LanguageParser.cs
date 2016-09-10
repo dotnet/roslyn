@@ -2406,6 +2406,17 @@ tryAgain:
                     }
                 }
 
+                var deconstruction = ParseDeconstructionDeclarationAssignment();
+                if (deconstruction != null)
+                {
+                    var mods = _pool.Allocate();
+                    var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+                    var result = _syntaxFactory.DeconstructionDeclarationStatement(mods.ToList(), deconstruction, semicolon);
+                    _pool.Free(mods);
+
+                    return _syntaxFactory.GlobalStatement(result);
+                }
+
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void). Parse that.
