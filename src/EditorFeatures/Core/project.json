@@ -12,7 +12,15 @@
 	"Microsoft.VisualStudio.Language.Intellisense": {
         "version": "14.3.25407",
         "suppressParent": "all"
-    }
+    },
+    "Microsoft.VisualStudio.Imaging": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
+    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
   },
   "frameworks": {
     "net46": {}
