@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsyncWorker(Project project)
             {
-                if (_currentDocument != null && _currentDocument.Project != project)
+                if (_searchCurrentDocument && _currentDocument?.Project != project)
                 {
                     return;
                 }
