@@ -195,7 +195,105 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyType;
             }
 
-            var declarator = VariableDeclaratorNode;
+            if (this.SyntaxNode.Kind() == SyntaxKind.VariableDeclarator)
+            {
+                return GetFieldTypeFromVariableDeclarator(ref fieldsBeingBound);
+            }
+            else
+            {
+                Debug.Assert(this.SyntaxNode.Kind() == SyntaxKind.SingleVariableDesignation);
+                return GetFieldTypeFromVariableDesignation(ref fieldsBeingBound);
+            }
+        }
+
+        private static TypeSyntax GetFieldTypeSyntax(VariableDesignationSyntax designation)
+        {
+            var parent = designation.Parent;
+            while (parent.Kind() != SyntaxKind.TypedVariableComponent)
+            {
+                parent = designation.Parent;
+            }
+            return ((TypedVariableComponentSyntax)parent).Type;
+        }
+
+        private TypeSymbol GetFieldTypeFromVariableDesignation(ref ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            var designation = (SingleVariableDesignationSyntax)this.SyntaxNode;
+            var typeSyntax = GetFieldTypeSyntax(designation);
+
+            var compilation = this.DeclaringCompilation;
+
+            var diagnostics = DiagnosticBag.GetInstance();
+
+            // no associated symbols
+            var binderFactory = compilation.GetBinderFactory(SyntaxTree);
+            var binder = binderFactory.GetBinder(typeSyntax);
+
+            binder = binder.WithContainingMemberOrLambda(this);
+
+            // it is script class
+            bool isVar;
+            TypeSymbol type = binder.BindType(typeSyntax, diagnostics, out isVar);
+
+            Debug.Assert((object)type != null || isVar);
+
+            //if (isVar)
+            //{
+            //    if (this.IsConst)
+            //    {
+            //        diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, typeSyntax.Location);
+            //    }
+
+            //    if (fieldsBeingBound.ContainsReference(this))
+            //    {
+            //        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
+            //        type = null;
+            //    }
+            //    else if (fieldSyntax.Declaration.Variables.Count > 1)
+            //    {
+            //        diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
+            //    }
+            //    else
+            //    {
+            //        fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
+
+            //        var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
+            //        var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)designation.Initializer, designation);
+
+            //        if (initializerOpt != null)
+            //        {
+            //            if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
+            //            {
+            //                type = initializerOpt.Type;
+            //            }
+
+            //            _lazyFieldTypeInferred = 1;
+            //        }
+            //    }
+
+            //    if ((object)type == null)
+            //    {
+            //        type = binder.CreateErrorType("var");
+            //    }
+            //}
+
+            // update the lazyType only if it contains value last seen by the current thread:
+            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            {
+                //TypeChecks(type, fieldSyntax, diagnostics);
+
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+
+                state.NotePartComplete(CompletionPart.Type);
+            }
+
+            diagnostics.Free();
+            return _lazyType;
+        }
+
+        private TypeSymbol GetFieldTypeFromVariableDeclarator(ref ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            var declarator = (VariableDeclaratorSyntax)this.SyntaxNode;
             var fieldSyntax = GetFieldDeclaration(declarator);
             var typeSyntax = fieldSyntax.Declaration.Type;
 

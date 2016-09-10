@@ -3295,8 +3295,77 @@ class C
 System.Console.Write($""{x} {y}"");
 ";
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "hello 42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      151 (0x97)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1,
+                string V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldstr      ""hello""
+    IL_000c:  ldc.i4.s   42
+    IL_000e:  newobj     ""System.ValueTuple<string, int>..ctor(string, int)""
+    IL_0013:  dup
+    IL_0014:  ldfld      ""string System.ValueTuple<string, int>.Item1""
+    IL_0019:  stloc.2
+    IL_001a:  ldfld      ""int System.ValueTuple<string, int>.Item2""
+    IL_001f:  stloc.3
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0026:  ldloc.2
+    IL_0027:  stfld      ""string x""
+    IL_002c:  ldarg.0
+    IL_002d:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0032:  ldloc.3
+    IL_0033:  stfld      ""int y""
+    IL_0038:  ldstr      ""{0} {1}""
+    IL_003d:  ldarg.0
+    IL_003e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0043:  ldfld      ""string x""
+    IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004e:  ldfld      ""int y""
+    IL_0053:  box        ""int""
+    IL_0058:  call       ""string string.Format(string, object, object)""
+    IL_005d:  call       ""void System.Console.Write(string)""
+    IL_0062:  nop
+    IL_0063:  ldnull
+    IL_0064:  stloc.1
+    IL_0065:  leave.s    IL_0081
+  }
+  catch System.Exception
+  {
+    IL_0067:  stloc.s    V_4
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.s   -2
+    IL_006c:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0077:  ldloc.s    V_4
+    IL_0079:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_007e:  nop
+    IL_007f:  leave.s    IL_0096
+  }
+  IL_0081:  ldarg.0
+  IL_0082:  ldc.i4.s   -2
+  IL_0084:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0089:  ldarg.0
+  IL_008a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_008f:  ldloc.1
+  IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_0095:  nop
+  IL_0096:  ret
+}");
         }
 
         [Fact]
@@ -3309,7 +3378,59 @@ System.Console.Write($""{x}"");
 ";
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            var verifier = CompileAndVerify(comp, expectedOutput: "1");
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      101 (0x65)
+  .maxstack  2
+  .locals init (int V_0,
+                object V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_000d:  ldc.i4.1
+    IL_000e:  stfld      ""int x""
+    IL_0013:  ldstr      ""{0}""
+    IL_0018:  ldarg.0
+    IL_0019:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_001e:  ldfld      ""int x""
+    IL_0023:  box        ""int""
+    IL_0028:  call       ""string string.Format(string, object)""
+    IL_002d:  call       ""void System.Console.Write(string)""
+    IL_0032:  nop
+    IL_0033:  ldnull
+    IL_0034:  stloc.1
+    IL_0035:  leave.s    IL_004f
+  }
+  catch System.Exception
+  {
+    IL_0037:  stloc.2
+    IL_0038:  ldarg.0
+    IL_0039:  ldc.i4.s   -2
+    IL_003b:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0040:  ldarg.0
+    IL_0041:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0046:  ldloc.2
+    IL_0047:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_004c:  nop
+    IL_004d:  leave.s    IL_0064
+  }
+  IL_004f:  ldarg.0
+  IL_0050:  ldc.i4.s   -2
+  IL_0052:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0057:  ldarg.0
+  IL_0058:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_005d:  ldloc.1
+  IL_005e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_0063:  nop
+  IL_0064:  ret
+}
+");
         }
     }
 }

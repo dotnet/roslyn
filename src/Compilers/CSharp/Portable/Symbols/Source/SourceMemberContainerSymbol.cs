@@ -3114,8 +3114,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.DeconstructionGlobalStatement:
                         {
-                            var variables = ((DeconstructionGlobalStatementSyntax)m).Assignment.VariableComponent;
+                            var deconstructionSyntax = ((DeconstructionGlobalStatementSyntax)m).Statement;
+                            var variables = deconstructionSyntax.Assignment.VariableComponent;
                             AddFields(variables, builder, diagnostics);
+
+                            if (reportMisplacedGlobalCode)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(deconstructionSyntax));
+                            }
+
+                            AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, null, deconstructionSyntax);
                         }
                         break;
 
@@ -3159,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    var fieldSymbol = new SourceMemberFieldSymbol(this, (SingleVariableDesignationSyntax)member, DeclarationModifiers.None, modifierErrors: false, diagnostics: diagnostics);
+                    var fieldSymbol = new SourceMemberFieldSymbol(this, (SingleVariableDesignationSyntax)member, DeclarationModifiers.Public, modifierErrors: false, diagnostics: diagnostics);
                     builder.NonTypeNonIndexerMembers.Add(fieldSymbol);
                     break;
 

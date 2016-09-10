@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : WellKnownMemberNames.ExplicitConversionName);
                     break;
                 case SyntaxKind.DeconstructionGlobalStatement:
-                    AddNonTypeMemberNames(((Syntax.InternalSyntax.DeconstructionGlobalStatementSyntax)member).Assignment.VariableComponent, set, ref anyNonTypeMembers);
+                    AddNonTypeMemberNames(((Syntax.InternalSyntax.DeconstructionGlobalStatementSyntax)member).Statement.Assignment.VariableComponent, set, ref anyNonTypeMembers);
                     break;
                 case SyntaxKind.GlobalStatement:
                     anyNonTypeMembers = true;

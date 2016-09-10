@@ -1548,59 +1548,62 @@ class C
             {
                 N(SyntaxKind.DeconstructionGlobalStatement);
                 {
-                    N(SyntaxKind.VariableComponentAssignment);
+                    N(SyntaxKind.DeconstructionDeclarationStatement);
                     {
-                        N(SyntaxKind.ParenthesizedVariableComponent);
+                        N(SyntaxKind.VariableComponentAssignment);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TypedVariableComponent);
+                            N(SyntaxKind.ParenthesizedVariableComponent);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypedVariableComponent);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
                                 }
-                                N(SyntaxKind.SingleVariableDesignation);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TypedVariableComponent);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "x");
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.TypedVariableComponent);
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TupleExpression);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
                                 }
-                                N(SyntaxKind.SingleVariableDesignation);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "y");
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.TupleExpression);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken);
-                                }
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
