@@ -34,6 +34,10 @@
         "version": "14.3.25407",
         "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.ImageCatalog": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
     "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
         "version": "14.3.25407",
         "suppressParent": "all"

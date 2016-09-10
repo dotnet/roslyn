@@ -6,7 +6,7 @@
     <description>Dev15BinariesForRoslyn</description>
     <language>en-US</language>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <version>1.0.0.0</version>
+    <version>4.0.0.0</version>
     <authors>Cyrus Najmabadi</authors>
     <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=394369</licenseUrl>
     <projectUrl>http://msdn.com/roslyn</projectUrl>
@@ -17,5 +17,12 @@
     <file src="lib\net45\Microsoft.VisualStudio.Language.NavigateTo.Interfaces.dll" target="lib\net45" />
     <file src="lib\net45\Microsoft.VisualStudio.Shell.15.0.dll" target="lib\net45" />
     <file src="lib\net45\Microsoft.VisualStudio.Shell.Framework.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.Text.UI.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.Text.Data.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.CoreUtility.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.Language.Intellisense.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.Text.Logic.dll" target="lib\net45" />
+    <file src="lib\net45\Microsoft.VisualStudio.Text.UI.Wpf.dll" target="lib\net45" />
+
   </files>
 </package>

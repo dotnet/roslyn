@@ -4,6 +4,10 @@
         "version": "14.3.25407",
         "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.Text.UI.Wpf": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
   },
   "frameworks": {
     "net46": { }

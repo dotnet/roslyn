@@ -9,8 +9,14 @@
 		"version": "14.3.25407",
 		"suppressParent": "all"
 	},
-    "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
-    "Microsoft.VisualStudio.Language.StandardClassification": "14.3.25407",
+    "Microsoft.VisualStudio.ImageCatalog": {
+		"version": "14.3.25407",
+		"suppressParent": "all"
+	},
+    "Microsoft.VisualStudio.Language.StandardClassification": {
+        "version": "14.3.25407",
+        "suppressParent": "all"
+    },
   },
   "frameworks": {
     ".NETFramework,Version=v4.6": { }
