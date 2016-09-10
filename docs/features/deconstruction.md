@@ -40,7 +40,6 @@ public class Deconstructable
 Design
 ------
 This design doc will cover two kinds of deconstruction: deconstruction into existing variables (deconstruction-assignment) and deconstruction into new variables (deconstruction-declaration).
-It is still very much work-in-progress.
 
 Here is an example of deconstruction-assignment:
 ```C#
@@ -65,15 +64,17 @@ class C
 
 ###Deconstruction-assignment (deconstruction into existing variables):
 
-This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-literal`.
-In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it, collect its `out` parameters and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple literal or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
+This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-expression`.
+In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple literal or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
 
-The existing assignment binding currently checks if the variable on its left-hand-side can be assigned to and if the two sides are compatible.
-It will be updated to support deconstruction-assignment, ie. when the left-hand-side is a tuple-literal/tuple-expression:
+If the left-hand-side is nested the process will be repeated. For instance, in `(x, (y, z)) = deconstructable;`, `deconstructable` will be deconstructed into two parts and its second part will be further deconstructed. 
 
-- Needs to break the right-hand-side into items. That step is un-necessary if the right-hand-side is already a tuple though.
-- Each item on the left needs to be assignable and needs to be compatible with corresponding position on the right (resulting from previous step).
-- Needs to handle nesting case such as `(x, (y, z)) = M();`, but note that the second item in the top-level group has no discernable type.
+In the case where the expression on the right is a tuple expression, it is first given a type. So in `long x; string y; (x, y) = (1, null);` the literals on the right-hand-side are typed as `long` and `string` before the deconstruction even starts, which means that no conversions will be needed during the deconstruction steps.
+
+We noted already that tuples (which are syntactic sugar for the `System.ValueTuple` underlying type) don't need to invoke Deconstruct.
+The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the `Deconstruct` pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
+
+TODO: return values
 
 #### Evaluation order
 
@@ -129,28 +130,22 @@ evaluate side-effect on the left-hand-side variables
 evaluate Deconstruct passing the references directly in
 ```
 
-In the case where the expression on the right is a tuple, the evaluation order becomes:
-```
-evaluate side-effect on the left-hand-side variables
-evaluate the right-hand-side and do a tuple conversion (using a fake tuple representing the types in the left-hand-side)
-assign element-wise from the right to the left
-```
-
 #### Resolution of the Deconstruct method
 
 The resolution is equivalent to typing `rhs.Deconstruct(out var x1, out var x2, ...);` with the appropriate number of parameters to deconstruct into.
 It is based on normal overload resolution.
-This implies that `rhs` cannot be dynamic.
+This implies that `rhs` cannot be dynamic and that none of the parameters of the `Deconstruct` method can be type arguments. A `Deconstruct<T>(out T x1, out T x2)` method will not be found.
 Also, the `Deconstruct` method must be an instance method or an extension (but not a static method).
-
-#### Tuple Deconstruction
-
-Note that tuples (`System.ValueTuple`) don't need to invoke Deconstruct.
-`System.Tuple` are not recognized as tuples, and so will rely on Deconstruct (which will be provided for up to 3 nestings deep, that is 21 elements)
 
 
 ###Deconstruction-declaration (deconstruction into new variables):
 
+Deconstruction-declarations can be thought of as two steps: (1) declaring new locals, and (2) applying a deconstruction-assignment into those locals.
+The syntax for deconstruction is more involved and multiple forms are allowed. The simplest case is `(int x, string y)`. Variants include nested declarations like `(int x, (string y, long z))` (which declares 3 locals) and implicitly typed declarations like `(var x, var y)`. The latter can also be written using the shorthand `var (x, y)`.
+
+TODO: infering types in tuple literals
+
+TODO: update the grammar
 ```ANTLR
 declaration_statement
     : local_variable_declaration ';'
@@ -199,26 +194,10 @@ for_initializer
     | deconstruction_declaration // new
     | statement_expression_list
     ;
-
-let_clause
-    : 'let' identifier '=' expression
-    | 'let' deconstruction_identifiers '=' expression // new
-    ;
-
-from_clause
-    : 'from' type? identifier 'in' expression
-	| 'from' deconstuction_variables 'in' expression // new
-	| 'from' deconstruction_identifiers 'in' expression // new
-    ;
 ```
-
-It would pick up the behavior of each contexts where new variables can be declared (TODO: need to list). For instance, in LINQ, new variables go into a transparent identifiers.
-It is seen as deconstructing into separate variables (we don't introduce transparent identifiers in contexts where they didn't exist previously).
-
-Just like deconstruction-assignment, deconstruction-declaration does not need to invoke `Deconstruct` for tuple types.
 
 **References**
 
 [C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/roslyn/issues/11031)
-
+The [What's new in C# 7.0](https://blogs.msdn.microsoft.com/dotnet/2016/08/24/whats-new-in-csharp-7-0) post has a section on deconstructions.
 
