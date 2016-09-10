@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override string TryGetDescription(
                 Project project, SyntaxNode node, SemanticModel semanticModel)
             {
+                // If 'TryGetDescription' returns 'null' then that means that we don't actually want to add a reference
+                // in this case.  As such, just continue to return the 'null' outwards.
                 var description = base.TryGetDescription(project, node, semanticModel);
                 if (description == null)
                 {
