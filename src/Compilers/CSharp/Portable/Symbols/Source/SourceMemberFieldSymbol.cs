@@ -44,6 +44,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal SourceMemberFieldSymbol(
+            SourceMemberContainerTypeSymbol containingType,
+            SingleVariableDesignationSyntax designation,
+            DeclarationModifiers modifiers, // TODO do we need modifiers?
+            bool modifierErrors,  // TODO do we need modifier errors?
+            DiagnosticBag diagnostics)
+            : base(containingType, designation.Identifier.ValueText, designation.GetReference(), designation.Identifier.GetLocation())
+        {
+            _modifiers = modifiers;
+            _hasInitializer = false;
+
+            this.CheckAccessibility(diagnostics);
+
+            if (!modifierErrors)
+            {
+                this.ReportModifiersDiagnostics(diagnostics);
+            }
+        }
+
         protected sealed override DeclarationModifiers Modifiers
         {
             get
@@ -147,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsPointerFieldSyntactically()
         {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
+            var declaration = GetFieldDeclaration(this.SyntaxNode).Declaration;
             if (declaration.Type.Kind() == SyntaxKind.PointerType)
             {
                 // public int * Blah;   // pointer

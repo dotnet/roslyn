@@ -3285,5 +3285,31 @@ class C
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void InScript()
+        {
+            var source =
+@"
+(string x, int y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "hello 42");
+        }
+
+        [Fact]
+        public void InScript2()
+        {
+            var source =
+@"
+var x = 1;
+System.Console.Write($""{x}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
     }
 }

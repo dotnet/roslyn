@@ -2409,12 +2409,8 @@ tryAgain:
                 var deconstruction = ParseDeconstructionDeclarationAssignment();
                 if (deconstruction != null)
                 {
-                    var mods = _pool.Allocate();
                     var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                    var result = _syntaxFactory.DeconstructionDeclarationStatement(mods.ToList(), deconstruction, semicolon);
-                    _pool.Free(mods);
-
-                    return _syntaxFactory.GlobalStatement(result);
+                    return _syntaxFactory.DeconstructionGlobalStatement(deconstruction, semicolon);
                 }
 
                 // Everything that's left -- methods, fields, properties, 

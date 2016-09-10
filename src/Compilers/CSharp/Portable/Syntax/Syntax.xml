@@ -1886,7 +1886,13 @@
     </Field>
   </Node>
   -->
-
+  <Node Name="DeconstructionGlobalStatementSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="DeconstructionGlobalStatement"/>
+    <Field Name="Assignment" Type="VariableComponentAssignmentSyntax"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
   <Node Name="DeconstructionDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="DeconstructionDeclarationStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
