@@ -1,13 +1,13 @@
 ﻿{
-  "dependencies": {
-    "Dev15BinariesForRoslyn": "4.0.0.0",
-    "System.Collections.Immutable": "1.2.0",
-    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
+    "dependencies": {
+        "Dev15BinariesForRoslyn": "4.0.0.0",
+        "System.Collections.Immutable": "1.2.0",
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
     },
-  },
-  "frameworks": {
-    "net46": { }
-  }
+    "frameworks": {
+        "net46": { }
+    }
 }

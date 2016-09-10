@@ -1,18 +1,18 @@
 ﻿{
-  "dependencies": { 
-    "Microsoft.VisualStudio.Text.UI": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "Microsoft.VisualStudio.Text.UI": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI.Wpf": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
     },
-    "Microsoft.VisualStudio.Text.UI.Wpf": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "frameworks": {
+        "net46": { }
     },
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "runtimes": {
+        "win7": { }
+    }
 }
