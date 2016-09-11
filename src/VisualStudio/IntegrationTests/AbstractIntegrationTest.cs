@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Roslyn.VisualStudio.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -17,6 +18,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public void Dispose()
         {
             _visualStudio.Dispose();
+        }
+
+        protected void Wait(double seconds)
+        {
+            var timeout = TimeSpan.FromMilliseconds(seconds * 1000);
+            Thread.Sleep(timeout);
         }
     }
 }
