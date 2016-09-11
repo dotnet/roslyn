@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // hold onto last snapshot
             private CancellationTokenSource _globalOperationCancellationSource;
             private ChecksumScope _lastSnapshot;
+            private bool _synchronize;
 
             public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
                 base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
@@ -54,6 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // cancel updating solution checksum if a global operation (such as loading solution, building solution and etc) has started
                 await UpdateSolutionChecksumAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
+
+                // check whether we had bulk change that require asset synchronization
+                if (_synchronize)
+                {
+                    await SynchronizeAssets().ConfigureAwait(false);
+                }
             }
 
             protected override void PauseOnGlobalOperation()
@@ -112,16 +119,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
-                // special initial case
-                if (e.Kind == WorkspaceChangeKind.SolutionAdded)
+                // special bulk update case
+                if (e.Kind == WorkspaceChangeKind.SolutionAdded ||
+                    e.Kind == WorkspaceChangeKind.ProjectAdded)
                 {
-                    CreateInitialSolutionChecksum();
+                    _synchronize = true;
+                    EnqueueChecksumUpdate();
                     return;
                 }
 
                 // record that we are busy
                 UpdateLastAccessTime();
 
+                EnqueueChecksumUpdate();
+            }
+
+            private void EnqueueChecksumUpdate()
+            {
                 // event will raised sequencially. no concurrency on this handler
                 if (_event.CurrentCount > 0)
                 {
@@ -146,27 +160,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private void CreateInitialSolutionChecksum()
+            private async Task SynchronizeAssets()
             {
-                // initial solution checksum creation won't be affected by global operation.
-                // cancellation can only happen if it is being shutdown.
-                Task.Run(async () =>
+                _synchronize = false;
+
+                var remoteHostClient = await _service.GetRemoteHostClientAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                if (remoteHostClient == null)
                 {
-                    await UpdateSolutionChecksumAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                    return;
+                }
 
-                    var remoteHostClient = await _service.GetRemoteHostClientAsync(ShutdownCancellationToken).ConfigureAwait(false);
-                    if (remoteHostClient == null)
-                    {
-                        return;
-                    }
-
-                    var solution = _service.Workspace.CurrentSolution;
-                    using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
-                    {
-                        // ask remote host to sync initial asset
-                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
-                    }
-                }, ShutdownCancellationToken);
+                var solution = _service.Workspace.CurrentSolution;
+                using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
+                {
+                    // ask remote host to sync initial asset
+                    await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
+                }
             }
 
             private static void CancelAndDispose(CancellationTokenSource cancellationSource)
