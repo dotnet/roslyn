@@ -6421,7 +6421,7 @@ class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11288")]
+        [Fact]
         [WorkItem(11288, "https://github.com/dotnet/roslyn/issues/11288")]
         public void TupleConversion02()
         {
@@ -6436,7 +6436,10 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-            );
+                // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
+                //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((long c, long d))(1, null, 2)").WithArguments("3", "(long c, long d)").WithLocation(6, 29)
+                );
         }
 
         [Fact]
@@ -7078,7 +7081,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "{1, qq1}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11289")]
+        [Fact]
         [WorkItem(11289, "https://github.com/dotnet/roslyn/issues/11289")]
         public void TupleConvertedTypeUDC02()
         {

@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            return _serializer.SerializeChecksumObjectWithChildrenAsync(this, writer, cancellationToken);
+            _serializer.SerializeChecksumObjectWithChildren(this, writer, cancellationToken);
+            return SpecializedTasks.EmptyTask;
         }
 
         private static Checksum CreateChecksum(string kind, object[] children)
