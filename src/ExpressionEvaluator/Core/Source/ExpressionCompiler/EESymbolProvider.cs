@@ -26,8 +26,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public abstract TTypeSymbol GetTypeSymbolForSerializedType(string typeName);
 
-        public abstract TLocalSymbol GetLocalVariable(string name, int slotIndex, LocalInfo<TTypeSymbol> info, ImmutableArray<bool> dynamicFlagsOpt);
-        public abstract TLocalSymbol GetLocalConstant(string name, TTypeSymbol type, ConstantValue value, ImmutableArray<bool> dynamicFlagsOpt);
+        public abstract TLocalSymbol GetLocalVariable(
+            string name,
+            int slotIndex,
+            LocalInfo<TTypeSymbol> info,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt);
+
+        public abstract TLocalSymbol GetLocalConstant(
+            string name,
+            TTypeSymbol type,
+            ConstantValue value,
+            ImmutableArray<bool> dynamicFlagsOpt,
+            ImmutableArray<string> tupleElementNamesOpt);
 
         /// <exception cref="BadImageFormatException"></exception>
         public abstract IAssemblySymbol GetReferencedAssembly(AssemblyReferenceHandle handle);

@@ -1,4 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -6,7 +7,6 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -21,7 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _method = method
         End Sub
 
-        Public Overrides Function GetLocalVariable(name As String, slotIndex As Integer, info As LocalInfo(Of TypeSymbol), dynamicFlagsOpt As ImmutableArray(Of Boolean)) As LocalSymbol
+        Public Overrides Function GetLocalVariable(
+            name As String,
+            slotIndex As Integer,
+            info As LocalInfo(Of TypeSymbol),
+            dynamicFlagsOpt As ImmutableArray(Of Boolean),
+            tupleElementNamesOpt As ImmutableArray(Of String)) As LocalSymbol
+
             ' ignore dynamic flags (in theory the CDI might be present in bad PDB)
 
             ' Custom modifiers can be dropped since binding ignores custom
@@ -31,7 +37,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return New EELocalSymbol(_method, EELocalSymbol.NoLocations, name, slotIndex, kind, info.Type, info.IsByRef, info.IsPinned, canScheduleToStack:=False)
         End Function
 
-        Public Overrides Function GetLocalConstant(name As String, type As TypeSymbol, value As ConstantValue, dynamicFlagsOpt As ImmutableArray(Of Boolean)) As LocalSymbol
+        Public Overrides Function GetLocalConstant(
+            name As String,
+            type As TypeSymbol,
+            value As ConstantValue,
+            dynamicFlagsOpt As ImmutableArray(Of Boolean),
+            tupleElementNamesOpt As ImmutableArray(Of String)) As LocalSymbol
+
             ' ignore dynamic flags (in theory the CDI might be present in bad PDB)
             Return New EELocalConstantSymbol(_method, name, type, value)
         End Function
