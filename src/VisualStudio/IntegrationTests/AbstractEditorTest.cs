@@ -11,16 +11,14 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    public abstract class AbstractEditorTests : IDisposable
+    public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspaceOutOfProc;
-        private readonly Editor_OutOfProc _editor;
+        protected readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspaceOutOfProc;
+        protected readonly Editor_OutOfProc _editor;
 
-        protected AbstractEditorTests(VisualStudioInstanceFactory instanceFactory, string solutionName)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-
             _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
@@ -33,11 +31,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected abstract string LanguageName { get; }
-
-        public void Dispose()
-        {
-            _visualStudio.Dispose();
-        }
 
         private void WaitForAsyncOperations(string featuresToWaitFor)
         {
