@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var project = symbolAndProject.Item2;
 
             var displayName = GetDisplayName(symbol);
-            await context.SetSearchLabelAsync(displayName).ConfigureAwait(false);
+            context.SetSearchLabel(displayName);
 
             var progressAdapter = new ProgressAdapter(project.Solution, context);
 

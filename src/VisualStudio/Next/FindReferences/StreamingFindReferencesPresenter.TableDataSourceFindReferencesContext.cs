@@ -119,15 +119,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             #region FindReferencesContext overrides.
 
-            public override Task SetSearchLabelAsync(string displayName)
+            public override void SetSearchLabel(string displayName)
             {
                 var labelProperty = _findReferencesWindow.GetType().GetProperty("Label");
                 if (labelProperty != null)
                 {
                     labelProperty.SetValue(_findReferencesWindow, displayName);
                 }
-
-                return SpecializedTasks.EmptyTask;
             }
 
             public override async Task OnCompletedAsync()

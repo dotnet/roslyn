@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public virtual Task SetSearchLabelAsync(string displayName) => SpecializedTasks.EmptyTask;
+        public virtual void SetSearchLabel(string displayName)
+        {
+        }
 
         public virtual Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
 
