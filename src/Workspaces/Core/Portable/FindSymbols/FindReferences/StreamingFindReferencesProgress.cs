@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
     }
 
+    /// <summary>
+    /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
+    /// so it can be used from the new streaming find references APIs.
+    /// </summary>
     internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferencesProgress
     {
         private readonly IFindReferencesProgress _progress;

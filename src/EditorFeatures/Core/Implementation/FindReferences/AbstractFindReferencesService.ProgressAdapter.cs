@@ -51,42 +51,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
 
             // Simple context forwarding functions.
-            public Task ReportProgressAsync(int current, int maximum)
-            {
-                _context.ReportProgress(current, maximum);
-                return SpecializedTasks.EmptyTask;
-            }
+            public Task ReportProgressAsync(int current, int maximum) => 
+                _context.ReportProgressAsync(current, maximum);
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private DefinitionItem GetDefinitionItem(ISymbol definition)
+            private DefinitionItem GetDefinitionItem(SymbolAndProjectId definition)
             {
-                return _definitionToItem.GetOrAdd(definition, _definitionFactory);
+                return _definitionToItem.GetOrAdd(definition.Symbol, _definitionFactory);
             }
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
             {
-                _context.OnDefinitionFound(GetDefinitionItem(definition.Symbol));
-                return SpecializedTasks.EmptyTask;
+                return _context.OnDefinitionFoundAsync(GetDefinitionItem(definition));
             }
 
-            public Task OnReferenceFoundAsync(
-                SymbolAndProjectId definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
                 var referenceItem = location.TryCreateSourceReferenceItem(
-                    GetDefinitionItem(definition.Symbol));
+                    GetDefinitionItem(definition));
 
                 if (referenceItem != null)
                 {
-                    _context.OnReferenceFound(referenceItem);
+                    await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
                 }
-
-                return SpecializedTasks.EmptyTask;
             }
 
-            public void CallThirdPartyExtensions()
+            public async Task CallThirdPartyExtensionsAsync()
             {
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Keys)
@@ -94,7 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var item = factory.GetThirdPartyDefinitionItem(_solution, definition);
                     if (item != null)
                     {
-                        _context.OnDefinitionFound(item);
+                        // ConfigureAwait(true) because we want to come back on the 
+                        // same thread after calling into extensions.
+                        await _context.OnDefinitionFoundAsync(item).ConfigureAwait(true);
                     }
                 }
             }

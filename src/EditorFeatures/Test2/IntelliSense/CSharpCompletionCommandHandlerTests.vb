@@ -278,7 +278,47 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
-        Public Async Function TestDeconstructionDeclaration4() As Task
+        Public Async Function TestSymbolInTupleLiteral() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        (x, $$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(x, F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestKeywordInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
 class C
@@ -290,9 +330,136 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(i:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestTupleType() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestDefaultKeyword() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        switch(true)
+        {
+            $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("def")
+                Await state.AssertSelectedCompletionItem(displayText:="default", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("default:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestParenthesizedExpression() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Assert.Contains("(Foo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestInvocationExpression() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo(int Alice)
+    {
+        Foo($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestInvocationExpressionAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo(int Alice, int Bob)
+    {
+        Foo(1, $$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("B")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestCaseLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void Foo()
+    {
+        switch (1)
+        {
+            case $$
+        }
+    }
+}]]></Document>)
+
+                state.SendTypeChars("F")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="int", isSoftSelected:=True)
-                ' We'd prefer hard-selection here, but only with ':' not acting as commit character
+                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("case Foo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
