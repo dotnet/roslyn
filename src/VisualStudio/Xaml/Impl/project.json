@@ -5,6 +5,6 @@
     "Microsoft.VisualStudio.Shell.15.0": "15.0.25604-Preview4"
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   }
 }
