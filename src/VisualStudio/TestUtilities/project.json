@@ -1,14 +1,18 @@
 ﻿{
-    "dependencies": {
-        "Microsoft.VisualStudio.Language.Intellisense": {
-            "version": "14.3.25407",
-            "suppressParent": "all"
-        },
+  "dependencies": {
+    "Microsoft.VisualStudio.Language.Intellisense": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
     },
-    "frameworks": {
-        "net46": { }
-    },
-    "runtimes": {
-        "win7": { }
+    "Microsoft.VisualStudio.Setup.Configuration.Interop": {
+      "version": "1.1.142-preview4-29265",
+      "suppressParent": "all"
     }
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win7": { }
+  }
 }

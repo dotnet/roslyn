@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
             _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
             _interactiveWindow.Initialize();

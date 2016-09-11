@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected AbstractEditorTests(VisualStudioInstanceFactory instanceFactory, string solutionName)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
             _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
