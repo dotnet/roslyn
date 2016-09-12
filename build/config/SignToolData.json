@@ -146,6 +146,8 @@
         "Microsoft.Build.Utilities.Core.dll",
         "Microsoft.Win32.Primitives.dll",
         "Microsoft.VisualStudio.Threading.dll",
-        "Microsoft.VisualStudio.Validation.dll"
+        "Microsoft.VisualStudio.Validation.dll",
+        "Nerdbank.FullDuplexStream.dll",
+        "Validation.dll"
     ]
 }

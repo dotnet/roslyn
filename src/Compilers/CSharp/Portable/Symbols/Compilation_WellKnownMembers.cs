@@ -108,7 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
-                    result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    if (type.IsValueTupleType())
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
+                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
+                    }
+                    else
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    }
                 }
 
                 if ((object)Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) != null)

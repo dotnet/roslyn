@@ -355,10 +355,11 @@ Friend Module CompilationUtils
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
                                                         <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
-        Dim references As New List(Of MetadataReference)
+        Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
             references.Add(MsvbRef)
         End If

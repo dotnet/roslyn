@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Public Function TryGetProjectId(hierarchyItem As IVsHierarchyItem, ByRef projectId As ProjectId) As Boolean Implements IHierarchyItemToProjectIdMap.TryGetProjectId
 
-            Dim project = _tracker.Projects.
+            Dim project = _tracker.ImmutableProjects.
                 Where(Function(p) p.Hierarchy Is hierarchyItem.HierarchyIdentity.NestedHierarchy).
                 Where(Function(p) p.ProjectSystemName Is hierarchyItem.CanonicalName).
                 SingleOrDefault()

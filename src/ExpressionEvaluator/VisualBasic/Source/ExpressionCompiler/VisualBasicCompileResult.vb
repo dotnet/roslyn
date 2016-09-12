@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             MyBase.New(assembly, typeName, methodName, formatSpecifiers)
         End Sub
 
-        Public Overrides Function GetCustomTypeInfo() As CustomTypeInfo
+        Public Overrides Function GetCustomTypeInfo(ByRef payload As ReadOnlyCollection(Of Byte)) As Guid
+            payload = Nothing
             Return Nothing
         End Function
     End Class

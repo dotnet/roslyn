@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+
+        // Individual diagnostics have their own descriptors, so this is just used to satisfy the
+        // SupportedDiagnostics API. The DiagnosticSeverity must be "Hidden" to avoid running on closed
+        // documents.
         private static readonly DiagnosticDescriptor s_descriptorNamingStyle = new DiagnosticDescriptor(
             IDEDiagnosticIds.NamingRuleId,
             s_localizableTitleNamingStyle,

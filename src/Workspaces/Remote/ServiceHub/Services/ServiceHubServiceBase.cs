@@ -77,6 +77,5 @@ namespace Microsoft.CodeAnalysis.Remote
                 LogError($"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
         }
-
     }
 }

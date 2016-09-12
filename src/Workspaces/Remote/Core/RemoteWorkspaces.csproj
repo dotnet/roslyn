@@ -56,7 +56,7 @@
     <Compile Include="Services\CompilationService.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
-    <Compile Include="TestImpact\EmitHelper.cs" />
+    <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

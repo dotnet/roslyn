@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Sub New(container As NamedTypeSymbol, name As String, tupleFieldId As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo)
-            MyBase.New(container, container, type, name)
+            MyBase.New(container, container, type, name, Accessibility.Public)
             Debug.Assert(name <> Nothing)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo

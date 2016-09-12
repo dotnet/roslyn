@@ -16,32 +16,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
 
         private static readonly LocalizableString s_qualifyMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptorQualifyMemberAccessInfo = new DiagnosticDescriptor(IDEDiagnosticIds.AddQualificationDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorQualifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.AddQualificationDiagnosticId,
                                                                     s_qualifyMembersTitle,
                                                                     s_shouldBeQualifiedMessage,
                                                                     DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Info,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
-        private static readonly DiagnosticDescriptor s_descriptorQualifyMemberAccessWarning = new DiagnosticDescriptor(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                                                                    s_qualifyMembersTitle,
-                                                                    s_shouldBeQualifiedMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Warning,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
-        private static readonly DiagnosticDescriptor s_descriptorQualifyMemberAccessError = new DiagnosticDescriptor(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                                                                    s_qualifyMembersTitle,
-                                                                    s_shouldBeQualifiedMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Error,
+                                                                    DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            s_descriptorQualifyMemberAccessInfo,
-            s_descriptorQualifyMemberAccessWarning,
-            s_descriptorQualifyMemberAccessError);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
 
         public bool RunInProcess => true;
 
@@ -90,27 +73,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
             var isQualificationPresent = IsAlreadyQualifiedMemberAccess(memberReference.Instance.Syntax);
             if (shouldOptionBePresent && !isQualificationPresent)
             {
-                DiagnosticDescriptor descriptor;
-                switch (optionValue.Notification.Value)
+                var severity = optionValue.Notification.Value;
+                if (severity != DiagnosticSeverity.Hidden)
                 {
-                    case DiagnosticSeverity.Hidden:
-                        descriptor = null;
-                        break;
-                    case DiagnosticSeverity.Info:
-                        descriptor = s_descriptorQualifyMemberAccessInfo;
-                        break;
-                    case DiagnosticSeverity.Warning:
-                        descriptor = s_descriptorQualifyMemberAccessWarning;
-                        break;
-                    case DiagnosticSeverity.Error:
-                        descriptor = s_descriptorQualifyMemberAccessError;
-                        break;
-                    default:
-                        throw ExceptionUtilities.Unreachable;
-                }
+                    var descriptor = new DiagnosticDescriptor(
+                        IDEDiagnosticIds.AddQualificationDiagnosticId,
+                        s_qualifyMembersTitle,
+                        s_shouldBeQualifiedMessage,
+                        DiagnosticCategory.Style,
+                        severity,
+                        isEnabledByDefault: true,
+                        customTags: DiagnosticCustomTags.Unnecessary);
 
-                if (descriptor != null)
-                {
                     context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Operation.Syntax.GetLocation()));
                 }
             }

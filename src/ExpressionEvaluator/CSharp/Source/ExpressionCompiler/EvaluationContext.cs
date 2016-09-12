@@ -300,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     formatSpecifiers = null;
 
-                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement))
+                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                        statementSyntax.IsKind(SyntaxKind.DeconstructionDeclarationStatement))
                     {
                         return statementSyntax;
                     }

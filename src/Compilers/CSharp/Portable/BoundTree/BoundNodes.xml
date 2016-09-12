@@ -399,20 +399,20 @@
     <Field Name="IsDeclaration" Type="bool"/>
 
     <!-- Various assignable expressions, in a flat structure (no nesting) -->
-    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
 
     <Field Name="Right" Type="BoundExpression"/>
 
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
-    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
-    <Field Name="ConstructionSteps" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
+    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="ConstructionStepsOpt" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="allow" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
     <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
+    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
@@ -1563,6 +1563,12 @@
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         in the lowered form in either an lvalue or rvalue position. We maintain it separately
+         from the LocalSymbol to facilitate lowerings in which the variable is no longer a simple
+         local access (e.g. the expression evaluator). It is expected to be logically side-effect
+         free. -->
+    <Field Name="VariableAccess" Type="BoundExpression" Null="disallow"/>
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>

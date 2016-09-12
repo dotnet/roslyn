@@ -891,6 +891,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
                 Throw New NotImplementedException()
             End Function
+
+            Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
+                Throw New NotImplementedException()
+            End Sub
         End Class
     End Class
 End Namespace

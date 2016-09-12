@@ -66,6 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
+            if (analyzerDriver == null)
+            {
+                // no analyzers for in proc process
+                return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+            }
+
             return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
         }
 
@@ -106,6 +112,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
         {
             var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+            if (analyzers.Length == 0)
+            {
+                // we can't create analyzer driver with 0 analyzers
+                return null;
+            }
+
             return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
         }
 

@@ -1096,18 +1096,44 @@ public class foo
 }", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "permission", "remarks", "see", "seealso", "summary");
         }
 
-		[WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
-		[Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-		public async Task PartialTagCompletionNestedTags()
-		{
-			await VerifyItemsExistAsync(@"
+        [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialTagCompletionNestedTags()
+        {
+            await VerifyItemsExistAsync(@"
 public class foo
 {
     /// <summary>
-	/// <r$$
-	/// </summary>
+    /// <r$$
+    /// </summary>
     public void bar() { }
 }", "!--", "![CDATA[", "c", "code", "list", "para", "see", "seealso");
-		}
-	}
+        }
+
+        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParamAtTopLevelOnly()
+        {
+            await VerifyItemsAbsentAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+public class Foo<T>
+{
+}", "typeparam name=\"T\"");
+        }
+
+        [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParamAtTopLevelOnly()
+        {
+            await VerifyItemsAbsentAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+static void Foo(string str)
+{
+}", "param name=\"str\"");
+        }
+    }
 }

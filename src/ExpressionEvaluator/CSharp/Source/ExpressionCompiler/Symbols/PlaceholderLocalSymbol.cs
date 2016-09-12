@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -40,11 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
             Debug.Assert((object)type != null);
 
-            var dynamicFlagsInfo = alias.CustomTypeInfo.ToDynamicFlagsCustomTypeInfo();
-            if (dynamicFlagsInfo.Any())
+            ReadOnlyCollection<byte> dynamicFlags;
+            ReadOnlyCollection<string> tupleElementNames;
+            CustomTypeInfo.Decode(alias.CustomTypeInfoId, alias.CustomTypeInfo, out dynamicFlags, out tupleElementNames);
+
+            // Preserve tuple element names. See https://github.com/dotnet/roslyn/issues/13589.
+            if (dynamicFlags != null)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                dynamicFlagsInfo.CopyTo(flagsBuilder);
+                DynamicFlagsCustomTypeInfo.CopyTo(dynamicFlags, flagsBuilder);
                 var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
                     type,
                     sourceAssembly,

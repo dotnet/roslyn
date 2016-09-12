@@ -20,8 +20,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub AppendEnumTypeAndName(builder As StringBuilder, typeToDisplayOpt As Type, name As String)
             If typeToDisplayOpt IsNot Nothing Then
-                Dim index As Integer = 0
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, Nothing, index, escapeKeywordIdentifiers:=True, sawInvalidIdentifier:=Nothing)
+                Dim index1 As Integer = 0
+                Dim index2 As Integer = 0
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    Nothing,
+                    index1,
+                    Nothing,
+                    index2,
+                    escapeKeywordIdentifiers:=True,
+                    sawInvalidIdentifier:=Nothing)
                 builder.Append("."c)
             End If
 

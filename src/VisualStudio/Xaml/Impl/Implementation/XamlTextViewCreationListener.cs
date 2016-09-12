@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private AbstractProject GetXamlProject(IVsHierarchy hierarchy)
         {
-            return _vsWorkspace.ProjectTracker.Projects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
+            return _vsWorkspace.ProjectTracker.ImmutableProjects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
         }
 
         private bool TryCreateXamlDocument(AbstractProject project, string filePath, out IVisualStudioHostDocument vsDocument)
