@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    var namedType = type.IsTupleType ? type.TupleUnderlyingType : (NamedTypeSymbol)type;
+                    var namedType = type.TupleUnderlyingTypeOrSelf();
                     // 3) (see IsVarianceUnsafe(NamedTypeSymbol))
                     return IsVarianceUnsafe(namedType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 default:
