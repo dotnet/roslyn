@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -30,21 +31,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         public bool IsDeferredProjectLoadEnabled { get; }
 
-        public async Task<ValueTuple<ImmutableArray<string>, ImmutableArray<string>>> GetCommandLineArgumentsAndProjectReferencesForProjectAsync(string projectFilePath)
+        public async Task<IReadOnlyDictionary<string, DeferredProjectInformation>> GetCommandLineArgumentsAndProjectReferencesForProjectAsync(
+            string solutionConfiguration,
+            CancellationToken cancellationToken)
         {
-            var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(projectFilePath).ConfigureAwait(false);
+            var commandLineInfos = await _solutionWorkspaceService.GetManagedCommandLineInfoAsync(
+                solutionConfiguration, cancellationToken).ConfigureAwait(false);
 
-            // Due to https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=260811,
-            // try to find any configuration that has commandlineinfo.
-            var info = commandLineInfos.FirstOrDefault(cli => !cli.CommandLineArgs.IsDefaultOrEmpty);
-            if (!info.CommandLineArgs.IsDefaultOrEmpty)
-            {
-                return ValueTuple.Create(info.CommandLineArgs, info.ProjectReferences);
-            }
-            else
-            {
-                return ValueTuple.Create(ImmutableArray<string>.Empty, ImmutableArray<string>.Empty);
-            }
+            var result = ImmutableDictionary.CreateRange(
+                commandLineInfos.Select(kvp => KeyValuePair.Create(
+                    kvp.Key,
+                    new DeferredProjectInformation(
+                        kvp.Value.TargetPath,
+                        kvp.Value.CommandLineArgs,
+                        kvp.Value.ProjectReferences))));
+            return result;
         }
     }
 }

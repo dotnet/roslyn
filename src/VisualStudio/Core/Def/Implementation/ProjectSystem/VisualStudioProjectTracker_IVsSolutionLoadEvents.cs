@@ -111,34 +111,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
-            OutputToOutputWindow("Parsing solution - start");
+            var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+            var solutionConfig = dte.Solution.SolutionBuild.ActiveConfiguration;
+
             var start = DateTimeOffset.UtcNow;
-            var solution = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            OutputToOutputWindow($"Getting project information - start");
+            // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+            var projectInfos = await deferredProjectWorkspaceService.GetCommandLineArgumentsAndProjectReferencesForProjectAsync(
+                solutionConfig.Name,
+                cancellationToken).ConfigureAwait(true);
+            AssertIsForeground();
+            OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
-            // Get the count of projects in the solution.
-            uint projectCount;
-            ErrorHandler.ThrowOnFailure(solution.GetProjectFilesInSolution(grfGetOpts: 0, cProjects: 0, rgbstrProjectNames: null, pcProjectsFetched: out projectCount));
-
-            // Now get the actual filenames.
-            var projectFilenames = new string[projectCount];
-            ErrorHandler.ThrowOnFailure(solution.GetProjectFilesInSolution(grfGetOpts: 0, cProjects: projectCount, rgbstrProjectNames: projectFilenames, pcProjectsFetched: out projectCount));
-
-            OutputToOutputWindow($"Parsing solution - done (took {DateTimeOffset.UtcNow - start})");
-            OutputToOutputWindow($"Creating projects - start ({projectFilenames.Length} to create)");
-            start = DateTimeOffset.UtcNow;
-
-            foreach (var projectFilename in projectFilenames)
+            OutputToOutputWindow($"Creating projects - start");
+            foreach (var projectFilename in projectInfos.Keys)
             {
-                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                await CreateProjectFromArgumentsAndReferencesAsync(
+                CreateProjectFromArgumentsAndReferences(
                     workspaceProjectContextFactory,
-                    solution,
-                    deferredProjectWorkspaceService,
-                    projectFilename).ConfigureAwait(true);
-                AssertIsForeground();
+                    projectFilename,
+                    projectInfos);
             }
-
             OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+
             OutputToOutputWindow($"Pushing to workspace - start");
             start = DateTimeOffset.UtcNow;
             FinishLoad();
@@ -153,11 +147,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private async Task<IWorkspaceProjectContext> CreateProjectFromArgumentsAndReferencesAsync(
+        private IWorkspaceProjectContext CreateProjectFromArgumentsAndReferences(
             IWorkspaceProjectContextFactory workspaceProjectContextFactory,
-            IVsSolution solution,
-            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
-            string projectFilename)
+            string projectFilename,
+            IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos)
         {
             var languageName = GetLanguageOfProject(projectFilename);
             if (languageName == null)
@@ -165,18 +158,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-            var commandLineArgumentsAndProjectReferences = await deferredProjectWorkspaceService
-                .GetCommandLineArgumentsAndProjectReferencesForProjectAsync(projectFilename).ConfigureAwait(true);
-            if (commandLineArgumentsAndProjectReferences.Item1.IsDefaultOrEmpty)
-            {
-                return null;
-            }
-
+            var projectInfo = allProjectInfos[projectFilename];
             var commandLineParser = _workspace.Services.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = Path.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
-                commandLineArgumentsAndProjectReferences.Item1,
+                projectInfo.CommandLineArguments,
                 projectDirectory,
                 isInteractive: false,
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
@@ -193,7 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // TODO: We need to actually get an output path somehow.
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
-            var projectGuid = ((IVsSolution5)solution).GetGuidOfProjectFile(projectFilename);
+            var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
+            var projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 languageName,
                 projectName,
@@ -202,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 hierarchy: null,
                 binOutputPath: null);
 
-            projectContext.SetOptions(commandLineArgumentsAndProjectReferences.Item1.Join(" "));
+            projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
             foreach (var sourceFile in commandLineArguments.SourceFiles)
             {
@@ -219,18 +206,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectContext.AddMetadataReference(reference.Reference, reference.Properties);
             }
 
-            foreach (var projectReference in commandLineArgumentsAndProjectReferences.Item2)
+            foreach (var projectReference in projectInfo.ProjectReferences)
             {
                 var projectReferencePath = projectReference.Substring("/ProjectReference:".Length);
                 var referencedProject = ImmutableProjects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
                 if (referencedProject == null)
                 {
-                    // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                    referencedProject = (AbstractProject)(await CreateProjectFromArgumentsAndReferencesAsync(
+                    referencedProject = (AbstractProject)CreateProjectFromArgumentsAndReferences(
                         workspaceProjectContextFactory,
-                        solution,
-                        deferredProjectWorkspaceService,
-                        projectReferencePath).ConfigureAwait(true));
+                        projectReferencePath,
+                        allProjectInfos);
                 }
 
                 var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
