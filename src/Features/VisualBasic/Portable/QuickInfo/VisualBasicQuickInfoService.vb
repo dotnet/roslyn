@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Host
 
-Namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
+Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
     <ExportLanguageServiceFactory(GetType(QuickInfoService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicQuickInfoServiceFactory
         Implements ILanguageServiceFactory
@@ -23,5 +23,4 @@ Namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             MyBase.New(workspace, LanguageNames.VisualBasic)
         End Sub
     End Class
-
 End Namespace

@@ -12,10 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
-        public CSharpSemanticQuickInfoProvider()
-        {
-        }
-
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);

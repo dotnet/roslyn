@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -10,12 +11,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.CodeAnalysis.QuickInfo;
 using System.Windows;
-using System.Windows.Media;
 using Microsoft.VisualStudio.Imaging;
 using System.Windows.Data;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Projection;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
@@ -202,31 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
             {
-                return new ViewHostingControl(
-                    CreateView,
-                    () => CreateBuffer(
-                        info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length)))
-                        ));
-            }
-
-            private IWpfTextView CreateView(ITextBuffer buffer)
-            {
-                var view = _textEditorFactoryService.CreateTextView(
-                    buffer, _textEditorFactoryService.NoRoles);
-
-                view.SizeToFit();
-                view.Background = Brushes.Transparent;
-
-                // Zoom out a bit to shrink the text.
-                view.ZoomLevel *= 0.75;
-
-                return view;
-            }
-
-            private IElisionBuffer CreateBuffer(IEnumerable<SnapshotSpan> spans)
-            {
-                return _projectionBufferFactoryService.CreateElisionBufferWithoutIndentation(
-                                _editorOptionsFactoryService.GlobalOptions, exposedSpans: spans.ToArray());
+                return ElisionBufferContent.Create(
+                    info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
+                    _projectionBufferFactoryService,
+                    _editorOptionsFactoryService,
+                    _textEditorFactoryService);
             }
         }
     }

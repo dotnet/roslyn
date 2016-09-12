@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // encode document spans that correspond to the text to show
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
-            //var tabSize = document.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
-            //spans = IndentationHelper.AlignSpansToIndentation(text, spans, tabSize);
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }
 

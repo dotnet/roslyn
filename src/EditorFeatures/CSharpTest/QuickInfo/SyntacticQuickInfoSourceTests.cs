@@ -293,24 +293,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             Assert.NotNull(info);
 
             Assert.NotEqual(0, info.RelatedSpans.Length);
-            var tabSize = document.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
-            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var tabSize = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize, document.Project.Language);
+            var text = await document.GetTextAsync();
             var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, info.RelatedSpans, tabSize);
             var actualText = string.Concat(spans.Select(s => text.GetSubText(s).ToString()));
             Assert.Equal(expectedContent, actualText);
-
-            /*
-            var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)info.Content).Create();
-            try
-            {
-                var actualContent = viewHostingControl.ToString();
-                Assert.Equal(expectedContent, actualContent);
-            }
-            finally
-            {
-                viewHostingControl.TextView_TestOnly.Close();
-            }
-            */
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

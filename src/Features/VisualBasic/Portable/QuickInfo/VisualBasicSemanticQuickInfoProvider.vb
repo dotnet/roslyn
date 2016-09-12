@@ -1,17 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-
 Imports Microsoft.CodeAnalysis.QuickInfo
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
-
     <ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSemanticQuickInfoProvider
         Inherits CommonSemanticQuickInfoProvider
@@ -122,8 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             End If
 
             If types.Count > 1 Then
-                'Dim contentBuilder = New List(Of TaggedText)
-                'contentBuilder.AddText("mulitiple types") 'VBEditorResources.Multiple_Types)
                 Return QuickInfoItem.Create(token.Span, description:=ImmutableArray.Create(New TaggedText(TextTags.Text, "multiple types")))
             End If
 

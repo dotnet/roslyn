@@ -20,22 +20,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             var info = await GetQuickInfoAsync(document, token, position, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-            {
-                return info;
-            }
 
-            if (ShouldCheckPreviousToken(token))
+            if (info == null && ShouldCheckPreviousToken(token))
             {
                 var previousToken = token.GetPreviousToken();
-
-                if ((info = await GetQuickInfoAsync(document, previousToken, position, cancellationToken).ConfigureAwait(false)) != null)
-                {
-                    return info;
-                }
+                info = await GetQuickInfoAsync(document, previousToken, position, cancellationToken).ConfigureAwait(false);
             }
 
-            return null;
+            return info;
         }
 
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)

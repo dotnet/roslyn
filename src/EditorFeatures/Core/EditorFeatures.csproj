@@ -239,7 +239,6 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarSelectedItems.cs" />
     <Compile Include="Extensibility\Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="Extensibility\Peek\IPeekableItemFactory.cs" />
-    <Compile Include="Extensibility\QuickInfo\ExportQuickInfoPresentationProviderAttribute.cs" />
     <Compile Include="Extensibility\QuickInfo\IQuickInfoPresenterSession.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoPresenterNames.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoSourceProviderNames.cs" />
@@ -277,6 +276,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
+    <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\ElisionBufferContent.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
