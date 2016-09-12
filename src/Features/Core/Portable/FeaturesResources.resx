@@ -1064,4 +1064,7 @@ This version used in: {2}</value>
   <data name="Use_framework_type" xml:space="preserve">
     <value>Use framework type</value>
   </data>
+  <data name="Install_package_0" xml:space="preserve">
+    <value>Install package '{0}'</value>
+  </data>
 </root>

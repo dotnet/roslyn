@@ -97,13 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isCrefContext,
             bool isCatchFilterContext,
             bool isDestructorTypeContext,
+            bool isPossibleTupleContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), cancellationToken)
+                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -240,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext,
+                leftToken.IsPossibleTupleElementNameContext(position),
                 cancellationToken);
         }
 

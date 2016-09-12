@@ -118,7 +118,7 @@
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
     <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
-    <Compile Include="Workspace\Storage\PersistenceServiceFactory.cs" />
+    <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
     <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +138,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="MonoDevelop.Ide" />
     <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />

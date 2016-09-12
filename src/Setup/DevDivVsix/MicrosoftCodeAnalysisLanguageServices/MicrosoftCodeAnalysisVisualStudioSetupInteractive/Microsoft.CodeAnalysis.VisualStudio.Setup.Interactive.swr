@@ -21,3 +21,6 @@ vs.dependencies
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents
                 version=$(Version)
                 type=Required
+  vs.dependency id=Microsoft.VisualStudio.InteractiveWindow
+                version=$(Version)
+                type=Required

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static readonly ImmutableDictionary<string, Func<Serializer, string, object[], ChecksumObjectWithChildren>> s_creatorMap = CreateCreatorMap();
 
-        public async Task SerializeChecksumObjectWithChildrenAsync(ChecksumObjectWithChildren checksumObject, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeChecksumObjectWithChildren(ChecksumObjectWithChildren checksumObject, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 if (checksumCollection != null)
                 {
                     writer.WriteByte(ChecksumCollectionKind);
-                    await SerializeChecksumObjectWithChildrenAsync(checksumCollection, writer, cancellationToken).ConfigureAwait(false);
+                    SerializeChecksumObjectWithChildren(checksumCollection, writer, cancellationToken);
                     continue;
                 }
 
