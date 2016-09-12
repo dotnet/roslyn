@@ -3,6 +3,8 @@
 using Xunit;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -492,5 +494,37 @@ class C
             }
             EOF();
         }
+
+        [Fact, WorkItem(13667, "https://github.com/dotnet/roslyn/issues/13667")]
+        public void MissingShortTupleErrorWhenWarningPresent()
+        {
+            // Diff errors
+            var test = @"
+class Program
+{
+    object a = (x: 3l);
+}
+";
+            ParseAndValidate(test,
+                // (4,16): error CS8124: Tuple must contain at least two elements.
+                //     object a = (x: 3l);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(x: 3l)").WithLocation(4, 16),
+                // (4,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //     object a = (x: 3l);
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21)
+                );
+        }
+
+        #region "Helpers"
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        #endregion "Helpers"
+
     }
 }
