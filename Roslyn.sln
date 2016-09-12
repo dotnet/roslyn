@@ -351,7 +351,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perf.Runner", "src\Test\Per
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Metadata", "src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.shproj", "{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.PooledObjects", "src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.shproj", "{CD77A8CC-2885-47A7-B99C-FBF13353400B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.PooledObjects", "src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.shproj", "{C1930979-C824-496B-A630-70F5369A636F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesVisualStudio.Next", "src\VisualStudio\Next\ServicesVisualStudio.Next.csproj", "{FE0D4BDD-1C30-488E-A870-854F5B8C5014}"
 EndProject
@@ -403,8 +403,8 @@ Global
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d3}*SharedItemsImports = 4
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d4}*SharedItemsImports = 4
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Test\Utilities\Shared\TestUtilities.projitems*{ccbd3438-3e84-40a9-83ad-533f23bcfca5}*SharedItemsImports = 4
-		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{cd77a8cc-2885-47a7-b99c-fbf13353400b}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e3cd2895-76a8-4d11-a316-ea67cb5ea42c}*SharedItemsImports = 4
@@ -3341,7 +3341,7 @@ Global
 		{59AD474E-2A35-4E8A-A74D-E33479977FBF} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 		{1AA6D2F0-2C40-4AF6-BB79-50AFDCC62720} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 		{D73ADF7D-2C1C-42AE-B2AB-EDC9497E4B71} = {C2D1346B-9665-4150-B644-075CF1636BAA}
-		{CD77A8CC-2885-47A7-B99C-FBF13353400B} = {C2D1346B-9665-4150-B644-075CF1636BAA}
+		{C1930979-C824-496B-A630-70F5369A636F} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{FE0D4BDD-1C30-488E-A870-854F5B8C5014} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{F822F72A-CC87-4E31-B57D-853F65CBEBF3} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{80FDDD00-9393-47F7-8BAF-7E87CE011068} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
