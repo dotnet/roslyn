@@ -13,9 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var expression = BindExpression(node.Expression, diagnostics);
-            var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
+            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
+            var expressionType = expression.Type;
+            if ((object)expressionType == null)
+            {
+                expressionType = CreateErrorType();
+                if (!hasErrors)
+                {
+                    // value expected
+                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Expression.Location, expression.Display);
+                    hasErrors = true;
+                }
+            }
+
+            var pattern = BindPattern(node.Pattern, expression, expressionType, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
@@ -121,15 +133,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            expression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
+            var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!expression.HasErrors && constantValueOpt == null)
+            if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, expression, constantValueOpt, hasErrors);
+            return new BoundConstantPattern(node, convertedExpression, constantValueOpt, hasErrors);
         }
 
         internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
@@ -160,6 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // input value among many constant tests.
                     convertedExpression = operand;
                 }
+                else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                {
+                    convertedExpression = operand;
+                }
             }
 
             constantValue = convertedExpression.ConstantValue;
@@ -175,7 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar,
             DiagnosticBag diagnostics)
         {
-            if (operandType?.IsErrorType() == true || patternType?.IsErrorType() == true)
+            Debug.Assert((object)operandType != null);
+            Debug.Assert((object)patternType != null);
+            if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
             }
@@ -188,12 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (patternType.IsStatic)
             {
                 Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
-                return true;
-            }
-            else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
-            {
-                // It is an error to use pattern-matching with a null, method group, or lambda
-                Error(diagnostics, ErrorCode.ERR_BadIsPatternExpression, operand.Syntax);
                 return true;
             }
             else if (!isVar)
@@ -235,14 +247,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null || operandType != (object)null);
+            Debug.Assert(operand != null && operandType != (object)null);
+
+            if (InConstructorInitializer || InFieldInitializer)
+            {
+                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+            }
+
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != (object)null)
+            if (isVar)
             {
                 declType = operandType;
             }
@@ -250,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType();
+                declType = this.CreateErrorType("var");
             }
 
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
@@ -279,10 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
-            if (isVar)
-            {
-                localSymbol.SetTypeSymbol(operandType);
-            }
+            localSymbol.SetType(declType);
 
             // Check for variable declaration errors.
             hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
@@ -296,7 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            DeclareLocalVariable(localSymbol, identifier, declType);
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
     }

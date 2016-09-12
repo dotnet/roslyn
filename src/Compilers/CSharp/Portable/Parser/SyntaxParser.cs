@@ -163,6 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // forget anything after and including any slot not holding a token
                         _tokenCount = i;
+                        if (_tokenCount == _tokenOffset)
+                        {
+                            FetchCurrentToken();
+                        }
                         break;
                     }
                 }

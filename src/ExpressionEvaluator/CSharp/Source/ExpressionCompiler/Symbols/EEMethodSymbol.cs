@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 localsSet.Free();
 
-                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
                 Debug.Assert(!diagnostics.HasAnyErrors());
                 Debug.Assert(!body.HasErrors);
@@ -640,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 case BoundKind.ExpressionStatement:
                 case BoundKind.LocalDeclaration:
                 case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.LocalDeconstructionDeclaration:
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);

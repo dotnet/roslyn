@@ -162,6 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        {
+            // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override BoundForStatement BindForParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForLoopBinder (or other overrider of this method) in the chain.

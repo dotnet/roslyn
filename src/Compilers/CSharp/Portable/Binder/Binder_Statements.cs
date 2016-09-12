@@ -912,12 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            Debug.Assert((object)localSymbol != null);
-
-            DeclareLocalVariable(
-                localSymbol,
-                declarator.Identifier,
-                declTypeOpt);
+            localSymbol.SetType(declTypeOpt);
 
             if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
             {
@@ -959,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }
 
-        private ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
+        internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
         {
             // It is possible that we have a bracketed argument list, like "int x[];" or "int x[123];" 
             // in a non-fixed-size-array declaration . This is a common error made by C++ programmers. 
@@ -972,13 +967,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarator.ArgumentList != null)
             {
-                var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                foreach (var argument in declarator.ArgumentList.Arguments)
-                {
-                    var boundArgument = BindValue(argument.Expression, diagnostics, BindValueKind.RValue);
-                    builder.Add(boundArgument);
-                }
-                arguments = builder.ToImmutableAndFree();
+                AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
+                BindArgumentsAndNames(declarator.ArgumentList, diagnostics, analyzedArguments);
+                arguments = BuildArgumentsForErrorRecovery(analyzedArguments);
+                analyzedArguments.Free();
             }
 
             return arguments;
@@ -2290,24 +2282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)node, diagnostics, ErrorCode.ERR_ArrayInitToNonArrayType);
         }
 
-        internal static void DeclareLocalVariable(
-            SourceLocalSymbol symbol,
-            SyntaxToken identifierToken,
-            TypeSymbol type)
-        {
-            // In the original compiler this
-            // method has many side effects; it sets the type
-            // of the local symbol, it gives errors if the local
-            // is a duplicate, it creates new symbols for lambda
-            // expressions, puts stuff in caches, and so on.
-
-            Debug.Assert((object)symbol != null);
-            Debug.Assert(symbol.IdentifierToken == identifierToken);
-            symbol.SetTypeSymbol(type);
-            // UNDONE: Can we come up with a way to set the type of a local which does
-            // UNDONE: not duplicate work and does not mutate the symbol?
-        }
-
         protected virtual SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
         {
             return Next.LookupLocal(nameToken);
@@ -2983,6 +2957,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
         }
 
+        internal virtual void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        {
+            this.Next.BindPatternSwitchLabelForInference(node, diagnostics);
+        }
+
         private BoundStatement BindWhile(WhileStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
@@ -3627,7 +3606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         private static bool IsValidExpressionBody(SyntaxNode expressionSyntax, BoundExpression expression)

@@ -1327,6 +1327,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             arrayLiteral = DirectCast(inferFrom, BoundArrayLiteral)
                             inferredType = arrayLiteral.InferredType
 
+                        Case BoundKind.TupleLiteral
+                            Dim tupleLiteral = DirectCast(inferFrom, BoundTupleLiteral)
+                            inferredType = tupleLiteral.InferredType
+
                         Case Else
                             inferredType = inferFrom.Type
                     End Select

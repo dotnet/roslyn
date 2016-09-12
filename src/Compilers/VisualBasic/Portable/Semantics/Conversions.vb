@@ -960,11 +960,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Dim sourceType As TypeSymbol = source.Type
+            Dim sourceType As TypeSymbol = If(source.Kind = BoundKind.TupleLiteral,
+                                                DirectCast(source, BoundTupleLiteral).InferredType,
+                                                source.Type)
 
             If sourceType Is Nothing Then
-
-                userDefinedConversionsMightStillBeApplicable = source.GetMostEnclosedParenthesizedExpression().Kind = BoundKind.ArrayLiteral
+                Dim mostEnclosing = source.GetMostEnclosedParenthesizedExpression().Kind
+                userDefinedConversionsMightStillBeApplicable = mostEnclosing = BoundKind.ArrayLiteral OrElse
+                                                               mostEnclosing = BoundKind.TupleLiteral
 
                 ' The node doesn't have a type yet and reclassification failed.
                 Return Nothing ' No conversion
@@ -1210,7 +1213,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+            If source.Type = destination Then
+                Return ConversionKind.Identity
+            End If
+
             Dim arguments = source.Arguments
+
+            Dim wideningConversion = ConversionKind.WideningTuple
+            Dim narrowingConversion = ConversionKind.NarrowingTuple
+
+            If destination.IsNullableType Then
+                destination = destination.GetNullableUnderlyingType()
+
+                wideningConversion = ConversionKind.WideningNullable
+                narrowingConversion = ConversionKind.NarrowingNullable
+            End If
+
+            ' tuple literal converts to its inferred type 
+            If source.InferredType?.IsSameTypeIgnoringCustomModifiers(destination) Then
+                Return wideningConversion
+            End If
+
+            ' Now we can try element-wise conversion
 
             ' check if the type is actually compatible type for a tuple of given cardinality
             If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
@@ -1221,7 +1245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(arguments.Count = targetElementTypes.Length)
 
             ' check arguments against flattened list of target element types 
-            Dim result As ConversionKind = ConversionKind.WideningTuple
+            Dim result As ConversionKind = wideningConversion
 
             For i As Integer = 0 To arguments.Length - 1
                 Dim argument = arguments(i)
@@ -1238,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If IsNarrowingConversion(elementConversion) Then
-                    result = ConversionKind.NarrowingTuple
+                    result = narrowingConversion
                 End If
             Next
 
@@ -2053,7 +2077,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceType Is Nothing Then
                 source = source.GetMostEnclosedParenthesizedExpression()
-                sourceType = If(source.Kind <> BoundKind.ArrayLiteral, source.Type, New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral)))
+                If source.Kind = BoundKind.ArrayLiteral Then
+                    sourceType = New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral))
+                ElseIf source.Kind = BoundKind.TupleLiteral Then
+                    sourceType = DirectCast(source, BoundTupleLiteral).InferredType
+                    If sourceType Is Nothing Then
+                        Return Nothing
+                    End If
+                Else
+                    sourceType = source.Type
+                End If
             End If
 
             Debug.Assert(sourceType IsNot Nothing)

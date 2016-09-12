@@ -69,7 +69,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -184,7 +184,7 @@ End Module
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -282,7 +282,7 @@ End Module
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -307,7 +307,7 @@ End Module
         <Fact>
         Public Sub TestBranches()
             Dim testSource As XElement = <file name="c.vb">
-                <![CDATA[
+                                             <![CDATA[
 Module Program
     Sub Branches()
         Dim y As Integer = 0
@@ -342,13 +342,13 @@ MyLabel:
     End Sub
 End Module
 ]]>
-            </file>
+                                         </file>
             Dim source As Xml.Linq.XElement = <compilation></compilation>
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -440,7 +440,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -543,7 +543,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -631,7 +631,7 @@ End Class
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")
@@ -727,7 +727,7 @@ End Module
             source.Add(InstrumentationHelperSource)
 
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"))
+            Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
             Dim reader = DynamicAnalysisDataReader.TryCreateFromPE(PEReader, "<DynamicAnalysisData>")

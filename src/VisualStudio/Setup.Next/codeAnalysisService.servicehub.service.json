@@ -3,6 +3,8 @@
   "hostId": "RoslynCodeAnalysisService32",
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-    "fullClassName": "Microsoft.CodeAnalysis.Remote.CodeAnalysisService"
+    "fullClassName": "Microsoft.CodeAnalysis.Remote.CodeAnalysisService",
+    "appBasePath": "%VSAPPIDDIR%",
+    "configPath": "%PkgDefApplicationConfigFile%"
   }
 }

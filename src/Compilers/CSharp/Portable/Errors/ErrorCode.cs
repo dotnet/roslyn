@@ -1345,7 +1345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsLocalFunction = 8110,
         #endregion diagnostics for local functions introduced in C# 7
 
-        // Available = 8111, 8112, 8113, 8114
+        #region diagnostics for instrumentation
+
+        ERR_InvalidInstrumentationKind = 8111,
+
+        #endregion
+
+        // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
@@ -1420,12 +1426,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
-        // Available  = 8179-8195
+        ERR_PredefinedValueTupleTypeNotFound = 8179,
+        // Available  = 8180-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
+        ERR_VarInvocationLvalueReserved = 8199,
+        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         #endregion diagnostics for out var
     }
 }

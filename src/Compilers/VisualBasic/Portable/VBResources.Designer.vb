@@ -5964,6 +5964,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid instrumentation kind: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidInstrumentationKind() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidInstrumentationKind", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Only the &apos;Async&apos; or &apos;Iterator&apos; modifier is valid on a lambda..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidLambdaModifier() As String
@@ -10389,7 +10398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        '''  Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         '''</summary>
         Friend ReadOnly Property ERR_TupleReservedMemberNameAnyPosition() As String
             Get
@@ -11286,6 +11295,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ValueAndClassTypeConstrCombined() As String
             Get
                 Return ResourceManager.GetString("ERR_ValueAndClassTypeConstrCombined", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
+        '''</summary>
+        Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError() As String
+            Get
+                Return ResourceManager.GetString("ERR_ValueTupleTypeRefResolutionError", resourceCulture)
             End Get
         End Property
         

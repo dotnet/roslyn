@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new IncrementalAnalyzerDelegatee(this, workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
-        private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
+        private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
         {
-            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id), highPriority: true);
+            Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
         }
 
         // internal for testing

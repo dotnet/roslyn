@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 AssertIsForeground();
 
-                if (!_buffer.GetOption(InternalFeatureOnOffOptions.RenameTracking))
+                if (!_buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
                     // When disabled, ignore all text buffer changes and do not trigger retagging
                     return;

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
-            var options = document.Options;
+            var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent) == FormattingOptions.IndentStyle.Smart;
 
             if ((ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && !smartIndentOn) ||
@@ -79,15 +79,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var span = textSpan.HasValue ? textSpan.Value : new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root, new TextSpan[] { formattingSpan }, document.Project.Solution.Workspace, document.Options, cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, new TextSpan[] { formattingSpan }, document.Project.Solution.Workspace, options, cancellationToken);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, textSpan);
             var service = document.GetLanguageService<ISyntaxFormattingService>();
             if (service == null)
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, document.Options, rules, cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
         private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
@@ -182,10 +185,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
             bool smartIndentOnly =
                 token.IsKind(SyntaxKind.CloseBraceToken) &&
-                !document.Options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace);
+                !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace);
 
             if (!smartIndentOnly)
             {
@@ -214,7 +219,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private async Task<IList<TextChange>> FormatTokenAsync(Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var formatter = CreateSmartTokenFormatter(document.Options, formattingRules, root);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
             var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).ConfigureAwait(false);
             return changes;
         }
@@ -245,7 +251,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var formatter = new SmartTokenFormatter(document.Options, formattingRules, (CompilationUnitSyntax)root);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var formatter = new SmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
             var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes;

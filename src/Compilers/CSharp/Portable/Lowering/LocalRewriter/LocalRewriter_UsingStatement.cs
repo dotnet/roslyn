@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     usingSyntax,
                     node.Locals,
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(result));
             }
         }
@@ -142,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax: usingSyntax,
                 locals: node.Locals.Add(boundTemp.LocalSymbol),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 
@@ -192,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     syntax: usingSyntax,
                     locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol), //localSymbol will be declared by an enclosing block
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(
                         rewrittenDeclaration,
                         new BoundExpressionStatement(declarationSyntax, tempAssignment),

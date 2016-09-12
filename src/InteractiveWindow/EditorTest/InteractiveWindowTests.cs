@@ -15,8 +15,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
-using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {

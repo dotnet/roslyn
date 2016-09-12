@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -919,7 +920,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14));
         }
 
-        [Fact]
+        [Fact, WorkItem(13062, "https://github.com/dotnet/roslyn/issues/13062")]
         public void NoRefInIndex()
         {
             var text = @"

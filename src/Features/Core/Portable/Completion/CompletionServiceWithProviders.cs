@@ -136,33 +136,54 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        private ImmutableArray<CompletionProvider> GetFilteredProviders(
+            ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
+        {
+            return FilterProviders(GetProviders(roles, trigger), trigger, options);
+        }
+
         protected virtual ImmutableArray<CompletionProvider> GetProviders(
             ImmutableHashSet<string> roles, CompletionTrigger trigger)
         {
-            var snippetsRule = this.GetRules().SnippetsRule;
+            return GetProviders(roles);
+        }
+
+        private ImmutableArray<CompletionProvider> FilterProviders(
+            ImmutableArray<CompletionProvider> providers,
+            CompletionTrigger trigger,
+            OptionSet options)
+        {
+            // If the caller passed along specific options that affect snippets,
+            // then defer to those.  Otherwise if the caller just wants the default
+            // behavior, then get the snippets behavior from our own rules.
+            var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, this.Language);
+            var snippetsRule = optionsRule != SnippetsRule.Default
+                ? optionsRule
+                : GetRules().SnippetsRule;
 
             if (snippetsRule == SnippetsRule.Default ||
                 snippetsRule == SnippetsRule.NeverInclude)
             {
-                return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
             else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
-                return GetProviders(roles);
+                return providers;
             }
             else if (snippetsRule == SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
             {
                 if (trigger.Kind == CompletionTriggerKind.Snippets)
                 {
-                    return GetProviders(roles).Where(p => p.IsSnippetProvider).ToImmutableArray();
+                    return providers.Where(p => p.IsSnippetProvider).ToImmutableArray();
                 }
                 else
                 {
-                    return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                    return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
                 }
             }
 
             return ImmutableArray<CompletionProvider>.Empty;
+
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
@@ -192,8 +213,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? document.Options;
-            var providers = GetProviders(roles, trigger);
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);;
+            var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
 
@@ -442,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
 
-            var providers = this.GetProviders(roles, CompletionTrigger.Default);
+            var providers = GetFilteredProviders(roles, trigger, options);
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 

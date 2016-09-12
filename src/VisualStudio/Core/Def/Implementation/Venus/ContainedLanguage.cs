@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel, vbHelperFormattingRule);
 
             // TODO: Can contained documents be linked or shared?
-            this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true);
+            this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);
         }
 
         private void OnDisconnect()

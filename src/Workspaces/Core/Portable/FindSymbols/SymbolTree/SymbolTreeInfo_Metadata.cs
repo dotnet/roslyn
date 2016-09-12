@@ -17,14 +17,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static char[] s_dotSeparator = { '.' };
-
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
-            var typeName = reader.GetString(name);
-            var index = typeName.IndexOf('`');
-            typeName = index > 0 ? typeName.Substring(0, index) : typeName;
-            return typeName;
+            var blobReader = reader.GetBlobReader(name);
+            var backtickIndex = IndexOfCharacter(blobReader, '`');
+            if (backtickIndex == -1)
+            {
+                return reader.GetString(name);
+            }
+
+            unsafe
+            {
+                return MetadataStringDecoder.DefaultUTF8.GetString(
+                    blobReader.CurrentPointer, backtickIndex);
+            }
+        }
+
+        private static int IndexOfCharacter(BlobReader blobReader, char ch)
+        {
+            // This function is only safe for searching for ascii characters.
+            Debug.Assert(ch < 127);
+            unsafe
+            {
+                var ptr = blobReader.CurrentPointer;
+                for (int i = 0, n = blobReader.RemainingBytes; i < n; i++)
+                {
+                    if (*ptr == ch)
+                    {
+                        return i;
+                    }
+
+                    ptr++;
+                }
+
+                return -1;
+            }
         }
 
         private static Metadata GetMetadataNoThrow(PortableExecutableReference reference)
@@ -92,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 create: version => CreateMetadataSymbolTreeInfo(solution, version, reference, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -457,6 +484,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             private void AddNamespaceParts(
+                StringHandle namespaceHandle, List<string> simpleNames)
+            {
+                var blobReader = _metadataReader.GetBlobReader(namespaceHandle);
+
+                while (true)
+                {
+                    var dotIndex = IndexOfCharacter(blobReader, '.');
+                    unsafe
+                    {
+                        // Note: we won't get any string sharing as we're just using the 
+                        // default string decoded.  However, that's ok.  We only produce
+                        // these strings when we first read metadata.  Then we create and
+                        // persist our own index.  In the future when we read in that index
+                        // there's no way for us to share strings between us and the 
+                        // compiler at that point.
+                        if (dotIndex == -1)
+                        {
+                            simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
+                                blobReader.CurrentPointer, blobReader.RemainingBytes));
+                            return;
+                        }
+                        else
+                        {
+                            simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
+                                blobReader.CurrentPointer, dotIndex));
+                            blobReader.SkipBytes(dotIndex + 1);
+                        }
+                    }
+                }
+            }
+
+            private void AddNamespaceParts(
                 NamespaceDefinitionHandle namespaceHandle, List<string> simpleNames)
             {
                 if (namespaceHandle.IsNil)
@@ -472,12 +531,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private void AddTypeReferenceNameParts(TypeReferenceHandle handle, List<string> simpleNames)
             {
                 var typeReference = _metadataReader.GetTypeReference(handle);
-                var namespaceString = _metadataReader.GetString(typeReference.Namespace);
-
-                // NOTE(cyrusn): Unfortunately, we are forced to allocate here
-                // no matter what.  The metadata reader API gives us no way to
-                // just get the component namespace parts for a namespace reference.
-                simpleNames.AddRange(namespaceString.Split(s_dotSeparator));
+                AddNamespaceParts(typeReference.Namespace, simpleNames);
                 simpleNames.Add(GetMetadataNameWithoutBackticks(_metadataReader, typeReference.Name));
             }
 
@@ -527,10 +581,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<Node> GenerateUnsortedNodes()
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes()
             {
-                var unsortedNodes = ImmutableArray.CreateBuilder<Node>();
-                unsortedNodes.Add(new Node(name: "", parentIndex: Node.RootNodeParentIndex));
+                var unsortedNodes = ImmutableArray.CreateBuilder<BuilderNode>();
+                unsortedNodes.Add(new BuilderNode(name: "", parentIndex: RootNodeParentIndex));
 
                 AddUnsortedNodes(unsortedNodes, parentNode: _rootNode, parentIndex: 0);
 
@@ -538,11 +592,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             private void AddUnsortedNodes(
-                ImmutableArray<Node>.Builder unsortedNodes, MetadataNode parentNode, int parentIndex)
+                ImmutableArray<BuilderNode>.Builder unsortedNodes, MetadataNode parentNode, int parentIndex)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {
-                    var childNode = new Node(child.Name, parentIndex);
+                    var childNode = new BuilderNode(child.Name, parentIndex);
                     var childIndex = unsortedNodes.Count;
                     unsortedNodes.Add(childNode);
 

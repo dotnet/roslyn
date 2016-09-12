@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_addedLocals != null)
             {
                 _addedStatements.Add(body);
-                body = new BoundBlock(body.Syntax, _addedLocals.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, _addedStatements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                body = new BoundBlock(body.Syntax, _addedLocals.ToImmutableAndFree(), _addedStatements.ToImmutableAndFree()) { WasCompilerGenerated = true };
                 _addedLocals = null;
                 _addedStatements = null;
             }
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newStatements.Add((BoundStatement)this.Visit(s));
                     }
 
-                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, newStatements.ToImmutableAndFree(), node.HasErrors);
+                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree(), node.HasErrors);
                 });
             }
             else
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InsertAndFreePrologue(newStatements, prologue);
                     newStatements.Add((BoundStatement)base.VisitSwitchStatement(node));
 
-                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, newStatements.ToImmutableAndFree(), node.HasErrors);
+                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree(), node.HasErrors);
                 });
             }
             else

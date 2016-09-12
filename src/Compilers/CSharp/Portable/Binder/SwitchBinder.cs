@@ -379,6 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             GetDeclaredLocalFunctionsForScope(node), boundSwitchSections, this.BreakLabel, null);
         }
 
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        {
+            // A pattern should be handled by a pattern switch binder.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         // Bind the switch expression
         private BoundExpression BindSwitchExpression(DiagnosticBag diagnostics)
         {
@@ -446,15 +452,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
                         return binder.CreateConversion(node, switchExpression, conversion, false, resultantGoverningType, diagnostics);
                     }
-                    else if (switchGoverningType.SpecialType != SpecialType.System_Void && PatternsEnabled)
+                    else if (switchGoverningType.SpecialType != SpecialType.System_Void)
                     {
-                        // Otherwsie (3) satisfied
+                        // Otherwise (3) satisfied
+                        if (!PatternsEnabled)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, node.Location);
+                        }
+
                         return switchExpression;
                     }
                     else
                     {
-                        // We need to create an error type here as certain diagnostics generated during binding the switch case label expression and
-                        // goto case expression should be generated only if the switch expression type is a valid switch governing type.
                         switchGoverningType = CreateErrorType(switchGoverningType.Name);
                     }
                 }
@@ -462,15 +471,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!switchExpression.HasAnyErrors)
             {
-                if ((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PatternValueExpected, node.Location, switchExpression.Display);
-                }
-                else
-                {
-                    Debug.Assert(!PatternsEnabled);
-                    diagnostics.Add(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, node.Location);
-                }
+                Debug.Assert((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void);
+                diagnostics.Add(ErrorCode.ERR_PatternValueExpected, node.Location, switchExpression.Display);
             }
 
             return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(switchExpression), switchGoverningType ?? CreateErrorType());

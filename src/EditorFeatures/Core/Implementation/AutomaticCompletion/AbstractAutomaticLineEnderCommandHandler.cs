@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             // feature off
-            if (!document.Options.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;

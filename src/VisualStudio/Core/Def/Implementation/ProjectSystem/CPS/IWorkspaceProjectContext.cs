@@ -16,9 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         string ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         bool LastDesignTimeBuildSucceeded { get; set; }
+        string BinOutputPath { get; set; }
 
         // Options.
-        void SetCommandLineArguments(string commandLineForOptions);
+        void SetOptions(string commandLineForOptions);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);

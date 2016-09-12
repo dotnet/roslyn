@@ -763,6 +763,30 @@ class C
         }
 
         [Fact]
+        public void NotAssignable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (1, P) = (1, 2);
+    }
+    static int P { get { return 1; } }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 10),
+                // (6,13): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TupleWithUseSiteError()
         {
             string source = @"
@@ -1147,10 +1171,34 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (7,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
                 );
+        }
+
+        [Fact]
+        public void ChainedAssignment()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1, x2;
+        var y = (x1, x1) = (x2, x2) = new C();
+        System.Console.Write($""{y.ToString()} {x1} {x2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = b = 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
 
         [Fact]
@@ -1934,15 +1982,24 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (int x1, x2)").WithLocation(6, 9),
                 // (6,14): error CS1525: Invalid expression term 'int'
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
+                // (7,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (var x3, x4)").WithLocation(7, 9),
                 // (7,18): error CS1003: Syntax error, ',' expected
                 //         var (var x3, x4) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 18),
+                // (8,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x5, var (x6, x7))").WithLocation(8, 9),
                 // (6,18): error CS0103: The name 'x1' does not exist in the current context
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),
@@ -2320,17 +2377,38 @@ class C1
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (4,32): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
-                // (6,38): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                // (6,38): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
-                // (6,18): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                // (6,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
                 );
             // no crash
+        }
+
+        [Fact]
+        public void DeclarationCannotBeEmbedded()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        if (true)
+            var (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                );
         }
     }
 }

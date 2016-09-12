@@ -108,6 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible tuple type element creation..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
         /// </summary>
         internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
@@ -284,6 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above {
             get {
                 return ResourceManager.GetString("Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;element name&gt; : .
+        /// </summary>
+        internal static string element_name {
+            get {
+                return ResourceManager.GetString("element_name", resourceCulture);
             }
         }
         
@@ -536,6 +554,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Make_0_return_Task_instead_of_void {
             get {
                 return ResourceManager.GetString("Make_0_return_Task_instead_of_void", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async.
+        /// </summary>
+        internal static string Make_method_async {
+            get {
+                return ResourceManager.GetString("Make_method_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async (stay void).
+        /// </summary>
+        internal static string Make_method_async_remain_void {
+            get {
+                return ResourceManager.GetString("Make_method_async_remain_void", resourceCulture);
             }
         }
         

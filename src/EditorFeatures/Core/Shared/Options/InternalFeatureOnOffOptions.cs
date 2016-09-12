@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option<bool> DesignerAttributes = new Option<bool>(OptionName, "Designer Attribute", defaultValue: true);
 
         [ExportOption]
-        public static readonly Option<bool> EsentPerformanceMonitor = new Option<bool>(OptionName, "Esent PerfMon", defaultValue: false);
-
-        [ExportOption]
         public static readonly Option<bool> FullSolutionAnalysisMemoryMonitor = new Option<bool>(OptionName, "Full Solution Analysis Memory Monitor", defaultValue: true);
 
         [ExportOption]

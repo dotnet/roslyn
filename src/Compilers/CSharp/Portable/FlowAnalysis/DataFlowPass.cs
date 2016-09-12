@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
             }
-            else if (!_alreadyReported[slot])
+            else if (!_alreadyReported[slot] && VariableType(symbol)?.IsErrorType() != true)
             {
                 // CONSIDER: could suppress this diagnostic in cases where the local was declared in a using
                 // or fixed statement because there's a special error code for not initializing those.
@@ -1660,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(localsOpt.Where(l => l.DeclarationKind != LocalDeclarationKind.PatternVariable).All(_usedVariables.Contains));
+            Debug.Assert(localsOpt.Where(l => l.DeclarationKind == LocalDeclarationKind.UsingVariable).All(_usedVariables.Contains));
 
             return result;
         }

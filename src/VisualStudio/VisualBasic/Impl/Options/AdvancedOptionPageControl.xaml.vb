@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Shared.Options
@@ -13,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             InitializeComponent()
 
-            BindToOption(PlaceSystemNamespaceFirst, OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
+            BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInReferenceAssemblies, AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInNuGetPackages, AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic)
 

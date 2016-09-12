@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((emittingPdb || emitOptions.EmitDynamicAnalysisData) &&
+                if ((emittingPdb || emitOptions.EmitTestCoverageData) &&
                     !CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics))
                 {
                     return false;

@@ -3390,6 +3390,7 @@ parse_member_name:;
             var expression = this.ParseExpressionCore();
             if (refKeyword != default(SyntaxToken))
             {
+                expression = CheckValidLvalue(expression);
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
             }
 
@@ -4771,11 +4772,19 @@ tryAgain:
                                 currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
                                 isNonEqualsBinaryToken)
                             {
-                                var missingIdentifier = CreateMissingIdentifierToken();
-                                missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
+                                var isPossibleLocalFunctionToken =
+                                    currentTokenKind == SyntaxKind.OpenParenToken ||
+                                    currentTokenKind == SyntaxKind.LessThanToken;
 
-                                localFunction = null;
-                                return _syntaxFactory.VariableDeclarator(missingIdentifier, null, null);
+                                // Make sure this isn't a local function
+                                if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
+                                {
+                                    var missingIdentifier = CreateMissingIdentifierToken();
+                                    missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
+
+                                    localFunction = null;
+                                    return _syntaxFactory.VariableDeclarator(missingIdentifier, null, null);
+                                }
                             }
                         }
                     }
@@ -4834,6 +4843,7 @@ tryAgain:
                     var init = this.ParseVariableInitializer(isLocal && !isConst);
                     if (refKeyword != null)
                     {
+                        init = CheckValidLvalue(init);
                         init = _syntaxFactory.RefExpression(refKeyword, init);
                     }
 
@@ -4940,6 +4950,36 @@ tryAgain:
 
             localFunction = null;
             return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
+        }
+
+        // Is there a local function after an eaten identifier?
+        private bool IsLocalFunctionAfterIdentifier()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||
+                         this.CurrentToken.Kind == SyntaxKind.LessThanToken);
+            var resetPoint = this.GetResetPoint();
+
+            try
+            {
+                var typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+                var paramList = ParseParenthesizedParameterList(
+                    allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+
+                if (!paramList.IsMissing &&
+                     (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                      this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
+                      this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            finally
+            {
+                Reset(ref resetPoint);
+                Release(ref resetPoint);
+            }
         }
 
         private bool IsPossibleEndOfVariableDeclaration()
@@ -6532,7 +6572,7 @@ tryAgain:
                 var close = this.EatToken(SyntaxKind.CloseParenToken);
                 var result = _syntaxFactory.TupleType(open, list, close);
 
-                if (!result.ContainsDiagnostics && list.Count < 2)
+                if (list.Count < 2)
                 {
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }
@@ -7425,6 +7465,7 @@ tryAgain:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeconstructionDeclarationStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
             }
@@ -8412,7 +8453,6 @@ tryAgain:
                     {
                         return deconstruction;
                     }
-
                 }
                 finally
                 {
@@ -9211,6 +9251,11 @@ tryAgain:
                 newPrecedence = GetPrecedence(opKind);
                 var opToken = this.EatToken();
                 var operand = this.ParseSubExpression(newPrecedence);
+                if (SyntaxFacts.IsIncrementOrDecrementOperator(opToken.Kind))
+                {
+                    operand = CheckValidLvalue(operand);
+                }
+
                 leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
             }
             else if (IsAwaitExpression())
@@ -9336,6 +9381,7 @@ tryAgain:
                             opToken = AddTrailingSkippedSyntax(opToken, refToken);
                         }
 
+                        leftOperand = CheckValidLvalue(leftOperand);
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
                     }
                     else
@@ -9542,6 +9588,7 @@ tryAgain:
 
                     case SyntaxKind.PlusPlusToken:
                     case SyntaxKind.MinusMinusToken:
+                        expr = CheckValidLvalue(expr);
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
                         break;
 
@@ -9808,8 +9855,7 @@ tryAgain:
                 // However, we actually do support ref indexing of indexed properties in COM interop
                 // scenarios, and when indexing an object of static type "dynamic". So we enforce
                 // that the ref/out of the argument must match the parameter when binding the argument list.
-                if (!isIndexer && refOrOutKeyword?.Kind == SyntaxKind.OutKeyword &&
-                    IsPossibleOutVarDeclaration())
+                if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword && IsPossibleOutVarDeclaration())
                 {
                     TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
                     SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
@@ -9821,10 +9867,44 @@ tryAgain:
                 else
                 {
                     expression = this.ParseSubExpression(Precedence.Expression);
+
+                    if (refOrOutKeyword != null)
+                    {
+                        expression = CheckValidLvalue(expression);
+                    }
                 }
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+        }
+
+        private ExpressionSyntax CheckValidLvalue(ExpressionSyntax expression)
+        {
+            return IsDeconstructionCompatibleArgument(expression)
+                ? this.AddError(expression, ErrorCode.ERR_VarInvocationLvalueReserved)
+                : expression;
+        }
+
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
+        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
+        {
+            if (expression.Kind == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                ExpressionSyntax invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).Identifier.IsVar();
+            }
+
+            return false;
         }
 
         private bool IsPossibleOutVarDeclaration()
@@ -10169,7 +10249,7 @@ tryAgain:
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
 
-                if (!result.ContainsDiagnostics && list.Count < 2)
+                if (list.Count < 2)
                 {
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }

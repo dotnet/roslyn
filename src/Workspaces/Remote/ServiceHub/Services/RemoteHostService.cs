@@ -4,7 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote.Storage;
+using Microsoft.CodeAnalysis.Storage;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -46,6 +51,31 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
+        public async Task SynchronizeAsync(byte[] solutionChecksum)
+        {
+            var checksum = new Checksum(solutionChecksum);
+
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_Synchronize, c => c.ToString(), checksum, CancellationToken))
+            {
+                try
+                {
+                    // cause all assets belong to the given solution to sync to remote host
+                    await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(checksum, CancellationToken).ConfigureAwait(false);
+                }
+                catch (IOException)
+                {
+                    // stream to send over assets has closed before we
+                    // had chance to check cancellation
+                }
+                catch (OperationCanceledException)
+                {
+                    // rpc connection has closed.
+                    // this can happen if client side cancelled the
+                    // operation
+                }
+            }
+        }
+
         private static Func<FunctionId, bool> GetLoggingChecker()
         {
             try
@@ -85,5 +115,50 @@ namespace Microsoft.CodeAnalysis.Remote
             // don't log anything
             return _ => false;
         }
+
+        #region PersistentStorageService messages
+
+        public void PersistentStorageService_RegisterPrimarySolutionId(
+            byte[] solutionIdGuidBytes, string solutionIdDebugName)
+        {
+            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
+
+            var persistentStorageService = GetPersistentStorageService();
+            persistentStorageService?.RegisterPrimarySolution(solutionId);
+        }
+
+        private static PersistentStorageService GetPersistentStorageService()
+        {
+            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
+            // PersistentStorageService.  This service will be shared among all Workspaces we 
+            // create in this process.  So updating it will be seen by all.
+            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
+            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+            return persistentStorageService;
+        }
+
+        public void PersistentStorageService_UnregisterPrimarySolutionId(
+            byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown)
+        {
+            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
+            var persistentStorageService = GetPersistentStorageService();
+            persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+        }
+
+        public void PersistentStorageService_UpdateSolutionIdStorageLocation(
+            byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation)
+        {
+            var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
+            RemotePersistentStorageLocationService.UpdateStorageLocation(
+                solutionId, storageLocation);
+        }
+
+        private static SolutionId CreateSolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName)
+        {
+            return SolutionId.CreateFromSerialized(
+                new Guid(solutionIdGuidBytes), solutionIdDebugName);
+        }
+
+        #endregion
     }
 }

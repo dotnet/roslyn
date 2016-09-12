@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -20,27 +21,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(
+            Workspace workspace, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var remoteHostStream = await primary.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await primary.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
 
                 // make sure connection is done right
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
-                var host = await instance._rpc.InvokeAsync<string>(WellKnownServiceHubServices.RemoteHostService_Connect, current).ConfigureAwait(false);
+                var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
                 Contract.ThrowIfFalse(host == current.ToString());
 
                 instance.Connected();
 
+                // Create a workspace host to hear about workspace changes.  We'll 
+                // remote those changes over to the remote side when they happen.
+                RegisterWorkspaceHost(workspace, instance);
+
                 // return instance
                 return instance;
             }
+        }
+
+        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        {
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
+            if (vsWorkspace == null)
+            {
+                return;
+            }
+
+            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
+                new WorkspaceHost(vsWorkspace, client));
         }
 
         private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :

@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)diagnostics != null && (object)syntax != null)
             {
-                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
             }
 
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                    ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
                 }
 
                 do
@@ -363,6 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        {
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
+        }
+
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
@@ -374,16 +380,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
-            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+                ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }
 
-        internal static void ReportNamesMismatchesIfAny(ImmutableArray<string> destinationNames, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
         {
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
@@ -391,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            ImmutableArray<string> destinationNames = destination.TupleElementNames;
             int sourceLength = sourceNames.Length;
             bool allMissing = destinationNames.IsDefault;
             Debug.Assert(allMissing || destinationNames.Length == sourceLength);
@@ -400,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceName = sourceNames[i];
                 if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
-                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName);
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
                 }
             }
         }
@@ -823,7 +830,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // This is a matching field, but it is in the extension tuple
                                     tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
 
-
                                     string defaultName = TupleMemberName(tupleFieldIndex + 1);
                                     // Add a field with default name if the given name is different
                                     if (namesOfVirtualFields[tupleFieldIndex] != defaultName)
@@ -939,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Add a field with default name if the given name is different
                     if (name != defaultName)
                     {
-                        members.Add(new TupleErrorFieldSymbol(this, defaultName, -members.Count - 1, null, _elementTypes[i], diagnosticInfo));
+                        members.Add(new TupleErrorFieldSymbol(this, defaultName, i, null, _elementTypes[i], diagnosticInfo));
                     }
 
                     members.Add(new TupleErrorFieldSymbol(this, name, i,

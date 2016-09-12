@@ -10,7 +10,6 @@
     <RootNamespace>Roslyn.VisualStudio.Setup.Next</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup.Next</AssemblyName>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -22,24 +21,6 @@
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
       <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
       <Name>VisualStudio</Name>
@@ -51,24 +32,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
-      <Name>CSharpWorkspace</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
       <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
       <Name>RemoteWorkspaces</Name>
@@ -78,12 +41,6 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
-      <Name>BasicWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
@@ -105,11 +62,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" />
-    <NuGetPackageToIncludeInVsix Include="Newtonsoft.Json" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Threading" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Validation" />
-    <NuGetPackageToIncludeInVsix Include="RoslynDependencies.Microsoft.Build.Desktop" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
@@ -128,14 +80,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="snapshotService.servicehub.service.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="emitService.servicehub.service.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="Microsoft.CodeAnalysis.Remote.ServiceHub.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

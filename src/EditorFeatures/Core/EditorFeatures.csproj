@@ -43,7 +43,6 @@
     <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>
-      <Aliases>InteractiveWindow</Aliases>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -284,8 +283,8 @@
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
-    <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
-    <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
+    <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
+    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
@@ -566,16 +565,9 @@
     <Compile Include="Implementation\NavigationBar\NavigationBarSymbolIdIndexProvider.cs" />
     <Compile Include="Implementation\Notification\EditorNotificationServiceFactory.cs" />
     <Compile Include="Implementation\Organizing\OrganizeDocumentCommandHandler.cs" />
-    <Compile Include="Implementation\Outlining\AbstractOutliningService.cs" />
-    <Compile Include="Implementation\Outlining\AbstractSyntaxNodeOutliner.cs" />
-    <Compile Include="Implementation\Outlining\AbstractSyntaxTriviaOutliner.cs" />
-    <Compile Include="Implementation\Outlining\IOutliningService.cs" />
-    <Compile Include="Implementation\Outlining\OutliningCommandHandler.cs" />
-    <Compile Include="Implementation\Outlining\OutliningExtensions.cs" />
-    <Compile Include="Implementation\Outlining\OutliningSpan.cs" />
-    <Compile Include="Implementation\Outlining\OutliningTaggerProvider.cs" />
-    <Compile Include="Implementation\Outlining\OutliningTaggerProvider.Tag.cs" />
-    <Compile Include="Implementation\Outlining\RegionCollector.cs" />
+    <Compile Include="Implementation\Structure\OutliningCommandHandler.cs" />
+    <Compile Include="Implementation\Structure\VisualStudio14StructureTaggerProvider.cs" />
+    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.RegionTag.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
     <Compile Include="Implementation\Peek\PeekableItem.cs" />
@@ -653,6 +645,7 @@
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Shared\IImageMonikerService.cs" />
     <Compile Include="Shared\DefaultImageMonikerService.cs" />
+    <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />

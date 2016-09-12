@@ -54,7 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim diagnosticId As String = Nothing
-            Dim node = GetNodeToSimplify(root, model, span, document.Options, diagnosticId, cancellationToken)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim node = GetNodeToSimplify(root, model, span, documentOptions, diagnosticId, cancellationToken)
             If node Is Nothing Then
                 Return
             End If

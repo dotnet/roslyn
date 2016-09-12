@@ -1423,6 +1423,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Install package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_package_0 {
+            get {
+                return ResourceManager.GetString("Install_package_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install version &apos;{0}&apos;.
         /// </summary>
         internal static string Install_version_0 {
@@ -1653,24 +1662,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_containing_scope_async_return_Task {
             get {
                 return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make method async.
-        /// </summary>
-        internal static string Make_method_async {
-            get {
-                return ResourceManager.GetString("Make_method_async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make method async (return Task).
-        /// </summary>
-        internal static string Make_method_async_return_Task {
-            get {
-                return ResourceManager.GetString("Make_method_async_return_Task", resourceCulture);
             }
         }
         

@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// id is an index of the element (zero-based).
         /// Otherwise, (-1 - [index in members array]);
         /// </summary>
-        private readonly int _tupleFieldId;
+        private readonly int _tupleElementIndex;
 
-        public TupleFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleFieldId)
+        public TupleFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex)
             : base(underlyingField)
         {
             Debug.Assert(container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames) || this is TupleVirtualElementFieldSymbol,
                                             "virtual fields should be represented by " + nameof(TupleVirtualElementFieldSymbol));
 
             _containingTuple = container;
-            _tupleFieldId = tupleFieldId;
+            _tupleElementIndex = tupleElementIndex;
         }
 
         public override bool IsTupleField
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _tupleFieldId;
+                return _tupleElementIndex;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override sealed int GetHashCode()
         {
             return Hash.Combine(
-                Hash.Combine(_containingTuple.GetHashCode(), _tupleFieldId.GetHashCode()),
+                Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode()),
                 this.Name.GetHashCode());
         }
 
@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // note we have to compare both index and name because 
             // in nameless tuple there could be fields that differ only by index
             // and in named tupoles there could be fields that differ only by name
-            return (object)other != null && 
-                _tupleFieldId == other.TupleElementIndex && 
+            return (object)other != null &&
+                _tupleElementIndex == other.TupleElementIndex &&
                 _containingTuple == other._containingTuple &&
                 this.Name == other.Name;
         }
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<Location> _locations;
 
-        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleFieldId, Location location)
-            : base(container, underlyingField, tupleFieldId)
+        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex, Location location)
+            : base(container, underlyingField, tupleElementIndex)
         {
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
         }
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
 
-        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementOrdinal, Location location)
-            : base(container, underlyingField, tupleElementOrdinal, location)
+        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementIndex, Location location)
+            : base(container, underlyingField, tupleElementIndex, location)
         {
             Debug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),

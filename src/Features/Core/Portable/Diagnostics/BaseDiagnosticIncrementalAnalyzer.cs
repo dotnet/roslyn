@@ -234,29 +234,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
-
-        protected static ReportDiagnostic GetEffectiveSeverity(DiagnosticDescriptor descriptor, CompilationOptions options)
-        {
-            return options == null
-                ? MapSeverityToReport(descriptor.DefaultSeverity)
-                : descriptor.GetEffectiveSeverity(options);
-        }
-
-        protected static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
     }
 }

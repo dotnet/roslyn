@@ -1698,6 +1698,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_SourceLinkRequiresPortablePdb = 37264
         ERR_CannotEmbedWithoutPdb = 37265
 
+        ERR_InvalidInstrumentationKind = 37266
+
+        ERR_ValueTupleTypeRefResolutionError = 37267
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_MustOverloadBase4 = 40003

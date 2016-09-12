@@ -1,19 +1,19 @@
 ﻿{
   "dependencies": {
-    "Microsoft.ServiceHub.Client": "1.0.42-rc",
-    "StreamJsonRpc": "0.14.3-alpha",
     "Microsoft.VisualStudio.Shell.15.0": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.Shell.Framework": "15.0.25604-Preview4",
     "Microsoft.VisualStudio.Language.Intellisense": "15.0.25604-Preview4",
+    "Microsoft.VisualStudio.Text.UI": "15.0.25604-Preview4",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"
     },
+    "Microsoft.ServiceHub.Client": "1.0.103-rc",
     "Newtonsoft.Json": "8.0.3",
     "System.Collections.Immutable": "1.2.0"
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   }
 }

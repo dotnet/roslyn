@@ -4,3 +4,19 @@ using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis.dll")]
+[assembly: ProvideRoslynBindingRedirection("Roslyn.Compilers.Extension.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.AppContext.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Console.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Diagnostics.Process.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.DriveInfo.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.Primitives.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Pipes.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Runtime.InteropServices.RuntimeInformation.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.AccessControl.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Claims.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Algorithms.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Primitives.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Principal.Windows.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Threading.Thread.dll")]

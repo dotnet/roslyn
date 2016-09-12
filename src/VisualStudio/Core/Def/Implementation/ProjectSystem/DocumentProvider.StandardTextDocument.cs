@@ -54,7 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
-                DocumentId id)
+                DocumentId id,
+                EventHandler updatedOnDiskHandler,
+                EventHandler<bool> openedHandler,
+                EventHandler<bool> closingHandler)
             {
                 Contract.ThrowIfNull(documentProvider);
 
@@ -82,6 +85,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (openTextBuffer == null)
                 {
                     _fileChangeTracker.StartFileChangeListeningAsync();
+                }
+
+                if (updatedOnDiskHandler != null)
+                {
+                    UpdatedOnDisk += updatedOnDiskHandler;
+                }
+
+                if (openedHandler != null)
+                {
+                    Opened += openedHandler;
+                }
+
+                if (closingHandler != null)
+                {
+                    Closing += closingHandler;
                 }
             }
 

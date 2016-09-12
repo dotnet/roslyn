@@ -53,8 +53,15 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             var document = context.Document;
             var service = CompletionService.GetService(document);
+
+            // Disable snippets from ever appearing in the completion items. It's
+            // very unlikely the user would ever mispell a snippet, then use spell-
+            // checking to fix it, then try to invoke the snippet.
+            var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+
             var completionList = await service.GetCompletionsAsync(
-                document, nameNode.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, nameNode.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList == null)
             {
                 return;

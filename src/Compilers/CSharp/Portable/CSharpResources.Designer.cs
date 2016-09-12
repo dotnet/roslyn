@@ -4202,6 +4202,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers..
+        /// </summary>
+        internal static string ERR_ExpressionVariableInConstructorOrFieldInitializer {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionVariableInConstructorOrFieldInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot define a new extension method because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference to System.Core.dll?.
         /// </summary>
         internal static string ERR_ExtensionAttrNotFound {
@@ -5494,6 +5503,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidInitializerElementInitializer {
             get {
                 return ResourceManager.GetString("ERR_InvalidInitializerElementInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid instrumentation kind: {0}.
+        /// </summary>
+        internal static string ERR_InvalidInstrumentationKind {
+            get {
+                return ResourceManager.GetString("ERR_InvalidInstrumentationKind", resourceCulture);
             }
         }
         
@@ -7496,6 +7514,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        /// </summary>
+        internal static string ERR_PredefinedValueTupleTypeNotFound {
+            get {
+                return ResourceManager.GetString("ERR_PredefinedValueTupleTypeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute.
         /// </summary>
         internal static string ERR_PrincipalPermissionInvalidAction {
@@ -8810,7 +8837,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple membername &apos;{0}&apos; is disallowed at any position..
+        ///   Looks up a localized string similar to Tuple member name &apos;{0}&apos; is disallowed at any position..
         /// </summary>
         internal static string ERR_TupleReservedMemberNameAnyPosition {
             get {
@@ -8846,7 +8873,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable..
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed out variable &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {
@@ -9301,6 +9328,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VariableUsedBeforeDeclarationAndHidesField {
             get {
                 return ResourceManager.GetString("ERR_VariableUsedBeforeDeclarationAndHidesField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The syntax &apos;var (...)&apos; as an lvalue is reserved..
+        /// </summary>
+        internal static string ERR_VarInvocationLvalueReserved {
+            get {
+                return ResourceManager.GetString("ERR_VarInvocationLvalueReserved", resourceCulture);
             }
         }
         
@@ -13373,7 +13409,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the assignment target..
+        ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_TupleLiteralNameMismatch {
             get {

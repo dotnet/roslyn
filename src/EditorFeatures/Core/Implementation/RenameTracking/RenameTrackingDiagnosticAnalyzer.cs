@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal const string RenameToPropertyKey = "RenameTo";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor);
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
         {

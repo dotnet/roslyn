@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -134,7 +133,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             return _window.PreEditorCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 
                         default:
-                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                            throw ExceptionUtilities.UnexpectedValue(_layer);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -157,7 +156,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             return _window.PreEditorCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
                         default:
-                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                            throw ExceptionUtilities.UnexpectedValue(_layer);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))

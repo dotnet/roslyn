@@ -153,6 +153,12 @@
   <data name="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation" xml:space="preserve">
     <value>Autoselect disabled due to possible explicitly named anonymous type member creation.</value>
   </data>
+  <data name="element_name" xml:space="preserve">
+    <value>&lt;element name&gt; : </value>
+  </data>
+  <data name="Autoselect_disabled_due_to_possible_tuple_type_element_creation" xml:space="preserve">
+    <value>Autoselect disabled due to possible tuple type element creation.</value>
+  </data>
   <data name="range_variable" xml:space="preserve">
     <value>&lt;range variable&gt;</value>
   </data>
@@ -457,5 +463,11 @@
   </data>
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
+  </data>
+  <data name="Make_method_async" xml:space="preserve">
+    <value>Make method async</value>
+  </data>
+  <data name="Make_method_async_remain_void" xml:space="preserve">
+    <value>Make method async (stay void)</value>
   </data>
 </root>

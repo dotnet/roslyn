@@ -2164,6 +2164,26 @@ End Class
             End Using
         End Function
 
+        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedItemCommittedWithCloseBracket() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Class [Interface]
+    Sub Foo()
+        Dim x As $$
+    End Sub
+End Class
+            ]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTypeChars("Interf]")
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(4, "Dim x As [Interface]")
+            End Using
+        End Function
+
         <WorkItem(1075298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075298")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitOnQuestionMarkForConditionalAccess() As Task

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         {
             return key.Option.Feature == CSharpCodeStyleOptions.FeatureName ||
                 key.Option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
-                key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
+                key.Option.Feature == CodeAnalysis.Editing.GenerationOptions.FeatureName;
         }
 
         #region "Preview Text"

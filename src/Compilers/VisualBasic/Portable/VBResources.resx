@@ -1995,6 +1995,9 @@
   <data name="ERR_TypeRefResolutionError3" xml:space="preserve">
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
   </data>
+  <data name="ERR_ValueTupleTypeRefResolutionError" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported.</value>
+  </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
     <value>ParamArray parameters must have an array type.</value>
   </data>
@@ -5060,8 +5063,8 @@
                                   the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
-/instrument:options               Sets instrumentation options.
-                                  If empty instrumentation is disabled.
+/instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
 /sourcelink:&lt;file&gt;                Source link info to embed into Portable PDB.
 
                                   - ERRORS AND WARNINGS -
@@ -5386,7 +5389,7 @@
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple membername '{0}' is disallowed at any position.</value>
+    <value>Tuple member name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
@@ -5396,5 +5399,8 @@
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
     <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
   </data>
 </root>

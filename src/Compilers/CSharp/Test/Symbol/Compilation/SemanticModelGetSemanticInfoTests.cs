@@ -8590,8 +8590,8 @@ public class Test
 
             Assert.Equal("System.Double", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -10467,7 +10467,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAValue, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { private get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10623,7 +10623,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10665,7 +10665,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10901,9 +10901,9 @@ class Program
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -10967,9 +10967,9 @@ class Program
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -12447,7 +12447,7 @@ struct Conv
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());
@@ -12481,7 +12481,7 @@ struct Conv
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var isEnabled = args.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode);
+            var isEnabled = args.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode);
             return new CommandState(isAvailable: true, isChecked: isEnabled);
         }
 

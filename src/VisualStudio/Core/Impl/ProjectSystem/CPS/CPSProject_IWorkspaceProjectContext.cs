@@ -59,22 +59,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 _lastDesignTimeBuildSucceeded = value;
             }
         }
+
+        string IWorkspaceProjectContext.BinOutputPath
+        {
+            get
+            {
+                return base.BinOutputPath;
+            }
+            set
+            {
+                SetBinOutputPathAndRelatedData(value);
+            }
+        }
+
         #endregion
 
         #region Options
-        public void SetCommandLineArguments(string commandLineForOptions)
+        public void SetOptions(string commandLineForOptions)
         {
             var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
-            PostSetCommandLineArguments(commandLineArguments);
+            PostSetOptions(commandLineArguments);
         }
 
-        private void PostSetCommandLineArguments(CommandLineArguments commandLineArguments)
+        private void PostSetOptions(CommandLineArguments commandLineArguments)
         {
-            // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project, if required.
+            // Invoke SetOutputPathAndRelatedData to update the project obj output path.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
-                var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
-                SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
+                var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                SetObjOutputPathAndRelatedData(objOutputPath);
             }
         }
         #endregion
@@ -100,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // Setting the command line arguments should have already set the output file name and folder.
             // We fetch this output path to add the reference.
             var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            var binPathOpt = referencedProject.BinOutputPath;
             if (!string.IsNullOrEmpty(binPathOpt))
             {
                 AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(binPathOpt, properties);
@@ -113,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // AbstractProject and ProjectTracker track project references using the project bin output path.
             // We fetch this output path to remove the reference.
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
+            var binPathOpt = referencedProject.BinOutputPath;
             if (!string.IsNullOrEmpty(binPathOpt))
             {
                 base.RemoveMetadataReference(binPathOpt);

@@ -1,54 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <ProjectGuid>{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Roslyn.InteractiveWindow.UnitTests</RootNamespace>
-    <AssemblyName>Roslyn.InteractiveWindow.UnitTests</AssemblyName>
-    <PlatformTarget>x86</PlatformTarget>
+    <RootNamespace>Microsoft.VisualStudio.InteractiveWindow.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.InteractiveWindow.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <ProjectReference Include="..\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Test\Shared\EventListenerGuard.cs">
-      <Link>EventListenerGuard.cs</Link>
-    </Compile>
+    <Compile Include="EventListenerGuard.cs" />
+    <Compile Include="InteractiveClipboardFormatTests.cs" />
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
     <Compile Include="HistoryTests.cs" />
@@ -60,11 +41,42 @@
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />
     <Compile Include="TestSmartIndent.cs" />
+    <Compile Include="TestUtilities\Assert\AssertEx.cs" />
+    <Compile Include="TestUtilities\Assert\ConditionalFactAttribute.cs" />
+    <Compile Include="TestUtilities\ThrowingTraceListener.cs" />
+    <Compile Include="TestUtilities\Contract.cs" />
+    <Compile Include="TestUtilities\Assert\DiffUtil.cs" />
+    <Compile Include="TestUtilities\Assert\EqualityTesting.cs" />
+    <Compile Include="TestUtilities\Assert\EqualityUnit.cs" />
+    <Compile Include="TestUtilities\Assert\EqualityUnit`1.cs" />
+    <Compile Include="TestUtilities\Assert\EqualityUtil.cs" />
+    <Compile Include="TestUtilities\Assert\EqualityUtil`1.cs" />
+    <Compile Include="TestUtilities\Assert\TestExceptionUtilities.cs" />
+    <Compile Include="TestUtilities\Assert\WorkItemAttribute.cs" />
+    <Compile Include="TestUtilities\Async\AsynchronousOperationBlocker.cs" />
+    <Compile Include="TestUtilities\Async\Checkpoint.cs" />
+    <Compile Include="TestUtilities\Async\WaitHelper.cs" />
+    <Compile Include="TestUtilities\Threading\ConditionalWpfFactAttribute.cs" />
+    <Compile Include="TestUtilities\Threading\ForegroundThreadAffinitizedObject.cs" />
+    <Compile Include="TestUtilities\Threading\ForegroundThreadDataKind.cs" />
+    <Compile Include="TestUtilities\Threading\NativeMethods.cs" />
+    <Compile Include="TestUtilities\Threading\SemaphoreSlimExtensions.cs" />
+    <Compile Include="TestUtilities\Threading\SpecializedTasks.cs" />
+    <Compile Include="TestUtilities\Threading\StaTaskScheduler.cs" />
+    <Compile Include="TestUtilities\Threading\SynchronizationContextTaskScheduler.cs" />
+    <Compile Include="TestUtilities\Threading\TaskExtensions.cs" />
+    <Compile Include="TestUtilities\Threading\TaskFactoryExtensions.cs" />
+    <Compile Include="TestUtilities\Threading\WpfFactAttribute.cs" />
+    <Compile Include="TestUtilities\Threading\WpfFactDiscoverer.cs" />
+    <Compile Include="TestUtilities\Threading\WpfTestCase.cs" />
     <Compile Include="TestWaitIndicator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="project.json" />
+    <None Include="$(AssemblyName).xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

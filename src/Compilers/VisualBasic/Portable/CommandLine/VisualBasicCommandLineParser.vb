@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -153,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
-            Dim instrument As String = ""
+            Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
@@ -550,7 +551,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            instrument = value
+                            For Each instrumentationKind As InstrumentationKind In ParseInstrumentationKinds(value, diagnostics)
+                                If Not instrumentationKinds.Contains(instrumentationKind) Then
+                                    instrumentationKinds.Add(instrumentationKind)
+                                End If
+                            Next
+
                             Continue For
 
                         Case "recurse"
@@ -1338,7 +1344,7 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrument:=instrument)
+                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
@@ -1558,7 +1564,7 @@ lVbRuntimePlus:
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
-        Private Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
+        Private Shared Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
             If String.IsNullOrEmpty(value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
@@ -1966,6 +1972,18 @@ lVbRuntimePlus:
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using
+        End Function
+
+        Private Shared Iterator Function ParseInstrumentationKinds(value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of InstrumentationKind)
+            Dim instrumentationKindStrs = value.Split({","c}, StringSplitOptions.RemoveEmptyEntries)
+            For Each instrumentationKindStr In instrumentationKindStrs
+                Select Case instrumentationKindStr.ToLower()
+                    Case "testcoverage"
+                        Yield InstrumentationKind.TestCoverage
+                    Case Else
+                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidInstrumentationKind, instrumentationKindStr)
+                End Select
+            Next
         End Function
 
         Private Shared Function IsSeparatorOrEndOfFile(token As SyntaxToken) As Boolean

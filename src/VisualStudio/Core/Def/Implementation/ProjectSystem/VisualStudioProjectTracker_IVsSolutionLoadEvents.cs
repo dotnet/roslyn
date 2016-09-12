@@ -25,13 +25,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            _projectsLoadedThisBatch.Clear();
+            AssertIsForeground();
 
+            _projectsLoadedThisBatch.Clear();
             return VSConstants.S_OK;
         }
 
         int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
+            AssertIsForeground();
+
             if (!fIsBackgroundIdleBatch)
             {
                 // This batch was loaded eagerly. This might be because the user is force expanding the projects in the
@@ -46,8 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
         {
+            AssertIsForeground();
+
             // We are now completely done, so let's simply ensure all projects are added.
-            StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectMap.Values);
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(this.ImmutableProjects);
 
             // Also, all remaining project adds need to immediately pushed as well, since we're now "interactive"
             _solutionLoadComplete = true;

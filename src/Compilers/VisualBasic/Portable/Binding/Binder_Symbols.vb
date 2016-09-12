@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim elementNames As ArrayBuilder(Of String) = Nothing
 
                 ' set of names already used
-                Dim uniqueFieldNames = PooledHashSet(Of String).GetInstance()
+                Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
                 Dim countOfExplicitNames As Integer = 0
 
                 For i As Integer = 0 To numElements - 1
@@ -723,8 +723,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
-
-                uniqueFieldNames.Free()
 
                 If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> numElements Then
                     Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleExplicitNamesOnAllMembersOrNone)

@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -1495,8 +1494,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 CurrentLanguageBuffer = buffer;
                 _window.SubmissionBufferAdded?.Invoke(_window, new SubmissionBufferAddedEventArgs(buffer));
 
-                _window.LanguageBufferCounter++;
-
                 // add the whole buffer to the projection buffer and set it up to expand to the right as text is appended
                 var promptSpan = CreatePrimaryPrompt();
                 var languageSpan = new CustomTrackingSpan(
@@ -2680,10 +2677,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     Debug.Assert((dataHasLineCutCopyTag && dataHasBoxCutCopyTag) == false);
 
-                    if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
+                    if (_window.InteractiveWindowClipboard.ContainsData(InteractiveClipboardFormat.Tag))
                     {
                         var sb = new StringBuilder();
-                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(InteractiveClipboardFormat.Tag));
 
                         foreach (var block in blocks)
                         {
@@ -2934,7 +2931,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 data.SetData(DataFormats.UnicodeText, text);
 
                 var blocks = GetTextBlocks(spans, boxCutCopyTag);
-                data.SetData(ClipboardFormat, blocks);
+                data.SetData(InteractiveClipboardFormat.Tag, blocks);
 
                 string rtf = null;
                 try
@@ -3025,14 +3022,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 foreach (var span in spans)
                 {
                     // The lambda function generates a BufferBlock for each selected source buffer span
-                    GetValuesFromSpan<BufferBlock>(blocks, span, (kind, snapshot, s) =>
-                                                                    {
-                                                                        if (kind == ReplSpanKind.LineBreak)
-                                                                        {
-                                                                            kind = ReplSpanKind.Output;
-                                                                        }
-                                                                        return new BufferBlock(kind, snapshot.GetText(s));
-                                                                    });
+                    GetValuesFromSpan(blocks, span, (kind, snapshot, s) =>
+                    {
+                        if (kind == ReplSpanKind.LineBreak)
+                        {
+                            kind = ReplSpanKind.Output;
+                        }
+
+                        return new BufferBlock(kind, snapshot.GetText(s));
+                    });
+
                     // If spans are got from box selection, we use 'LineBreak' block to separate different lines of box selection.
                     if (isBoxSelection)
                     {

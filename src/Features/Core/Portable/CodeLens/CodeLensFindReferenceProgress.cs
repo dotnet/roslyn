@@ -51,60 +51,43 @@ namespace Microsoft.CodeAnalysis.CodeLens
             _queriedSymbol = queriedDefinition;
             _queriedNode = queriedNode;
             _aggregateCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _locations = new ConcurrentSet<Location>();
+            _locations = new ConcurrentSet<Location>(LocationComparer.Instance);
 
             SearchCap = searchCap;
+        }
+
+        public void OnStarted()
+        {
         }
 
         public void OnCompleted()
         {
         }
 
-        /// <summary>
-        /// Returns partial symbol locations whose node does not match the given syntaxNode
-        /// </summary>
-        /// <param name="symbol">Symbol whose locations are queried</param>
-        /// <param name="syntaxNode">Syntax node to compare against to exclude location - actual location being queried</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Partial locations</returns>
-        private static IEnumerable<Location> GetPartialLocations(ISymbol symbol, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public void OnFindInDocumentStarted(Document document)
         {
-            // Returns nodes from source not equal to actual location and matches the definition locations to syntax references, ignores metadata locations
-            return from syntaxReference in symbol.DeclaringSyntaxReferences
-                   let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
-                   where !(syntaxNode.Span == candidateSyntaxNode.Span &&
-                           syntaxNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath, StringComparison.OrdinalIgnoreCase))
-                   from sourceLocation in symbol.Locations
-                   where !sourceLocation.IsInMetadata
-                         && candidateSyntaxNode.SyntaxTree.Equals(sourceLocation.SourceTree)
-                         && candidateSyntaxNode.Span.Contains(sourceLocation.SourceSpan)
-                   select sourceLocation;
         }
 
-        /// <summary>
-        /// Exclude the following kind of symbols:
-        ///  1. Implicitly declared symbols (such as implicit fields backing properties)
-        ///  2. Symbols that can't be referenced by name (such as property getters and setters).
-        ///  3. Metadata only symbols, i.e. symbols with no location in source.
-        /// </summary>
-        private static bool FilterReference(ISymbol queriedSymbol, ISymbol definition, ReferenceLocation reference)
+        public void OnFindInDocumentCompleted(Document document)
         {
-            var isImplicitlyDeclared = definition.IsImplicitlyDeclared || definition.IsAccessor();
-            // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
-            // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
-            // reference location for the invocation while computing references count for the named type symbol. 
-            var isImplicitReference = queriedSymbol.Kind == SymbolKind.NamedType &&
-                                      (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
-            return isImplicitlyDeclared ||
-                   isImplicitReference ||
-                   (!definition.Locations.Any(loc => loc.IsInSource) && !reference.Location.IsInSource);
         }
 
         private static bool FilterDefinition(ISymbol definition)
         {
             return definition.IsImplicitlyDeclared ||
-                   (definition as IMethodSymbol)?.AssociatedSymbol != null ||
-                   !definition.Locations.Any(loc => loc.IsInSource);
+                   (definition as IMethodSymbol)?.AssociatedSymbol != null;
+        }
+
+        // Returns partial symbol locations whose node does not match the queried syntaxNode
+        private IEnumerable<Location> GetPartialLocations(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // Returns nodes from source not equal to actual location
+            return from syntaxReference in symbol.DeclaringSyntaxReferences
+                   let candidateSyntaxNode = syntaxReference.GetSyntax(cancellationToken)
+                   where !(_queriedNode.Span == candidateSyntaxNode.Span &&
+                           _queriedNode.SyntaxTree.FilePath.Equals(candidateSyntaxNode.SyntaxTree.FilePath,
+                               StringComparison.OrdinalIgnoreCase))
+                   select candidateSyntaxNode.GetLocation();
         }
 
         public void OnDefinitionFound(ISymbol symbol)
@@ -118,9 +101,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // Add remote locations for all the syntax references except the queried syntax node.
             // To query for the partial locations, filter definition locations that occur in source whose span is part of
             // span of any syntax node from Definition.DeclaringSyntaxReferences except for the queried syntax node.
-            _locations.AddRange(symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any()
-                ? GetPartialLocations(symbol, _queriedNode, _aggregateCancellationTokenSource.Token)
-                : symbol.Locations);
+            var locations = symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any()
+                ? GetPartialLocations(symbol, _aggregateCancellationTokenSource.Token)
+                : symbol.Locations;
+
+            _locations.AddRange(locations.Where(location => location.IsInSource));
 
             if (SearchCapReached)
             {
@@ -128,17 +113,29 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        public void OnFindInDocumentCompleted(Document document)
+        /// <summary>
+        /// Exclude the following kind of symbols:
+        ///  1. Implicitly declared symbols (such as implicit fields backing properties)
+        ///  2. Symbols that can't be referenced by name (such as property getters and setters).
+        ///  3. Metadata only symbols, i.e. symbols with no location in source.
+        /// </summary>
+        private bool FilterReference(ISymbol definition, ReferenceLocation reference)
         {
-        }
-
-        public void OnFindInDocumentStarted(Document document)
-        {
+            var isImplicitlyDeclared = definition.IsImplicitlyDeclared || definition.IsAccessor();
+            // FindRefs treats a constructor invocation as a reference to the constructor symbol and to the named type symbol that defines it.
+            // While we need to count the cascaded symbol definition from the named type to its constructor, we should not double count the
+            // reference location for the invocation while computing references count for the named type symbol. 
+            var isImplicitReference = _queriedSymbol.Kind == SymbolKind.NamedType &&
+                                      (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
+            return isImplicitlyDeclared ||
+                   isImplicitReference ||
+                   !reference.Location.IsInSource ||
+                   !definition.Locations.Any(loc => loc.IsInSource);
         }
 
         public void OnReferenceFound(ISymbol symbol, ReferenceLocation location)
         {
-            if (FilterReference(_queriedSymbol, symbol, location))
+            if (FilterReference(symbol, location))
             {
                 return;
             }
@@ -149,10 +146,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
             {
                 _aggregateCancellationTokenSource.Cancel();
             }
-        }
-
-        public void OnStarted()
-        {
         }
 
         public void ReportProgress(int current, int maximum)

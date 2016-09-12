@@ -563,16 +563,23 @@ HandleAsAGeneralExpression:
 
                         Dim arrayLiteral As BoundArrayLiteral = Nothing
                         Dim argumentTypeByAssumption As Boolean = False
+                        Dim expressionType As TypeSymbol
 
                         If Expression.Kind = BoundKind.ArrayLiteral Then
                             arrayLiteral = DirectCast(Expression, BoundArrayLiteral)
                             argumentTypeByAssumption = arrayLiteral.NumberOfCandidates <> 1
+                            expressionType = New ArrayLiteralTypeSymbol(arrayLiteral)
+
+                        ElseIf Expression.Kind = BoundKind.TupleLiteral Then
+                            expressionType = DirectCast(Expression, BoundTupleLiteral).InferredType
+                        Else
+                            expressionType = Expression.Type
                         End If
 
                         ' Need to create an ArrayLiteralTypeSymbol
                         inferenceOk = Graph.InferTypeArgumentsFromArgument(
                             Expression.Syntax,
-                            If(Expression.Kind <> BoundKind.ArrayLiteral, Expression.Type, New ArrayLiteralTypeSymbol(arrayLiteral)),
+                            expressionType,
                             argumentTypeByAssumption,
                             ParameterType,
                             Parameter,

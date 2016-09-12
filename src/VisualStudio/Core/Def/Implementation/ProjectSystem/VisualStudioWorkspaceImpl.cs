@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,10 +18,12 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -81,10 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Ensure the document tracking service is initialized on the UI thread
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
             var documentProvider = new RoslynDocumentProvider(projectTracker, serviceProvider, documentTrackingService);
-            projectTracker.DocumentProvider = documentProvider;
-
-            projectTracker.MetadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            projectTracker.RuleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
+            var metadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
+            var ruleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
+            projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
 
             this.SetProjectTracker(projectTracker);
 
@@ -1242,7 +1244,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private void RegisterPrimarySolutionForPersistentStorage(SolutionId solutionId)
+            private void RegisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)
@@ -1253,7 +1256,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 service.RegisterPrimarySolution(solutionId);
             }
 
-            private void UnregisterPrimarySolutionForPersistentStorage(SolutionId solutionId, bool synchronousShutdown)
+            private void UnregisterPrimarySolutionForPersistentStorage(
+                SolutionId solutionId, bool synchronousShutdown)
             {
                 var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
                 if (service == null)

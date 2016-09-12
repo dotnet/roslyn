@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
@@ -734,30 +734,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(LocalSymbol temp, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
+            return MakeSequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
         }
 
-        public BoundExpression Sequence(params BoundExpression[] parts)
+        public BoundExpression MakeSequence(params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray<LocalSymbol>.Empty, parts);
+            return MakeSequence(ImmutableArray<LocalSymbol>.Empty, parts);
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i < parts.Length - 1; i++) builder.Add(parts[i]);
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var part = parts[i];
+                if (LocalRewriter.ReadIsSideeffecting(part))
+                {
+                    builder.Add(parts[i]);
+                }
+            }
             var lastExpression = parts[parts.Length - 1];
+
+            if (locals.IsDefaultOrEmpty && builder.Count == 0)
+            {
+                builder.Free();
+                return lastExpression;
+            }
+
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
-        public BoundExpression Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
+        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
         {
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }

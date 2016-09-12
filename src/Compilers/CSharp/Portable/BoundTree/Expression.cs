@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -3033,5 +3034,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
+    }
+
+    internal partial class BoundDeclarationPattern
+    {
+        public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
+            : this(syntax, localSymbol, new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
+        {
+        }
     }
 }

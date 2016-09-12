@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
     public partial class InteractiveWindowTests : IDisposable
     {
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CopyStreamSelectionWithinInput()
         {
             _testClipboard.Clear();
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 @"[{""content"":"" + "",""kind"":2}]");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CopyStreamSelectionInputAndActivePrompt()
         {
             _testClipboard.Clear();
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"222\",\"kind\":2}]");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CopyStreamSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -95,7 +95,7 @@ System.Console.WriteLine(o);",
                 "[{\"content\":\"oreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine(o);\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 \",\"kind\":2}]");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CopyBoxSelectionWithinInput()
         {
             _testClipboard.Clear();
@@ -122,7 +122,7 @@ System.Console.WriteLine(o);",
                 expectedToBeBoxCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CopyBoxSelectionInputAndActivePrompt()
         {
             _testClipboard.Clear();
@@ -149,7 +149,7 @@ System.Console.WriteLine(o);",
                 expectedToBeBoxCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CopyBoxSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -179,7 +179,7 @@ System.Console.WriteLine(o);",
                 expectedToBeBoxCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutStreamSelectionWithinInputThenUndo()
         {
             _testClipboard.Clear();
@@ -204,7 +204,7 @@ System.Console.WriteLine(o);",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutStreamSelectionInputAndActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -231,7 +231,7 @@ System.Console.WriteLine(o);",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutStreamSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -267,7 +267,7 @@ System.Console.WriteLine();",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"foreach (var o in new[] { 1, 2, 3 })\\u000d\\u000a\",\"kind\":2},{\"content\":\"> \",\"kind\":0},{\"content\":\"System.Console.WriteLine();\\u000d\\u000a\",\"kind\":2},{\"content\":\"1\\u000d\\u000a2\\u000d\\u000a3\\u000d\\u000a\",\"kind\":1},{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutBoxSelectionWithinInputThenUndo()
         {
             _testClipboard.Clear();
@@ -305,7 +305,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutBoxSelectionInputAndActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -343,7 +343,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutBoxSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -390,7 +390,7 @@ System.Console.WriteLine();",
         /// When there is no selection, copy
         /// should copy the current line.
         /// </summary>
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CopyNoSelection()
         {
             await Submit(
@@ -429,7 +429,7 @@ System.Console.WriteLine();",
                 "[{\"content\":\"> \",\"kind\":0},{\"content\":\"1 + 2\",\"kind\":2}]");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutNoSelectionInInputThenUndo()
         {
             _testClipboard.Clear();
@@ -455,7 +455,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutNoSelectionInActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -481,7 +481,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutNoSelectionInReadOnly()
         {
             _testClipboard.Clear();
@@ -521,7 +521,7 @@ System.Console.WriteLine();",
                 expectedToBeLineCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void Paste()
         {
             var blocks = new[]
@@ -548,7 +548,7 @@ System.Console.WriteLine();",
             Assert.Equal("> a\r\n> bc123", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineNoSelectionInInputThenUndo()
         {
             _testClipboard.Clear();
@@ -574,7 +574,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineNoSelectionInActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -600,7 +600,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutLineNoSelectionInReadOnly()
         {
             _testClipboard.Clear();
@@ -640,7 +640,7 @@ System.Console.WriteLine();",
                 expectedToBeLineCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineStreamSelectionWithinInputThenUndo()
         {
             _testClipboard.Clear();
@@ -677,7 +677,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineStreamSelectionInputAndActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -714,7 +714,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutLineStreamSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -751,7 +751,7 @@ System.Console.WriteLine();",
                 expectedToBeLineCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineBoxSelectionWithinInputThenUndo()
         {
             _testClipboard.Clear();
@@ -788,7 +788,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void CutLineBoxSelectionInputAndActivePromptThenUndo()
         {
             _testClipboard.Clear();
@@ -825,7 +825,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CutLineBoxSelectionInputAndOutput()
         {
             _testClipboard.Clear();
@@ -868,7 +868,7 @@ System.Console.WriteLine();",
                 expectedToBeLineCopy: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteNoSelectionWithinInputThenUndo()
         {
             // paste text copied from stream selection
@@ -936,7 +936,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteNoSelectionInActivePromptThenUndo()
         {
             // >| 111
@@ -987,7 +987,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task PasteNoSelectioninReadOnly()
         {
             await Submit(
@@ -1016,7 +1016,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> ", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteStreamSelectionWithinInputThenUndo()
         {
             var caret = Window.TextView.Caret;
@@ -1088,7 +1088,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteStreamSelectionInputAndActivePromptThenUndo()
         {
             var caret = Window.TextView.Caret;
@@ -1149,7 +1149,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task PasteStreamSelectionInputAndOutput()
         {
             await Submit(
@@ -1185,7 +1185,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteBoxSelectionWithinInputThenUndo()
         {
             var caret = Window.TextView.Caret;
@@ -1262,7 +1262,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void PasteBoxSelectionInputAndActivePromptThenUndo()
         {
             var caret = Window.TextView.Caret;
@@ -1360,7 +1360,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 111\r\n> 222", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task PasteBoxSelectionInputAndOutput()
         {
             await Submit(
@@ -1416,7 +1416,7 @@ System.Console.WriteLine();",
         }
 
         [WorkItem(6054, "https://github.com/dotnet/roslyn/issues/6054")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public void UndoMultiLinePaste()
         {
             CopyToClipboard(
@@ -1455,7 +1455,7 @@ System.Console.WriteLine();",
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CopyInputsFromCurrentLine()
         {
             _testClipboard.Clear();
@@ -1500,7 +1500,7 @@ System.Console.WriteLine();",
             VerifyClipboardData(null, null, null);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/12271")]
+        [WpfFact]
         public async Task CopyInputsFromSelection()
         {
             _testClipboard.Clear();
@@ -1684,7 +1684,7 @@ System.Console.WriteLine();",
             data.SetData(DataFormats.StringFormat, text);
             if (includeRepl)
             {
-                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
+                data.SetData(InteractiveClipboardFormat.Tag, BufferBlock.Serialize(blocks));
             }
             if (isLineCopy)
             {
@@ -1703,7 +1703,7 @@ System.Console.WriteLine();",
             Assert.Equal(expectedText, data?.GetData(DataFormats.StringFormat));
             Assert.Equal(expectedText, data?.GetData(DataFormats.Text));
             Assert.Equal(expectedText, data?.GetData(DataFormats.UnicodeText));
-            Assert.Equal(expectedRepl, (string)data?.GetData(InteractiveWindow.ClipboardFormat));
+            Assert.Equal(expectedRepl, (string)data?.GetData(InteractiveClipboardFormat.Tag));
             var actualRtf = (string)data?.GetData(DataFormats.Rtf);
             if (expectedRtf == null)
             {

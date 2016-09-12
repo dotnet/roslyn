@@ -1131,6 +1131,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        // Tuple literals aren't recognized by the parser until there is a comma
+        // So a parenthesized expression is a possible tuple context too
+        public static bool IsPossibleTupleElementNameContext(this SyntaxToken token, int position)
+        {
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.OpenParenToken))
+            {
+                return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) || token.Parent.IsKind(SyntaxKind.TupleExpression);
+            }
+
+            return token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression);
+        }
+
+        public static bool HasNames(this TupleExpressionSyntax tuple)
+        {
+            return tuple.Arguments.Any(a => a.NameColon != null);
+        }
+
         public static bool IsValidContextForFromClause(
             this SyntaxTree syntaxTree,
             int position,
@@ -1880,6 +1899,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // var(|
+            // var(id, |
+            // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) &&
+                token.IsInvocationOfVarExpression())
+            {
+                return false;
+            }
+
             // Foo(|
             // Foo(expr, |
             // this[|
@@ -2172,6 +2200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsInvocationOfVarExpression(this SyntaxToken token)
+        {
+            return token.Parent.Parent.IsKind(SyntaxKind.InvocationExpression) &&
+                ((InvocationExpressionSyntax)token.Parent.Parent).Expression.ToString() == "var";
         }
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))

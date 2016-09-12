@@ -6,8 +6,7 @@
         "System.Collections.Immutable": "1.1.36",
         "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25604-Preview4" ],
         "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25604-Preview4" ],
-        "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
-        "Microsoft.Build": "14.3.0-prerelease01"
+        "Microsoft.VisualStudio.Text.UI": [ "14.3.25407", "15.0.25604-Preview4" ]
     },
 
     "toolsetPackages": [
@@ -25,7 +24,8 @@
                 "Microsoft.Composition",
                 "ManagedEsent",
                 "xunit",
-                "RoslynTools.*"
+                "RoslynTools.*",
+                "^Microsoft.Build.*"
             ]
         }
     },

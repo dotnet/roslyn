@@ -1292,22 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Location localSymbolLocation = localSymbol.Locations[0];
 
                         TypeSymbol type;
-                        if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
-                        {
-                            // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
-                            // There are many cases where this occurs, including:
-                            //
-                            // 1. var x = M(out x);
-                            // 2. M(out var x, out x);
-                            // 3. var (x, y) = (y, x);
-                            //
-                            // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
-                            //
-                            diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
-                            type = new ExtendedErrorTypeSymbol(
-                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
-                        }
-                        else if (node.SyntaxTree == localSymbolLocation.SourceTree &&
+                        if (node.SyntaxTree == localSymbolLocation.SourceTree &&
                             node.SpanStart < localSymbolLocation.SourceSpan.Start)
                         {
                             // Here we report a local variable being used before its declaration
@@ -1367,6 +1352,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, node, node);
                             }
 
+                            type = new ExtendedErrorTypeSymbol(
+                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                        }
+                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
+                        {
+                            // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
+                            // There are many cases where this occurs, including:
+                            //
+                            // 1. var x = M(out x);
+                            // 2. M(out var x, out x);
+                            // 3. var (x, y) = (y, x);
+                            //
+                            // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
+                            //
+                            diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
                             type = new ExtendedErrorTypeSymbol(
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                         }
@@ -1743,10 +1743,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GenerateExplicitConversionErrors(
-            DiagnosticBag diagnostics, 
-            SyntaxNode syntax, 
-            Conversion conversion, 
-            BoundExpression operand, 
+            DiagnosticBag diagnostics,
+            SyntaxNode syntax,
+            Conversion conversion,
+            BoundExpression operand,
             TypeSymbol targetType)
         {
             // Make sure that errors within the unbound lambda don't get lost.
@@ -1837,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeSymbol> targetElementTypes)
-        {            
+        {
             var argLength = tupleArguments.Length;
 
             // report all leaf elements of the tuple literal that failed to convert
@@ -2093,6 +2093,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationExpression = (DeclarationExpressionSyntax)argumentSyntax.Expression;
             var declaration = (TypedVariableComponentSyntax)declarationExpression.VariableComponent;
             var typeSyntax = declaration.Type;
+
+            if (InConstructorInitializer || InFieldInitializer)
+            {
+                Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, declarationExpression);
+            }
 
             bool isConst = false;
             bool isVar;
@@ -6109,6 +6114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics)
         {
             Debug.Assert(index != null);
+
+            if (index.Kind == BoundKind.OutVarLocalPendingInference)
+            {
+                return ((OutVarLocalPendingInference)index).FailInference(this, diagnostics);
+            }
 
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??

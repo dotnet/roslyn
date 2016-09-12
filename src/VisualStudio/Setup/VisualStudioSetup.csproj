@@ -10,7 +10,6 @@
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup</AssemblyName>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>

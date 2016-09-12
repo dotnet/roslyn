@@ -193,8 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
                                 locals.Add(localSymbol);
-                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl.Initializer?.Value, localDeclarationBinder); 
+
+                                // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, localDeclarationBinder);
                             }
+
                         }
                         break;
 
@@ -273,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
                                                                     this.ContainingMemberOrLambda,
                                                                     this,
-                                                                    enclosingBinderOpt,
+                                                                    enclosingBinderOpt ?? this,
                                                                     closestTypeSyntax,
                                                                     single.Identifier,
                                                                     kind,

@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // but, can be called concurrently for different documents in future if we choose to.
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
-            if (!document.Options.GetOption(InternalFeatureOnOffOptions.TodoComments))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!documentOptions.GetOption(InternalFeatureOnOffOptions.TodoComments))
             {
                 return;
             }
@@ -76,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return;
             }
 
-            var comments = await service.GetTodoCommentsAsync(document, _todoCommentTokens.GetTokens(document), cancellationToken).ConfigureAwait(false);
+            var tokens = await _todoCommentTokens.GetTokensAsync(document, cancellationToken).ConfigureAwait(false);
+            var comments = await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
             var items = await CreateItemsAsync(document, comments, cancellationToken).ConfigureAwait(false);
 
             var data = new Data(textVersion, syntaxVersion, items);

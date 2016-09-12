@@ -49,9 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
+            AssertIsForeground();
+
             _solutionIsClosing = true;
 
-            foreach (var p in _projectMap.Values)
+            foreach (var p in this.ImmutableProjects)
             {
                 p.StopPushingToWorkspaceHosts();
             }
@@ -63,12 +65,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            Contract.ThrowIfFalse(_projectMap.Count == 0);
+            AssertIsForeground();
 
-            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
-            NotifyWorkspaceHosts(host => host.ClearSolution());
+            lock (_gate)
+            {
+                Contract.ThrowIfFalse(_projectMap.Count == 0);
+            }
 
-            _projectPathToIdMap.Clear();
+            NotifyWorkspaceHosts_Foreground(host => host.OnSolutionRemoved());
+            NotifyWorkspaceHosts_Foreground(host => host.ClearSolution());
+
+            lock (_gate)
+            {
+                _projectPathToIdMap.Clear();
+            }
 
             foreach (var workspaceHost in _workspaceHosts)
             {

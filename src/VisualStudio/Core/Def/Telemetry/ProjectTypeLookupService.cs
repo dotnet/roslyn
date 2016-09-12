@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
@@ -21,7 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             }
 
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            return vsWorkspace?.GetHostProject(projectId)?.ProjectType ?? string.Empty;
+            var project = vsWorkspace?.GetHostProject(projectId) as AbstractLegacyProject;
+            return project?.ProjectType ?? string.Empty;
         }
     }
 }

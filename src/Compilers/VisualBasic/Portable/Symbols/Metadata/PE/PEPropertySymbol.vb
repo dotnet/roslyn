@@ -98,6 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             _returnsByRef = propertyParams(0).IsByRef
             _propertyType = propertyParams(0).Type
+            _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol)
+
             _typeCustomModifiers = VisualBasicCustomModifier.Convert(propertyParams(0).CustomModifiers)
         End Sub
 

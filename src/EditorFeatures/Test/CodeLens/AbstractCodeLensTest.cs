@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await new CodeLensReferenceService().FindMethodReferenceLocationsAsync(workspace.CurrentSolution,
+                            var result = await new CodeLensReferenceService().FindReferenceMethodsAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             var count = result.Count();
                             Assert.Equal(expected, count);

@@ -60,7 +60,7 @@ public class C
         public void TestSpansPresentInResource()
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
        
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -196,7 +196,7 @@ public class C
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -316,7 +316,7 @@ public class C
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -408,7 +408,7 @@ class Student : Person { public double GPA; }
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -484,7 +484,7 @@ public class C
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -565,7 +565,7 @@ public class C
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
@@ -646,7 +646,7 @@ partial struct E
 ";
 
             var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");

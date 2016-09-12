@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Syntax;
 using Xunit;
@@ -107,5 +108,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
             SyntaxFactory.ParseExpression(code);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForIncompleteMember()
+        {
+            var test = @"
+class A
+{
+    [Obsolete(2l)]
+    public int
+}";
+            ParseAndValidate(test,
+                // (6,1): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
+                // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //     [Obsolete(2l)]
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 16)
+                );
+        }
+
+        #region "Helpers"
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        #endregion "Helpers"
     }
 }

@@ -103,15 +103,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         internal IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
+            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
                 return null;
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return tagSource == null
-                ? null
-                : new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            if (tagSource == null)
+            {
+                return null;
+            }
+
+            return new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)

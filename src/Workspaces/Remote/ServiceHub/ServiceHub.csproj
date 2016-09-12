@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <Compile Include="Services\EmitService.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
@@ -65,6 +64,10 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Storage\" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
