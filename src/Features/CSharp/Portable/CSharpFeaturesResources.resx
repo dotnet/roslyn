@@ -388,6 +388,13 @@
   <data name="tuple" xml:space="preserve">
     <value>tuple</value>
   </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="out_var" xml:space="preserve">
+    <value>out variable</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>

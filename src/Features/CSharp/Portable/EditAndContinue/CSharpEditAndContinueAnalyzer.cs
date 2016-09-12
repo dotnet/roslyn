@@ -1352,6 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
+                case SyntaxKind.DeclarationExpression:
                     return node.Span;
 
                 default:
@@ -1609,6 +1610,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                     return CSharpFeaturesResources.tuple;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    return CSharpFeaturesResources.local_function;
+
+                case SyntaxKind.DeclarationExpression:
+                    return CSharpFeaturesResources.out_var;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3069,6 +3076,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeclarationExpression:
                     return true;
 
                 default:

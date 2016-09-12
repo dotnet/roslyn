@@ -558,6 +558,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to lock statement.
         /// </summary>
         internal static string lock_statement {
@@ -680,6 +689,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Organize_Usings {
             get {
                 return ResourceManager.GetString("Organize_Usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to out variable.
+        /// </summary>
+        internal static string out_var {
+            get {
+                return ResourceManager.GetString("out_var", resourceCulture);
             }
         }
         
