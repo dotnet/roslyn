@@ -747,6 +747,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ref local or expression.
+        /// </summary>
+        internal static string ref_local_or_expression {
+            get {
+                return ResourceManager.GetString("ref_local_or_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove &amp;and Sort Usings.
         /// </summary>
         internal static string Remove_and_Sort_Usings {
@@ -1078,6 +1087,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string using_statement {
             get {
                 return ResourceManager.GetString("using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to v7 switch.
+        /// </summary>
+        internal static string v7_switch {
+            get {
+                return ResourceManager.GetString("v7_switch", resourceCulture);
             }
         }
         

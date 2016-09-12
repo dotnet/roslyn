@@ -1353,6 +1353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
                     return node.Span;
 
                 default:
@@ -1616,6 +1619,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.DeclarationExpression:
                     return CSharpFeaturesResources.out_var;
+
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                    return CSharpFeaturesResources.ref_local_or_expression;
+
+                case SyntaxKind.DeclarationPattern:
+                    return CSharpFeaturesResources.v7_switch;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3050,19 +3060,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            SyntaxNode foundCSharp7Syntax = FindUnsupportedCSharp7EnCNodes(match.NewRoot);
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeDiagnostic(diagnostics, oldActiveStatement, foundCSharp7Syntax, newActiveStatement.Span);
-            }
-
+            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match, oldActiveStatement, newActiveStatement);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
         }
 
-        internal static SyntaxNode FindUnsupportedCSharp7EnCNodes(SyntaxNode root)
+        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
         {
-            return root.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeDiagnostic(diagnostics, oldActiveStatement, foundCSharp7Syntax, newActiveStatement.Span);
+            }
         }
 
         private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
@@ -3078,6 +3087,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
                     return true;
 
                 default:
