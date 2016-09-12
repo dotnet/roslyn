@@ -8096,6 +8096,100 @@ class C
 
         #endregion
 
+        #region C# 7.0
+
+        [Fact]
+        public void MethodUpdate_IsPattern()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        if (x is int i) { Console.WriteLine(""match""); }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        if (x is string s) { Console.WriteLine(""match""); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "x is string s", CSharpFeaturesResources.is_pattern));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionDeclarationStatement()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = (1, 2);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = x;", CSharpFeaturesResources.deconstruction));
+        }
+
+        [Fact]
+        public void MethodUpdate_DeconstructionForEach()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        foreach (var (x, y) in new[] { (1, 2) }) { }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object x)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        foreach (var (x, y) in new[] { x }) { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y)", CSharpFeaturesResources.deconstruction));
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]

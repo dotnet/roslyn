@@ -261,6 +261,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to deconstruction.
+        /// </summary>
+        internal static string deconstruction {
+            get {
+                return ResourceManager.GetString("deconstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delegate invocation can be simplified..
         /// </summary>
         internal static string Delegate_invocation_can_be_simplified {
@@ -500,6 +509,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Invert_if_statement {
             get {
                 return ResourceManager.GetString("Invert_if_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is pattern.
+        /// </summary>
+        internal static string is_pattern {
+            get {
+                return ResourceManager.GetString("is_pattern", resourceCulture);
             }
         }
         

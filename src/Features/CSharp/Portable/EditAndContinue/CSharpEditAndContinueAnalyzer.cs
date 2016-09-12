@@ -1343,6 +1343,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
+                case SyntaxKind.ForEachComponentStatement:
+                    return ((ForEachComponentStatementSyntax)node).VariableComponent.Span;
+
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    return node.Span;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -1585,6 +1592,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.QueryContinuation:
                     return CSharpFeaturesResources.into_clause;
+
+                case SyntaxKind.IsPatternExpression:
+                    return CSharpFeaturesResources.is_pattern;
+
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.ForEachComponentStatement:
+                    return CSharpFeaturesResources.deconstruction;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3019,8 +3033,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
+            SyntaxNode foundCSharp7Syntax = FindUnsupportedCSharp7EnCNodes(match.NewRoot);
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeDiagnostic(diagnostics, oldActiveStatement, foundCSharp7Syntax, newActiveStatement.Span);
+            }
+
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+        }
+
+        internal static SyntaxNode FindUnsupportedCSharp7EnCNodes(SyntaxNode root)
+        {
+            return root.DescendantNodesAndSelf().FirstOrDefault(n => n.Kind() == SyntaxKind.IsPatternExpression || n.Kind() == SyntaxKind.DeconstructionDeclarationStatement || n.Kind() == SyntaxKind.ForEachComponentStatement);
         }
 
         private void ReportRudeEditsForCheckedStatements(

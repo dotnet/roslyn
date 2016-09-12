@@ -378,6 +378,13 @@
     <value>into clause</value>
     <comment>{Locked="into"} "into" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="is_pattern" xml:space="preserve">
+    <value>is pattern</value>
+    <comment>{Locked="is"} "is" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="deconstruction" xml:space="preserve">
+    <value>deconstruction</value>
+  </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
