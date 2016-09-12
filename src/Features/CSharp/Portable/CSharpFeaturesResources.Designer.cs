@@ -974,6 +974,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to tuple.
+        /// </summary>
+        internal static string tuple {
+            get {
+                return ResourceManager.GetString("tuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unchecked statement.
         /// </summary>
         internal static string unchecked_statement {

@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBodyOpt, out node, out partnerOpt);
             }
-            else 
+            else
             {
                 node = declarationBody.FindToken(position).Parent;
                 partnerOpt = null;
@@ -1348,6 +1348,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.IsPatternExpression:
                 case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
                     return node.Span;
 
                 default:
@@ -1598,7 +1602,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
                     return CSharpFeaturesResources.deconstruction;
+
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                    return CSharpFeaturesResources.tuple;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3045,7 +3055,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static SyntaxNode FindUnsupportedCSharp7EnCNodes(SyntaxNode root)
         {
-            return root.DescendantNodesAndSelf().FirstOrDefault(n => n.Kind() == SyntaxKind.IsPatternExpression || n.Kind() == SyntaxKind.DeconstructionDeclarationStatement || n.Kind() == SyntaxKind.ForEachComponentStatement);
+            return root.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+        }
+
+        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
+        {
+            switch (n.Kind())
+            {
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
