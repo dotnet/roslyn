@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
-            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService) : 
+            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
@@ -217,6 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private bool TestImpactEnabled()
             {
+                const string TestImpactPath = @"CodeAnalysis\TestImpact\IsGloballyEnabled";
+                const string KeyName = "Value";
+
                 // TODO: think about how to get rid of this code. since we don't want any code that require foreground
                 //       thread to run
                 AssertIsForeground();
@@ -224,9 +227,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var shellSettingsManager = new ShellSettingsManager(Shell.ServiceProvider.GlobalProvider);
                 var writeableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-                if (writeableSettingsStore.PropertyExists(@"CodeAnalysis\TestImpact\IsGloballyEnabled", "Value"))
+                if (writeableSettingsStore.PropertyExists(TestImpactPath, KeyName))
                 {
-                    return writeableSettingsStore.GetBoolean(@"CodeAnalysis\TestImpact\IsGloballyEnabled", "Value");
+                    return writeableSettingsStore.GetBoolean(TestImpactPath, KeyName);
                 }
                 else
                 {
