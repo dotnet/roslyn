@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden));
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
         {

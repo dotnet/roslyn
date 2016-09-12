@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
         /// <summary>
-        /// This indicates whether this builtin analyzer must run in proc or can be run on remote host such as service hub.
+        /// This indicates whether this builtin analyzer will only run on opened files.
         /// 
-        /// if the diagnostic analyzer can run in command line as it is, then it should be able to run in remote host. 
-        /// otherwise, it won't unless diagnostic analyzer author make changes in remote host to provide whatever missing
-        /// data command line build doesn't provide such as workspace options/services/MEF and etc.
-        /// 
-        /// at this moment, remote host provide same context as command line build and only that context
+        /// all analyzers that want to run on closed files must be able to run in remote host.
         /// </summary>
-        bool RunInProcess { get; }
+        bool OpenFileOnly(Workspace workspace);
     }
 }

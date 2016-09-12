@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
