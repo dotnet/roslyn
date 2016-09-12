@@ -1,8 +1,8 @@
-*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToString() -> string
-*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToFullString() -> string
-*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 *REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 *REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
+*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToFullString() -> string
+*REMOVED*override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToString() -> string
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.Default, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.SpecifiedLanguageVersion.get -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Conversion.IsTupleConversion.get -> bool
@@ -42,6 +42,11 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.Up
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.WithAssignment(Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax assignment) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.AddStatementModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.Statement.get -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.WithStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentSyntax variableComponent, Microsoft.CodeAnalysis.SyntaxToken inKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax.VariableComponent.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentSyntax
@@ -174,6 +179,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstantPattern = 9002 -> Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationExpression = 9040 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 9000 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeconstructionDeclarationStatement = 8932 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeconstructionGlobalStatement = 9052 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ForEachComponentStatement = 8934 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.IsPatternExpression = 8657 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LocalFunctionStatement = 8830 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -199,6 +205,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitConstantPattern
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeconstructionDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeconstructionGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitForEachComponentStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -225,6 +232,8 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Accept(Mi
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -277,6 +286,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeclarationPattern(Microsoft.
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax assignment) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionDeclarationStatement(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax assignment) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionDeclarationStatement(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax assignment, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DeconstructionGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ForEachComponentStatement(Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentSyntax variableComponent, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ForEachComponentStatement(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentSyntax variableComponent, Microsoft.CodeAnalysis.SyntaxToken inKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ForStatement(Microsoft.CodeAnalysis.CSharp.Syntax.VariableComponentAssignmentSyntax deconstruction, Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> initializers, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> incrementors, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax
@@ -312,6 +322,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitConstantPattern(M
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeconstructionDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeconstructionGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitForEachComponentStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> void
@@ -331,6 +342,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitConstant
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeclarationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeclarationPattern(Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeconstructionDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionDeclarationStatementSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeconstructionGlobalStatement(Microsoft.CodeAnalysis.CSharp.Syntax.DeconstructionGlobalStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitForEachComponentStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ForEachComponentStatementSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> TResult

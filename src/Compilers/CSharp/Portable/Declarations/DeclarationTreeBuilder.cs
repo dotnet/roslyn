@@ -611,10 +611,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? WellKnownMemberNames.ImplicitConversionName
                         : WellKnownMemberNames.ExplicitConversionName);
                     break;
-
+                case SyntaxKind.DeconstructionGlobalStatement:
+                    AddNonTypeMemberNames(((Syntax.InternalSyntax.DeconstructionGlobalStatementSyntax)member).Statement.Assignment.VariableComponent, set, ref anyNonTypeMembers);
+                    break;
                 case SyntaxKind.GlobalStatement:
                     anyNonTypeMembers = true;
                     break;
+            }
+        }
+
+        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.VariableComponentSyntax member, HashSet<string> set, ref bool anyNonTypeMembers)
+        {
+            switch (member.Kind)
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    AddNonTypeMemberNames(((Syntax.InternalSyntax.TypedVariableComponentSyntax)member).Designation, set, ref anyNonTypeMembers);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    var variables = ((Syntax.InternalSyntax.ParenthesizedVariableComponentSyntax)member).Variables;
+                    var numVariables = variables.Count;
+                    for (int i = 0; i < numVariables; i++)
+                    {
+                        AddNonTypeMemberNames(variables[i], set, ref anyNonTypeMembers);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
+        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.VariableDesignationSyntax member, HashSet<string> set, ref bool anyNonTypeMembers)
+        {
+            switch (member.Kind)
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    set.Add(((Syntax.InternalSyntax.SingleVariableDesignationSyntax)member).Identifier.ValueText);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    var variables = ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)member).Variables;
+                    var numVariables = variables.Count;
+                    for (int i = 0; i < numVariables; i++)
+                    {
+                        AddNonTypeMemberNames(variables[i], set, ref anyNonTypeMembers);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
     }

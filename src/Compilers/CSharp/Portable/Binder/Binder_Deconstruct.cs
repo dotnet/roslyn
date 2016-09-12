@@ -628,21 +628,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableComponentSyntax declaration, ExpressionSyntax right,
                                                         DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
-            DeconstructionVariable locals = BindDeconstructionDeclarationLocals(declaration, diagnostics);
+            DeconstructionVariable locals = BindDeconstructionDeclarationLocals(declaration, diagnostics, makeLocals: true);
             Debug.Assert(locals.HasNestedVariables);
             var result = BindDeconstructionAssignment(node, right, locals.NestedVariables, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals.NestedVariables);
             return result;
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationLocals(VariableComponentSyntax node, DiagnosticBag diagnostics)
+        private DeconstructionVariable BindDeconstructionDeclarationLocals(VariableComponentSyntax node, DiagnosticBag diagnostics, bool makeLocals)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.TypedVariableComponent:
                     {
                         var component = (TypedVariableComponentSyntax)node;
-                        return BindDeconstructionDeclarationLocals(component.Type, component.Designation, diagnostics);
+                        return BindDeconstructionDeclarationLocals(component.Type, component.Designation, diagnostics, makeLocals);
                     }
                 case SyntaxKind.ParenthesizedVariableComponent:
                     {
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Variables.Count);
                         foreach (var n in component.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationLocals(n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationLocals(n, diagnostics, makeLocals));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -659,14 +659,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationLocals(TypeSyntax type, VariableDesignationSyntax node, DiagnosticBag diagnostics)
+        private DeconstructionVariable BindDeconstructionDeclarationLocals(TypeSyntax type, VariableDesignationSyntax node, DiagnosticBag diagnostics, bool makeLocals)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionDeclarationLocal(type, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionDeclarationLocal(type, single, diagnostics, makeLocals), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationLocals(type, n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationLocals(type, n, diagnostics, makeLocals));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -689,9 +689,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Each local is either a simple local (when its type is known) or a deconstruction local pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(VariableComponentAssignmentSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics)
+        private ArrayBuilder<DeconstructionVariable> BindDeconstructionDeclarationLocals(VariableComponentAssignmentSyntax node, TypeSyntax closestTypeSyntax, DiagnosticBag diagnostics, bool makeLocals)
         {
-            var deconstructionVariable = BindDeconstructionDeclarationLocals(node.VariableComponent, diagnostics);
+            var deconstructionVariable = BindDeconstructionDeclarationLocals(node.VariableComponent, diagnostics, makeLocals);
             Debug.Assert(deconstructionVariable.HasNestedVariables);
             return deconstructionVariable.NestedVariables;
         }
@@ -699,8 +699,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a BoundLocal when the type was explicit, otherwise returns a DeconstructionLocalPendingInference.
         /// </summary>
-        private BoundExpression BindDeconstructionDeclarationLocal(TypeSyntax typeSyntax, SingleVariableDesignationSyntax designation, DiagnosticBag diagnostics)
+        private BoundExpression BindDeconstructionDeclarationLocal(TypeSyntax typeSyntax, SingleVariableDesignationSyntax designation, DiagnosticBag diagnostics, bool makeLocal)
         {
+            if (!makeLocal)
+            {
+                return BindExpression(SyntaxFactory.IdentifierName(designation.Identifier.ValueText), diagnostics);
+            }
+
             var localSymbol = LocateDeclaredVariableSymbol(designation, typeSyntax);
 
             // Check for variable declaration errors.
@@ -726,6 +731,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new DeconstructionLocalPendingInference(designation, localSymbol);
+        }
+
+        internal BoundLocalDeconstructionDeclaration BindDeconstructionGlobalStatement(DeconstructionDeclarationStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            var declaration = node.Assignment.VariableComponent;
+            var right = node.Assignment.Value;
+            DeconstructionVariable fields = BindDeconstructionDeclarationLocals(declaration, diagnostics, makeLocals: false);
+            Debug.Assert(fields.HasNestedVariables);
+            var assignmentOperator = BindDeconstructionAssignment(node, right, fields.NestedVariables, diagnostics, isDeclaration: false, rhsPlaceholder: null);
+            FreeDeconstructionVariables(fields.NestedVariables);
+
+            return new BoundLocalDeconstructionDeclaration(node, assignmentOperator);
         }
     }
 }

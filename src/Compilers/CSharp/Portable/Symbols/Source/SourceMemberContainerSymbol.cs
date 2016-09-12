@@ -3112,6 +3112,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
+                    case SyntaxKind.DeconstructionGlobalStatement:
+                        {
+                            var deconstructionSyntax = ((DeconstructionGlobalStatementSyntax)m).Statement;
+                            var variables = deconstructionSyntax.Assignment.VariableComponent;
+                            AddFields(variables, builder, diagnostics);
+
+                            if (reportMisplacedGlobalCode)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(deconstructionSyntax));
+                            }
+
+                            AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, null, deconstructionSyntax);
+                        }
+                        break;
+
                     default:
                         Debug.Assert(
                             SyntaxFacts.IsTypeDeclaration(m.Kind()) ||
@@ -3123,6 +3138,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+        }
+
+        private void AddFields(VariableComponentSyntax member, MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        {
+            switch (member.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    AddFields(((TypedVariableComponentSyntax)member).Designation, builder, diagnostics);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    var variables = ((ParenthesizedVariableComponentSyntax)member).Variables;
+                    var numVariables = variables.Count;
+                    for (int i = 0; i < numVariables; i++)
+                    {
+                        AddFields(variables[i], builder, diagnostics);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind());
+            }
+        }
+
+        private void AddFields(VariableDesignationSyntax member, MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        {
+            switch (member.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    var fieldSymbol = new SourceMemberFieldSymbol(this, (SingleVariableDesignationSyntax)member, DeclarationModifiers.Public, modifierErrors: false, diagnostics: diagnostics);
+                    builder.NonTypeNonIndexerMembers.Add(fieldSymbol);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    var variables = ((ParenthesizedVariableDesignationSyntax)member).Variables;
+                    var numVariables = variables.Count;
+                    for (int i = 0; i < numVariables; i++)
+                    {
+                        AddFields(variables[i], builder, diagnostics);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind());
+            }
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

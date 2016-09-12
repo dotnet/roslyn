@@ -209,7 +209,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool isLast)
         {
-            var statement = binder.BindStatement(statementNode, diagnostics);
+            BoundStatement statement;
+            if (statementNode.Kind() == SyntaxKind.DeconstructionDeclarationStatement)
+            {
+                statement = binder.BindDeconstructionGlobalStatement((DeconstructionDeclarationStatementSyntax)statementNode, diagnostics);
+            }
+            else
+            {
+                statement = binder.BindStatement(statementNode, diagnostics);
+            }
+
             if (isLast && !statement.HasAnyErrors)
             {
                 // the result of the last global expression is assigned to the result storage for submission result:

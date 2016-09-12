@@ -2406,6 +2406,14 @@ tryAgain:
                     }
                 }
 
+                var deconstruction = ParseDeconstructionDeclarationAssignment();
+                if (deconstruction != null)
+                {
+                    var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+                    // TODO: is that the best way to handle mods?
+                    return _syntaxFactory.DeconstructionGlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
+                }
+
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void). Parse that.
