@@ -7161,6 +7161,59 @@ additionalReferences:=s_valueTupleRefs)
                        Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
         End Sub
 
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithNaturalType()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, 2))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "M").WithArguments("M", "
+    'Public Sub M(x As Integer)': Value of type '(Integer, Integer)' cannot be converted to 'Integer'.
+    'Public Sub M(x As String)': Value of type '(Integer, Integer)' cannot be converted to 'String'.").WithLocation(8, 9))
+        End Sub
+
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithNothing()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, Nothing))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "M").WithArguments("M", "
+    'Public Sub M(x As Integer)': Value of type '(Integer, Object)' cannot be converted to 'Integer'.
+    'Public Sub M(x As String)': Value of type '(Integer, Object)' cannot be converted to 'String'.").WithLocation(8, 9))
+        End Sub
     End Class
 
 End Namespace
