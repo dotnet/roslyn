@@ -8398,6 +8398,36 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_DeconstructionDeclaration()
+        {
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = o1;
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        var (x, y) = o2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y)", CSharpFeaturesResources.tuple));
+        }
+
+        [Fact]
         public void MethodUpdate_DeconstructionAssignment()
         {
             string src1 = @"
