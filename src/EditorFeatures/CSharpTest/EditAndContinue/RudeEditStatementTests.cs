@@ -6586,6 +6586,45 @@ class C
                 });
         }
 
+        [Fact]
+        public void AddCSharp7SwitchStatement2()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case """":
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                additionalOldSources: null,
+                additionalNewSources: null,
+                expectedSemanticEdits: null,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
+        }
+
         #endregion
 
         #region Await

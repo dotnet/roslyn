@@ -3084,14 +3084,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
             if (foundCSharp7Syntax != null)
             {
-                AddRudeUpdateInPreviouslyCSharp7Method(diagnostics, foundCSharp7Syntax);
+                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
             }
         }
 
         /// <summary>
         /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
         /// </summary>
-        private void AddRudeUpdateInPreviouslyCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
+        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
@@ -3235,13 +3235,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
         {
-            if (!ReportUnsupportedV7Switch(oldModel, oldNode, diagnostics))
+            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
+            if (foundNode != null)
             {
-                ReportUnsupportedV7Switch(newModel, newNode, diagnostics);
+                AddRudeUpdateInCSharp7Method(diagnostics, foundNode);
+            }
+            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
             }
         }
 
-        private bool ReportUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
         {
             foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
             {
@@ -3250,11 +3255,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 if (!IsValidV6SwitchGoverningType(governingType))
                 {
-                    AddRudeUpdateAroundActiveStatement(diagnostics, newNode: node);
-                    return true;
+                    return node;
                 }
             }
-            return false;
+            return null;
         }
 
         /// <summary>
