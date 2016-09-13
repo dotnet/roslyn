@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -47,10 +48,9 @@
       <Name>ServicesVisualStudio</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Next\ServicesVisualStudio.Next.csproj">
+    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
       <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
       <Name>ServicesVisualStudio.Next</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
