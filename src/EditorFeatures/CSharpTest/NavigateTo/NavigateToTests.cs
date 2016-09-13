@@ -8,8 +8,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Moq;
@@ -26,9 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         private INavigateToItemProvider _provider;
         private NavigateToTestAggregator _aggregator;
 
+        private static ExportProvider s_exportProvider =
+            MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithPart(
+                typeof(Dev14NavigateToOptionsService)));
+
         private async Task<TestWorkspace> SetupWorkspaceAsync(string content)
         {
-            var workspace = await TestWorkspace.CreateCSharpAsync(content);
+            var workspace = await TestWorkspace.CreateCSharpAsync(content, exportProvider: s_exportProvider);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(
@@ -869,7 +876,7 @@ class D
         </Document>
     </Project>
 </Workspace>
-"))
+", exportProvider: s_exportProvider))
             {
                 var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
