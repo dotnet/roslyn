@@ -105,16 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
-            protected override void Dispose(bool disposing)
-            {
-                // TODO: think of a way to get rid of this
-                //
-                // it being here is okay since only way to get client stream to be
-                // here is either we are done or connection is closed.
-                _pipe.WaitForPipeDrain();
-
-                _stream.Dispose();
-            }
+            protected override void Dispose(bool disposing) => _stream.Dispose();
 
             public override object InitializeLifetimeService()
             {

@@ -1362,7 +1362,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
-            Return (TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList.Arguments).Value
+            Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
+            Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
 
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
@@ -1456,5 +1457,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
+
+        Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
+            ' Nothing to be done.  VB doesn't have close braces
+            newRoot = root
+            newContextNode = contextNode
+        End Sub
     End Class
 End Namespace

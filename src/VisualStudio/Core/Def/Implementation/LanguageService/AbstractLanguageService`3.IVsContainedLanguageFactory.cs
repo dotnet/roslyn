@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.ProjectTracker.Projects
+            return this.Workspace.ProjectTracker.ImmutableProjects
                 .OfType<TProject>()
                 .Where(p => p.Hierarchy == hierarchy)
                 .Where(p => p.ProjectSystemName == projectName)

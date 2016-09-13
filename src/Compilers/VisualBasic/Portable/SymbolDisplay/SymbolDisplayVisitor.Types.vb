@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 symbol = symbol.TupleUnderlyingType
             End If
 
-                If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
+            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
                 String.IsNullOrEmpty(symbolName) Then
 
                 symbolName = StringConstants.NamedSymbolErrorName
@@ -351,10 +351,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If hasNames Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames(i), noEscaping:=False))
-                    AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
-                    AddSpace()
+                    Dim name = elementNames(i)
+                    If name IsNot Nothing Then
+                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
+                        AddSpace()
+                        AddPunctuation(SyntaxKind.AsKeyword)
+                        AddSpace()
+                    End If
                 End If
 
                 elementTypes(i).Accept(Me.NotFirstVisitor)

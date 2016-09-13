@@ -117,6 +117,63 @@ class C
         }
 
         [Fact]
+        [WorkItem(13632, "https://github.com/dotnet/roslyn/issues/13632")]
+        public void SimpleAssignWithoutConversion()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3,
+                string V_4)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.2
+  IL_000f:  ldloc.3
+  IL_0010:  stloc.s    V_4
+  IL_0012:  dup
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  stloc.1
+  IL_0017:  pop
+  IL_0018:  ldloc.0
+  IL_0019:  box        ""int""
+  IL_001e:  ldstr      "" ""
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""string string.Concat(object, object, object)""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
+}");
+        }
+
+        [Fact]
         public void DeconstructMethodAmbiguous()
         {
             string source = @"
@@ -395,6 +452,29 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "2 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutParamsDisallowed()
+        {
+            string source = @"
+class C
+{
+    public void Deconstruct(out int a, out string b, out params int[] c)
+    {
+        a = 1;
+        b = ""ignored"";
+        c = new[] { 2, 2 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public void Deconstruct(out int a, out string b, out params int[] c)
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
+                );
         }
 
         [Fact]
@@ -1355,6 +1435,71 @@ static class D
         }
 
         [Fact]
+        public void UnderspecifiedDeconstructGenericExtensionMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0411: The type arguments for method 'Extension.Deconstruct<T>(C, out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("Extension.Deconstruct<T>(C, out int, out T)").WithLocation(8, 18),
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void UnspecifiedGenericMethodIsNotCandidate()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public static void Deconstruct(this C value, out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+        System.Console.Write(""Deconstructed"");
+    }
+}";
+
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DeconstructGenericExtensionMethod()
         {
             string source = @"
@@ -1383,6 +1528,75 @@ static class Extension
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C1()").WithArguments("C1.Deconstruct<T>(out int, out T)").WithLocation(9, 18),
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousDeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+        System.Console.Write($""{x} {y}"");
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -1689,6 +1903,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13631, "https://github.com/dotnet/roslyn/issues/13631")]
         public void DeconstructionDeclaration()
         {
             string source = @"
@@ -1704,6 +1919,32 @@ class C
 
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //x2
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""int""
+  IL_0020:  ldstr      "" ""
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""string string.Concat(object, object, object)""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
+}
+");
         }
 
         [Fact]
@@ -3042,6 +3283,157 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IntTupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new int[] { 1, 2 };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (3, 4);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicMember()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = System.ValueTuple.Create(1, 2);
+        (x.Item1, x.Item2) = new C();
+        System.Console.WriteLine($""{x.Item1} {x.Item2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 3;
+        b = 4;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
     }

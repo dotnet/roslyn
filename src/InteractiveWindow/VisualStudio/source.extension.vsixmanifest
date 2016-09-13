@@ -2,9 +2,9 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="1F42C6D0-F876-4AF0-8185-1BEB0A325BB2" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>VisualStudio Interactive Components</DisplayName>
+    <DisplayName>VisualStudio Interactive Window</DisplayName>
     <Description>Interactive components for Visual Studio.</Description>
-    <ShortcutPath>..\CommonExtensions\Microsoft\VisualStudioInteractiveComponents</ShortcutPath>
+    <ShortcutPath>..\CommonExtensions\Microsoft\VisualStudioInteractiveWindow</ShortcutPath>
   </Metadata>
   <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />

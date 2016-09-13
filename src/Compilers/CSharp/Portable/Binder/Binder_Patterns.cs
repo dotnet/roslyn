@@ -14,8 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            var hasErrors = node.HasErrors || IsOperandErrors(node, ref expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
+            var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
+            var expressionType = expression.Type;
+            if ((object)expressionType == null)
+            {
+                expressionType = CreateErrorType();
+                if (!hasErrors)
+                {
+                    // value expected
+                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Expression.Location, expression.Display);
+                    hasErrors = true;
+                }
+            }
+
+            var pattern = BindPattern(node.Pattern, expression, expressionType, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
@@ -179,7 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar,
             DiagnosticBag diagnostics)
         {
-            if (operandType?.IsErrorType() == true || patternType?.IsErrorType() == true)
+            Debug.Assert((object)operandType != null);
+            Debug.Assert((object)patternType != null);
+            if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
             }
@@ -192,12 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (patternType.IsStatic)
             {
                 Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
-                return true;
-            }
-            else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
-            {
-                // It is an error to use pattern-matching with a null, method group, or lambda
-                Error(diagnostics, ErrorCode.ERR_BadIsPatternExpression, operand.Syntax);
                 return true;
             }
             else if (!isVar)
@@ -239,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null || operandType != (object)null);
+            Debug.Assert(operand != null && operandType != (object)null);
 
             if (InConstructorInitializer || InFieldInitializer)
             {
@@ -252,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != (object)null)
+            if (isVar)
             {
                 declType = operandType;
             }

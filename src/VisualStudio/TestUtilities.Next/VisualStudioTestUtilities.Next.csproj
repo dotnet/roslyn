@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <ProjectGuid>{78324E87-92D5-412C-9FA8-5CC2FBFBAF6C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Roslyn.VisualStudio.Test.Utilities</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.Test.Utilities.Next</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <Nonshipping>true</Nonshipping>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IncludeFrameworkReferencesFromNuGet>false</IncludeFrameworkReferencesFromNuGet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Remote\InProcRemostHostClient.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+      <Aliases>global,hub</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Next\ServicesVisualStudio.Next.csproj">
+      <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
+      <Name>ServicesVisualStudio.Next</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

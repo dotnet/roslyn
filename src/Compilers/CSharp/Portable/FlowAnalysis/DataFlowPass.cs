@@ -1660,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(localsOpt.Where(l => l.DeclarationKind != LocalDeclarationKind.PatternVariable).All(_usedVariables.Contains));
+            Debug.Assert(localsOpt.Where(l => l.DeclarationKind == LocalDeclarationKind.UsingVariable).All(_usedVariables.Contains));
 
             return result;
         }

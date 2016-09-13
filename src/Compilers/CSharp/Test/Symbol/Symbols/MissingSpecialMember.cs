@@ -567,6 +567,24 @@ namespace System
                         continue;
                 }
 
+                switch (wkt)
+                {
+                    case WellKnownType.System_ValueTuple_T1:
+                    case WellKnownType.System_ValueTuple_T2:
+                    case WellKnownType.System_ValueTuple_T3:
+                    case WellKnownType.System_ValueTuple_T4:
+                    case WellKnownType.System_ValueTuple_T5:
+                    case WellKnownType.System_ValueTuple_T6:
+                    case WellKnownType.System_ValueTuple_T7:
+                    case WellKnownType.System_ValueTuple_TRest:
+                        Assert.True(wkt.IsValueTupleType());
+                        break;
+
+                    default:
+                        Assert.False(wkt.IsValueTupleType());
+                        break;
+                }
+
                 var symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);

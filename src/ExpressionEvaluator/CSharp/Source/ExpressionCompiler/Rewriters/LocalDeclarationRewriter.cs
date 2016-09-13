@@ -2,11 +2,9 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return new BoundDefaultOperator(syntax, guidConstructor.ContainingType);
             }
 
-            var value = ConstantValue.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId.ToString());
+            var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
@@ -120,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 compilation.Assembly,
                 compilation.GetSpecialType(SpecialType.System_Byte));
 
-            var flags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, customModifiersCount: 0, refKind: RefKind.None);
-            var bytes = DynamicFlagsCustomTypeInfo.Create(flags).GetCustomTypeInfoPayload();
+            var bytes = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, customModifiersCount: 0, refKind: RefKind.None).ToBytes();
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
             {

@@ -1805,5 +1805,61 @@ namespace System
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 );
         }
+
+        public void NoDeconstructionAsLvalue()
+        {
+            var source =
+@"
+class C
+{
+    void M()
+    {
+        var (x, y) = e; // ok, deconstruction declaration
+        var(x, y); // ok, invocation
+        int x = var(x, y); // ok, invocation
+        var(x, y) += e;            // error 1
+        var(x, y)++;               // error 2
+        ++var(x, y);               // error 3
+        M(out var(x, y));          // error 4
+        M(ref var(x, y));          // error 5
+        return ref var(x, y);      // error 6
+        ref int x = ref var(x, y); // error 7
+        var (x, 1) = e;            // error 8
+    }
+}";
+            ParseAndValidate(source,
+                    // (9,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         var(x, y) += e;            // error 1
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(9, 9),
+                    // (10,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         var(x, y)++;               // error 2
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(10, 9),
+                    // (11,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         ++var(x, y);               // error 3
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(11, 11),
+                    // (12,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         M(out var(x, y));          // error 4
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(12, 15),
+                    // (13,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         M(ref var(x, y));          // error 5
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(13, 15),
+                    // (14,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         return ref var(x, y);      // error 6
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(14, 20),
+                    // (15,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         ref int x = ref var(x, y); // error 7
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(15, 25),
+                    // (16,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                    //         var (x, 1) = e;            // error 8
+                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(16, 9)
+                );
+        }
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
     }
 }

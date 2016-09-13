@@ -27,32 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
 
-            private static readonly SymbolDisplayFormat s_propertySignatureDisplayFormat =
-                new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                    memberOptions:
-                        SymbolDisplayMemberOptions.IncludeAccessibility |
-                        SymbolDisplayMemberOptions.IncludeParameters |
-                        SymbolDisplayMemberOptions.IncludeType |
-                        SymbolDisplayMemberOptions.IncludeContainingType,
-                    kindOptions:
-                        SymbolDisplayKindOptions.IncludeMemberKeyword,
-                    propertyStyle:
-                        SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                    parameterOptions:
-                        SymbolDisplayParameterOptions.IncludeName |
-                        SymbolDisplayParameterOptions.IncludeType |
-                        SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                        SymbolDisplayParameterOptions.IncludeExtensionThis |
-                        SymbolDisplayParameterOptions.IncludeDefaultValue |
-                        SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                    localOptions: SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions:
-                        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                        SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
-
             public SymbolDescriptionBuilder(
                 ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
@@ -98,20 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     PlainText(CSharpFeaturesResources.awaitable_extension),
                     Punctuation(")"),
                     Space());
-            }
-
-            protected override void AddDescriptionForProperty(IPropertySymbol symbol)
-            {
-                if (symbol.ContainingType?.TypeKind == TypeKind.Interface)
-                {
-                    base.AddDescriptionForProperty(symbol);
-                }
-                else
-                {
-                    var fullParts = ToMinimalDisplayParts(symbol, s_propertySignatureDisplayFormat);
-                    var neededParts = fullParts.SkipWhile(p => p.Symbol == null);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription, neededParts);
-                }
             }
 
             protected override Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(

@@ -748,4 +748,7 @@ Do you want to proceed?</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating...</value>
   </data>
+  <data name="Suggestion_ellipses" xml:space="preserve">
+    <value>Suggestion ellipses (…)</value>
+  </data>
 </root>

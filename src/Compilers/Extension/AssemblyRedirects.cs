@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis.dll")]
+[assembly: ProvideRoslynBindingRedirection("Roslyn.Compilers.Extension.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.AppContext.dll")]
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Console.dll")]

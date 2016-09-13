@@ -9,10 +9,15 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Reflection.Metadata
+Imports Roslyn.BuildDevDivInsertionFiles
+Imports System.Security.Cryptography
+Imports System.Text
+Imports System.Runtime.InteropServices
 
 Public Class BuildDevDivInsertionFiles
     Private Const DevDivInsertionFilesDirName = "DevDivInsertionFiles"
     Private Const DevDivPackagesDirName = "DevDivPackages"
+    Private Const DevDivVsixDirName = "DevDivVsix"
     Private Const ExternalApisDirName = "ExternalAPIs"
     Private Const NetFX20DirectoryName = "NetFX20"
     Private Const PublicKeyToken = "31BF3856AD364E35"
@@ -378,6 +383,7 @@ Public Class BuildDevDivInsertionFiles
         Dim dependencies = BuildDependencyMap(_binDirectory)
         GenerateContractsListMsbuild(dependencies)
         GenerateAssemblyVersionList(dependencies)
+        GeneratePortableFacadesSwrFile(dependencies)
         CopyDependencies(dependencies)
 
         ' List of files to add to VS.ExternalAPI.Roslyn.nuspec.
@@ -398,7 +404,11 @@ Public Class BuildDevDivInsertionFiles
         Next
 
         ' Add just the compiler files to a separate compiler nuspec
-        GenerateRoslynCompilerNuSpec(CompilerFiles)
+        ' (with the Immutable collections and System.Reflection.Metadata, which
+        '  are normally inserted separately)
+        Dim allCompilerFiles = CompilerFiles.Concat({
+            "System.Collections.Immutable.dll", "System.Reflection.Metadata.dll"})
+        GenerateRoslynCompilerNuSpec(allCompilerFiles)
 
         ' Copy over the files in the NetFX20 subdirectory (identical, except for references and Authenticode signing).
         ' These are for msvsmon, whose setup authoring is done by the debugger.
@@ -469,13 +479,15 @@ Public Class BuildDevDivInsertionFiles
         Public PackageVersion As String
 
         Public IsNative As Boolean
+        Public IsFacade As Boolean
 
-        Sub New(contractDir As String, implementationDir As String, packageName As String, packageVersion As String, isNative As Boolean)
+        Sub New(contractDir As String, implementationDir As String, packageName As String, packageVersion As String, isNative As Boolean, isFacade As Boolean)
             Me.ContractDir = contractDir
             Me.ImplementationDir = implementationDir
             Me.PackageName = packageName
             Me.PackageVersion = packageVersion
             Me.IsNative = isNative
+            Me.IsFacade = isFacade
         End Sub
 
         ' TODO: remove
@@ -526,6 +538,7 @@ Public Class BuildDevDivInsertionFiles
                 Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
                 Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
                 Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
+                Dim frameworkAssemblies = packageObj.Property("frameworkAssemblies")?.Value
 
                 Dim implementations = If(runtime, native)
                 If implementations Is Nothing Then
@@ -551,15 +564,20 @@ Public Class BuildDevDivInsertionFiles
                         Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
-                        result.Add(fileName, New DependencyInfo(compileTarget, runtimeTarget, packageName, packageVersion, native IsNot Nothing))
+                        result.Add(fileName, New DependencyInfo(compileTarget,
+                                                                runtimeTarget,
+                                                                packageName,
+                                                                packageVersion,
+                                                                isNative:=native IsNot Nothing,
+                                                                isFacade:=frameworkAssemblies IsNot Nothing))
                     End If
                 Next
             Next
         Next
 
         ' TODO: remove once we have a proper package
-        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
-        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False))
+        result.Add("Microsoft.VisualStudio.InteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
+        result.Add("Microsoft.VisualStudio.VsInteractiveWindow.dll", New DependencyInfo("lib\net46", "lib\net46", "Microsoft.VisualStudio.InteractiveWindow", _interactiveWindowPackageVersion, isNative:=False, isFacade:=False))
 
         Return result
     End Function
@@ -646,6 +664,48 @@ Public Class BuildDevDivInsertionFiles
             Directory.CreateDirectory(dstDir)
             File.Copy(srcPath, dstPath, overwrite:=True)
         Next
+    End Sub
+
+    Private Sub GeneratePortableFacadesSwrFile(dependencies As Dictionary(Of String, DependencyInfo))
+        Dim facades = dependencies.Where(Function(e) e.Value.IsFacade).OrderBy(Function(e) e.Key).ToArray()
+
+        Dim swrPath = Path.Combine(_setupDirectory, DevDivVsixDirName, "PortableFacades", "PortableFacades.swr")
+        Dim swrVersion As Version = Nothing
+        Dim swrFiles As IEnumerable(Of String) = Nothing
+        ParseSwrFile(swrPath, swrVersion, swrFiles)
+
+        Dim expectedFiles = New List(Of String)
+        For Each entry In facades
+            Dim dependency = entry.Value
+            Dim fileName = entry.Key
+            Dim implPath = IO.Path.Combine(dependency.PackageName, dependency.PackageVersion, dependency.ImplementationDir, fileName)
+            expectedFiles.Add($"    file source=""$(NuGetPackageRoot)\{implPath}"" vs.file.ngen=yes")
+        Next
+
+        If Not swrFiles.SequenceEqual(expectedFiles) Then
+            Using writer = New StreamWriter(File.Open(swrPath, FileMode.Truncate, FileAccess.Write))
+                writer.WriteLine("use vs")
+                writer.WriteLine()
+                writer.WriteLine($"package name=PortableFacades")
+                writer.WriteLine($"        version={New Version(swrVersion.Major, swrVersion.Minor + 1, 0, 0)}")
+                writer.WriteLine()
+                writer.WriteLine("folder InstallDir:\Common7\IDE\PrivateAssemblies")
+
+                For Each entry In expectedFiles
+                    writer.WriteLine(entry)
+                Next
+            End Using
+
+            Throw New Exception($"The content of file {swrPath} is not up-to-date. The file has been updated to reflect the changes in dependencies made in the repo " &
+                                $"(in files {Path.Combine(_setupDirectory, DevDivPackagesDirName)}\**\project.json). Include this file change in your PR and rebuild.")
+        End If
+    End Sub
+
+    Private Sub ParseSwrFile(path As String, <Out> ByRef version As Version, <Out> ByRef files As IEnumerable(Of String))
+        Dim lines = File.ReadAllLines(path)
+
+        version = Version.Parse(lines.Single(Function(line) line.TrimStart().StartsWith("version=")).Split("="c)(1))
+        files = (From line In lines Where line.TrimStart().StartsWith("file")).ToArray()
     End Sub
 
     ''' <summary>
@@ -842,8 +902,11 @@ Public Class BuildDevDivInsertionFiles
         Return fileName.StartsWith("Microsoft.VisualStudio.LanguageServices.")
     End Function
 
-    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As String())
+    Private Sub GenerateRoslynCompilerNuSpec(filesToInsert As IEnumerable(Of String))
         Const PackageName As String = "VS.Tools.Roslyn"
+
+        ' No duplicates are allowed
+        filesToInsert.GroupBy(Function(x) x).All(Function(g) g.Count() = 1)
 
         Dim xml = <?xml version="1.0" encoding="utf-8"?>
                   <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
@@ -857,7 +920,6 @@ Public Class BuildDevDivInsertionFiles
                       <files>
                           <%= filesToInsert.
                               OrderBy(Function(f) f).
-                              Distinct().
                               Select(Function(f) <file src=<%= f %> xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"/>) %>
                       </files>
                   </package>
@@ -894,7 +956,7 @@ Public Class BuildDevDivInsertionFiles
     ''' </summary>
     Private Sub RewritePkgDef(fileToRewrite As String)
         ' Our VSIXes normally contain a number of CodeBase attributes in our .pkgdefs so Visual Studio knows where
-        ' to load assemblies. These come in one of three forms:
+        ' to load assemblies. These come in one of two forms:
         '
         ' 1) as a part of a binding redirection:
         '
@@ -915,20 +977,11 @@ Public Class BuildDevDivInsertionFiles
         '     "version"="1.9.2.0"
         '     "codeBase"="$PackageFolder$\Esent.Interop.dll"
         '
-        ' 3) as part of a package definition:
-        '
-        '     [$RootKey$\Packages\{13c3bbb4-f18f-4111-9f54-a0fb010d9194}]
-        '     @="CSharpPackage"
-        '     "InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
-        '     "Class"="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
-        '     "CodeBase"="$PackageFolder$\Microsoft.VisualStudio.LanguageServices.CSharp.dll"
-        '
         ' Each of these use $PackageFolder$ as a way to specify the VSIX-relative path. When we convert our VSIXes
         ' to be installed as MSIs, we don't want the DLLs in the CommonExtensions next to our .pkgdefs. Instead
         ' we want them in PrivateAssemblies so they're in the loading path to enable proper ngen. Thus, these CodeBase
         ' attributes have to go. For #1, we can just delete the codeBase key, and leave the rest of the redirection
-        ' in place. For #2, we can delete the entire section. For #3, it's a bit tricker; we have to convert it to
-        ' an Assembly key which is just the name of the assembly without the path.
+        ' in place. For #2, we can delete the entire section.
 
         Dim lines = File.ReadAllLines(fileToRewrite)
         Dim inBindingRedirect = False
@@ -952,11 +1005,6 @@ Public Class BuildDevDivInsertionFiles
                 If inBindingRedirect Then
                     ' Drop CodeBase from all binding redirects -- they're only for VSIX installs
                     lines(i) = Nothing
-                ElseIf parts(1).StartsWith("""") AndAlso parts(1).EndsWith("""") Then
-                    Dim valueWithoutQuotes = parts(1).Substring(1, parts(1).Length - 2)
-                    Dim assemblyName = Path.GetFileNameWithoutExtension(valueWithoutQuotes)
-                    Dim qualifiedName = assemblyName + ", Version=" + _assemblyVersion + ", Culture=neutral, PublicKeyToken=" + PublicKeyToken
-                    lines(i) = """Assembly""=""" + qualifiedName + """"
                 End If
             ElseIf String.Equals(parts(0), """isPkgDefOverrideEnabled""", StringComparison.OrdinalIgnoreCase) Then
                 ' We always need to drop this, since this is only for experimental VSIXes

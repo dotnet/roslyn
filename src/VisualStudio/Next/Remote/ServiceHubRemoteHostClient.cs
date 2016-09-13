@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -20,7 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly Stream _stream;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(
+            Workspace workspace, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
@@ -38,9 +40,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 instance.Connected();
 
+                // Create a workspace host to hear about workspace changes.  We'll 
+                // remote those changes over to the remote side when they happen.
+                RegisterWorkspaceHost(workspace, instance);
+
                 // return instance
                 return instance;
             }
+        }
+
+        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        {
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
+            if (vsWorkspace == null)
+            {
+                return;
+            }
+
+            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
+                new WorkspaceHost(vsWorkspace, client));
         }
 
         private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :

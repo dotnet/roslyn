@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "ManagedEsent": "1.9.4",
     "Roslyn.Microsoft.Build": "0.0.2"
   },
   "frameworks": {

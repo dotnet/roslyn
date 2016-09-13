@@ -1982,15 +1982,24 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (int x1, x2)").WithLocation(6, 9),
                 // (6,14): error CS1525: Invalid expression term 'int'
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
+                // (7,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (var x3, x4)").WithLocation(7, 9),
                 // (7,18): error CS1003: Syntax error, ',' expected
                 //         var (var x3, x4) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 18),
+                // (8,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x5, var (x6, x7))").WithLocation(8, 9),
                 // (6,18): error CS0103: The name 'x1' does not exist in the current context
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),

@@ -418,4 +418,16 @@ Module T
 End Module</File>.ConvertTestSourceTag()
         Await TestMissingAsync(text)
     End Function
+
+    <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
+    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+    Public Async Function TestInvocationWithNullArguments() As Task
+        Dim text =
+"Module Module1
+    Sub Main()
+        [|TaskAwaiter|]
+    End Sub
+End Module"
+        Await TestMissingAsync(text)
+    End Function
 End Class
