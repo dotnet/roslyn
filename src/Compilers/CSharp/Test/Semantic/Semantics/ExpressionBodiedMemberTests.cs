@@ -346,6 +346,64 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorProp()
+        {
+            string source = @"
+using System;
+public class Program 
+{
+    static void Main()
+    {
+        var p = new Program();
+        p.Prop = 2;
+    }
+    Program() => Console.Write(1);
+    int Prop { set => Console.Write(value); }
+    ~Program() => Console.Write(string.Empty);
+}
+";
+            CompileAndVerify(source, expectedOutput: "12");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorWithBase01()
+        {
+            string source = @"
+using System;
+public class Program 
+{
+    static void Main()
+    {
+        var p = new Program();
+    }
+    Program() : base() => Console.Write(1);
+}
+";
+            CompileAndVerify(source, expectedOutput: "1");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        public void RunCtorWithBase02()
+        {
+            string source = @"
+using System;
+public class Base
+{
+    Base(int i) { Console.Write(i); }
+}
+public class Program : Base
+{
+    static void Main()
+    {
+        var p = new Program();
+    }
+    Program() : base(1) => Console.Write(2);
+}
+";
+            CompileAndVerify(source, expectedOutput: "12");
+        }
+
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
@@ -498,8 +556,9 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
-    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //     ~C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
     { P1 = 1; }
     => P1;").WithLocation(6, 5)
                 );
@@ -550,7 +609,6 @@ public class C
             var tree = comp.SyntaxTrees[0];
             Assert.Equal(1, tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Count());
         }
-
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
         public void BlockBodyAndExpressionBody_06()
@@ -747,25 +805,145 @@ public class C
             Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
-        public void LookupSymbols()
+        [Fact]
+        public void BlockBodyAndExpressionBody_12()
         {
             var comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    Func<int, int> U() => delegate (int y0) { return 0; } 
-    int V(int y1) => 1;  
+    static int P1 {get; set;}
+
+    public C()
+    { P1 = 1; }
+    => P1 = 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
+    { P1 = 1; }
+    => P1 = 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_13()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    ~C()
+    { P1 = 1; }
+    => P1 = 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+    { P1 = 1; }
+    => P1 = 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_14()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    int P2
+    {
+        set
+            { P1 = 1; }
+            => P1 = 1;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //         set
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"set
+            { P1 = 1; }
+            => P1 = 1;").WithLocation(8, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>();
+            Assert.Equal(2, nodes.Count());
+
+            foreach (var assign in nodes)
+            {
+                var node = assign.Left;
+                Assert.Equal("P1", node.ToString());
+                Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
+        public void LookupSymbols()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+public class C
+{
+    Func<int, int> U() => delegate (int y0) { return 0; }
+    int V(int y1) => 1;
 }
 
-Func<int, int> W() => delegate (int y2) { return 2; } 
+Func<int, int> W() => delegate (int y2) { return 2; }
+
+public class D
+{
+    public D(int y3) => M(3);
+    public ~D() => M(y4 => 4);
+    public Func<int, int> Prop { get => y5 => 5; }
+    public static void M(int i) {}
+    public static void M(Func<int, int> d) {}
+}
 ");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
             var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-
-            Assert.Equal(3, nodes.Length);
+            Assert.Equal(6, nodes.Length);
 
             for (int i = 0; i < nodes.Length; i++)
             {

@@ -200,8 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
-            Debug.Assert(_property.IsExpressionBodied == false, "Cannot have accessors in expression bodied lightweight properties");
-            _isExpressionBodied = (syntax.Body == null && syntax.ExpressionBody != null);
+            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
+            var hasBody = syntax.Body != null;
+            var hasExpressionBody = syntax.ExpressionBody != null;
+            _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
@@ -220,9 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            var bodyOpt = syntax.Body;
-            var expressionBodyOpt = syntax.ExpressionBody;
-            if (bodyOpt != null || expressionBodyOpt != null)
+            if (hasBody || hasExpressionBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
