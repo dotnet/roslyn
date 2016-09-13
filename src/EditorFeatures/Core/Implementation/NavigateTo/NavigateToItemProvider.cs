@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> _optionsServices;
+        private readonly ImmutableArray<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> _optionsServices;
         private readonly ItemDisplayFactory _displayFactory;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _optionsServices = optionsServices;
+            _optionsServices = optionsServices.ToImmutableArray();
             _displayFactory = new ItemDisplayFactory(new NavigateToIconFactory(glyphService));
         }
 
@@ -58,8 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
-            var optionsService = VersionSelector.SelectHighest(_optionsServices);
-            var searchCurrentDocument = optionsService.GetSearchCurrentDocument(callback.Options);
+            var optionsService = _optionsServices.Length > 0
+                ? VersionSelector.SelectHighest(_optionsServices)
+                : null;
+            var searchCurrentDocument = optionsService?.GetSearchCurrentDocument(callback.Options) ?? false;
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
                 _asyncListener,

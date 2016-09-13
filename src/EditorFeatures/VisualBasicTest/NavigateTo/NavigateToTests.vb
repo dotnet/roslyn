@@ -5,8 +5,10 @@ Imports System.Windows.Media.Imaging
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Moq
@@ -18,8 +20,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         Private _provider As NavigateToItemProvider
         Private _aggregator As NavigateToTestAggregator
 
+        Private Shared s_exportProvider As ExportProvider =
+            MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithPart(
+                GetType(Dev14NavigateToOptionsService)))
+
         Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
+            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content, exportProvider:=s_exportProvider)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -33,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement, exportProvider:=s_exportProvider)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
