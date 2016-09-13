@@ -199,5 +199,6 @@ for_initializer
 **References**
 
 [C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/roslyn/issues/11031)
+
 The [What's new in C# 7.0](https://blogs.msdn.microsoft.com/dotnet/2016/08/24/whats-new-in-csharp-7-0) post has a section on deconstructions.
 
