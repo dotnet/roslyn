@@ -2,6 +2,9 @@
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    /// <summary>
+    /// Names of typical classification types understood by the host environment.
+    /// </summary>
     public static class ClassificationTypeNames
     {
         public const string Comment = "comment";

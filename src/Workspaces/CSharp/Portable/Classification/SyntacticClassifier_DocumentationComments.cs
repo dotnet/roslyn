@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    internal partial class Worker
+    internal partial class SyntacticClassifier
     {
         private void ClassifyDocumentationComment(DocumentationCommentTriviaSyntax documentationComment)
         {

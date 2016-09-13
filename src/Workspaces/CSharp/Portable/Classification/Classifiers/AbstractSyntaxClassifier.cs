@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal abstract class AbstractSyntaxClassifier : ISyntaxClassifier
+    internal abstract class AbstractSyntaxClassifier : ISemanticClassifier
     {
         protected AbstractSyntaxClassifier()
         {

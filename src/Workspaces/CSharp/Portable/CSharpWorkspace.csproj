@@ -58,11 +58,11 @@
     <Compile Include="Classification\Classifiers\NameSyntaxClassifier.cs" />
     <Compile Include="Classification\Classifiers\SyntaxTokenClassifier.cs" />
     <Compile Include="Classification\Classifiers\UsingDirectiveSyntaxClassifier.cs" />
+    <Compile Include="Classification\CSharpClassificationProvider.cs" />
     <Compile Include="Classification\CSharpClassificationService.cs" />
-    <Compile Include="Classification\SyntaxClassifier.cs" />
-    <Compile Include="Classification\Worker.cs" />
-    <Compile Include="Classification\Worker_DocumentationComments.cs" />
-    <Compile Include="Classification\Worker_Preprocesser.cs" />
+    <Compile Include="Classification\SyntacticClassifier.cs" />
+    <Compile Include="Classification\SyntacticClassifier_DocumentationComments.cs" />
+    <Compile Include="Classification\SyntacticClassifier_Preprocesser.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CSharpCodeCleanerServiceFactory.cs" />
     <Compile Include="CodeGeneration\CSharpCodeGenerationHelpers.cs" />

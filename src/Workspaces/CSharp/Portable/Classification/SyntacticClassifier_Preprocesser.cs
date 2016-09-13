@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    internal partial class Worker
+    internal partial class SyntacticClassifier
     {
         private void ClassifyPreprocessorDirective(DirectiveTriviaSyntax node)
         {

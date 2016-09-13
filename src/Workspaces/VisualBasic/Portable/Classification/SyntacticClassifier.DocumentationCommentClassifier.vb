@@ -5,11 +5,11 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    Partial Friend Class Worker
+    Partial Friend Class SyntacticClassifier
         Private Class DocumentationCommentClassifier
-            Private ReadOnly _worker As Worker
+            Private ReadOnly _worker As SyntacticClassifier
 
-            Public Sub New(worker As Worker)
+            Public Sub New(worker As SyntacticClassifier)
                 _worker = worker
             End Sub
 

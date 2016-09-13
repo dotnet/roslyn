@@ -9,25 +9,26 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageService(GetType(ClassificationService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicClassificationService
-        Inherits CommonClassificationService
+    <ExportLanguageServiceFactory(GetType(ClassificationService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicClassificationServiceFactory
+        Implements ILanguageServiceFactory
 
-        Public Overrides Function GetDefaultSyntaxClassifiers() As IEnumerable(Of ISyntaxClassifier)
-            Return SyntaxClassifier.DefaultSyntaxClassifiers
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicClassificationService(languageServices.WorkspaceServices.Workspace)
         End Function
 
-        Protected Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
-        End Sub
+        Private Class VisualBasicClassificationService
+            Inherits CommonClassificationService
 
-        Protected Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim root = syntaxTree.GetRoot(cancellationToken)
-            Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
-        End Sub
+            Public Sub New(workspace As Workspace)
+                MyBase.New(workspace)
+            End Sub
 
-        Public Overrides Function AdjustClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
-            Return ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan)
-        End Function
+            Protected Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
+        End Class
     End Class
 End Namespace
