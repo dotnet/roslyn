@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -22,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
+            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -29,13 +32,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
-            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService) :
+            public RemoteHostClientService(
+                Workspace workspace,
+                IDiagnosticAnalyzerService analyzerService,
+                IEditorOptions globalEditorOptions) :
                 base()
             {
                 _gate = new object();
 
                 _workspace = workspace;
                 _analyzerService = analyzerService;
+                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;
@@ -211,7 +218,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return true;
                 }
 
-                // TODO: add check for code lens.
+                if (CodeLenEnabled())
+                {
+                    return true;
+                }
+
                 return false;
             }
 
@@ -235,6 +246,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     return false;
                 }
+            }
+
+            private bool CodeLenEnabled()
+            {
+                return _globalEditorOptions.GetOptionValue(CodeLensOptions.IsCodeLensEnabledOptionKey);
             }
         }
     }
