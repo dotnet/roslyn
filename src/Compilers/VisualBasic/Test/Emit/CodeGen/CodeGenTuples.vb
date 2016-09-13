@@ -3191,7 +3191,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Public Sub TupleTypeWithLateDiscoveredName()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation name="Tuples">
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3201,23 +3201,12 @@ Module C
 End Module
 
 ]]></file>
-</compilation>)
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                                          ~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,)' is not defined or imported.
+BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to '(Integer, A As String)'.
         Dim x As (Integer, A As String) = (1, "hello", C:=2)
                                           ~~~~~~~~~~~~~~~~~~
 </errors>)
