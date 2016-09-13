@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
             }
-            else if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
+            else if (optionKey.Option == CSharpCodeStyleOptions.AlwaysUseBraces)
             {
                 return FetchStyleBool(Style_AlwaysUseBraces, out value);
             }
@@ -503,7 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             // code style: brace options.
-            if (optionKey.Option == CSharpCodeStyleOptions.UseBracesWherePossible)
+            if (optionKey.Option == CSharpCodeStyleOptions.AlwaysUseBraces)
             {
                 return PersistStyleOption<bool>(Style_AlwaysUseBraces, value);
             }

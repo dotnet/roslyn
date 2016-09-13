@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
 
         public override void Initialize(AnalysisContext context)
         {
-            var syntaxKindsOfInterest =
-                ImmutableArray.Create(SyntaxKind.IfStatement,
+            var syntaxKindsOfInterest = ImmutableArray.Create(SyntaxKind.IfStatement,
                     SyntaxKind.ElseClause,
                     SyntaxKind.ForStatement,
                     SyntaxKind.ForEachStatement,
@@ -73,9 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var optionSet = context.Options.GetOptionSet();
-            var useBracesOption = optionSet.GetOption(CSharpCodeStyleOptions.UseBracesWherePossible);
+            var useBracesOption = optionSet.GetOption(CSharpCodeStyleOptions.AlwaysUseBraces);
             var severity = useBracesOption.Notification.Value;
 
+            if (severity == DiagnosticSeverity.Hidden)
+            {
+                return;
+            }
+            
             if (useBracesOption.Value)
             {
                 var diagnostic = GetAddBracesDiagnostic(context.Node, severity);

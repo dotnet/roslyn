@@ -233,7 +233,7 @@ class C{
     }
 }";
 
-        private static readonly string s_bracesWherePossiblePreviewFalse = @"
+        private static readonly string s_alwaysUseBracesPreviewFalse = @"
 using System;
 class C{
     void Init()
@@ -245,7 +245,7 @@ class C{
     }
 }";
 
-        private static readonly string s_bracesWherePossiblePreviewTrue = @"
+        private static readonly string s_alwaysUseBracesPreviewTrue = @"
 using System;
 class C{
     void Init()
@@ -306,7 +306,7 @@ class C{
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
-            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseBracesWherePossible, CSharpVSResources.Everywhere, s_bracesWherePossiblePreviewTrue, s_bracesWherePossiblePreviewFalse, this, optionSet, braceGroupTitle, braceStylePreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.AlwaysUseBraces, CSharpVSResources.Everywhere, s_alwaysUseBracesPreviewTrue, s_alwaysUseBracesPreviewFalse, this, optionSet, braceGroupTitle, braceStylePreferences));
         }
     }
 }

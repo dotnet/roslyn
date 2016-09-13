@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         }
 
         private IDictionary<OptionKey, object> RemoveBraces =>
-            new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.UseBracesWherePossible, new CodeStyleOption<bool>(false, NotificationOption.Warning) } };
+            new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.AlwaysUseBraces, new CodeStyleOption<bool>(false, NotificationOption.Warning) } };
 
         private async Task TestRemoveBraces(string originalMarkup)
         {

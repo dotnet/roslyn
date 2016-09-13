@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWhereApparent = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseImplicitTypeWhereApparent), defaultValue: CodeStyleOption<bool>.Default);
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWherePossible = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseImplicitTypeWherePossible), defaultValue: CodeStyleOption<bool>.Default);
 
-        public static readonly Option<CodeStyleOption<bool>> UseBracesWherePossible = new Option<CodeStyleOption<bool>>(FeatureName, nameof(UseBracesWherePossible), defaultValue: CodeStyleOption<bool>.Default);
+        public static readonly Option<CodeStyleOption<bool>> AlwaysUseBraces = new Option<CodeStyleOption<bool>>(FeatureName, nameof(AlwaysUseBraces), defaultValue: CodeStyleOption<bool>.Default);
     }
 }
