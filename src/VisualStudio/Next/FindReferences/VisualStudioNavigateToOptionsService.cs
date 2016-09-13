@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
-    [ExportWorkspaceService(typeof(INavigateToOptionsService)), Shared]
+    [ExportWorkspaceService(typeof(INavigateToOptionsService), ServiceLayer.Host), Shared]
     internal class VisualStudioNavigateToOptionsService : INavigateToOptionsService
     {
         public bool GetSearchCurrentDocument(INavigateToOptions options)
