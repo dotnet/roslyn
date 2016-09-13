@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             _provider = new NavigateToItemProvider(
                 workspace,
                 _glyphServiceMock.Object,
-                aggregateListener);
+                aggregateListener,
+                workspace.ExportProvider.GetExportedValues<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             return workspace;
@@ -871,7 +873,9 @@ class D
             {
                 var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
-                _provider = new NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener);
+                _provider = new NavigateToItemProvider(
+                    workspace, _glyphServiceMock.Object, aggregateListener,
+                    workspace.ExportProvider.GetExportedValues<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>>());
                 _aggregator = new NavigateToTestAggregator(_provider);
 
                 var items = _aggregator.GetItems("VisibleMethod");

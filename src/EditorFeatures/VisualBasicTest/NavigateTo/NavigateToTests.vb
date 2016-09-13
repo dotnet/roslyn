@@ -3,6 +3,7 @@
 Imports System.Windows.Media
 Imports System.Windows.Media.Imaging
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -25,7 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Private Sub SetupNavigateTo(workspace As TestWorkspace)
             Dim aggregateListener = New AggregateAsynchronousOperationListener(Array.Empty(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))(), FeatureAttribute.NavigateTo)
-            _provider = New NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener)
+            _provider = New NavigateToItemProvider(
+                workspace, _glyphServiceMock.Object, aggregateListener,
+                workspace.ExportProvider.GetExportedValues(Of Lazy(Of INavigateToOptionsService, VisualStudioVersionMetadata))())
             _aggregator = New NavigateToTestAggregator(_provider)
         End Sub
 

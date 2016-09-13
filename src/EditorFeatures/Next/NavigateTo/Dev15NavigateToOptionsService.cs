@@ -2,13 +2,12 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.CodeAnalysis.Editor.NavigateTo
 {
-    [ExportWorkspaceService(typeof(INavigateToOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioNavigateToOptionsService : INavigateToOptionsService
+    [ExportVersionSpecific(typeof(INavigateToOptionsService), VisualStudioVersion.Dev15), Shared]
+    internal class Dev15NavigateToOptionsService : INavigateToOptionsService
     {
         public bool GetSearchCurrentDocument(INavigateToOptions options)
         {
