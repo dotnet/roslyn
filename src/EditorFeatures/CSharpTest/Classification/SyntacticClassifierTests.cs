@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             {
                 var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var service = document.GetLanguageService<ClassificationService>();
-                return await service.GetSyntacticClassificationsAsync(document, textSpan, CancellationToken.None);
+                var service = ClassificationService.GetService(document);
+                return await service.GetSyntacticClassificationsAsync(document, textSpan);
             }
         }
 

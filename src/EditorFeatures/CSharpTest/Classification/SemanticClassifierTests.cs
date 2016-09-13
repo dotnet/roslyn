@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var service = document.GetLanguageService<ClassificationService>();
-                return (await service.GetSemanticClassificationsAsync(document, textSpan, CancellationToken.None)).ToList();
+                var service = ClassificationService.GetService(document);
+                return await service.GetSemanticClassificationsAsync(document, textSpan);
             }
         }
 

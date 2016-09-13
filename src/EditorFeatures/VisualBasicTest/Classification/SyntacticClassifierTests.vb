@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
             Using Workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim service = document.GetLanguageService(Of ClassificationService)()
-                Return Await service.GetSyntacticClassificationsAsync(document, textSpan, CancellationToken.None)
+                Dim service = ClassificationService.GetService(document)
+                Return Await service.GetSyntacticClassificationsAsync(document, textSpan)
             End Using
         End Function
 
