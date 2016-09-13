@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
                 if (AnalyzeFixedStatement(fixedStatement))
                 {
                     return Diagnostic.Create(CreateAddBracesDiagnosticDescriptor(severity),
-                        fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
+                        fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.FixedKeyword));
                 }
             }
 
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
                 if (AnalyzeBlockedFixedStatement(fixedStatement))
                 {
                     return Diagnostic.Create(CreateRemoveBracesDiagnosticDescriptor(severity),
-                        fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword));
+                        fixedStatement.FixedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.FixedKeyword));
                 }
             }
 

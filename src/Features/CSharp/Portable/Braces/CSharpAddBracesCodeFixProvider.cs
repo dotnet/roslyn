@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
                     c => AddBracesAsync(context, c)),
                 context.Diagnostics);
 
+            System.Diagnostics.Debug.Assert(false, "add braces code fix");
+
             return SpecializedTasks.EmptyTask;
         }
 
