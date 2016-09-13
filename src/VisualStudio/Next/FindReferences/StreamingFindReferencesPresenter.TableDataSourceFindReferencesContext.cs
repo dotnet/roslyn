@@ -501,7 +501,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public override void ReportProgress(int current, int maximum)
             {
-                _findReferencesWindow.SetProgress(current, maximum);
+                // _findReferencesWindow.SetProgress(current, maximum);
             }
 
             #endregion

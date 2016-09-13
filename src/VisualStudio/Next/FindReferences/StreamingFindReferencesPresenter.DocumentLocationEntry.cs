@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
                     var inlines = GetHighlightedInlines(Presenter, _taggedLineParts, _isDefinitionLocation);
-                    var textBlock = inlines.ToTextBlock(Presenter._typeMap);
+                    var textBlock = inlines.ToTextBlock(Presenter._typeMap, wrap: false);
 
                     LazyToolTip.AttachTo(textBlock, CreateDisposableToolTip);
 
