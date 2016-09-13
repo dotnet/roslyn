@@ -478,17 +478,17 @@ class T
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found <null>.
                 //         switch(null)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found <null>.
                 //         switch(null)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found <null>.
                 //         switch(null)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(6, 16)
                 );
         }
 
@@ -513,17 +513,17 @@ class T
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found void.
                 //         switch(M())
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found void.
                 //         switch(M())
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found void.
                 //         switch(M())
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M()").WithArguments("void").WithLocation(6, 16)
                 );
         }
 
@@ -548,17 +548,17 @@ class T
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found method group
                 //         switch(M)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found method group
                 //         switch(M)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
                 );
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found method group.
                 //         switch(M)
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "M").WithArguments("method group").WithLocation(6, 16)
                 );
         }
 
@@ -581,15 +581,15 @@ class T
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found lambda expression
                 //         switch(() => {})
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found lambda expression
                 //         switch(() => {})
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,16): error CS8119: The switch expression must be a value; found lambda expression
                 //         switch(() => {})
-                Diagnostic(ErrorCode.ERR_PatternValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "() => {}").WithArguments("lambda expression").WithLocation(6, 16));
         }
 
         [Fact]

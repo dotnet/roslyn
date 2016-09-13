@@ -4866,7 +4866,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
-  <data name="ERR_PatternValueExpected" xml:space="preserve">
+  <data name="ERR_SwitchExpressionValueExpected" xml:space="preserve">
     <value>The switch expression must be a value; found {0}.</value>
   </data>
   <data name="ERR_PatternIsSubsumed" xml:space="preserve">
