@@ -75,7 +75,8 @@ public class Program
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13692")]
+        [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedClassDestructor()
         {
             var text = @"
@@ -128,7 +129,8 @@ public class Program
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13692")]
+        [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedSubClassDestructor()
         {
             var text = @"
