@@ -84,11 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     case BlockTypes.Structural: return PredefinedStructureTypes.Structural;
                     case BlockTypes.Nonstructural: return PredefinedStructureTypes.Nonstructural;
 
-                    // Top level declarations.  Note that Enum is not currently supported.
+                    // Top level declarations.  Note that Enum is not currently supported
+                    // and that we map Module down to Class.
                     case BlockTypes.Namespace: return PredefinedStructureTypes.Namespace;
                     case BlockTypes.Structure: return PredefinedStructureTypes.Struct;
-                    case BlockTypes.Class: return PredefinedStructureTypes.Class;
                     case BlockTypes.Interface: return PredefinedStructureTypes.Interface;
+                    case BlockTypes.Module:
+                    case BlockTypes.Class: return PredefinedStructureTypes.Class;
 
                     // Member declarations
                     case BlockTypes.Accessor: return PredefinedStructureTypes.AccessorBlock;
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     // the 'Unknown' type for now.
                     case BlockTypes.Enum:
                     case BlockTypes.Other:
+                    case BlockTypes.Xml:
                     default:
                         return PredefinedStructureTypes.Unknown;
                 }

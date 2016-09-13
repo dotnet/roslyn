@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Structure
         public const string Class = nameof(Class);
         public const string Enum = nameof(Enum);
         public const string Interface = nameof(Interface);
+        public const string Module = nameof(Module);
         public const string Structure = nameof(Structure);
 
         // Type level declarations.
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         // Expressions
         public const string AnonymousMethod = nameof(AnonymousMethod);
+        public const string Xml = nameof(Xml);
 
         public const string Other = nameof(Other);
     }
