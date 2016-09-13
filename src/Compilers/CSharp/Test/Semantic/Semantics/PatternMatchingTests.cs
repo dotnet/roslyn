@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests : CSharpTestBase
     {
         [Fact]
@@ -14624,6 +14624,7 @@ unsafe struct S
         }
 
         [Fact, WorkItem(13723, "https://github.com/dotnet/roslyn/issues/13723")]
+        [CompilerTrait(CompilerFeature.Tuples)]
         public void ExpressionWithoutAType()
         {
             var source =
@@ -14678,6 +14679,7 @@ public class Vec
         }
 
         [Fact, WorkItem(13746, "https://github.com/dotnet/roslyn/issues/13746")]
+        [CompilerTrait(CompilerFeature.Tuples)]
         public void ExpressionWithoutAType02()
         {
             var source =

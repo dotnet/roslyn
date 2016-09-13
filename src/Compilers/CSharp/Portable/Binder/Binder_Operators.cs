@@ -2557,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!operand.HasAnyErrors)
                         {
                             // Operator 'is' cannot be applied to operand of type '(int, <null>)'
-                            diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, "is", operand.Display);
+                            Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
                         }
 
                         return true;
