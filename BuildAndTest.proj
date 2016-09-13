@@ -13,16 +13,25 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
+    <RunTestArgs Condition="'$(TestVSI)' == 'true'">$(RunTestArgs) -testVSI</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
-    <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVSI)' != 'true'">*.UnitTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVSI)' == 'true'">*.IntegrationTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
       TreatWarningsAsErrors=true;
+    </MSBuildCommonProperties>
+    <MSBuildCommonProperties Condition="'$(TestVSI)' != 'true'">
+      $(MSBuildCommonProperties);
       DeployExtension=false;
+    </MSBuildCommonProperties>
+    <MSBuildCommonProperties Condition="'$(TestVSI)' == 'true'">
+      $(MSBuildCommonProperties);
+      DeployExtension=true;
     </MSBuildCommonProperties>
   </PropertyGroup>
 
@@ -102,7 +111,7 @@
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
     
-    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true' AND '$(TestVSI)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
     <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 

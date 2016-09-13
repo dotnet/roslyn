@@ -15,7 +15,7 @@ static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
       extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-	// trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
+        // trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
         trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
         trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
       }
@@ -195,6 +195,27 @@ commitPullList.each { isPr ->
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Open Integration Tests
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "open-vsi", isPr)
+  def myJob = job(jobName) {
+    description('open integration tests')
+    label('auto-win2012-20160912')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+set VS150COMNTOOLS=%ProgramFiles(x86)%\\Microsoft Visual Studio\\VS15Preview\\Common7\\Tools\\
+.\\cibuild.cmd /debug /testVSI""")
+    }
+  }
+
+  def triggerPhraseOnly = true
+  def triggerPhraseExtra = "open-vsi"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-preview4')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 

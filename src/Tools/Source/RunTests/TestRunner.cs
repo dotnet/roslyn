@@ -40,7 +40,8 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var max = (int)(Environment.ProcessorCount * 1.5);
+            // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
+            var max = (_options.TestVSI) ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
@@ -131,7 +132,7 @@ namespace RunTests
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);
 
-            // TODO: Put this in the log and take it off the console output to keep it simple? 
+            // TODO: Put this in the log and take it off the console output to keep it simple?
             Console.WriteLine($"Command: {testResult.CommandLine}");
             Console.WriteLine($"xUnit output log: {outputLogPath}");
 
