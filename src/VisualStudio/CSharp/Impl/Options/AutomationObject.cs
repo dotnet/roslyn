@@ -158,10 +158,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.IndentBraces, value); }
         }
 
+        public int Indent_CaseContents_New
+        {
+            get
+            {
+                return (int)_workspace.Options.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
+            }
+
+            set
+            {
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.IndentSwitchCaseSection, value);
+            }
+        }
+
         public int Indent_CaseContents
         {
-            get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection); }
-            set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection, value); }
+            get
+            {
+                var option = _workspace.Options.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
+                return option == SwitchCaseIndentOptions.NeverIndent ? 0 : 1;
+            }
+
+            set
+            {
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.IndentSwitchCaseSection, value == 0 ? SwitchCaseIndentOptions.NeverIndent : SwitchCaseIndentOptions.AlwaysIndent);
+            }
         }
 
         public int Indent_CaseLabels

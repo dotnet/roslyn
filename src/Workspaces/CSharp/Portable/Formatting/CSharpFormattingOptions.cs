@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static Option<bool> IndentSwitchSection { get; } = new Option<bool>(IndentFeatureName, "IndentSwitchSection", defaultValue: true);
 
-        public static Option<bool> IndentSwitchCaseSection { get; } = new Option<bool>(IndentFeatureName, "IndentSwitchCaseSection", defaultValue: true);
+        public static Option<SwitchCaseIndentOptions> IndentSwitchCaseSection { get; } = new Option<SwitchCaseIndentOptions>(IndentFeatureName, "IndentSwitchCaseSection", defaultValue: SwitchCaseIndentOptions.AlwaysIndent);
 
         public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(IndentFeatureName, "LabelPositioning", defaultValue: LabelPositionOptions.OneLess);
 
@@ -126,5 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         /// Remove Spacing
         Remove = 2
+    }
+
+    public enum SwitchCaseIndentOptions
+    {
+        /// Always Indent
+        AlwaysIndent = 1,
+
+        /// Never Indent
+        NeverIndent = 0,
+
+        /// Only Indent Statements
+        OnlyIndentStatements = 2,
     }
 }
