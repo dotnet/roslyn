@@ -65,6 +65,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Storage\" />
