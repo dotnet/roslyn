@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                 End If
 
-                If hasNames Then
+                If hasNames And elementNames(i) IsNot Nothing Then
                     Dim name = elementNames(i)
                     If name IsNot Nothing Then
                         builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
