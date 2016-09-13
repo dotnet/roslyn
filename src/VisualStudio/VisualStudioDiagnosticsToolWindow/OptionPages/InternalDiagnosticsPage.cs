@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new InternalOptionsControl(InternalDiagnosticsOptions.OptionName, serviceProvider);
+            return new InternalOptionsControl(nameof(InternalDiagnosticsOptions), serviceProvider);
         }
     }
 }

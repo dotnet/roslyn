@@ -167,7 +167,7 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
-            public bool RunInProcess => true;
+            public bool OpenFileOnly(Workspace workspace) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
