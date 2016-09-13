@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         #region Interface methods
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
-        public bool RunInProcess => false;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         public override void Initialize(AnalysisContext context)
         {

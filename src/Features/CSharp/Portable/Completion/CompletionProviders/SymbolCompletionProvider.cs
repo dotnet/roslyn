@@ -101,9 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            return cachedRules[ValueTuple.Create(context.IsInImportsDirective, preselect,
-                ((CSharpSyntaxContext)context).IsPossibleTupleContext)] ??
-                CompletionItemRules.Default;
+            CompletionItemRules rule;
+            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out rule);
+
+            return rule ?? CompletionItemRules.Default;
         }
 
         private static readonly Dictionary<ValueTuple<bool, bool, bool>, CompletionItemRules> cachedRules = InitCachedRules();

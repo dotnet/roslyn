@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
 
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 

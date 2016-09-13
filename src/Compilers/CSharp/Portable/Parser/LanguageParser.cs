@@ -6572,7 +6572,7 @@ tryAgain:
                 var close = this.EatToken(SyntaxKind.CloseParenToken);
                 var result = _syntaxFactory.TupleType(open, list, close);
 
-                if (!result.ContainsDiagnostics && list.Count < 2)
+                if (list.Count < 2)
                 {
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }
@@ -10233,7 +10233,7 @@ tryAgain:
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
 
-                if (!result.ContainsDiagnostics && list.Count < 2)
+                if (list.Count < 2)
                 {
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }

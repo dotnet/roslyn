@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         private PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext =>
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
