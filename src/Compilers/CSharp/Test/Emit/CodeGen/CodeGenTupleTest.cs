@@ -3272,7 +3272,7 @@ class C
             Assert.True(mFirst.CustomModifiers.IsEmpty);
             Assert.True(mFirst.GetAttributes().IsEmpty);
             Assert.Null(mFirst.GetUseSiteDiagnostic());
-            Assert.False(mFirst.Locations.IsDefaultOrEmpty);
+            Assert.False(mFirst.Locations.IsEmpty);
             Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.False(mFirst.IsImplicitlyDeclared);
             Assert.Null(mFirst.TypeLayoutOffset);
@@ -3292,7 +3292,7 @@ class C
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Null(mItem1.GetUseSiteDiagnostic());
             Assert.True(mItem1.Locations.IsEmpty);
-            Assert.False(mItem1.IsImplicitlyDeclared);
+            Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
         }
 
@@ -3966,9 +3966,9 @@ namespace System
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
                          mItem1.GetUseSiteDiagnostic().ToString());
-            Assert.False(mItem1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("string", mItem1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.False(mItem1.IsImplicitlyDeclared);
+            Assert.True(mItem1.Locations.IsEmpty);
+            Assert.True(mItem1.DeclaringSyntaxReferences.IsEmpty);
+            Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
 
             AssertTestDisplayString(mTuple.GetMembers(),
@@ -8657,10 +8657,10 @@ class C
             Assert.True(m1Item1.CustomModifiers.IsEmpty);
             Assert.True(m1Item1.GetAttributes().IsEmpty);
             Assert.Null(m1Item1.GetUseSiteDiagnostic());
-            Assert.False(m1Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("int", m1Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m1Item1.Locations.IsEmpty);
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m1Item1.TupleUnderlyingField.Name);
-            Assert.False(m1Item1.IsImplicitlyDeclared);
+            Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.True(m2Item1.IsTupleField);
@@ -8673,11 +8673,13 @@ class C
             Assert.True(m2Item1.CustomModifiers.IsEmpty);
             Assert.True(m2Item1.GetAttributes().IsEmpty);
             Assert.Null(m2Item1.GetUseSiteDiagnostic());
-            Assert.False(m2Item1.Locations.IsDefaultOrEmpty);
+            Assert.False(m2Item1.Locations.IsEmpty);
             Assert.Equal("Item1", m2Item1.Name);
             Assert.Equal("Item1", m2Item1.TupleUnderlyingField.Name);
-            Assert.Equal(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
-            Assert.False(m2Item1.IsImplicitlyDeclared);
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
+            Assert.Equal("MetadataFile(System.ValueTuple.dll)", m2Item1.TupleUnderlyingField.Locations.Single().ToString());
+            Assert.Equal("SourceFile([826..828))", m2Item1.Locations.Single().ToString());
+            Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
             Assert.True(m2a2.IsTupleField);
@@ -8690,7 +8692,7 @@ class C
             Assert.True(m2a2.CustomModifiers.IsEmpty);
             Assert.True(m2a2.GetAttributes().IsEmpty);
             Assert.Null(m2a2.GetUseSiteDiagnostic());
-            Assert.False(m2a2.Locations.IsDefaultOrEmpty);
+            Assert.False(m2a2.Locations.IsEmpty);
             Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name);
             Assert.False(m2a2.IsImplicitlyDeclared);
@@ -8904,10 +8906,10 @@ class C
             Assert.True(m3Item8.CustomModifiers.IsEmpty);
             Assert.True(m3Item8.GetAttributes().IsEmpty);
             Assert.Null(m3Item8.GetUseSiteDiagnostic());
-            Assert.False(m3Item8.Locations.IsDefaultOrEmpty);
-            Assert.Equal("int", m3Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m3Item8.Locations.IsEmpty);
+            Assert.True(m3Item8.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m3Item8.TupleUnderlyingField.Name);
-            Assert.False(m3Item8.IsImplicitlyDeclared);
+            Assert.True(m3Item8.IsImplicitlyDeclared);
             Assert.Null(m3Item8.TypeLayoutOffset);
 
             var m3TupleRestTuple = (NamedTypeSymbol)((FieldSymbol)m3Tuple.GetMembers("Rest").Single()).Type;
@@ -9098,9 +9100,9 @@ class C
             Assert.True(m4Item8.CustomModifiers.IsEmpty);
             Assert.True(m4Item8.GetAttributes().IsEmpty);
             Assert.Null(m4Item8.GetUseSiteDiagnostic());
-            Assert.True(m4Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m4Item8.Locations.IsEmpty);
             Assert.Equal("Item1", m4Item8.TupleUnderlyingField.Name);
-            Assert.False(m4Item8.IsImplicitlyDeclared);
+            Assert.True(m4Item8.IsImplicitlyDeclared);
             Assert.Null(m4Item8.TypeLayoutOffset);
 
             var m4h4 = (FieldSymbol)m4Tuple.GetMembers("h4").Single();
@@ -9117,7 +9119,7 @@ class C
             Assert.True(m4h4.CustomModifiers.IsEmpty);
             Assert.True(m4h4.GetAttributes().IsEmpty);
             Assert.Null(m4h4.GetUseSiteDiagnostic());
-            Assert.False(m4h4.Locations.IsDefaultOrEmpty);
+            Assert.False(m4h4.Locations.IsEmpty);
             Assert.Equal("h4", m4h4.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m4h4.TupleUnderlyingField.Name);
             Assert.False(m4h4.IsImplicitlyDeclared);
@@ -9347,7 +9349,7 @@ class C
             Assert.True(m5Item8.CustomModifiers.IsEmpty);
             Assert.True(m5Item8.GetAttributes().IsEmpty);
             Assert.Null(m5Item8.GetUseSiteDiagnostic());
-            Assert.False(m5Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m5Item8.Locations.IsEmpty);
             Assert.Equal("Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name);
             Assert.False(m5Item8.IsImplicitlyDeclared);
@@ -9717,9 +9719,9 @@ class C
             Assert.True(m8Item8.CustomModifiers.IsEmpty);
             Assert.True(m8Item8.GetAttributes().IsEmpty);
             Assert.Null(m8Item8.GetUseSiteDiagnostic());
-            Assert.True(m8Item8.Locations.IsDefaultOrEmpty);
+            Assert.False(m8Item8.Locations.IsEmpty);
             Assert.Equal("Item1", m8Item8.TupleUnderlyingField.Name);
-            Assert.False(m8Item8.IsImplicitlyDeclared);
+            Assert.True(m8Item8.IsImplicitlyDeclared);
             Assert.Null(m8Item8.TypeLayoutOffset);
 
             var m8Item1 = (FieldSymbol)m8Tuple.GetMembers("Item1").Last();
@@ -9737,7 +9739,7 @@ class C
             Assert.True(m8Item1.CustomModifiers.IsEmpty);
             Assert.True(m8Item1.GetAttributes().IsEmpty);
             Assert.Null(m8Item1.GetUseSiteDiagnostic());
-            Assert.False(m8Item1.Locations.IsDefaultOrEmpty);
+            Assert.False(m8Item1.Locations.IsEmpty);
             Assert.Equal("Item1", m8Item1.Name);
             Assert.Equal("Item1", m8Item1.TupleUnderlyingField.Name);
             Assert.NotEqual(m8Item1.Locations.Single(), m8Item1.TupleUnderlyingField.Locations.Single());
@@ -9917,10 +9919,10 @@ class C
             Assert.True(m1Item1.CustomModifiers.IsEmpty);
             Assert.True(m1Item1.GetAttributes().IsEmpty);
             Assert.Null(m1Item1.GetUseSiteDiagnostic());
-            Assert.False(m1Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("1", m1Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m1Item1.Locations.IsEmpty);
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m1Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.False(m1Item1.IsImplicitlyDeclared);
+            Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.True(m2Item1.IsTupleField);
@@ -9933,11 +9935,13 @@ class C
             Assert.True(m2Item1.CustomModifiers.IsEmpty);
             Assert.True(m2Item1.GetAttributes().IsEmpty);
             Assert.Null(m2Item1.GetUseSiteDiagnostic());
-            Assert.False(m2Item1.Locations.IsDefaultOrEmpty);
-            Assert.Equal("Item1", m2Item1.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.False(m2Item1.Locations.IsEmpty);
+            Assert.True(m2Item1.DeclaringSyntaxReferences.IsEmpty);
             Assert.Equal("Item1", m2Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
-            Assert.Equal(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
-            Assert.False(m2Item1.IsImplicitlyDeclared);
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single());
+            Assert.Equal("SourceFile([891..896))", m2Item1.TupleUnderlyingField.Locations.Single().ToString());
+            Assert.Equal("SourceFile([196..198))", m2Item1.Locations.Single().ToString());
+            Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
             Assert.True(m2a2.IsTupleField);
@@ -9950,7 +9954,7 @@ class C
             Assert.True(m2a2.CustomModifiers.IsEmpty);
             Assert.True(m2a2.GetAttributes().IsEmpty);
             Assert.Null(m2a2.GetUseSiteDiagnostic());
-            Assert.False(m2a2.Locations.IsDefaultOrEmpty);
+            Assert.False(m2a2.Locations.IsEmpty);
             Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.False(m2a2.IsImplicitlyDeclared);
@@ -9976,7 +9980,7 @@ class C
             Assert.Null(m1ToString.GetUseSiteDiagnostic());
             Assert.Equal("System.String System.ValueType.ToString()",
                          m1ToString.OverriddenMethod.ToTestDisplayString());
-            Assert.False(m1ToString.Locations.IsDefaultOrEmpty);
+            Assert.False(m1ToString.Locations.IsEmpty);
             Assert.Equal("public override string ToString()", m1ToString.DeclaringSyntaxReferences.Single().GetSyntax().ToString().Substring(0, 33));
             Assert.Equal(m1ToString.Locations.Single(), m1ToString.TupleUnderlyingMethod.Locations.Single());
         }

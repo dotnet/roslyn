@@ -4293,7 +4293,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.CustomModifiers.IsEmpty)
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
-            Assert.False(mFirst.Locations.IsDefaultOrEmpty)
+            Assert.False(mFirst.Locations.IsEmpty)
             Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
@@ -4313,7 +4313,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mItem1.GetAttributes().IsEmpty)
             'Assert.Null(mItem1.GetUseSiteDiagnostic())
             Assert.True(mItem1.Locations.IsEmpty)
-            Assert.False(mItem1.IsImplicitlyDeclared)
+            Assert.True(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
 
         End Sub
