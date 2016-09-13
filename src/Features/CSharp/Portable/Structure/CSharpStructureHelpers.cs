@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
         }
 
-        private static BlockSpan CreateCommentRegion(
+        private static BlockSpan CreateCommentBlockSpan(
             SyntaxTrivia startComment, SyntaxTrivia endComment)
         {
             var span = TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End);
@@ -148,14 +148,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         // For testing purposes
-        internal static ImmutableArray<BlockSpan> CreateCommentRegions(SyntaxTriviaList triviaList)
+        internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
+            SyntaxTriviaList triviaList)
         {
             var result = ImmutableArray.CreateBuilder<BlockSpan>();
-            CollectCommentRegions(triviaList, result);
+            CollectCommentBlockSpans(triviaList, result);
             return result.ToImmutable();
         }
 
-        public static void CollectCommentRegions(
+        public static void CollectCommentBlockSpans(
             SyntaxTriviaList triviaList, ImmutableArray<BlockSpan>.Builder spans)
         {
             if (triviaList.Count > 0)
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     if (startComment != null)
                     {
-                        var singleLineCommentGroupRegion = CreateCommentRegion(startComment.Value, endComment.Value);
+                        var singleLineCommentGroupRegion = CreateCommentBlockSpan(startComment.Value, endComment.Value);
                         spans.Add(singleLineCommentGroupRegion);
                         startComment = null;
                         endComment = null;
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     {
                         completeSingleLineCommentGroup();
 
-                        var multilineCommentRegion = CreateCommentRegion(trivia, trivia);
+                        var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
                         spans.Add(multilineCommentRegion);
                     }
                     else if (!trivia.MatchesKind(SyntaxKind.WhitespaceTrivia,
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
         }
 
-        public static void CollectCommentRegions(
+        public static void CollectCommentBlockSpans(
             SyntaxNode node, ImmutableArray<BlockSpan>.Builder spans)
         {
             if (node == null)
@@ -213,18 +214,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             var triviaList = node.GetLeadingTrivia();
 
-            CollectCommentRegions(triviaList, spans);
+            CollectCommentBlockSpans(triviaList, spans);
         }
 
-        private static BlockSpan CreateRegion(
+        private static BlockSpan CreateBlockSpan(
             TextSpan textSpan, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible);
         }
 
-        private static BlockSpan CreateRegion(
+        private static BlockSpan CreateBlockSpan(
             TextSpan textSpan, TextSpan hintSpan, 
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
@@ -238,11 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible: isCollapsible);
         }
 
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node.Span,
                 bannerText,
                 autoCollapse, 
@@ -250,12 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, SyntaxToken syntaxToken, 
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node,
                 syntaxToken,
                 node.GetLastToken(),
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, 
             int endPos, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var span = TextSpan.FromBounds(GetCollapsibleStart(startToken), endPos);
             var hintSpan = TextSpan.FromBounds(node.SpanStart, endPos);
 
-            return CreateRegion(
+            return CreateBlockSpan(
                 span,
                 hintSpan,
                 bannerText,
@@ -292,12 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, 
             SyntaxToken endToken, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node,
                 startToken,
                 GetCollapsibleEnd(endToken),
@@ -307,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, bool autoCollapse, string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node,
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
@@ -320,11 +321,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, SyntaxToken syntaxToken, 
             bool autoCollapse, string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node, syntaxToken,
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
@@ -334,11 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken, 
             bool autoCollapse, string type, bool isCollapsible)
         {
-            return CreateRegion(
+            return CreateBlockSpan(
                 node, startToken, endToken,
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds the span surrounding the syntax list as a region.  The
         // snippet shown is the text from the first line of the first 
         // node in the list.
-        public static BlockSpan CreateRegion(
+        public static BlockSpan CreateBlockSpan(
             IEnumerable<SyntaxNode> syntaxList, bool autoCollapse, 
             string type, bool isCollapsible)
         {
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 ? end
                 : hintSpanStart;
 
-            return CreateRegion(
+            return CreateBlockSpan(
                 textSpan: TextSpan.FromBounds(spanStart, spanEnd),
                 hintSpan: TextSpan.FromBounds(hintSpanStart, hintSpanEnd),
                 bannerText: Ellipsis,

@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentRegions(namespaceDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans);
 
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
             {
-                spans.Add(CSharpStructureHelpers.CreateRegion(
+                spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
                     autoCollapse: false,
@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentRegions(externsAndUsings.First(), spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans);
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 externsAndUsings, autoCollapse: true, 
                 type: BlockTypes.Nonstructural, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)
             {
-                CSharpStructureHelpers.CollectCommentRegions(namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
             }
         }
 

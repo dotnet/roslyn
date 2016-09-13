@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(enumDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
             {
-                spans.Add(CSharpStructureHelpers.CreateRegion(
+                spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,
                     enumDeclaration.Identifier,
                     autoCollapse: false,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!enumDeclaration.CloseBraceToken.IsMissing)
             {
                 var leadingTrivia = enumDeclaration.CloseBraceToken.LeadingTrivia;
-                CSharpStructureHelpers.CollectCommentRegions(leadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
             }
         }
     }

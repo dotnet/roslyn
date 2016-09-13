@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(typeDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, spans);
 
             if (!typeDeclaration.OpenBraceToken.IsMissing &&
                 !typeDeclaration.CloseBraceToken.IsMissing)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     : typeDeclaration.Kind() == SyntaxKind.StructDeclaration
                         ? BlockTypes.Structure
                         : BlockTypes.Class;
-                spans.Add(CSharpStructureHelpers.CreateRegion(
+                spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                     typeDeclaration,
                     lastToken,
                     autoCollapse: false,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!typeDeclaration.CloseBraceToken.IsMissing)
             {
                 var leadingTrivia = typeDeclaration.CloseBraceToken.LeadingTrivia;
-                CSharpStructureHelpers.CollectCommentRegions(leadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
             }
         }
     }

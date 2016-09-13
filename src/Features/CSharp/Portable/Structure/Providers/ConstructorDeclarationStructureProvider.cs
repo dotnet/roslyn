@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(constructorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(constructorDeclaration, spans);
 
             // fault tolerance
             if (constructorDeclaration.Body == null ||
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 constructorDeclaration,
                 constructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,

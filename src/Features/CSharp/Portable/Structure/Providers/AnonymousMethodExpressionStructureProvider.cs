@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 ? anonymousMethod.ParameterList.GetLastToken(includeZeroWidth: true)
                 : anonymousMethod.DelegateKeyword;
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 anonymousMethod,
                 startToken,
                 lastToken,

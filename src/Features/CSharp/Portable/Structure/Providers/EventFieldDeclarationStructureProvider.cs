@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(eventFieldDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(eventFieldDeclaration, spans);
         }
     }
 }

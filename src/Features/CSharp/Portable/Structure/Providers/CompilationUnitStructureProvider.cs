@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             ImmutableArray<BlockSpan>.Builder spans,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentRegions(compilationUnit, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             externsAndUsings.AddRange(compilationUnit.Usings);
             externsAndUsings.Sort((node1, node2) => node1.SpanStart.CompareTo(node2.SpanStart));
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(
+            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
                 externsAndUsings, autoCollapse: true, 
                 type: BlockTypes.Nonstructural, isCollapsible: true));
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 compilationUnit.Members.Count > 0 ||
                 compilationUnit.AttributeLists.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit.EndOfFileToken.LeadingTrivia, spans);
             }
         }
 
