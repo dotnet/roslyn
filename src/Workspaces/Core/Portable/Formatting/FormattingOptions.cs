@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static PerLanguageOption<bool> UseTabs { get; } = new PerLanguageOption<bool>(nameof(FormattingOptions), nameof(UseTabs), defaultValue: false);
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> TabSize { get; } = new PerLanguageOption<int>(nameof(FormattingOptions), nameof(TabSize), defaultValue: 4);
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> IndentationSize { get; } = new PerLanguageOption<int>(nameof(FormattingOptions), nameof(IndentationSize), defaultValue: 4);
 
-        // This is also serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new PerLanguageOption<IndentStyle>(nameof(FormattingOptions), nameof(SmartIndent), defaultValue: IndentStyle.Smart);
 
         public static PerLanguageOption<string> NewLine { get; } = new PerLanguageOption<string>(nameof(FormattingOptions), nameof(NewLine), defaultValue: "\r\n");
