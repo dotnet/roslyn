@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -1624,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RefExpression:
                     return CSharpFeaturesResources.ref_local_or_expression;
 
+                case SyntaxKind.SwitchStatement:
                 case SyntaxKind.DeclarationPattern:
                     return CSharpFeaturesResources.v7_switch;
 
@@ -3065,13 +3067,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
         }
 
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+        /// <summary>
+        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
+        /// </summary>
+        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics,
+            Match<SyntaxNode> match, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
         {
             SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
             if (foundCSharp7Syntax != null)
             {
-                AddRudeDiagnostic(diagnostics, oldActiveStatement, foundCSharp7Syntax, newActiveStatement.Span);
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
+                return;
             }
+
+            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeUpdateInPreviouslyCSharp7Method(diagnostics, foundCSharp7Syntax);
+            }
+        }
+
+        /// <summary>
+        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
+        /// </summary>
+        private void AddRudeUpdateInPreviouslyCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.UpdateAroundActiveStatement,
+                default(TextSpan), // no span since the offending node is in the old syntax
+                oldCSharp7Syntax,
+                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
         }
 
         private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
@@ -3205,6 +3230,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        internal override void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            if (!ReportUnsupportedV7Switch(oldModel, oldNode, diagnostics))
+            {
+                ReportUnsupportedV7Switch(newModel, newNode, diagnostics);
+            }
+        }
+
+        private bool ReportUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
+            {
+                var switchExpression = ((SwitchStatementSyntax)node).Expression;
+                var governingType = model.GetTypeInfo(switchExpression).Type;
+                if (!governingType.IsValidV6SwitchGoverningType())
+                {
+                    AddRudeUpdateAroundActiveStatement(diagnostics, newNode: node);
+                    return true;
+                }
+            }
+            return false;
         }
 
         #endregion

@@ -8339,6 +8339,35 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_OutVarRemoved()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+        M(out var x);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+               Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "out variable"));
+        }
+
+        [Fact]
         public void MethodUpdate_Ref()
         {
             string src1 = @"
@@ -8390,34 +8419,6 @@ class C
         <AS:0>Console.WriteLine(1);</AS:0>
         int x, y;
         (x, y) = o2;
-    }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
-
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y)", CSharpFeaturesResources.tuple));
-        }
-
-        [Fact]
-        public void MethodUpdate_v7Switch()
-        {
-            string src1 = @"
-class C
-{
-    static void F()
-    {
-        <AS:0>Console.WriteLine(1);</AS:0>
-    }
-}
-";
-            string src2 = @"
-class C
-{
-    static void F()
-    {
-        <AS:0>Console.WriteLine(1);</AS:0>
     }
 }
 ";

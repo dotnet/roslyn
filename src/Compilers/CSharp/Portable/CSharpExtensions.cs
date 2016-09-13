@@ -317,6 +317,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToList();
         }
 
+        #region ITypeSymbol
+
+        /// <summary>
+        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
+        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
+        /// corresponding to one of those types. These types were permitted as the governing
+        /// type of a switch statement in C# 6.
+        /// </summary>
+        public static bool IsValidV6SwitchGoverningType(this ITypeSymbol type)
+        {
+            var typeSymbol = type as TypeSymbol;
+            return (typeSymbol == null) ? false :
+                TypeSymbolExtensions.IsValidV6SwitchGoverningType(typeSymbol);
+        }
+        #endregion ITypeSymbol
+
         #region SyntaxNode 
         internal static IList<DirectiveTriviaSyntax> GetDirectives(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool> filter = null)
         {
