@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces
                 severity,
                 isEnabledByDefault: true);
 
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         public override void Initialize(AnalysisContext context)
         {
