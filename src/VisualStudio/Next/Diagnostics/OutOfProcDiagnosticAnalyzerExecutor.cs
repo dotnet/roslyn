@@ -44,41 +44,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
-                return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+                return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 
-            // TODO: later, make sure we can run all analyzer on remote host. 
-            //       for now, we will check whether built in analyzer can run on remote host and only those run on remote host.
-            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProcess()), project, cancellationToken);
-            var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
-
-            // run them concurrently in vs and remote host
-            await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+            var outOfProcResult = await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken).ConfigureAwait(false);
 
             // make sure things are not cancelled
             cancellationToken.ThrowIfCancellationRequested();
 
-            // merge 2 results
-            return DiagnosticAnalysisResultMap.Create(
-                inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
-        }
-
-        private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
-        {
-            return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+            return DiagnosticAnalysisResultMap.Create(outOfProcResult.AnalysisResult, outOfProcResult.TelemetryInfo);
         }
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
             RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-
             var snapshotService = solution.Workspace.Services.GetService<ISolutionChecksumService>();
 
             // TODO: this should be moved out
             var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
-            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProcess()));
+            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
             if (analyzerMap.Count == 0)
             {
                 return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -106,6 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
         {
             var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+            if (analyzers.Length == 0)
+            {
+                // we can't create analyzer driver with 0 analyzers
+                return null;
+            }
+
             return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
         }
 

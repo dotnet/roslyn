@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 return project.Id == _project.Id
                     ? description
-                    : $"{description} ({string.Format(FeaturesResources.from_0, _project.Name)})";
+                    : string.Format(FeaturesResources.Add_reference_to_0, _project.Name);
             }
 
             protected override Func<Workspace, bool> GetIsApplicableCheck(Project contextProject)

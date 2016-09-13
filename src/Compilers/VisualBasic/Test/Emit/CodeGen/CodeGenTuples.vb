@@ -15,6 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ReadOnly s_valueTupleRefs As MetadataReference() = New MetadataReference() {ValueTupleRef, SystemRuntimeFacadeRef}
+        ReadOnly s_valueTupleRefsAndDefault As MetadataReference() = New MetadataReference() {ValueTupleRef,
+                                                                                                SystemRuntimeFacadeRef,
+                                                                                                MscorlibRef,
+                                                                                                SystemRef,
+                                                                                                SystemCoreRef,
+                                                                                                MsvbRef}
+
 
         ReadOnly s_trivial2uple As String = "
 Namespace System
@@ -130,21 +137,12 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
-BC30389: '(Integer, Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t.Item1)
-                          ~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30389: '(A As Integer, B As Integer).Item1' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.Item1)
-                          ~~~~~~~~
-BC30389: '(A As Integer, B As Integer).A' is not accessible in this context because it is 'Private'.
-        console.writeline(t1.A)
-                          ~~~~
 </errors>)
 
         End Sub
@@ -4257,12 +4255,6 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30389: '(first As Integer, second As Boolean).first' is not accessible in this context because it is 'Private'.
-        System.Console.Write($"{x.first} {x.second}")
-                                ~~~~~~~
-BC30389: '(first As Integer, second As Boolean).second' is not accessible in this context because it is 'Private'.
-        System.Console.Write($"{x.first} {x.second}")
-                                          ~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4642,7 +4634,7 @@ BC30269: 'Public Function M(a As (String, String)) As (Integer, Integer)' has mu
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13303")>
+        <Fact>
         Public Sub TupleArrays()
 
             Dim verifier = CompileAndVerify(
@@ -4657,17 +4649,17 @@ Class C
 
     Shared Sub Main()
         Dim i As I = new C()
-        Dim r = i.M(new System.ValueTuple(Of Integer, Integer)() { new System.ValueTuple(Of Integer, Integer)(1, 2) }
+        Dim r = i.M(new System.ValueTuple(Of Integer, Integer)() { new System.ValueTuple(Of Integer, Integer)(1, 2) })
         System.Console.Write($"{r(0).Item1} {r(0).Item2}")
     End Sub
 
-    Public Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)()
+    Public Function M(a As (Integer, Integer)()) As System.ValueTuple(Of Integer, Integer)() Implements I.M
         Return New System.ValueTuple(Of Integer, Integer)() { (a(0).Item1, a(0).Item2) }
     End Function
 End Class
 
     </file>
-</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[2]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[1 2]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -6598,6 +6590,575 @@ End Module
 
             ' check no duplication of original/default ItemX fields
             Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromCS001()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int Bob) foo = (2, 3);
+
+        public (int Alice, int Bob) Bar() => (4, 5);
+
+        public (int Alice, int Bob) Baz => (6, 7);
+
+    }
+
+    public class Class2
+    {
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) foo = SetBob(11);
+
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Bar() => SetBob(12);
+
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Baz => SetBob(13);
+
+        private static (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) SetBob(int x)
+        {
+            var result = default((int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob));
+            result.Bob = x;
+            return result;
+        }
+    }
+
+    public class class3: IEnumerable<(int Alice, int Bob)>
+    {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator<(Int32 Alice, Int32 Bob)> IEnumerable<(Int32 Alice, Int32 Bob)>.GetEnumerator()
+        {
+            yield return (1, 2);
+            yield return (3, 4);
+        }
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.Bar.Alice)
+        System.Console.WriteLine(x.Bar.Bob)
+        System.Console.WriteLine(x.Baz.Alice)
+        System.Console.WriteLine(x.Baz.Bob)
+
+        Dim y As New ClassLibrary1.Class2
+        System.Console.WriteLine(y.foo.Alice)
+        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.Bar.Alice)
+        System.Console.WriteLine(y.Bar.Bob)
+        System.Console.WriteLine(y.Baz.Alice)
+        System.Console.WriteLine(y.Baz.Bob)
+
+        Dim z As New ClassLibrary1.class3
+        For Each item In z
+            System.Console.WriteLine(item.Alice)
+            System.Console.WriteLine(item.Bob)
+        Next
+
+    End Sub
+End Module
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+2
+3
+4
+5
+6
+7
+0
+11
+0
+12
+0
+13
+1
+2
+3
+4")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromCS002()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, (int Alice, int Bob) Bob) foo = (2, (2, 3));
+
+        public ((int Alice, int Bob)[] Alice, int Bob) Bar() => (new(int, int)[] { (4, 5) }, 5);
+
+        public (int Alice, List<(int Alice, int Bob)?> Bob) Baz => (6, new List<(int Alice, int Bob)?>() { (8, 9) });
+
+        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> foo1;
+
+        public static void raise()
+        {
+            foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
+        }
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Bob.Bob)
+        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.Bar.Alice(0).Bob)
+        System.Console.WriteLine(x.Bar.Item1(0).Item2)
+        System.Console.WriteLine(x.Baz.Bob(0).Value)
+        System.Console.WriteLine(x.Baz.Item2(0).Value)
+
+        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+                                                  System.Console.WriteLine(p.Bob.Bob)
+                                                  System.Console.WriteLine(p.Rest.Item2.Bob)
+                                              End Sub
+
+        ClassLibrary1.Class1.raise()
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbexeVerifier = CompileAndVerify(vbCompilation,
+                                                 expectedOutput:="
+3
+3
+5
+5
+(8, 9)
+(8, 9)
+42
+42")
+
+            vbexeVerifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesFromCS003()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int alice) foo = (2, 3);
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Item1)
+        System.Console.WriteLine(x.foo.Item2)
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.alice)
+
+        Dim f = x.foo
+        System.Console.WriteLine(f.Item1)
+        System.Console.WriteLine(f.Item2)
+        System.Console.WriteLine(f.Alice)
+        System.Console.WriteLine(f.alice)
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            vbCompilation.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(14, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(15, 34)
+)
+        End Sub
+
+        ' Need to port the changes to the tuple field ID from C#
+        ' Otherwise the partially named tuples throw exceptions.
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13470")>
+        Public Sub TupleNamesFromCS004()
+
+            Dim csCompilation = CreateCSharpCompilation("CSDll",
+            <![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ClassLibrary1
+{
+    public class Class1
+    {
+        public (int Alice, int alice, int) foo = (2, 3, 4);
+    }
+}
+
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                                        referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            Dim vbCompilation = CreateVisualBasicCompilation("VBDll",
+            <![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As New ClassLibrary1.Class1
+        System.Console.WriteLine(x.foo.Item1)
+        System.Console.WriteLine(x.foo.Item2)
+        System.Console.WriteLine(x.foo.Item3)
+        System.Console.WriteLine(x.foo.Alice)
+        System.Console.WriteLine(x.foo.alice)
+
+        Dim f = x.foo
+        System.Console.WriteLine(f.Item1)
+        System.Console.WriteLine(f.Item2)
+        System.Console.WriteLine(x.Item3)
+        System.Console.WriteLine(f.Alice)
+        System.Console.WriteLine(f.alice)
+
+    End Sub
+
+End Module
+
+
+]]>,
+                            compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                            referencedCompilations:={csCompilation},
+                            referencedAssemblies:=s_valueTupleRefsAndDefault)
+
+            vbCompilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub BadTupleNameMetadata()
+            Dim comp = CreateCompilationWithCustomILSource(<compilation>
+                                                               <file name="a.vb">
+                                                               </file>
+                                                           </compilation>,
+"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> ValidField
+
+    .field public int32 ValidFieldWithAttribute
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[1](""name1"")}
+        = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> TooFewNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[1](""name1"")}
+        = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> TooManyNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[3](""e1"", ""e2"", ""e3"")}
+        = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
+
+    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
+            TooFewNamesMethod() cil managed
+    {
+      .param [0]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+          // = {string[1](""name1"")}
+          = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+      // Code size       8 (0x8)
+      .maxstack  8
+      IL_0000:  ldc.i4.0
+      IL_0001:  ldc.i4.0
+      IL_0002:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                          !1)
+      IL_0007:  ret
+    } // end of method C::TooFewNamesMethod
+
+    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
+            TooManyNamesMethod() cil managed
+    {
+      .param [0]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+           // = {string[3](""e1"", ""e2"", ""e3"")}
+           = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
+      // Code size       8 (0x8)
+      .maxstack  8
+      IL_0000:  ldc.i4.0
+      IL_0001:  ldc.i4.0
+      IL_0002:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                          !1)
+      IL_0007:  ret
+    } // end of method C::TooManyNamesMethod
+} // end of class C
+",
+additionalReferences:=s_valueTupleRefs)
+
+            Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim validField = c.GetMember(Of FieldSymbol)("ValidField")
+            Assert.False(validField.Type.IsErrorType())
+            Assert.True(validField.Type.IsTupleType)
+            Assert.True(validField.Type.TupleElementNames.IsDefault)
+
+            Dim validFieldWithAttribute = c.GetMember(Of FieldSymbol)("ValidFieldWithAttribute")
+            Assert.True(validFieldWithAttribute.Type.IsErrorType())
+            Assert.False(validFieldWithAttribute.Type.IsTupleType)
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(validFieldWithAttribute.Type)
+
+            Dim tooFewNames = c.GetMember(Of FieldSymbol)("TooFewNames")
+            Assert.True(tooFewNames.Type.IsErrorType())
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooFewNames.Type)
+
+            Dim tooManyNames = c.GetMember(Of FieldSymbol)("TooManyNames")
+            Assert.True(tooManyNames.Type.IsErrorType())
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooManyNames.Type)
+
+            Dim tooFewNamesMethod = c.GetMember(Of MethodSymbol)("TooFewNamesMethod")
+            Assert.True(tooFewNamesMethod.ReturnType.IsErrorType())
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooFewNamesMethod.ReturnType)
+
+            Dim tooManyNamesMethod = c.GetMember(Of MethodSymbol)("TooManyNamesMethod")
+            Assert.True(tooManyNamesMethod.ReturnType.IsErrorType())
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooManyNamesMethod.ReturnType)
+        End Sub
+
+        <Fact>
+        Public Sub MetadataForPartiallyNamedTuples()
+            Dim comp = CreateCompilationWithCustomILSource(<compilation>
+                                                               <file name="a.vb">
+                                                               </file>
+                                                           </compilation>,
+"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> ValidField
+
+    .field public int32 ValidFieldWithAttribute
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[1](""name1"")}
+        = ( 01 00 01 00 00 00 05 6E 61 6D 65 31 )
+
+    // In source, all or no names must be specified for a tuple
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> PartialNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](""e1"", null)}
+        = ( 01 00 02 00 00 00 02 65 31 FF )
+
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> AllNullNames
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // = {string[2](null, null)}
+        = ( 01 00 02 00 00 00 ff ff 00 00 )
+
+    .method public hidebysig instance void PartialNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, ""e1"", null)}
+        = ( 01 00 03 00 00 00 FF 02 65 31 FF )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::PartialNamesMethod
+
+    .method public hidebysig instance void AllNullNamesMethod(
+        class [System.ValueTuple]System.ValueTuple`1<class [System.ValueTuple]System.ValueTuple`2<int32,int32>> c) cil managed
+    {
+      .param [1]
+      .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        // First null is fine (unnamed tuple) but the second is half-named
+        // = {string[3](null, null, null)}
+        = ( 01 00 03 00 00 00 ff ff ff 00 00 )
+      // Code size       2 (0x2)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ret
+    } // end of method C::AllNullNamesMethod
+} // end of class C
+",
+additionalReferences:=s_valueTupleRefs)
+
+            Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim validField = c.GetMember(Of FieldSymbol)("ValidField")
+            Assert.False(validField.Type.IsErrorType())
+            Assert.True(validField.Type.IsTupleType)
+            Assert.True(validField.Type.TupleElementNames.IsDefault)
+
+            Dim validFieldWithAttribute = c.GetMember(Of FieldSymbol)("ValidFieldWithAttribute")
+            Assert.True(validFieldWithAttribute.Type.IsErrorType())
+            Assert.False(validFieldWithAttribute.Type.IsTupleType)
+            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(validFieldWithAttribute.Type)
+
+            Dim partialNames = c.GetMember(Of FieldSymbol)("PartialNames")
+            Assert.False(partialNames.Type.IsErrorType())
+            Assert.True(partialNames.Type.IsTupleType)
+            Assert.Equal("(e1 As System.Int32, System.Int32)", partialNames.Type.ToTestDisplayString())
+
+            Dim allNullNames = c.GetMember(Of FieldSymbol)("AllNullNames")
+            Assert.False(allNullNames.Type.IsErrorType())
+            Assert.True(allNullNames.Type.IsTupleType)
+            Assert.Equal("(System.Int32, System.Int32)", allNullNames.Type.ToTestDisplayString())
+
+            Dim partialNamesMethod = c.GetMember(Of MethodSymbol)("PartialNamesMethod")
+            Dim partialParamType = partialNamesMethod.Parameters.Single().Type
+            Assert.False(partialParamType.IsErrorType())
+            Assert.True(partialParamType.IsTupleType)
+            Assert.Equal("((e1 As System.Int32, System.Int32))", partialParamType.ToTestDisplayString())
+
+            Dim allNullNamesMethod = c.GetMember(Of MethodSymbol)("AllNullNamesMethod")
+            Dim allNullParamType = allNullNamesMethod.Parameters.Single().Type
+            Assert.False(allNullParamType.IsErrorType())
+            Assert.True(allNullParamType.IsTupleType)
+            Assert.Equal("((System.Int32, System.Int32))", allNullParamType.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub NestedTuplesNoAttribute()
+            Dim comp = CreateCompilationWithCustomILSource(<compilation>
+                                                               <file name="a.vb">
+                                                               </file>
+                                                           </compilation>,
+"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi beforefieldinit Base`1<T>
+       extends [mscorlib]System.Object
+{
+}
+
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+    .field public class [System.ValueTuple]System.ValueTuple`2<int32, int32> Field1
+
+    .field public class Base`1<class [System.ValueTuple]System.ValueTuple`1<
+                                                                               class [System.ValueTuple]System.ValueTuple`2<int32, int32>>>  Field2;
+
+} // end of class C
+",
+additionalReferences:=s_valueTupleRefs)
+
+            Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+
+            Dim base1 = comp.GlobalNamespace.GetTypeMember("Base")
+            Assert.NotNull(base1)
+
+            Dim field1 = c.GetMember(Of FieldSymbol)("Field1")
+            Assert.False(field1.Type.IsErrorType())
+            Assert.True(field1.Type.IsTupleType)
+            Assert.True(field1.Type.TupleElementNames.IsDefault)
+
+            Dim field2Type = DirectCast(c.GetMember(Of FieldSymbol)("Field2").Type, NamedTypeSymbol)
+            Assert.Equal(base1, field2Type.OriginalDefinition)
+            Assert.True(field2Type.IsGenericType)
+
+            Dim first = field2Type.TypeArguments(0)
+            Assert.True(first.IsTupleType)
+            Assert.Equal(1, first.TupleElementTypes.Length)
+            Assert.True(first.TupleElementNames.IsDefault)
+
+            Dim second = first.TupleElementTypes(0)
+            Assert.True(second.IsTupleType)
+            Assert.True(second.TupleElementNames.IsDefault)
+            Assert.Equal(2, second.TupleElementTypes.Length)
+            Assert.All(second.TupleElementTypes,
+                       Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
         End Sub
 
     End Class

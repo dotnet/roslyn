@@ -2,8 +2,9 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
+using System.IO;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         {
             lock (_gate)
             {
-                _idToStorageLocation[id] = storageLocation;
+                // Store the esent database in a different location for the out of proc server.
+                _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
             }
         }
     }

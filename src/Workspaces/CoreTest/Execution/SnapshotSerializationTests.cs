@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trees = new ChecksumTreeCollection();
             var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
-            var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
             var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
         }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 using (var reader = new ObjectReader(stream))
                 {
                     var recovered = serializer.Deserialize<MetadataReference>(WellKnownChecksumObjects.MetadataReference, reader, CancellationToken.None);
-                    var assetFromStorage = await assetBuilder.BuildAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+                    var assetFromStorage = assetBuilder.Build(recovered, CancellationToken.None);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
 
