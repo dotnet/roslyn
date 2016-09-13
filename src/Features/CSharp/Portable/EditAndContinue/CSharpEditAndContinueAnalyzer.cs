@@ -1358,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RefType:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
+                case SyntaxKind.VariableComponentAssignment:
                     return node.Span;
 
                 default:
@@ -1610,6 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ForEachComponentStatement:
                 case SyntaxKind.ParenthesizedVariableComponent:
                 case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.VariableComponentAssignment:
                     return CSharpFeaturesResources.deconstruction;
 
                 case SyntaxKind.TupleType:
@@ -3106,6 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.IsPatternExpression:
                 case SyntaxKind.DeconstructionDeclarationStatement:
+                case SyntaxKind.VariableComponentAssignment:
                 case SyntaxKind.ForEachComponentStatement:
                 case SyntaxKind.ParenthesizedVariableComponent:
                 case SyntaxKind.TypedVariableComponent:

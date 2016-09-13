@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to v7 switch.
+        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
         /// </summary>
         internal static string v7_switch {
             get {

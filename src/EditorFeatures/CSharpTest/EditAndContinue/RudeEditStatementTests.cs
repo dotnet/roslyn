@@ -6539,7 +6539,7 @@ class C
                 ActiveStatementsDescription.Empty,
                 expectedDiagnostics: new[]
                 {
-                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "switch (o)", CSharpFeaturesResources.v7_switch)
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
                 });
         }
 

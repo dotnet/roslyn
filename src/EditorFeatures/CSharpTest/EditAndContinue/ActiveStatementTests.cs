@@ -8167,7 +8167,7 @@ class C
     static void F(object o)
     {
         <AS:0>Console.WriteLine(1);</AS:0>
-        foreach (var (x, y) in new[] { (1, 2) }) { }
+        foreach (var (x, y) in new[] { (1, 2) }) { Console.WriteLine(2); }
     }
 }
 ";
@@ -8177,7 +8177,7 @@ class C
     static void F(object o)
     {
         <AS:0>Console.WriteLine(1);</AS:0>
-        foreach (var (x, y) in new[] { o }) { }
+        foreach (var (x, y) in new[] { o }) { Console.WriteLine(2); }
     }
 }
 ";
@@ -8215,7 +8215,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y)", CSharpFeaturesResources.deconstruction));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]
@@ -8245,7 +8245,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int x, int y)", CSharpFeaturesResources.deconstruction));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(int x, int y) = o2", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]
@@ -8424,7 +8424,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y)", CSharpFeaturesResources.tuple));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2;", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]

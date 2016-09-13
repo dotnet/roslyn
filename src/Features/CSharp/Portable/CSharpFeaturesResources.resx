@@ -400,7 +400,7 @@
     <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="v7_switch" xml:space="preserve">
-    <value>v7 switch</value>
+    <value>C# 7 enhanced switch statement</value>
   </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
