@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type, _enclosingSymbol);
+            var subsumptionTree = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type, _enclosingSymbol);
             BoundPatternSwitchLabel defaultLabel = null;
             BoundPatternSwitchSection defaultSection = null;
             foreach (var section in _switchStatement.SwitchSections)
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this._syntax = label.Syntax;
                         // For purposes of subsumption, we do not take into consideration the value
                         // of the input expression. Therefore we consider null possible if the type permits.
-                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, inputCouldBeNull: true);
+                        var subsumedErrorCode = CheckSubsumed(label.Pattern, subsumptionTree, inputCouldBeNull: true);
                         if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                         {
                             if (!label.HasErrors)
@@ -197,6 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             AddToDecisionTree(result, label);
+                            if (label.Guard == null || label.Guard.ConstantValue == ConstantValue.True)
+                            {
+                                // Only unconditional switch labels contribute to subsumption
+                                AddToDecisionTree(subsumptionTree, label);
+                            }
                         }
                     }
                 }
