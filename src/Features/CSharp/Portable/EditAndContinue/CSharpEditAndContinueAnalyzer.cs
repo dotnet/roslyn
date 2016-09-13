@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -3245,14 +3246,57 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
             {
                 var switchExpression = ((SwitchStatementSyntax)node).Expression;
-                var governingType = model.GetTypeInfo(switchExpression).Type;
-                if (!governingType.IsValidV6SwitchGoverningType())
+                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
+
+                if (!IsValidV6SwitchGoverningType(governingType))
                 {
                     AddRudeUpdateAroundActiveStatement(diagnostics, newNode: node);
                     return true;
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
+        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
+        /// corresponding to one of those types. These types were permitted as the governing
+        /// type of a switch statement in C# 6.
+        /// </summary>
+        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                type = ((INamedTypeSymbol)type).TypeArguments[0];
+            }
+
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
+            }
+
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Char:
+                case SpecialType.System_String:
+                case SpecialType.System_Boolean:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         #endregion
