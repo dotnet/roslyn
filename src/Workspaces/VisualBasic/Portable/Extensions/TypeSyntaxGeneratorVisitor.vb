@@ -130,8 +130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
                 types.Select(Function(t, i) SyntaxFactory.TupleElement(
-                    If(hasNames And names(i) IsNot Nothing, SyntaxFactory.IdentifierName(names(i)), Nothing),
-                    If(hasNames And names(i) IsNot Nothing, SyntaxFactory.Token(SyntaxKind.AsKeyword), Nothing),
+                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.IdentifierName(names(i)), Nothing),
+                    If(hasNames AndAlso names(i) IsNot Nothing, SyntaxFactory.Token(SyntaxKind.AsKeyword), Nothing),
                     t.GenerateTypeSyntax()))))
         End Function
 
