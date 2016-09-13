@@ -514,12 +514,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = block.Syntax;
 
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
-            Debug.Assert(syntax.Kind() == SyntaxKind.Block);
+            Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);
 
             // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact 
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.
             // NOTE: the Finalize method need not be a destructor or be overridden by the current method.
             MethodSymbol baseTypeFinalize = GetBaseTypeFinalizeMethod(method);
+
+            Text.TextSpan endBodySpan = syntax.IsKind(SyntaxKind.Block) ?
+                 ((BlockSyntax)syntax).CloseBraceToken.Span
+                 : ((ArrowExpressionClauseSyntax)syntax).GetLastToken().Span;
+            // Not sure if the following assumption is always correct.
+            // But if, then the previous expression could be eased, resp. put directly in the call below
+            // Debug.Assert(endBodySpan.Equals(new Text.TextSpan(syntax.Span.End - 1, 1)));
 
             if ((object)baseTypeFinalize != null)
             {
@@ -536,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             baseTypeFinalize)
                         )
                     { WasCompilerGenerated = true },
-                    ((BlockSyntax)syntax).CloseBraceToken.Span);
+                    endBodySpan);
 
                 return new BoundBlock(
                     syntax,
