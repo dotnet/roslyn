@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return Part(SymbolDisplayPartKind.TypeParameterName, text);
             }
 
-            protected static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
+            protected static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
                 SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
                 bool insertSourceTextInGaps = false,
                 CancellationToken cancellationToken = default(CancellationToken))

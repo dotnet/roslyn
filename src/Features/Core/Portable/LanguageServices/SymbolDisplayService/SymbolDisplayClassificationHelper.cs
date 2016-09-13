@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class SymbolDisplayClassificationHelper
     {
-        public static List<SymbolDisplayPart> ConvertClassifications(
+        public static ImmutableArray<SymbolDisplayPart> ConvertClassifications(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, bool insertSourceTextInGaps = false)
         {
             var parts = new List<SymbolDisplayPart>();
@@ -38,15 +38,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 var kind = GetDisplayPartKind(span.ClassificationType);
-                if (kind != null)
-                {
-                    parts.Add(new SymbolDisplayPart(kind.Value, null, sourceText.ToString(span.TextSpan)));
-
-                    startPosition = span.TextSpan.End;
-                }
+                parts.Add(new SymbolDisplayPart(kind, null, sourceText.ToString(span.TextSpan)));
+                startPosition = span.TextSpan.End;
             }
 
-            return parts;
+            return parts.ToImmutableArray();
         }
 
         private static IEnumerable<SymbolDisplayPart> Space(int count = 1)
@@ -54,12 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
         }
 
-        private static SymbolDisplayPartKind? GetDisplayPartKind(string classificationType)
+        private static SymbolDisplayPartKind GetDisplayPartKind(string classificationType)
         {
             switch (classificationType)
             {
                 default:
-                    return null;
+                    return SymbolDisplayPartKind.Text;
                 case ClassificationTypeNames.Identifier:
                     return SymbolDisplayPartKind.Text;
                 case ClassificationTypeNames.Keyword:

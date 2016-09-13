@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -393,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 return new TaggedTextAndHighlightSpan(taggedText, highlightSpan);
             }
 
-            private List<SymbolDisplayPart> MergeClassifiedSpans(
+            private ImmutableArray<SymbolDisplayPart> MergeClassifiedSpans(
                 List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
                 TextSpan widenedSpan, SourceText sourceText)
             {
@@ -407,9 +408,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // Produce SymbolDisplayParts for both sets of ClassifiedSpans.  This will
                 // also produce parts for the regions between the sections that the classifiers
                 // returned results for (i.e. for things like spaces and plain text).
-                var syntaxParts = Microsoft.CodeAnalysis.LanguageServices.SymbolDisplayClassificationHelper.ConvertClassifications(
+                var syntaxParts = SymbolDisplayClassificationHelper.ConvertClassifications(
                     sourceText, widenedSpan.Start, syntaxSpans, insertSourceTextInGaps: true);
-                var semanticParts = Microsoft.CodeAnalysis.LanguageServices.SymbolDisplayClassificationHelper.ConvertClassifications(
+                var semanticParts = SymbolDisplayClassificationHelper.ConvertClassifications(
                     sourceText, widenedSpan.Start, semanticSpans, insertSourceTextInGaps: true);
 
                 // Now merge the lists together, taking all the results from syntaxParts
@@ -422,9 +423,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
             }
 
-            private List<SymbolDisplayPart> MergeParts(
-                List<SymbolDisplayPart> syntaxParts,
-                List<SymbolDisplayPart> semanticParts)
+            private ImmutableArray<SymbolDisplayPart> MergeParts(
+                ImmutableArray<SymbolDisplayPart> syntaxParts,
+                ImmutableArray<SymbolDisplayPart> semanticParts)
             {
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.
@@ -457,7 +458,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     }
                 }
 
-                return finalParts;
+                return finalParts.ToImmutableArray();
             }
 
             private bool ShouldUseSemanticPart(ValueTuple<SymbolDisplayPart, TextSpan> partAndSpan)
@@ -469,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private List<ValueTuple<SymbolDisplayPart, TextSpan>> AddSpans(
-                List<SymbolDisplayPart> parts)
+                IReadOnlyList<SymbolDisplayPart> parts)
             {
                 var result = new List<ValueTuple<SymbolDisplayPart, TextSpan>>(parts.Count);
                 var position = 0;
