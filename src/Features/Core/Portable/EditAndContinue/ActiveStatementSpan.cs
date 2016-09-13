@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ActiveStatementSpan
+    public struct ActiveStatementSpan
     {
-        public readonly ActiveStatementFlags Flags;
-        public readonly LinePositionSpan Span;
+        internal readonly ActiveStatementFlags Flags;
+        internal readonly LinePositionSpan Span;
 
         public ActiveStatementSpan(ActiveStatementFlags flags, LinePositionSpan span)
         {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             this.Span = span;
         }
 
-        public bool IsLeaf
+        internal bool IsLeaf
         {
             get
             {

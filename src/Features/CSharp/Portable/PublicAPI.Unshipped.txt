@@ -1,3 +1,5 @@
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.CSharpEditAndContinueAnalyzer
+Microsoft.CodeAnalysis.CSharp.EditAndContinue.CSharpEditAndContinueAnalyzer.CSharpEditAndContinueAnalyzer() -> void
 Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer
 Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxComparer.SyntaxComparer() -> void
 Microsoft.CodeAnalysis.CSharp.EditAndContinue.TopSyntaxComparer

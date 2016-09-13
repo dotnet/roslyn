@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class DocumentAnalysisResults
+    public sealed class DocumentAnalysisResults
     {
         /// <summary>
         /// Spans of active statements in the document, or null if the document has syntax errors.
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// Sorted by <see cref="LineChange.OldLine"/>
         /// </remarks>
-        public readonly ImmutableArray<LineChange> LineEdits;
+        internal readonly ImmutableArray<LineChange> LineEdits;
 
         /// <summary>
         /// The compilation has compilation errors (syntactic or semantic), 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             this.RudeEditErrors = rudeEdits;
         }
 
-        public DocumentAnalysisResults(
+        internal DocumentAnalysisResults(
             ImmutableArray<LinePositionSpan> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public bool HasSignificantChanges
+        internal bool HasSignificantChanges
         {
             get
             {
@@ -147,12 +147,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
+        internal static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
         {
             return new DocumentAnalysisResults(rudeEdits);
         }
 
-        public static DocumentAnalysisResults Unchanged(
+        internal static DocumentAnalysisResults Unchanged(
             ImmutableArray<LinePositionSpan> activeStatements,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt)
         {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasSemanticErrors: null);
         }
 
-        public static DocumentAnalysisResults Errors(
+        internal static DocumentAnalysisResults Errors(
             ImmutableArray<LinePositionSpan> activeStatements,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             bool hasSemanticErrors = false)
