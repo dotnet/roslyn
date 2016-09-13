@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         private readonly Workspace _workspace;
         private readonly string _language;
-        private List<Lazy<QuickInfoProvider, QuickInfoProviderMetadata>> _importedProviders;
+        private ImmutableArray<QuickInfoProvider> _providers;
 
         protected QuickInfoServiceWithProviders(Workspace workspace, string language)
         {
@@ -25,32 +27,48 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             _language = language;
         }
 
-        private IEnumerable<Lazy<QuickInfoProvider, QuickInfoProviderMetadata>> GetImportedProviders()
+        private ImmutableArray<QuickInfoProvider> GetProviders()
         {
-            if (_importedProviders == null)
+            if (_providers == null)
             {
                 var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
                 var providers = ExtensionOrderer.Order(
                         mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
                         .Where(lz => lz.Metadata.Language == _language)
-                        ).ToList();
+                        ).Select(lz => lz.Value).ToImmutableArray();
 
-                Interlocked.CompareExchange(ref _importedProviders, providers, null);
+                ImmutableInterlocked.InterlockedCompareExchange(ref _providers, providers, default(ImmutableArray<QuickInfoProvider>));
             }
 
-            return _importedProviders;
+            return _providers;
         }
 
         public override async Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // returns the first quick info provided by the providers (based on provider order)
-            foreach (var lazyProvider in GetImportedProviders())
+            var extensionManager = _workspace.Services.GetService<IExtensionManager>();
+
+            // returns the first non-empty quick info found (based on provider order)
+            foreach (var provider in GetProviders())
             {
-                var info = await lazyProvider.Value.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (info != null && !info.IsEmpty)
+                try
                 {
-                    return info;
+                    if (!extensionManager.IsDisabled(provider))
+                    {
+                        var info = await provider.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                        if (info != null && !info.IsEmpty)
+                        {
+                            return info;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
+                {
+                    extensionManager.HandleException(provider, e);
                 }
             }
 

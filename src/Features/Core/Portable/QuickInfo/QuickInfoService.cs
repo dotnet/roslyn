@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Host;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
@@ -12,19 +13,34 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal abstract class QuickInfoService : ILanguageService
     {
         /// <summary>
-        /// Gets the <see cref="QuickInfoService"/> associated with the document.
+        /// Gets the appropriate <see cref="QuickInfoService"/> for the specified document.
         /// </summary>
-        /// <param name="document"></param>
-        /// <returns></returns>
         public static QuickInfoService GetService(Document document)
         {
-            var workspace = document.Project.Solution.Workspace;
-            return workspace.Services.GetLanguageServices(document.Project.Language).GetService<QuickInfoService>();
+            return GetService(document.Project.Solution.Workspace, document.Project.Language);
+        }
+
+        /// <summary>
+        /// Gets the appropriate <see cref="QuickInfoService"/> for the specified Workspace and language.
+        /// </summary>
+        public static QuickInfoService GetService(Workspace workspace, string language)
+        {
+            return workspace.Services.GetLanguageServices(language)?.GetService<QuickInfoService>() ?? NoOpService.Instance;
+        }
+
+        private class NoOpService : QuickInfoService
+        {
+            public static readonly NoOpService Instance = new NoOpService();
         }
 
         /// <summary>
         /// Gets the <see cref="QuickInfoItem"/> associated with position in the document.
         /// </summary>
-        public abstract Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        public virtual Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            return EmptyTask;
+        }
+
+        private readonly Task<QuickInfoItem> EmptyTask = Task.FromResult(QuickInfoItem.Empty);
     }
 }
