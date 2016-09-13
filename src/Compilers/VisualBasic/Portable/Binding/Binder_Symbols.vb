@@ -695,7 +695,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' set of names already used
                 Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
-                Dim countOfExplicitNames As Integer = 0
 
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
@@ -714,7 +713,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         name = nameSyntax.Identifier.ValueText
 
                         ' validate name if we have one
-                        countOfExplicitNames += 1
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
                         locations.Add(nameSyntax.GetLocation)
                     Else
@@ -723,10 +721,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
-
-                If countOfExplicitNames <> 0 AndAlso countOfExplicitNames <> numElements Then
-                    Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleExplicitNamesOnAllMembersOrNone)
-                End If
 
                 Dim typesArray As ImmutableArray(Of TypeSymbol) = types.ToImmutableAndFree()
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()

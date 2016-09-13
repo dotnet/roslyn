@@ -974,5 +974,34 @@ NewLines("Class [Class] \n Private Sub Method(i As Integer) \n [|foo|] = Functio
 NewLines("Class [Class] \n Private Sub Method(i As Integer)\n        Dim foo As System.Func(Of Integer)\n        foo = Function() \n Return 2 \n End Function \n End Sub \n End Class"),
 index:=2)
         End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TupleRead() As Task
+            Await TestAsync(
+NewLines("Class [Class] \n Private Sub Method(i As (Integer, String)) \n Method([|tuple|]) \n End Sub \n End Class"),
+NewLines("Class [Class] \n Private tuple As (Integer, String) \n  Private Sub Method(i As (Integer, String))\n Method(tuple) \n End Sub \n End Class"))
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TupleWithOneNameRead() As Task
+            Await TestAsync(
+NewLines("Class [Class] \n Private Sub Method(i As (a As Integer, String)) \n Method([|tuple|]) \n End Sub \n End Class"),
+NewLines("Class [Class] \n Private tuple As (a As Integer, String) \n  Private Sub Method(i As (a As Integer, String))\n Method(tuple) \n End Sub \n End Class"))
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TupleWrite() As Task
+            Await TestAsync(
+NewLines("Class [Class] \n Private Sub Method() \n [|tuple|] = (1, ""hello"") \n End Sub \n End Class"),
+NewLines("Class [Class] \n Private tuple As (Integer, String) \n  Private Sub Method()\n tuple = (1, ""hello"") \n End Sub \n End Class"))
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TupleWithOneNameWrite() As Task
+            Await TestAsync(
+NewLines("Class [Class] \n Private Sub Method() \n [|tuple|] = (a:=1, ""hello"") \n End Sub \n End Class"),
+NewLines("Class [Class] \n Private tuple As (a As Integer, String) \n  Private Sub Method()\n tuple = (a:=1, ""hello"") \n End Sub \n End Class"))
+        End Function
+
     End Class
 End Namespace
