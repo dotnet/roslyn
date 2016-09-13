@@ -7182,10 +7182,14 @@ End Module
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
 
-            compilation.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "M").WithArguments("M", "
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
     'Public Sub M(x As Integer)': Value of type '(Integer, Integer)' cannot be converted to 'Integer'.
-    'Public Sub M(x As String)': Value of type '(Integer, Integer)' cannot be converted to 'String'.").WithLocation(8, 9))
+    'Public Sub M(x As String)': Value of type '(Integer, Integer)' cannot be converted to 'String'.
+        M((1, 2))
+        ~
+</errors>)
         End Sub
 
         <Fact>
@@ -7209,10 +7213,45 @@ End Module
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
 
-            compilation.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "M").WithArguments("M", "
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
     'Public Sub M(x As Integer)': Value of type '(Integer, Object)' cannot be converted to 'Integer'.
-    'Public Sub M(x As String)': Value of type '(Integer, Object)' cannot be converted to 'String'.").WithLocation(8, 9))
+    'Public Sub M(x As String)': Value of type '(Integer, Object)' cannot be converted to 'String'.
+        M((1, Nothing))
+        ~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")>
+        Public Sub BadOverloadWithTupleLiteralWithAddressOf()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub M(x As Integer)
+    End Sub
+    Sub M(x As String)
+    End Sub
+
+    Sub Main()
+        M((1, AddressOf Main))
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+
+            compilation.AssertTheseDiagnostics(
+<errors>
+    BC30518: Overload resolution failed because no accessible 'M' can be called with these arguments:
+    'Public Sub M(x As Integer)': Expression does not produce a value.
+    'Public Sub M(x As String)': Expression does not produce a value.
+        M((1, AddressOf Main))
+        ~
+</errors>)
         End Sub
     End Class
 
