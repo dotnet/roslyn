@@ -1551,34 +1551,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = (BoundBlock)binder.BindEmbeddedBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
-                    if (method.MethodKind == MethodKind.Destructor)
+                    if (method.MethodKind != MethodKind.Destructor)
                     {
-                        return MethodBodySynthesizer.ConstructDestructorBody(method, body);
-                    }
-
-                    foreach (var iterator in binder.MethodSymbolsWithYield)
-                    {
-                        foreach (var parameter in iterator.Parameters)
+                        foreach (var iterator in binder.MethodSymbolsWithYield)
                         {
-                            if (parameter.RefKind != RefKind.None)
+                            foreach (var parameter in iterator.Parameters)
                             {
-                                diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                                if (parameter.RefKind != RefKind.None)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                                }
+                                else if (parameter.Type.IsUnsafe())
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                                }
                             }
-                            else if (parameter.Type.IsUnsafe())
+
+                            if (iterator.IsVararg)
                             {
-                                diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                                // error CS1636: __arglist is not allowed in the parameter list of iterators
+                                diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
                             }
-                        }
 
-                        if (iterator.IsVararg)
-                        {
-                            // error CS1636: __arglist is not allowed in the parameter list of iterators
-                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
-                        }
-
-                        if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
-                        {
-                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
+                            if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
+                            {
+                                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
+                            }
                         }
                     }
                 }
@@ -1591,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    body = (BoundBlock)binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1608,6 +1606,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // synthesized methods should return their bound bodies
                 body = null;
+            }
+
+            if (method.MethodKind == MethodKind.Destructor)
+            {
+                return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
             var constructorInitializer = BindConstructorInitializerIfAny(method, compilationState, diagnostics);

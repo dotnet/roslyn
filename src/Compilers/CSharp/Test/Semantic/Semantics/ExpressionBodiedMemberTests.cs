@@ -346,7 +346,7 @@ public static class TestExtension
             CompileAndVerify(source, expectedOutput: "GetAction 1");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact(DisplayName = "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorProp()
         {
             string source = @"
@@ -366,7 +366,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact(DisplayName = "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase01()
         {
             string source = @"
@@ -383,14 +383,14 @@ public class Program
             CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13691")]
+        [Fact(DisplayName = "https://github.com/dotnet/roslyn/issues/13691")]
         public void RunCtorWithBase02()
         {
             string source = @"
 using System;
 public class Base
 {
-    Base(int i) { Console.Write(i); }
+    protected Base(int i) { Console.Write(i); }
 }
 public class Program : Base
 {
