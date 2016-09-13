@@ -117,8 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var start = DateTimeOffset.UtcNow;
             OutputToOutputWindow($"Getting project information - start");
             // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-            var projectInfos = await deferredProjectWorkspaceService.GetCommandLineArgumentsAndProjectReferencesForProjectAsync(
-                solutionConfig.Name,
+            var projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
+                $"{solutionConfig.Name}|Any CPU",
                 cancellationToken).ConfigureAwait(true);
             AssertIsForeground();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");

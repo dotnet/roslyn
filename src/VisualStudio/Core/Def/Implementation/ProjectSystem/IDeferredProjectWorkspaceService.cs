@@ -13,8 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal interface IDeferredProjectWorkspaceService : IWorkspaceService
     {
         bool IsDeferredProjectLoadEnabled { get; }
-        Task<IReadOnlyDictionary<string, DeferredProjectInformation>> GetCommandLineArgumentsAndProjectReferencesForProjectAsync(
-            string solutionConfiguration, CancellationToken cancellationToken);
+        Task<IReadOnlyDictionary<string, DeferredProjectInformation>> GetDeferredProjectInfoForConfigurationAsync(
+            string solutionConfiguration,
+            CancellationToken cancellationToken);
     }
 
     internal struct DeferredProjectInformation
