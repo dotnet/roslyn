@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class TopSyntaxComparer : SyntaxComparer
+    public sealed class TopSyntaxComparer : SyntaxComparer
     {
         internal static readonly TopSyntaxComparer Instance = new TopSyntaxComparer();
 

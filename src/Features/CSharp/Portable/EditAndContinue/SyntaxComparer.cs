@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
+    public abstract class SyntaxComparer : TreeComparer<SyntaxNode>
     {
         internal const int IgnoredNode = -1;
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the nodes are. 
         /// </remarks>
-        public static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        internal static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode)
         {
             if (oldNode == null || newNode == null)
             {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         /// </remarks>
-        public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
+        internal static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
         {
             return LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
         }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        internal static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
         {
             return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
+        internal static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
         {
             return LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
         }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        internal static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
         {
             return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
+        internal static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
         {
             return LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
         }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        internal static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
         {
             return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
+        internal static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
         {
             return LcsNodes.Instance.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
         }
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        internal static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
         {
             return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
+        internal static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
         {
             return LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
         }
