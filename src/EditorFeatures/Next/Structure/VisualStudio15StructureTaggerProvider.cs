@@ -49,10 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         protected override IBlockTag CreateTag(
             IBlockTag parentTag, ITextSnapshot snapshot, BlockSpan region)
         {
-            return new RoslynRegionTag(this, parentTag, snapshot, region);
+            return new RoslynBlockTag(
+                this.TextEditorFactoryService,
+                this.ProjectionBufferFactoryService,
+                this.EditorOptionsFactoryService,
+                parentTag, snapshot, region);
         }
 
-        private class RoslynRegionTag : RegionTag, IBlockTag
+        private class RoslynBlockTag : RoslynOutliningRegionTag, IBlockTag
         {
             public IBlockTag Parent { get; }
             public int Level { get; }
@@ -63,12 +67,17 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
             public bool IsCollapsible => true;
 
-            public RoslynRegionTag(
-                AbstractStructureTaggerProvider<IBlockTag> provider,
+            public RoslynBlockTag(
+                ITextEditorFactoryService textEditorFactoryService,
+                IProjectionBufferFactoryService projectionBufferFactoryService,
+                IEditorOptionsFactoryService editorOptionsFactoryService,
                 IBlockTag parent,
                 ITextSnapshot snapshot,
                 BlockSpan outliningSpan) :
-                base(provider, snapshot, outliningSpan)
+                base(textEditorFactoryService,
+                    projectionBufferFactoryService,
+                    editorOptionsFactoryService,
+                    snapshot, outliningSpan)
             {
                 Parent = parent;
                 Level = parent == null ? 0 : parent.Level + 1;
