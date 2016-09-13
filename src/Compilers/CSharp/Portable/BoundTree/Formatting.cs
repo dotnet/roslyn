@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return "default"; }
+            get { return (object)this.Type ?? "default"; }
         }
     }
 }
