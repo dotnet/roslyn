@@ -175,8 +175,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location, isImplicitlyDeclared As Boolean)
-            MyBase.New(container, underlyingField, tupleFieldId)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer, location As Location, isImplicitlyDeclared As Boolean)
+            MyBase.New(container, underlyingField, tupleElementIndex)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._isImplicitlyDeclared = isImplicitlyDeclared
         End Sub

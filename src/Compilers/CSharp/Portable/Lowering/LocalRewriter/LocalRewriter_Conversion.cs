@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleTypeSymbol = TupleTypeSymbol.Create((NamedTypeSymbol)srcType);
             }
 
-            var srcElementFields = ((TupleTypeSymbol)srcType).TupleDefaultElementFields;
+            var srcElementFields = tupleTypeSymbol.TupleDefaultElementFields;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
             BoundAssignmentOperator assignmentToTemp;

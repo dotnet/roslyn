@@ -845,10 +845,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if (defaultImplicitlyDeclared && providedName != null)
                                 {
-                                        // The name given doesn't match the default name Item8, etc.
-                                        // Add a virtual field with the given name
-                                        // tupleFieldIndex << 1 + 1, because this is not a default element
-                                        members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
+                                    // The name given doesn't match the default name Item8, etc.
+                                    // Add a virtual field with the given name
+                                    // tupleFieldIndex << 1 + 1, because this is not a default element
+                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
                                 }
 
                                 elementsMatchedByFields[tupleFieldIndex] = true; // mark as handled
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Add default element field. 
                     // i << 1 because this is a default element
-                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, defaultImplicitlyDeclared ? null: location, _elementTypes[i], diagnosticInfo, defaultImplicitlyDeclared));
+                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, defaultImplicitlyDeclared ? null : location, _elementTypes[i], diagnosticInfo, defaultImplicitlyDeclared));
 
 
                     if (defaultImplicitlyDeclared && providedName != null)

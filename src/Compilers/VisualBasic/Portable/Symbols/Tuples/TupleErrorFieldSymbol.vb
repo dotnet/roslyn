@@ -83,12 +83,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As NamedTypeSymbol, name As String, tupleFieldId As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo, isImplicitlyDeclared As Boolean)
+        Public Sub New(container As NamedTypeSymbol, name As String, tupleElementIndex As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo, isImplicitlyDeclared As Boolean)
             MyBase.New(container, container, type, name, Accessibility.Public)
             Debug.Assert(name <> Nothing)
             Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo
-            Me._tupleElementIndex = tupleFieldId
+            Me._tupleElementIndex = tupleElementIndex
             Me._isImplicitlyDeclared = isImplicitlyDeclared
         End Sub
 
