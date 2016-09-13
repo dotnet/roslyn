@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             externsAndUsings.AddRange(compilationUnit.Usings);
             externsAndUsings.Sort((node1, node2) => node1.SpanStart.CompareTo(node2.SpanStart));
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(externsAndUsings, autoCollapse: true));
+            spans.Add(CSharpStructureHelpers.CreateRegion(
+                externsAndUsings, autoCollapse: true, 
+                type: BlockTypes.Nonstructural, isCollapsible: true));
 
             if (compilationUnit.Usings.Count > 0 ||
                 compilationUnit.Externs.Count > 0 ||

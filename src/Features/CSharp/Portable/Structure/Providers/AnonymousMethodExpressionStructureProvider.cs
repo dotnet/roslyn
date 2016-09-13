@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 anonymousMethod,
                 startToken,
                 lastToken,
-                autoCollapse: false));
+                autoCollapse: false,
+                type: BlockTypes.AnonymousMethod,
+                isCollapsible: true));
         }
     }
 }

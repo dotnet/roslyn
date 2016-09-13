@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(CSharpStructureHelpers.CreateRegion(
                 propertyDeclaration,
                 propertyDeclaration.Identifier,
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Property,
+                isCollapsible: true));
         }
     }
 }

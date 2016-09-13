@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(CSharpStructureHelpers.CreateRegion(
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                autoCollapse: true));
+                autoCollapse: true,
+                type: BlockTypes.Destructor,
+                isCollapsible: true));
         }
     }
 }

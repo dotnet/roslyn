@@ -23,10 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     ? typeDeclaration.Identifier
                     : typeDeclaration.TypeParameterList.GetLastToken(includeZeroWidth: true);
 
+                var type = typeDeclaration.Kind() == SyntaxKind.InterfaceDeclaration
+                    ? BlockTypes.Interface
+                    : typeDeclaration.Kind() == SyntaxKind.StructDeclaration
+                        ? BlockTypes.Structure
+                        : BlockTypes.Class;
                 spans.Add(CSharpStructureHelpers.CreateRegion(
                     typeDeclaration,
                     lastToken,
-                    autoCollapse: false));
+                    autoCollapse: false,
+                    type: type,
+                    isCollapsible: true));
             }
 
             // add any leading comments before the end of the type block

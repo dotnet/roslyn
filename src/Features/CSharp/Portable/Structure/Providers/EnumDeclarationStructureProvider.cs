@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 spans.Add(CSharpStructureHelpers.CreateRegion(
                     enumDeclaration,
                     enumDeclaration.Identifier,
-                    autoCollapse: false));
+                    autoCollapse: false,
+                    type: BlockTypes.Enum,
+                    isCollapsible: true));
             }
 
             // add any leading comments before the end of the type block

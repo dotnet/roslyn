@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 spans.Add(CSharpStructureHelpers.CreateRegion(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
-                    autoCollapse: false));
+                    autoCollapse: false,
+                    type: BlockTypes.Namespace,
+                    isCollapsible: true));
             }
 
             // extern aliases and usings are outlined in a single region
@@ -38,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 CSharpStructureHelpers.CollectCommentRegions(externsAndUsings.First(), spans);
             }
 
-            spans.Add(CSharpStructureHelpers.CreateRegion(externsAndUsings, autoCollapse: true));
+            spans.Add(CSharpStructureHelpers.CreateRegion(
+                externsAndUsings, autoCollapse: true, 
+                type: BlockTypes.Nonstructural, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)
