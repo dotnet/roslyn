@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
 
                 var result = await session.InvokeAsync(
                     WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
-                    new object[] { argument, session.ChecksumScope.SolutionChecksum.Checksum.ToArray() },
+                    new object[] { argument },
                     (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c)).ConfigureAwait(false);
 
                 ReportAnalyzerExceptions(project, result.Exceptions);

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
         #region PersistentStorageService messages
 
         public void PersistentStorageService_RegisterPrimarySolutionId(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName)
+            byte[] solutionIdGuidBytes, string solutionIdDebugName, byte[] solutionChecksum)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void PersistentStorageService_UnregisterPrimarySolutionId(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown)
+            byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown, byte[] solutionChecksum)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
             var persistentStorageService = GetPersistentStorageService();
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void PersistentStorageService_UpdateSolutionIdStorageLocation(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation)
+            byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation, byte[] solutionChecksum)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
             RemotePersistentStorageLocationService.UpdateStorageLocation(

@@ -43,28 +43,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments);
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray());
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray());
         }
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             CancellationToken.ThrowIfCancellationRequested();
 
-            return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(ChecksumScope.SolutionChecksum.Checksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
         }
 
         protected override void OnDisposed()
