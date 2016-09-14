@@ -3065,7 +3065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match, oldActiveStatement, newActiveStatement);
+            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
         }
@@ -3073,8 +3073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
         /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
         {
             SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
             if (foundCSharp7Syntax != null)
@@ -3272,10 +3271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </summary>
         private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            Debug.Assert(type != null);
 
             if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
