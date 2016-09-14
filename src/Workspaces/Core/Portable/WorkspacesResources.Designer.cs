@@ -846,6 +846,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove braces from &apos;{0}&apos; statement..
+        /// </summary>
+        internal static string Remove_braces_from_0_statement {
+            get {
+                return ResourceManager.GetString("Remove_braces_from_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removed:.
         /// </summary>
         internal static string Removed_colon {

@@ -489,4 +489,7 @@
   <data name="Stream_is_too_long" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
+  <data name="Remove_braces_from_0_statement" xml:space="preserve">
+    <value>Remove braces from '{0}' statement.</value>
+  </data>
 </root>

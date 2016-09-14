@@ -577,6 +577,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value); }
         }
 
+        public string Style_AlwaysUseBraces
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AlwaysUseBraces); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AlwaysUseBraces, value); }
+        }
+
         public string Style_UseImplicitTypeWhereApparent
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent); }

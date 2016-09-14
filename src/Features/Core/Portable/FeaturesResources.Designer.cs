@@ -2113,6 +2113,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove braces.
+        /// </summary>
+        internal static string Remove_braces {
+            get {
+                return ResourceManager.GetString("Remove_braces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove qualification.
         /// </summary>
         internal static string Remove_qualification {

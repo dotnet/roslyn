@@ -1,26 +1,45 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.Braces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
-    public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpAddBracesDiagnosticAnalyzer(),
+            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpBracesDiagnosticAnalyzer(),
                 new CSharpAddBracesCodeFixProvider());
+        }
+
+        private IDictionary<OptionKey, object> AddBraces =>
+            new Dictionary<OptionKey, object> { { CSharpCodeStyleOptions.AlwaysUseBraces, new CodeStyleOption<bool>(true, NotificationOption.Warning) } };
+
+        private async Task TestAddBraces(string originalMarkup)
+        {
+            await TestMissingAsync(originalMarkup, options: AddBraces);
+        }
+
+        private async Task TestAddBraces(string originalMarkup, string expectedMarkup)
+        {
+            await TestAsync(originalMarkup, expectedMarkup, options: AddBraces);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForIfWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -35,7 +54,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -51,7 +70,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithChildIf()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -67,7 +86,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -82,7 +101,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForEachWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -97,7 +116,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForWhileWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -112,7 +131,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForDoWhileWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -127,7 +146,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -153,7 +172,7 @@ class Fizz : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithChildUsing()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -186,7 +205,7 @@ class Buzz : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithBraces()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -205,7 +224,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithChildLock()
         {
-            await TestMissingAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -223,9 +242,60 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForFixedWithBraces()
+        {
+            await TestAddBraces(
+            @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        [|fixed|] (int* p = &pt.x)
+        {
+            *p = 1;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForFixedWithChildFixed()
+        {
+            await TestAddBraces(
+            @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        [|fixed|] (int* p = &pt.x)
+        fixed (int* q = &pt.y)
+        {
+            *p = 1;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
    @"
 class Program
 {
@@ -245,15 +315,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForElseWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -275,15 +343,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfNestedInElseWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -305,15 +371,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -333,15 +397,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForForEachWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -361,15 +423,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -389,15 +449,13 @@ class Program
             return;
         }
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForDoWhileWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -418,15 +476,13 @@ class Program
         }
         while (true);
     }
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -463,16 +519,13 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-   index: 0,
-   compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForUsingWithoutBracesNestedInUsing()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -527,16 +580,13 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-
-            index: 0,
-            compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBraces()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -559,16 +609,13 @@ class Program
             return;
         }
     }
-}",
-
-   index: 0,
-   compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForLockWithoutBracesNestedInLock()
         {
-            await TestAsync(
+            await TestAddBraces(
             @"
 class Program
 {
@@ -597,10 +644,349 @@ class Program
                 return;
             }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForFixedWithoutBraces()
+        {
+            await TestAddBraces(
+            @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        [|fixed|] (int* p = &pt.x)
+            *p = 1;
+    }
 }",
 
-            index: 0,
-            compareTokens: false);
+   @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        fixed (int* p = &pt.x)
+        {
+            *p = 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForFixedWithoutBracesNestedInLock()
+        {
+            await TestAddBraces(
+            @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        fixed (int* p = &pt.x)
+        [|fixed|] (int* q = &pt.y)
+            *p = 1;
+    }
+}",
+
+   @"
+class Point 
+{ 
+    public int x;
+    public int y; 
+}
+
+class Program
+{
+    unsafe static void TestMethod()
+    {
+        var pt = new Point();
+        fixed (int* p = &pt.x)
+        fixed (int* q = &pt.y)
+        {
+            *p = 1;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInDocument()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        {|FixAllInDocument:if|} (true) return;
+        if (true) return;
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestAddBraces(input, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInProject()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        {|FixAllInProject:if|} (true) return;
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestAddBraces(input, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInSolution()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        {|FixAllInSolution:if|} (true) return;
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true) return;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+        <Document>
+class Program2
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class Program3
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestAddBraces(input, expected);
         }
     }
 }
