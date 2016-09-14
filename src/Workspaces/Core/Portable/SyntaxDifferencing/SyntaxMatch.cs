@@ -6,9 +6,9 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Differencing
+namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 {
-    public sealed partial class Match<TNode>
+    internal sealed partial class SyntaxMatch
     {
         private const double ExactMatchDistance = 0.0;
         private const double EpsilonDistance = 0.00001;
@@ -17,14 +17,17 @@ namespace Microsoft.CodeAnalysis.Differencing
         private const double MatchingDistance3 = 1.5;
         private const double MaxDistance = 2.0;
 
-        private readonly TreeComparer<TNode> _comparer;
-        private readonly TNode _root1;
-        private readonly TNode _root2;
+        private readonly TreeComparer _comparer;
+        private readonly SyntaxNode _root1;
+        private readonly SyntaxNode _root2;
 
-        private readonly Dictionary<TNode, TNode> _oneToTwo;
-        private readonly Dictionary<TNode, TNode> _twoToOne;
+        private readonly Dictionary<SyntaxNode, SyntaxNode> _oneToTwo;
+        private readonly Dictionary<SyntaxNode, SyntaxNode> _twoToOne;
 
-        internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
+        internal SyntaxMatch(
+            SyntaxNode root1, SyntaxNode root2,
+            TreeComparer comparer,
+            IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> knownMatches)
         {
             _root1 = root1;
             _root2 = root2;
@@ -34,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             // Calculate chains (not including root node):
             int count1, count2;
-            List<TNode>[] nodes1, nodes2;
+            List<SyntaxNode>[] nodes1, nodes2;
             CategorizeNodesByLabels(comparer, root1, labelCount, out nodes1, out count1);
             CategorizeNodesByLabels(comparer, root2, labelCount, out nodes2, out count2);
 
-            _oneToTwo = new Dictionary<TNode, TNode>();
-            _twoToOne = new Dictionary<TNode, TNode>();
+            _oneToTwo = new Dictionary<SyntaxNode, SyntaxNode>();
+            _twoToOne = new Dictionary<SyntaxNode, SyntaxNode>();
 
             // Root nodes always match. Add them before adding known matches to make sure we always have root mapping.
             TryAdd(root1, root2);
@@ -72,20 +75,20 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private static void CategorizeNodesByLabels(
-            TreeComparer<TNode> comparer,
-            TNode root,
+            TreeComparer comparer,
+            SyntaxNode root,
             int labelCount,
-            out List<TNode>[] nodes,
+            out List<SyntaxNode>[] nodes,
             out int totalCount)
         {
-            nodes = new List<TNode>[labelCount];
+            nodes = new List<SyntaxNode>[labelCount];
             int count = 0;
 
             // It is important that we add the nodes in depth-first prefix order.
             // This order ensures that a node of a certain kind can have a parent of the same kind 
             // and we can still use tied-to-parent for that kind. That's because the parent will always
             // be processed earlier than the child due to depth-first prefix ordering.
-            foreach (TNode node in comparer.GetDescendants(root))
+            foreach (SyntaxNode node in comparer.GetDescendants(root))
             {
                 int label = comparer.GetLabel(node);
                 if (label < 0 || label >= labelCount)
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 var list = nodes[label];
                 if (list == null)
                 {
-                    nodes[label] = list = new List<TNode>();
+                    nodes[label] = list = new List<SyntaxNode>();
                 }
 
                 list.Add(node);
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             totalCount = count;
         }
 
-        private void ComputeMatch(List<TNode>[] nodes1, List<TNode>[] nodes2)
+        private void ComputeMatch(List<SyntaxNode>[] nodes1, List<SyntaxNode>[] nodes2)
         {
             Debug.Assert(nodes1.Length == nodes2.Length);
 
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        private void ComputeMatchForLabel(int label, List<TNode> s1, List<TNode> s2)
+        private void ComputeMatchForLabel(int label, List<SyntaxNode> s1, List<SyntaxNode> s2)
         {
             int tiedToAncestor = _comparer.TiedToAncestor(label);
 
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MaxDistance);         // any match
         }
 
-        private void ComputeMatchForLabel(List<TNode> s1, List<TNode> s2, int tiedToAncestor, double maxAcceptableDistance)
+        private void ComputeMatchForLabel(List<SyntaxNode> s1, List<SyntaxNode> s2, int tiedToAncestor, double maxAcceptableDistance)
         {
             // Obviously, the algorithm below is O(n^2). However, in the common case, the 2 lists will
             // be sequences that exactly match. The purpose of "firstNonMatch2" is to reduce the complexity
@@ -178,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             for (int i1 = 0; i1 < count1; i1++)
             {
-                TNode node1 = s1[i1];
+                SyntaxNode node1 = s1[i1];
 
                 // Skip this guy if it already has a partner
                 if (HasPartnerInTree2(node1))
@@ -189,12 +192,12 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // Find node2 that matches node1 the best, i.e. has minimal distance.
 
                 double bestDistance = MaxDistance;
-                TNode bestMatch = default(TNode);
+                SyntaxNode bestMatch = default(SyntaxNode);
                 bool matched = false;
                 int i2;
                 for (i2 = firstNonMatch2; i2 < count2; i2++)
                 {
-                    TNode node2 = s2[i2];
+                    SyntaxNode node2 = s2[i2];
 
                     // Skip this guy if it already has a partner
                     if (HasPartnerInTree1(node2))
@@ -266,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        internal bool TryAdd(TNode node1, TNode node2)
+        internal bool TryAdd(SyntaxNode node1, SyntaxNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node1, _root1));
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
@@ -281,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             return true;
         }
 
-        internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)
+        internal bool TryGetPartnerInTree1(SyntaxNode node2, out SyntaxNode partner1)
         {
             bool result = _twoToOne.TryGetValue(node2, out partner1);
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
@@ -289,13 +292,13 @@ namespace Microsoft.CodeAnalysis.Differencing
             return result;
         }
 
-        internal bool HasPartnerInTree1(TNode node2)
+        internal bool HasPartnerInTree1(SyntaxNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
             return _twoToOne.ContainsKey(node2);
         }
 
-        internal bool TryGetPartnerInTree2(TNode node1, out TNode partner2)
+        internal bool TryGetPartnerInTree2(SyntaxNode node1, out SyntaxNode partner2)
         {
             bool result = _oneToTwo.TryGetValue(node1, out partner2);
             Debug.Assert(_comparer.TreesEqual(node1, _root1));
@@ -303,85 +306,50 @@ namespace Microsoft.CodeAnalysis.Differencing
             return result;
         }
 
-        internal bool HasPartnerInTree2(TNode node1)
+        internal bool HasPartnerInTree2(SyntaxNode node1)
         {
             Debug.Assert(_comparer.TreesEqual(node1, _root1));
             return _oneToTwo.ContainsKey(node1);
         }
 
-        internal bool Contains(TNode node1, TNode node2)
+        internal bool Contains(SyntaxNode node1, SyntaxNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
 
-            TNode partner2;
+            SyntaxNode partner2;
             return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
         }
 
-        public TreeComparer<TNode> Comparer
-        {
-            get
-            {
-                return _comparer;
-            }
-        }
+        internal TreeComparer Comparer => _comparer;
 
-        public TNode OldRoot
-        {
-            get
-            {
-                return _root1;
-            }
-        }
+        public SyntaxNode OldRoot => _root1;
 
-        public TNode NewRoot
-        {
-            get
-            {
-                return _root2;
-            }
-        }
+        public SyntaxNode NewRoot => _root2;
 
-        public IReadOnlyDictionary<TNode, TNode> Matches
-        {
-            get
-            {
-                return new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
-            }
-        }
+        public IReadOnlyDictionary<SyntaxNode, SyntaxNode> Matches 
+            => new ReadOnlyDictionary<SyntaxNode, SyntaxNode>(_oneToTwo);
 
-        public IReadOnlyDictionary<TNode, TNode> ReverseMatches
-        {
-            get
-            {
-                return new ReadOnlyDictionary<TNode, TNode>(_twoToOne);
-            }
-        }
+        public IReadOnlyDictionary<SyntaxNode, SyntaxNode> ReverseMatches
+            => new ReadOnlyDictionary<SyntaxNode, SyntaxNode>(_twoToOne);
 
-        public bool TryGetNewNode(TNode oldNode, out TNode newNode)
-        {
-            return _oneToTwo.TryGetValue(oldNode, out newNode);
-        }
+        public bool TryGetNewNode(SyntaxNode oldNode, out SyntaxNode newNode) 
+            => _oneToTwo.TryGetValue(oldNode, out newNode);
 
-        public bool TryGetOldNode(TNode newNode, out TNode oldNode)
-        {
-            return _twoToOne.TryGetValue(newNode, out oldNode);
-        }
+        public bool TryGetOldNode(SyntaxNode newNode, out SyntaxNode oldNode)
+            => _twoToOne.TryGetValue(newNode, out oldNode);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform <see cref="OldRoot"/> subtree 
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
-        public EditScript<TNode> GetTreeEdits()
-        {
-            return new EditScript<TNode>(this);
-        }
+        public SyntaxEditScript GetTreeEdits() => new SyntaxEditScript(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>
         /// to a sequence of nodes <paramref name="newNodes"/>. 
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="oldNodes"/> or <paramref name="newNodes"/> is a null reference.</exception>
-        public IEnumerable<Edit<TNode>> GetSequenceEdits(IEnumerable<TNode> oldNodes, IEnumerable<TNode> newNodes)
+        internal IEnumerable<SyntaxEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
         {
             if (oldNodes == null)
             {
@@ -393,8 +361,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                 throw new ArgumentNullException(nameof(newNodes));
             }
 
-            var oldList = (oldNodes as IReadOnlyList<TNode>) ?? oldNodes.ToList();
-            var newList = (newNodes as IReadOnlyList<TNode>) ?? newNodes.ToList();
+            var oldList = (oldNodes as IReadOnlyList<SyntaxNode>) ?? oldNodes.ToList();
+            var newList = (newNodes as IReadOnlyList<SyntaxNode>) ?? newNodes.ToList();
 
             return new LongestCommonSubsequence(this).GetEdits(oldList, newList);
         }

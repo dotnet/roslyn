@@ -9,10 +9,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -475,12 +476,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
         }
 
-        protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
+        protected override SyntaxMatch ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
         {
             return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
         }
 
-        protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> knownMatches)
+        protected override SyntaxMatch ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> knownMatches)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
@@ -514,10 +515,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newBody.IsKind(SyntaxKind.Block));
                 Debug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
 
-                return StatementSyntaxComparer.Default.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                return StatementSyntaxComparer.Instance.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
-            return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches);
+            return StatementSyntaxComparer.Instance.ComputeMatch(oldBody, newBody, knownMatches);
         }
 
         protected override bool TryMatchActiveStatement(
@@ -857,14 +858,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 || ((TypeDeclarationSyntax)syntaxRefs.Single().GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword);
         }
 
-        protected override ISymbol GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken)
+        protected override ISymbol GetSymbolForEdit(SemanticModel model, SyntaxNode node, SyntaxEditKind editKind, Dictionary<SyntaxNode, SyntaxEditKind> editMap, CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.Parameter))
             {
                 return null;
             }
 
-            if (editKind == EditKind.Update)
+            if (editKind == SyntaxEditKind.Update)
             {
                 if (node.IsKind(SyntaxKind.EnumDeclaration))
                 {
@@ -890,14 +891,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return model.GetDeclaredSymbol(node, cancellationToken);
         }
 
-        protected override bool TryGetDeclarationBodyEdit(Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap, out SyntaxNode oldBody, out SyntaxNode newBody)
+        protected override bool TryGetDeclarationBodyEdit(SyntaxEdit edit, Dictionary<SyntaxNode, SyntaxEditKind> editMap, out SyntaxNode oldBody, out SyntaxNode newBody)
         {
             // Detect a transition between a property/indexer with an expression body and with an explicit getter.
             // int P => old_body;              <->      int P { get { new_body } } 
             // int this[args] => old_body;     <->      int this[args] { get { new_body } }     
 
             // First, return getter or expression body for property/indexer update:
-            if (edit.Kind == EditKind.Update && (edit.OldNode.IsKind(SyntaxKind.PropertyDeclaration) || edit.OldNode.IsKind(SyntaxKind.IndexerDeclaration)))
+            if (edit.Kind == SyntaxEditKind.Update && (edit.OldNode.IsKind(SyntaxKind.PropertyDeclaration) || edit.OldNode.IsKind(SyntaxKind.IndexerDeclaration)))
             {
                 oldBody = SyntaxUtilities.TryGetEffectiveGetterBody(edit.OldNode);
                 newBody = SyntaxUtilities.TryGetEffectiveGetterBody(edit.NewNode);
@@ -918,16 +919,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return base.TryGetDeclarationBodyEdit(edit, editMap, out oldBody, out newBody);
         }
 
-        private static bool IsGetterToExpressionBodyTransformation(EditKind editKind, SyntaxNode node, Dictionary<SyntaxNode, EditKind> editMap)
+        private static bool IsGetterToExpressionBodyTransformation(SyntaxEditKind editKind, SyntaxNode node, Dictionary<SyntaxNode, SyntaxEditKind> editMap)
         {
-            if ((editKind == EditKind.Insert || editKind == EditKind.Delete) && node.IsKind(SyntaxKind.GetAccessorDeclaration))
+            if ((editKind == SyntaxEditKind.Insert || editKind == SyntaxEditKind.Delete) && node.IsKind(SyntaxKind.GetAccessorDeclaration))
             {
                 Debug.Assert(node.Parent.IsKind(SyntaxKind.AccessorList));
                 Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration) || node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
 
-                EditKind parentEdit;
+                SyntaxEditKind parentEdit;
                 return editMap.TryGetValue(node.Parent, out parentEdit) && parentEdit == editKind &&
-                       editMap.TryGetValue(node.Parent.Parent, out parentEdit) && parentEdit == EditKind.Update;
+                       editMap.TryGetValue(node.Parent.Parent, out parentEdit) && parentEdit == SyntaxEditKind.Update;
             }
 
             return false;
@@ -1056,18 +1057,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SymbolDisplayFormat ErrorDisplayFormat => SymbolDisplayFormat.CSharpErrorMessageFormat;
 
-        protected override TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind)
+        protected override TextSpan GetDiagnosticSpan(SyntaxNode node, SyntaxEditKind editKind)
         {
             return GetDiagnosticSpanImpl(node, editKind);
         }
 
-        private static TextSpan GetDiagnosticSpanImpl(SyntaxNode node, EditKind editKind)
+        private static TextSpan GetDiagnosticSpanImpl(SyntaxNode node, SyntaxEditKind editKind)
         {
             return GetDiagnosticSpanImpl(node.Kind(), node, editKind);
         }
 
         // internal for testing; kind is passed explicitly for testing as well
-        internal static TextSpan GetDiagnosticSpanImpl(SyntaxKind kind, SyntaxNode node, EditKind editKind)
+        internal static TextSpan GetDiagnosticSpanImpl(SyntaxKind kind, SyntaxNode node, SyntaxEditKind editKind)
         {
             switch (kind)
             {
@@ -1170,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.TypeParameterList:
                 case SyntaxKind.ParameterList:
                 case SyntaxKind.BracketedParameterList:
-                    if (editKind == EditKind.Delete)
+                    if (editKind == SyntaxEditKind.Delete)
                     {
                         return GetDiagnosticSpanImpl(node.Parent, editKind);
                     }
@@ -1187,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AttributeList:
                     var attributeList = (AttributeListSyntax)node;
-                    if (editKind == EditKind.Update)
+                    if (editKind == SyntaxEditKind.Update)
                     {
                         return (attributeList.Target != null) ? attributeList.Target.Span : attributeList.Span;
                     }
@@ -1372,12 +1373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind)
+        protected override string GetTopLevelDisplayName(SyntaxNode node, SyntaxEditKind editKind)
         {
             return GetTopLevelDisplayNameImpl(node, editKind);
         }
 
-        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind)
+        protected override string GetStatementDisplayName(SyntaxNode node, SyntaxEditKind editKind)
         {
             return GetStatementDisplayNameImpl(node);
         }
@@ -1388,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         // internal for testing
-        internal static string GetTopLevelDisplayNameImpl(SyntaxNode node, EditKind editKind)
+        internal static string GetTopLevelDisplayNameImpl(SyntaxNode node, SyntaxEditKind editKind)
         {
             switch (node.Kind())
             {
@@ -1496,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
+                    return (editKind == SyntaxEditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
@@ -1599,10 +1600,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             private readonly CSharpEditAndContinueAnalyzer _analyzer;
             private readonly List<RudeEditDiagnostic> _diagnostics;
-            private readonly Match<SyntaxNode> _match;
+            private readonly SyntaxMatch _match;
             private readonly SyntaxNode _oldNode;
             private readonly SyntaxNode _newNode;
-            private readonly EditKind _kind;
+            private readonly SyntaxEditKind _kind;
             private readonly TextSpan? _span;
 
             public EditClassifier(
@@ -1610,8 +1611,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 List<RudeEditDiagnostic> diagnostics,
                 SyntaxNode oldNode,
                 SyntaxNode newNode,
-                EditKind kind,
-                Match<SyntaxNode> match = null,
+                SyntaxEditKind kind,
+                SyntaxMatch match = null,
                 TextSpan? span = null)
             {
                 _analyzer = analyzer;
@@ -1658,23 +1659,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 switch (_kind)
                 {
-                    case EditKind.Delete:
+                    case SyntaxEditKind.Delete:
                         ClassifyDelete(_oldNode);
                         return;
 
-                    case EditKind.Update:
+                    case SyntaxEditKind.Update:
                         ClassifyUpdate(_oldNode, _newNode);
                         return;
 
-                    case EditKind.Move:
+                    case SyntaxEditKind.Move:
                         ClassifyMove(_oldNode, _newNode);
                         return;
 
-                    case EditKind.Insert:
+                    case SyntaxEditKind.Insert:
                         ClassifyInsert(_newNode);
                         return;
 
-                    case EditKind.Reorder:
+                    case SyntaxEditKind.Reorder:
                         ClassifyReorder(_oldNode, _newNode);
                         return;
 
@@ -2694,9 +2695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportSyntacticRudeEdits(
             List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match,
-            Edit<SyntaxNode> edit,
-            Dictionary<SyntaxNode, EditKind> editMap)
+            SyntaxMatch match,
+            SyntaxEdit edit,
+            Dictionary<SyntaxNode, SyntaxEditKind> editMap)
         {
             if (HasParentEdit(editMap, edit))
             {
@@ -2709,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
         {
-            var classifier = new EditClassifier(this, diagnostics, null, newMember, EditKind.Update, span: span);
+            var classifier = new EditClassifier(this, diagnostics, null, newMember, SyntaxEditKind.Update, span: span);
 
             classifier.ClassifyMemberBodyRudeUpdate(
                 newMember as MethodDeclarationSyntax,
@@ -2780,16 +2781,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportEnclosingExceptionHandlingRudeEdits(
             List<RudeEditDiagnostic> diagnostics,
-            IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
+            IEnumerable<SyntaxEdit> exceptionHandlingEdits,
             SyntaxNode oldStatement,
             TextSpan newStatementSpan)
         {
             foreach (var edit in exceptionHandlingEdits)
             {
                 // try/catch/finally have distinct labels so only the nodes of the same kind may match:
-                Debug.Assert(edit.Kind != EditKind.Update || edit.OldNode.RawKind == edit.NewNode.RawKind);
+                Debug.Assert(edit.Kind != SyntaxEditKind.Update || edit.OldNode.RawKind == edit.NewNode.RawKind);
 
-                if (edit.Kind != EditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
+                if (edit.Kind != SyntaxEditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
                 {
                     AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
                 }
@@ -2892,7 +2893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.Update,
                     newNode.Span,
                     newNode,
-                    new[] { GetStatementDisplayName(newNode, EditKind.Update) }));
+                    new[] { GetStatementDisplayName(newNode, SyntaxEditKind.Update) }));
             }
             else if (newNode.IsKind(SyntaxKind.AwaitExpression))
             {
@@ -3014,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportOtherRudeEditsAroundActiveStatement(
             List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match,
+            SyntaxMatch match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isLeaf)
@@ -3080,7 +3081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private void ReportRudeEditsForAncestorsDeclaringInterStatementTemps(
             List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match,
+            SyntaxMatch match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isLeaf)

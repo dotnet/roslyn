@@ -6,9 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifyRudeDiagnostics(
-            EditScript<SyntaxNode> editScript,
+            SyntaxEditScript editScript,
             ActiveStatementsDescription description,
             RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifyLineEdits(
-            EditScript<SyntaxNode> editScript,
+            SyntaxEditScript editScript,
             IEnumerable<LineChange> expectedLineEdits,
             IEnumerable<string> expectedNodeUpdates,
             RudeEditDiagnosticDescription[] expectedDiagnostics)
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
-            EditScript<SyntaxNode> editScript,
+            SyntaxEditScript editScript,
             ActiveStatementsDescription activeStatements,
             IEnumerable<string> additionalOldSources,
             IEnumerable<string> additionalNewSources,
@@ -366,7 +365,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
         }
 
-        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
+        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, SyntaxMatch bodyMatch)
         {
             Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
             var map = analyzer.ComputeMap(bodyMatch, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
@@ -386,7 +385,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return result;
         }
 
-        public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
+        public static MatchingPairs ToMatchingPairs(SyntaxMatch match)
         {
             return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
         }
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
     internal static class EditScriptTestUtils
     {
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
+        public static void VerifyEdits(this SyntaxEditScript actual, params string[] expected)
         {
             AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
         }

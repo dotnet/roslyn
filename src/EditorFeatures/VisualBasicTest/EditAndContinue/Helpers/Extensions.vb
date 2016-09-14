@@ -1,10 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
+Imports Microsoft.CodeAnalysis.SyntaxDifferencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -24,20 +24,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Extension>
-        Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifyRudeDiagnostics(editScript As SyntaxEditScript,
                                          ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
             VerifyRudeDiagnostics(editScript, ActiveStatementsDescription.Empty, expectedDiagnostics)
         End Sub
 
         <Extension>
-        Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifyRudeDiagnostics(editScript As SyntaxEditScript,
                                          description As ActiveStatementsDescription,
                                          ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
             VisualBasicEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(editScript, description, expectedDiagnostics)
         End Sub
 
         <Extension>
-        Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifyLineEdits(editScript As SyntaxEditScript,
                                    expectedLineEdits As IEnumerable(Of LineChange),
                                    expectedNodeUpdates As IEnumerable(Of String),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
@@ -45,13 +45,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Extension>
-        Friend Sub VerifySemanticDiagnostics(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifySemanticDiagnostics(editScript As SyntaxEditScript,
                                              ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
             VerifySemantics(editScript, ActiveStatementsDescription.Empty, Nothing, expectedDiagnostics)
         End Sub
 
         <Extension>
-        Friend Sub VerifySemantics(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifySemantics(editScript As SyntaxEditScript,
                                    activeStatements As ActiveStatementsDescription,
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         <Extension>
-        Friend Sub VerifySemantics(editScript As EditScript(Of SyntaxNode),
+        Friend Sub VerifySemantics(editScript As SyntaxEditScript,
                                    activeStatements As ActiveStatementsDescription,
                                    additionalOldSources As IEnumerable(Of String),
                                    additionalNewSources As IEnumerable(Of String),

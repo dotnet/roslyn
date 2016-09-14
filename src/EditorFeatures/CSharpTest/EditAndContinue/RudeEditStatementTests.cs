@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
@@ -79,7 +80,7 @@ Console.WriteLine(2);
             var m2 = MakeMethodBody(src2);
 
             var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = StatementSyntaxComparer.Instance.ComputeMatch(m1, m2, knownMatches);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -795,7 +796,7 @@ Console.WriteLine(1)/*4*/;
 
             // pre-matched:
 
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = StatementSyntaxComparer.Instance.ComputeMatch(m1, m2, knownMatches);
 
             var actual = ToMatchingPairs(match);
 
@@ -809,7 +810,7 @@ Console.WriteLine(1)/*4*/;
 
             // not pre-matched:
 
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2);
+            match = StatementSyntaxComparer.Instance.ComputeMatch(m1, m2);
 
             actual = ToMatchingPairs(match);
 

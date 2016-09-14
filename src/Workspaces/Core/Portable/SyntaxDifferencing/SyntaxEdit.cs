@@ -4,27 +4,30 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Differencing
+namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 {
     /// <summary>
     /// Represents an edit operation on a tree or a sequence of nodes.
     /// </summary>
-    /// <typeparam name="TNode">Tree node.</typeparam>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct Edit<TNode> : IEquatable<Edit<TNode>>
+    internal struct SyntaxEdit : IEquatable<SyntaxEdit>
     {
-        private readonly TreeComparer<TNode> _comparer;
-        private readonly EditKind _kind;
-        private readonly TNode _oldNode;
-        private readonly TNode _newNode;
+        private readonly TreeComparer _comparer;
+        private readonly SyntaxEditKind _kind;
+        private readonly SyntaxNode _oldNode;
+        private readonly SyntaxNode _newNode;
 
-        internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
+        internal SyntaxEdit(
+            SyntaxEditKind kind,
+            TreeComparer comparer,
+            SyntaxNode oldNode,
+            SyntaxNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(default(SyntaxNode))) == (kind == SyntaxEditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(default(SyntaxNode))) == (kind == SyntaxEditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) ||
-                         (newNode == null || newNode.Equals(default(TNode))) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(default(SyntaxNode))) ||
+                         (newNode == null || newNode.Equals(default(SyntaxNode))) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -33,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Differencing
             _newNode = newNode;
         }
 
-        public EditKind Kind { get { return _kind; } }
+        public SyntaxEditKind Kind => _kind;
 
         /// <summary>
         /// Insert: 
-        /// default(TNode).
+        /// default(SyntaxNode).
         /// 
         /// Delete: 
         /// Deleted node.
@@ -45,26 +48,26 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return _oldNode; } }
+        public SyntaxNode OldNode => _oldNode;
 
         /// <summary>
         /// Insert: 
         /// Inserted node.
         /// 
         /// Delete: 
-        /// default(TNode)
+        /// default(SyntaxNode)
         /// 
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return _newNode; } }
+        public SyntaxNode NewNode => _newNode;
 
         public override bool Equals(object obj)
         {
-            return obj is Edit<TNode> && Equals((Edit<TNode>)obj);
+            return obj is SyntaxEdit && Equals((SyntaxEdit)obj);
         }
 
-        public bool Equals(Edit<TNode> other)
+        public bool Equals(SyntaxEdit other)
         {
             return _kind == other._kind
                 && (_oldNode == null) ? other._oldNode == null : _oldNode.Equals(other._oldNode)
@@ -93,24 +96,24 @@ namespace Microsoft.CodeAnalysis.Differencing
             string result = Kind.ToString();
             switch (Kind)
             {
-                case EditKind.Delete:
+                case SyntaxEditKind.Delete:
                     return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode);
 
-                case EditKind.Insert:
+                case SyntaxEditKind.Insert:
                     return result + " [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
 
-                case EditKind.Update:
+                case SyntaxEditKind.Update:
                     return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
 
-                case EditKind.Move:
-                case EditKind.Reorder:
+                case SyntaxEditKind.Move:
+                case SyntaxEditKind.Reorder:
                     return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> " + DisplayPosition(_newNode);
             }
 
             return result;
         }
 
-        private string DisplayPosition(TNode node)
+        private string DisplayPosition(SyntaxNode node)
         {
             return "@" + _comparer.GetSpan(node).Start;
         }

@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Differencing
+namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 {
     /// <summary>
     /// Represents an edit operation on a sequence of values.
@@ -26,47 +26,35 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         /// <summary>
-        /// The kind of edit: <see cref="EditKind.Delete"/>, <see cref="EditKind.Insert"/>, or <see cref="EditKind.Update"/>.
+        /// The kind of edit: <see cref="SyntaxEditKind.Delete"/>, <see cref="SyntaxEditKind.Insert"/>, or <see cref="SyntaxEditKind.Update"/>.
         /// </summary>
-        public EditKind Kind
+        public SyntaxEditKind Kind
         {
             get
             {
                 if (_oldIndex == -1)
                 {
-                    return EditKind.Insert;
+                    return SyntaxEditKind.Insert;
                 }
 
                 if (_newIndex == -1)
                 {
-                    return EditKind.Delete;
+                    return SyntaxEditKind.Delete;
                 }
 
-                return EditKind.Update;
+                return SyntaxEditKind.Update;
             }
         }
 
         /// <summary>
         /// Index in the old sequence, or -1 if the edit is insert.
         /// </summary>
-        public int OldIndex
-        {
-            get
-            {
-                return _oldIndex;
-            }
-        }
+        public int OldIndex => _oldIndex;
 
         /// <summary>
         /// Index in the new sequence, or -1 if the edit is delete.
         /// </summary>
-        public int NewIndex
-        {
-            get
-            {
-                return _newIndex;
-            }
-        }
+        public int NewIndex => _newIndex;
 
         public bool Equals(SequenceEdit other)
         {
@@ -90,13 +78,13 @@ namespace Microsoft.CodeAnalysis.Differencing
             string result = Kind.ToString();
             switch (Kind)
             {
-                case EditKind.Delete:
+                case SyntaxEditKind.Delete:
                     return result + " (" + _oldIndex + ")";
 
-                case EditKind.Insert:
+                case SyntaxEditKind.Insert:
                     return result + " (" + _newIndex + ")";
 
-                case EditKind.Update:
+                case SyntaxEditKind.Update:
                     return result + " (" + _oldIndex + " -> " + _newIndex + ")";
             }
 

@@ -3,8 +3,7 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
     Friend NotInheritable Class StatementSyntaxComparer
         Inherits SyntaxComparer
 

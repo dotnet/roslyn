@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options: options);
         }
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, ParseOptions options = null)
+        internal static SyntaxEditScript GetTopEdits(string src1, string src2, ParseOptions options = null)
         {
             var tree1 = ParseSource(src1, options: options);
             var tree2 = ParseSource(src2, options: options);
@@ -60,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match.GetTreeEdits();
         }
 
-        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
+        internal static SyntaxEditScript GetMethodEdits(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
             var match = GetMethodMatch(src1, src2, options, kind);
             return match.GetTreeEdits();
         }
 
-        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
+        internal static SyntaxMatch GetMethodMatch(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
             var m1 = MakeMethodBody(src1, options, kind);
             var m2 = MakeMethodBody(src2, options, kind);
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
-        public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
+        internal static MatchingPairs ToMatchingPairs(SyntaxMatch match)
         {
             return EditAndContinueTestHelpers.ToMatchingPairs(match);
         }
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return new SyntaxMapDescription(oldSource, newSource);
         }
 
-        internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
+        internal static void VerifyPreserveLocalVariables(SyntaxEditScript edits, bool preserveLocalVariables)
         {
             var decl1 = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
             var body1 = ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(decl1).GetRoot()).Body;

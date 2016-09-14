@@ -52,6 +52,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
+      <Link>Utilities\LambdaUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />
@@ -215,6 +218,10 @@
     <Compile Include="Simplification\CSharpSimplificationService.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.Expander.cs" />
     <Compile Include="Simplification\CSharpSimplificationService.NodesAndTokensToReduceComputer.cs" />
+    <Compile Include="SyntaxDifferencing\CSharpSyntaxDifferenceService.cs" />
+    <Compile Include="SyntaxDifferencing\StatementSyntaxComparer.cs" />
+    <Compile Include="SyntaxDifferencing\SyntaxComparer.cs" />
+    <Compile Include="SyntaxDifferencing\TopSyntaxComparer.cs" />
     <Compile Include="Utilities\CompilationOptionsConversion.cs" />
     <Compile Include="Utilities\FormattingRangeHelper.cs" />
     <Compile Include="Utilities\NameSyntaxComparer.cs" />

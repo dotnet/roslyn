@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.SyntaxDifferencing;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Reverse = reverseMap;
         }
 
-        public static BidirectionalMap<T> FromMatch(Match<T> match)
+        public static BidirectionalMap<SyntaxNode> FromMatch(SyntaxMatch match)
         {
-            return new BidirectionalMap<T>(match.Matches, match.ReverseMatches);
+            return new BidirectionalMap<SyntaxNode>(match.Matches, match.ReverseMatches);
         }
 
         public bool IsDefaultOrEmpty => Forward == null || Forward.Count == 0;

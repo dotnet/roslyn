@@ -83,9 +83,6 @@
     <Compile Include="UtilityTest\SpellCheckerTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
-    <Compile Include="Differencing\MatchTests.cs" />
-    <Compile Include="Differencing\TestNode.cs" />
-    <Compile Include="Differencing\TestTreeComparer.cs" />
     <Compile Include="UtilityTest\DocumentationCommentIdTests.cs" />
     <Compile Include="UtilityTest\DocumentationCommentTests.cs" />
     <Compile Include="UtilityTest\EditDistanceTests.cs" />

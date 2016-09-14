@@ -2,8 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
     Friend NotInheritable Class TopSyntaxComparer
         Inherits SyntaxComparer
 

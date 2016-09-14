@@ -1,11 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.SyntaxDifferencing
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options)
         End Function
 
-        Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetTopEdits(src1 As String, src2 As String) As SyntaxEditScript
             Dim tree1 = ParseSource(src1)
             Dim tree2 = ParseSource(src2)
 
@@ -48,12 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxEditScript
             Dim match = GetMethodMatch(src1, src2, options, stateMachine)
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As Match(Of SyntaxNode)
+        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxMatch
             Dim m1 = MakeMethodBody(src1, options, stateMachine)
             Dim m2 = MakeMethodBody(src2, options, stateMachine)
 
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch)
         End Function
 
-        Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs
+        Friend Shared Function ToMatchingPairs(match As SyntaxMatch) As MatchingPairs
             Return EditAndContinueTestHelpers.ToMatchingPairs(match)
         End Function
 

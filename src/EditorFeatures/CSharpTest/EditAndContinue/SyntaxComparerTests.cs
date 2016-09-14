@@ -2,7 +2,8 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
+using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Roslyn.Test.Utilities;
 using Xunit;
 

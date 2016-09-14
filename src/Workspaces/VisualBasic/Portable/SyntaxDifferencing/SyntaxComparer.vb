@@ -2,13 +2,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Differencing
+Imports Microsoft.CodeAnalysis.SyntaxDifferencing
 Imports Microsoft.CodeAnalysis.Text
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
     Friend MustInherit Class SyntaxComparer
-        Inherits TreeComparer(Of SyntaxNode)
+        Inherits TreeComparer
 
         Friend Const IgnoredNode As Integer = -1
 
