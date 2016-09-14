@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.TreeDifferencing
+namespace Microsoft.CodeAnalysis.Differencing
 {
     // Based on general algorithm described in  
     // "Change Detection in Hierarchically Structured Information"

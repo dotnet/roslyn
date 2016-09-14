@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.TreeDifferencing
+namespace Microsoft.CodeAnalysis.Differencing
 {
     /// <summary>
     /// Calculates Longest Common Subsequence.

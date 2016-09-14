@@ -2,7 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.TreeDifferencing
+Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing

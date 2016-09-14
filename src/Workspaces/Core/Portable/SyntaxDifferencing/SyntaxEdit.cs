@@ -2,8 +2,7 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.TreeDifferencing;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Differencing;
 
 namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 {

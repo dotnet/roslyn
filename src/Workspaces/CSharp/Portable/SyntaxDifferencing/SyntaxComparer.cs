@@ -3,8 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TreeDifferencing;
 
 namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
 {

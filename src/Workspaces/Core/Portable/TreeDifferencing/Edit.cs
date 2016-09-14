@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TreeDifferencing
+namespace Microsoft.CodeAnalysis.Differencing
 {
     /// <summary>
     /// Represents an edit operation on a tree or a sequence of nodes.
