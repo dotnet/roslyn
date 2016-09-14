@@ -10,6 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CodeStyle;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
@@ -38,7 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden));
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        public bool OpenFileOnly(Workspace workspace) => true;
+
+        public bool OpenFileOnly(Workspace workspace)
+        {
+            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
+            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
+            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
+
+            return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
+                     whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
+                     wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
+        }
 
         public override void Initialize(AnalysisContext context)
         {
