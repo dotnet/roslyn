@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(compiler._indentDepth == 0);
                     writer?.Flush();
                 }
-                catch (IOException e)
+                catch (Exception e)
                 {
                     diagnostics.Add(ErrorCode.ERR_DocFileGen, Location.None, e.Message);
                 }
