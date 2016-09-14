@@ -3191,7 +3191,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Public Sub TupleTypeWithLateDiscoveredName()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation name="Tuples">
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3201,23 +3201,12 @@ Module C
 End Module
 
 ]]></file>
-</compilation>)
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                 ~~~~~~~~~~~~~~~~~~~~~~
-BC37258: Tuple member names must all be provided, if any one is provided.
-        Dim x As (Integer, A As String) = (1, "hello", C:=2)
-                                          ~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,)' is not defined or imported.
+BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to '(Integer, A As String)'.
         Dim x As (Integer, A As String) = (1, "hello", C:=2)
                                           ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -5038,6 +5027,28 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub CreateTupleTypeSymbol_WithSomeNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, stringType, intType)
+
+            Dim tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(Nothing, "Item2", "Charlie"))
+
+            Assert.True(tupleWithSomeNames.IsTupleType)
+            Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.TupleUnderlyingType.Kind)
+            Assert.Equal("(System.Int32, Item2 As System.String, Charlie As System.Int32)", tupleWithSomeNames.ToTestDisplayString())
+            Assert.Equal(New String() {Nothing, "Item2", "Charlie"}, tupleWithSomeNames.TupleElementNames)
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"},
+                         tupleWithSomeNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+            Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind)
+
+        End Sub
+
+        <Fact>
         Public Sub CreateTupleTypeSymbol_WithBadNames()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -5144,6 +5155,30 @@ End Class
                          tuple9WithNames.ToTestDisplayString())
 
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, tuple9WithNames.TupleElementNames)
+
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
+                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_Tuple9WithDefaultNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+
+            Dim vt9 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest).
+                Construct(intType, stringType, intType, stringType, intType, stringType, intType,
+                                       comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(stringType, intType))
+
+            Dim tuple9WithNames = comp.CreateTupleTypeSymbol(vt9, ImmutableArray.Create("Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"))
+
+            Assert.True(tuple9WithNames.IsTupleType)
+            Assert.Equal("(Item1 As System.Int32, Item2 As System.String, Item3 As System.Int32, Item4 As System.String, Item5 As System.Int32, Item6 As System.String, Item7 As System.Int32, Item8 As System.String, Item9 As System.Int32)",
+                         tuple9WithNames.ToTestDisplayString())
+
+            Assert.Equal(New String() {"Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"}, tuple9WithNames.TupleElementNames)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
                          tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
@@ -7253,6 +7288,26 @@ End Module
         ~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub TupleLiteralWithOnlySomeNames()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        Dim t As (Integer, String, Integer) = (1, b:="hello", Item3:=3)
+        console.write($"{t.Item1} {t.Item2} {t.Item3}")
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="1 hello 3")
+
+        End Sub
+
     End Class
 
 End Namespace
