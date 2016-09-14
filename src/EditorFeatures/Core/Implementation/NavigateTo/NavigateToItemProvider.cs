@@ -1,6 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -12,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly ImmutableArray<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> _optionsServices;
         private readonly ItemDisplayFactory _displayFactory;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -19,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public NavigateToItemProvider(
             Workspace workspace,
             IGlyphService glyphService,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> optionsServices)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(glyphService);
@@ -27,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             _workspace = workspace;
             _asyncListener = asyncListener;
+            _optionsServices = optionsServices.ToImmutableArray();
             _displayFactory = new ItemDisplayFactory(new NavigateToIconFactory(glyphService));
         }
 
@@ -52,12 +59,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return;
             }
 
+            var optionsService = _optionsServices.Length > 0
+                ? VersionSelector.SelectHighest(_optionsServices)
+                : null;
+            var searchCurrentDocument = optionsService?.GetSearchCurrentDocument(callback.Options) ?? false;
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
                 _displayFactory,
                 callback,
                 searchValue,
+                searchCurrentDocument,
                 _cancellationTokenSource.Token);
 
             searcher.Search();

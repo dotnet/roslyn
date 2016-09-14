@@ -70,8 +70,7 @@
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
-    <Compile Include="Structure\BlockTag2.cs" />
-    <Compile Include="Structure\IBlockTag2.cs" />
+    <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
   </ItemGroup>
   <ItemGroup />

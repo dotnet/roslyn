@@ -1,14 +1,14 @@
 ﻿{
-  "dependencies": {
-    "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
+    "dependencies": {
+        "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        }
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
     }
-  },
-  "frameworks": {
-    "net46": { }
-  },
-  "runtimes": {
-    "win7": { }
-  }
 }

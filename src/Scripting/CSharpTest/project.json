@@ -1,10 +1,10 @@
 {
-  "dependencies": {
-    "System.AppContext": "4.1.0"
-  },
-  "frameworks": {
-    "netstandard1.3": {
-      "imports": "portable-net452"
+    "dependencies": {
+        "System.AppContext": "4.1.0"
+    },
+    "frameworks": {
+        "netstandard1.3": {
+            "imports": "portable-net452"
+        }
     }
-  }
 }
