@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly object _gate = new object();
 
         /// <summary>
-        /// The map of cached contexts for currently open documents.
+        /// The map of cached contexts for currently open documents. Should only be accessed if holding a monitor lock
+        /// on <see cref="_gate"/>.
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
@@ -40,7 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     _openDocumentContexts.Remove(e.Document.Id);
 
                     // Ensure we dispose the context, which we'll do asynchronously
-                    contextTask.ContinueWith(t => t.Result.Dispose(), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    contextTask.ContinueWith(
+                        t => t.Result.Dispose(),
+                        CancellationToken.None,
+                        TaskContinuationOptions.OnlyOnRanToCompletion,
+                        TaskScheduler.Default);
                 }
             }
         }
@@ -64,25 +70,52 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             if (contextTask != null)
             {
-                // The file is open, let's reuse our cached data for that file. The task might still be running, but we want to allow for eager cancellation
-                // if the caller doesn't need it
-                await Task.WhenAny(contextTask, Task.FromCanceled(cancellationToken)).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                return new DocumentOptions(contextTask.Result);
+                // The file is open, let's reuse our cached data for that file. That task might be running, but we don't want to await
+                // it as awaiting it wouldn't respect the cancellation of our caller. By creating a trivial continuation like this
+                // that uses eager cancellation, if the cancellationToken is cancelled our await will end early.
+                var cancellableContextTask = contextTask.ContinueWith(
+                    t => t.Result,
+                    cancellationToken,
+                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+
+                var context = await cancellableContextTask.ConfigureAwait(false);
+                return new DocumentOptions(context.CurrentConventions);
             }
             else
             {
-                return null;
+                var path = document.FilePath;
+
+                // The file might not actually have a path yet, if it's a file being proposed by a code action. We'll guess a file path to use
+                if (path == null)
+                {
+                    if (document.Name != null && document.Project.FilePath != null)
+                    {
+                        path = Path.Combine(Path.GetDirectoryName(document.Project.FilePath), document.Name);
+                    }
+                    else
+                    {
+                        // Really no idea where this is going, so bail
+                        return null;
+                    }
+                }
+
+                // We don't have anything cached, so we'll just get it now lazily and not hold onto it. The workspace layer will ensure
+                // that we maintain snapshot rules for the document options.
+                using (var context = await _codingConventionsManager.GetConventionContextAsync(path, cancellationToken).ConfigureAwait(false))
+                {
+                    return new DocumentOptions(context.CurrentConventions);
+                }
             }
         }
 
         private class DocumentOptions : IDocumentOptions
         {
-            private ICodingConventionContext _codingConventionContext;
+            private ICodingConventionsSnapshot _codingConventionSnapshot;
 
-            public DocumentOptions(ICodingConventionContext codingConventionContext)
+            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
             {
-                _codingConventionContext = codingConventionContext;
+                _codingConventionSnapshot = codingConventionSnapshot;
             }
 
             public bool TryGetDocumentOption(Document document, OptionKey option, out object value)
@@ -95,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return false;
                 }
 
-                if (_codingConventionContext.CurrentConventions.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
+                if (_codingConventionSnapshot.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
                 {
                     value = editorConfigPersistence.ParseFunction(value.ToString());
                     return true;

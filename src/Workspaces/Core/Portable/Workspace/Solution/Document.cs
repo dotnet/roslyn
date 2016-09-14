@@ -456,6 +456,8 @@ namespace Microsoft.CodeAnalysis
             return this.Name;
         }
 
+        private AsyncLazy<DocumentOptionSet> _cachedOptions;
+
         /// <summary>
         /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
         /// merged with any settings the user has specified at the document levels.
@@ -463,12 +465,21 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
-        public async Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options, cancellationToken).ConfigureAwait(false);
+            if (_cachedOptions == null)
+            {
+                var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+                {
+                    var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                    var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options, c).ConfigureAwait(false);
+                    return new DocumentOptionSet(optionSet, Project.Language);
+                }, cacheResult: true);
 
-            return new DocumentOptionSet(optionSet, Project.Language);
+                Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
+            }
+
+            return _cachedOptions.GetValueAsync(cancellationToken);
         }
     }
 }
