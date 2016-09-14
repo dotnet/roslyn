@@ -74,6 +74,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\CodeLens\CodeLensArguments.cs">
+      <Link>CodeLens\CodeLensArguments.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
       <Link>Diagnostics\DiagnosticArguments.cs</Link>
     </Compile>
