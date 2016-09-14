@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly ItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
+            private readonly bool _searchCurrentDocument;
+            private readonly Document _currentDocument;
             private readonly ProgressTracker _progress;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly CancellationToken _cancellationToken;
@@ -30,15 +32,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 ItemDisplayFactory displayFactory,
                 INavigateToCallback callback,
                 string searchPattern,
+                bool searchCurrentDocument,
                 CancellationToken cancellationToken)
             {
                 _solution = solution;
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
+                _searchCurrentDocument = searchCurrentDocument;
                 _cancellationToken = cancellationToken;
                 _progress = new ProgressTracker(callback.ReportProgress);
                 _asyncListener = asyncListener;
+
+                if (_searchCurrentDocument)
+                {
+                    var documentService = _solution.Workspace.Services.GetService<IDocumentTrackingService>();
+                    var activeId = documentService.GetActiveDocument();
+                    _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
+                }
             }
 
             internal void Search()
@@ -73,6 +84,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             private async Task SearchAsync(Project project)
             {
+                try
+                {
+                    await SearchAsyncWorker(project).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _progress.ItemCompleted();
+                }
+            }
+
+            private async Task SearchAsyncWorker(Project project)
+            {
+                if (_searchCurrentDocument && _currentDocument?.Project != project)
+                {
+                    return;
+                }
+
                 var cacheService = project.Solution.Services.CacheService;
                 if (cacheService != null)
                 {
@@ -81,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         var service = project.LanguageServices.GetService<INavigateToSearchService>();
                         if (service != null)
                         {
-                            var results = await service.SearchProjectAsync(project, _searchPattern, _cancellationToken).ConfigureAwait(false);
+                            var searchTask = _currentDocument != null
+                                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _cancellationToken)
+                                : service.SearchProjectAsync(project, _searchPattern, _cancellationToken);
+
+                            var results = await searchTask.ConfigureAwait(false);
                             if (results != null)
                             {
                                 foreach (var result in results)
@@ -92,8 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                         }
                     }
                 }
-
-                _progress.ItemCompleted();
             }
 
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
