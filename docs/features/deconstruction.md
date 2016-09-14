@@ -65,7 +65,7 @@ class C
 ###Deconstruction-assignment (deconstruction into existing variables):
 
 This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-expression`.
-In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple literal or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
+In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple expression or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
 
 If the left-hand-side is nested the process will be repeated. For instance, in `(x, (y, z)) = deconstructable;`, `deconstructable` will be deconstructed into two parts and its second part will be further deconstructed. 
 
@@ -143,7 +143,7 @@ Also, the `Deconstruct` method must be an instance method or an extension (but n
 Deconstruction-declarations can be thought of as two steps: (1) declaring new locals, and (2) applying a deconstruction-assignment into those locals.
 The syntax for deconstruction is more involved and multiple forms are allowed. The simplest case is `(int x, string y)`. Variants include nested declarations like `(int x, (string y, long z))` (which declares 3 locals) and implicitly typed declarations like `(var x, var y)`. The latter can also be written using the shorthand `var (x, y)`.
 
-As in the case of deconstruction-declarations, tuple literals on the right-hand-side have their type inferred from the left-hand-side. With deconstruction-declaration, this is also the case, except that any type is `var` in the left-hand-side, then the natural type of the element in the right-hand-side is used.
+As in the case of deconstruction-declarations, tuple expressions on the right-hand-side have their type inferred from the left-hand-side. With deconstruction-declaration, this is also the case, except that any type is `var` in the left-hand-side, then the natural type of the element in the right-hand-side is used.
 For example, in `(string x, byte y, var z) = (null, 1, 2);`, `null` has type `string`, the literal `1` has type `byte` (inferred from `y`) and the literal `2` has type `int` (its natural type).
 
 ###Grammar changes
