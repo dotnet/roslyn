@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
     {
         public override string Language => LanguageNames.CSharp;
 
-        internal override SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody)
+        public override SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody)
         {
             return new SyntaxMatch(StatementSyntaxComparer.Instance.ComputeMatch(oldBody, newBody));
         }

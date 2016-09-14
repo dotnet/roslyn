@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
         /// </summary>
         public abstract SyntaxMatch ComputeTopLevelMatch(SyntaxNode oldRoot, SyntaxNode newRoot);
 
-        internal abstract SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody);
+        /// <summary>
+        /// Computes the set of edits that would transform <paramref name="oldBody"/> into
+        /// <paramref name="newody"/>.  These roots should correspond to the executable code
+        /// bodies of their respective declarations.  For example, a body would often be the
+        /// Expression or Block body of a MethodDeclarationSyntax.  However, it could also be
+        /// Expression or Block body of a LambdaSyntax.
+        /// </summary>
+        public abstract SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody);
     }
 }

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
             End Get
         End Property
 
-        Friend Overrides Function ComputeBodyLevelMatch(oldBody As SyntaxNode, newBody As SyntaxNode) As SyntaxMatch
+        Public Overrides Function ComputeBodyLevelMatch(oldBody As SyntaxNode, newBody As SyntaxNode) As SyntaxMatch
             Return New SyntaxMatch(StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody))
         End Function
 

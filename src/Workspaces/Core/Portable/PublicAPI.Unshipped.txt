@@ -47,6 +47,7 @@ Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged -> System.EventHan
 Microsoft.CodeAnalysis.Workspace.RaiseDocumentActiveContextChangedEventAsync(Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.ComputeBodyLevelMatch(Microsoft.CodeAnalysis.SyntaxNode oldBody, Microsoft.CodeAnalysis.SyntaxNode newBody) -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch
 abstract Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.ComputeTopLevelMatch(Microsoft.CodeAnalysis.SyntaxNode oldRoot, Microsoft.CodeAnalysis.SyntaxNode newRoot) -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch
 abstract Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.Language.get -> string
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(object obj) -> bool
