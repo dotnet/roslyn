@@ -145,44 +145,31 @@ The syntax for deconstruction is more involved and multiple forms are allowed. T
 
 TODO: infering types in tuple literals
 
-TODO: update the grammar
+###Grammar changes
+
 ```ANTLR
-declaration_statement
-    : local_variable_declaration ';'
-    | local_constant_declaration ';'
+deconstruction_declaration_statement // new
+    : modifiers variable_component_assignment ';'
+    ;
+    
+variable_component_assignment // new
+    : variable_component = expression
+    ;
+    
+variable_component // new
+    : type variable_designation
+    | '(' variable_component (',' variable_component)+ ')'
+    | '*' // wildcard (future)
     ;
 
-local_variable_declaration
-	: local_variable_type local_variable_declarators
-	| deconstruction_declaration // new
-	;
+variable_designation // new
+    : identifier
+    | '(' variable_designation (',' variable_designation)+ ')'
+    | '*' // wildcard (future)
+    ;
 
-deconstruction_declaration // new
-	: deconstruction_variables '=' expression
-	;
-
-deconstuction_variables
-	: '(' deconstuction_variables_nested (',' deconstuction_variables_nested)* ')'
-	| 'var' deconstruction_identifiers
-	;
-
-deconstuction_variables_nested // new
-	: deconstuction_variables
-	| type identifier
-	;
-
-deconstruction_identifiers
-	: '(' deconstruction_identifiers_nested (',' deconstruction_identifiers_nested)* ')'
-	;
-
-deconstruction_identifiers_nested // new
-	: deconstruction_identifiers
-	| identifier
-	;
-
-foreach_statement
-    : 'foreach' '(' local_variable_type identifier 'in' expression ')' embedded_statement
-    | 'foreach' '(' deconstruction_variables 'in' expression ')' embedded_statement // new
+foreach_component_statement // new
+    : 'foreach' '(' variable_component 'in' expression ')' embedded_statement
     ;
 
 for_statement
@@ -191,10 +178,12 @@ for_statement
 
 for_initializer
     : local_variable_declaration
-    | deconstruction_declaration // new
+    | variable_component_assignment // new
     | statement_expression_list
     ;
 ```
+
+Note that deconstruction-assignment doesn't introduce any new syntax. It is represented with an assignment into a tuple expression.
 
 **References**
 
