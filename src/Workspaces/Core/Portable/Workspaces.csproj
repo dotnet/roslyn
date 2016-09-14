@@ -563,7 +563,7 @@
     <Compile Include="Differencing\LongestCommonSubsequence.cs" />
     <Compile Include="Differencing\LongestCommonSubstring.cs" />
     <Compile Include="Differencing\Match.cs" />
-    <Compile Include="Differencing\SyntaxMatch.LongestCommonSubsequence.cs" />
+    <Compile Include="Differencing\Match.LongestCommonSubsequence.cs" />
     <Compile Include="Differencing\TreeComparer.cs" />
     <Compile Include="ExtensionManager\AbstractExtensionManager.cs" />
     <Compile Include="ExtensionManager\IExtensionManager.cs" />

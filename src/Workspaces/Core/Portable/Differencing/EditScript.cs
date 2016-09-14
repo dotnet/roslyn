@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// <summary>
     /// Represents a sequence of tree edits.
     /// </summary>
-    internal sealed partial class EditScript<TNode>
+    public sealed partial class EditScript<TNode>
     {
         private readonly Match<TNode> _match;
         private readonly ImmutableArray<Edit<TNode>> _edits;

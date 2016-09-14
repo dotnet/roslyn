@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
-    internal partial class Match<TNode>
+    public partial class Match<TNode>
     {
         internal sealed class LongestCommonSubsequence : LongestCommonSubsequence<IReadOnlyList<TNode>>
         {

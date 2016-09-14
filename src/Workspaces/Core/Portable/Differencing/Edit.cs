@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// Represents an edit operation on a tree or a sequence of nodes.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct Edit<TNode> : IEquatable<Edit<TNode>>
+    public struct Edit<TNode> : IEquatable<Edit<TNode>>
     {
         private readonly TreeComparer<TNode> _comparer;
         private readonly EditKind _kind;

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
-    internal sealed partial class Match<TNode>
+    public sealed partial class Match<TNode>
     {
         private const double ExactMatchDistance = 0.0;
         private const double EpsilonDistance = 0.00001;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
         }
 
-        internal TreeComparer<TNode> Comparer => _comparer;
+        public TreeComparer<TNode> Comparer => _comparer;
 
         public TNode OldRoot => _root1;
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// to a sequence of nodes <paramref name="newNodes"/>. 
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="oldNodes"/> or <paramref name="newNodes"/> is a null reference.</exception>
-        internal IEnumerable<Edit<TNode>> GetSequenceEdits(IEnumerable<TNode> oldNodes, IEnumerable<TNode> newNodes)
+        public IEnumerable<Edit<TNode>> GetSequenceEdits(IEnumerable<TNode> oldNodes, IEnumerable<TNode> newNodes)
         {
             if (oldNodes == null)
             {

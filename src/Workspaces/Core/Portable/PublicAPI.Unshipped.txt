@@ -1,45 +1,4 @@
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Equals(Microsoft.CodeAnalysis.Differencing.Edit<TNode> other) -> bool
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Kind.get -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.NewNode.get -> TNode
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.OldNode.get -> TNode
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.Delete = 3 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.Insert = 2 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.Move = 4 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.None = 0 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.Reorder = 5 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditKind.Update = 1 -> Microsoft.CodeAnalysis.Differencing.EditKind
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditScript<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditScript<TNode>.Edits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Differencing.Edit<TNode>>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.EditScript<TNode>.Match.get -> Microsoft.CodeAnalysis.Differencing.Match<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.Comparer.get -> Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.GetSequenceEdits(System.Collections.Generic.IEnumerable<TNode> oldNodes, System.Collections.Generic.IEnumerable<TNode> newNodes) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Differencing.Edit<TNode>>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.GetTreeEdits() -> Microsoft.CodeAnalysis.Differencing.EditScript<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.Matches.get -> System.Collections.Generic.IReadOnlyDictionary<TNode, TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.NewRoot.get -> TNode
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.OldRoot.get -> TNode
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.ReverseMatches.get -> System.Collections.Generic.IReadOnlyDictionary<TNode, TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.TryGetNewNode(TNode oldNode, out TNode newNode) -> bool
-*REMOVED*Microsoft.CodeAnalysis.Differencing.Match<TNode>.TryGetOldNode(TNode newNode, out TNode oldNode) -> bool
-*REMOVED*Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ComputeEditScript(TNode oldRoot, TNode newRoot) -> Microsoft.CodeAnalysis.Differencing.EditScript<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ComputeMatch(TNode oldRoot, TNode newRoot, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TNode, TNode>> knownMatches = null) -> Microsoft.CodeAnalysis.Differencing.Match<TNode>
-*REMOVED*Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TreeComparer() -> void
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetChildren(TNode node) -> System.Collections.Generic.IEnumerable<TNode>
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetDescendants(TNode node) -> System.Collections.Generic.IEnumerable<TNode>
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetDistance(TNode oldNode, TNode newNode) -> double
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetLabel(TNode node) -> int
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.GetSpan(TNode node) -> Microsoft.CodeAnalysis.Text.TextSpan
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.LabelCount.get -> int
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TiedToAncestor(int label) -> int
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TreesEqual(TNode oldNode, TNode newNode) -> bool
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TryGetParent(TNode node, out TNode parent) -> bool
-*REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ValuesEqual(TNode oldNode, TNode newNode) -> bool
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*override Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Differencing.Edit<TNode>.GetHashCode() -> int
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T> other) -> bool

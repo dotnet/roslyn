@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
-    internal enum EditKind
+    public enum EditKind
     {
         /// <summary>
         /// No change.
