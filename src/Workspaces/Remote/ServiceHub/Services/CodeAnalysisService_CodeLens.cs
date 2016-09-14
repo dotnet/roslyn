@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService
     {
-        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensArguments arguments, TextSpan textSpan, int maxResultCount, byte[] solutionChecksum)
+        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensArguments arguments, int maxResultCount, byte[] solutionChecksum)
         {
             try
             {
                 var documentId = arguments.GetDocumentId();
+                var textSpan = arguments.GetTextSpan();
+
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
                     var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
@@ -43,11 +45,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensArguments arguments, TextSpan textSpan, byte[] solutionChecksum)
+        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensArguments arguments, byte[] solutionChecksum)
         {
             try
             {
                 var documentId = arguments.GetDocumentId();
+                var textSpan = arguments.GetTextSpan();
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
@@ -73,11 +76,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(CodeLensArguments arguments, TextSpan textSpan, byte[] solutionChecksum)
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(CodeLensArguments arguments, byte[] solutionChecksum)
         {
             try
             {
                 var documentId = arguments.GetDocumentId();
+                var textSpan = arguments.GetTextSpan();
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
@@ -103,11 +107,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<string> GetFullyQualifiedName(CodeLensArguments arguments, TextSpan textSpan, byte[] solutionChecksum)
+        public async Task<string> GetFullyQualifiedName(CodeLensArguments arguments, byte[] solutionChecksum)
         {
             try
             {
                 var documentId = arguments.GetDocumentId();
+                var textSpan = arguments.GetTextSpan();
 
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, CancellationToken))
                 {

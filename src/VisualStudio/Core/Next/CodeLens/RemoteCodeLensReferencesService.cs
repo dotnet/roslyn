@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                return await session.InvokeAsync<ReferenceCount>(WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync, new CodeLensArguments(documentId), syntaxNode.Span, maxSearchResults).ConfigureAwait(false);
+                return await session.InvokeAsync<ReferenceCount>(WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync, new CodeLensArguments(documentId, syntaxNode), maxSearchResults).ConfigureAwait(false);
             }
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                return await session.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync, new CodeLensArguments(documentId), syntaxNode.Span).ConfigureAwait(false);
+                return await session.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                return await session.InvokeAsync<IEnumerable<ReferenceMethodDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync, new CodeLensArguments(documentId), syntaxNode.Span).ConfigureAwait(false);
+                return await session.InvokeAsync<IEnumerable<ReferenceMethodDescriptor>>(WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             // TODO: send telemetry on session
             using (var session = await remoteHostClient.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                return await session.InvokeAsync<string>(WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName, new CodeLensArguments(documentId), syntaxNode.Span).ConfigureAwait(false);
+                return await session.InvokeAsync<string>(WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName, new CodeLensArguments(documentId, syntaxNode)).ConfigureAwait(false);
             }
         }
     }
