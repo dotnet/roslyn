@@ -53,19 +53,27 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document)
+        public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             Task<ICodingConventionContext> contextTask;
 
             lock (_gate)
             {
-                if (!_openDocumentContexts.TryGetValue(document.Id, out contextTask))
-                {
-                    return null;
-                }
+                _openDocumentContexts.TryGetValue(document.Id, out contextTask);
             }
 
-            return new DocumentOptions(await contextTask.ConfigureAwait(false));
+            if (contextTask != null)
+            {
+                // The file is open, let's reuse our cached data for that file. The task might still be running, but we want to allow for eager cancellation
+                // if the caller doesn't need it
+                await Task.WhenAny(contextTask, Task.FromCanceled(cancellationToken)).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return new DocumentOptions(contextTask.Result);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private class DocumentOptions : IDocumentOptions

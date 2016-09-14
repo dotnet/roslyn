@@ -461,12 +461,12 @@ namespace Microsoft.CodeAnalysis
         /// merged with any settings the user has specified at the document levels.
         /// </summary>
         /// <remarks>
-        /// This method is async because this may require reading other files. It is expected this is cheap and synchronous in most cases due to caching.
+        /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
         public async Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options).ConfigureAwait(false);
+            var optionSet = await optionsService.GetAmendedOptionSetForDocumentAsync(this, Project.Solution.Options, cancellationToken).ConfigureAwait(false);
 
             return new DocumentOptionSet(optionSet, Project.Language);
         }

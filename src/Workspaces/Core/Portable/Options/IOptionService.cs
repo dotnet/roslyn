@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
@@ -49,6 +50,6 @@ namespace Microsoft.CodeAnalysis.Options
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
         void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
-        Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet);
+        Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

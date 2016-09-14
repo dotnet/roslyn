@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet)
+        public Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

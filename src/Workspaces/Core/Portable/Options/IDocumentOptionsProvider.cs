@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -21,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)
         /// should be done here. Can return a null-valued task to mean there is no options being provided for this document.
         /// </summary>
-        Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document);
+        Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
     }
 }

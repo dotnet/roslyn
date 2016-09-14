@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            public async Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet)
+            public async Task<OptionSet> GetAmendedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 ImmutableArray<IDocumentOptionsProvider> documentOptionsProviders;
 
@@ -146,7 +147,9 @@ namespace Microsoft.CodeAnalysis.Options
 
                 foreach (var provider in documentOptionsProviders)
                 {
-                    var documentOption = await provider.GetOptionsForDocumentAsync(document).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var documentOption = await provider.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
                     if (documentOption != null)
                     {
