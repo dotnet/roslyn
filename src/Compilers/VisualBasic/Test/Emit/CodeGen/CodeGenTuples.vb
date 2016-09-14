@@ -8198,6 +8198,26 @@ End Module
 
         End Sub
 
+        <Fact>
+        <WorkItem(13661, "https://github.com/dotnet/roslyn/issues/13661")>
+        Public Sub LongTupleWithPartialNames_Bug13661()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module C
+    Sub Main()
+        Dim t = (A:=1, B:=2, C:=3, D:=4, E:=5, F:=6, G:=7, 8, I:=9)
+        System.Console.Write($"{t.I}")
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="9")
+            ' No assert hit
+
+        End Sub
+
     End Class
 
 End Namespace
