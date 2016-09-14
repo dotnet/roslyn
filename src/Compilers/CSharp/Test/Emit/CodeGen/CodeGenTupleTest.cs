@@ -18044,7 +18044,7 @@ class C
 
         [Fact]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
-        public void GenericConstantFromReferencedAssembly()
+        public void ConstantTypeFromReferencedAssembly()
         {
             var libSource = @" public class ReferencedType { } ";
 
