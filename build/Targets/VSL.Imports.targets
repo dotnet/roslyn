@@ -365,7 +365,7 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\1.3.0-beta5-60518-02\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-beta5-60913-03\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
