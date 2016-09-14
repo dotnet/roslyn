@@ -970,9 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVarLocalPendingInference);
-
-                TypeSymbol argType = argument.Display as TypeSymbol;
-                Debug.Assert((object)argType != null);
+                Debug.Assert(argument.Display != null);
 
                 if (arguments.IsExtensionMethodThisArgument(arg))
                 {
@@ -986,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ErrorCode.ERR_BadExtensionArgTypes,
                             location,
                             symbols,
-                            argType,
+                            argument.Display,
                             name,
                             method);
                     }
@@ -997,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ErrorCode.ERR_BadInstanceArgType,
                             sourceLocation,
                             symbols,
-                            argType,
+                            argument.Display,
                             name,
                             method,
                             parameter);
@@ -1010,22 +1008,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // object that contains both values, so we have to construct our own.
                     // NOTE: since this is a symbol, it will use the SymbolDisplay options for parameters (i.e. will
                     // have the same format as the display value of the parameter).
-                    SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                        argType,
-                        ImmutableArray<CustomModifier>.Empty,
-                        isParams: false,
-                        refKind: refArg);
+                    var argType = argument.Display as TypeSymbol;
+                    if (argType != null)
+                    {
+                        SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
+                            argType,
+                            ImmutableArray<CustomModifier>.Empty,
+                            isParams: false,
+                            refKind: refArg);
 
-                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter));
 
-                    // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
-                    diagnostics.Add(
-                        ErrorCode.ERR_BadArgType,
-                        sourceLocation,
-                        symbols,
-                        arg + 1,
-                        distinguisher.First,
-                        distinguisher.Second);
+                        // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
+                        diagnostics.Add(
+                            ErrorCode.ERR_BadArgType,
+                            sourceLocation,
+                            symbols,
+                            arg + 1,
+                            distinguisher.First,
+                            distinguisher.Second);
+                    }
+                    else
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_BadArgType,
+                            sourceLocation,
+                            symbols,
+                            arg + 1,
+                            argument.Display,
+                            UnwrapIfParamsArray(parameter));
+                    }
                 }
             }
         }

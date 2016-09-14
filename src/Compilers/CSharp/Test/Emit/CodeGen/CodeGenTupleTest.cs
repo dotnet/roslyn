@@ -17887,5 +17887,49 @@ class Program
             Assert.Equal(newText.ToString(), finalText);
             // no crash
         }
+
+        [Fact]
+        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        public void BadOverloadWithTupleLiteralWithNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void M(int i) { } 
+    static void M(string i) { } 
+
+    static void Main() 
+    {
+        M((1, 2));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1503: Argument 1: cannot convert from '(int, int)' to 'int'
+                //         M((1, 2));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(1, 2)").WithArguments("1", "(int, int)", "int").WithLocation(9, 11));
+        }
+
+        [Fact]
+        [WorkItem(258853, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/258853")]
+        public void BadOverloadWithTupleLiteralWithNoNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void M(int i) { } 
+    static void M(string i) { } 
+
+    static void Main() 
+    {
+        M((1, null));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1503: Argument 1: cannot convert from '(int, <null>)' to 'int'
+                //         M((1, null));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(1, null)").WithArguments("1", "(int, <null>)", "int").WithLocation(9, 11));
+        }
     }
 }
