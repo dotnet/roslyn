@@ -17969,7 +17969,57 @@ class Program
                 //             Console.WriteLine($"({a.first}, {a.second})");
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Console").WithArguments("Console").WithLocation(7, 13)
                 );
+        }
 
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleCoVariance()
+        {
+            var source = @"
+public interface I<out T>
+{
+    System.ValueTuple<bool, T> M();
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
+                //     System.ValueTuple<bool, T> M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "System.ValueTuple<bool, T>").WithArguments("I<T>.M()", "T", "covariant", "invariantly").WithLocation(4, 5)
+                );
+        }
+
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleCoVariance2()
+        {
+            var source = @"
+public interface I<out T>
+{
+    (bool, T)[] M();
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
+                //     (bool, T)[] M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M()", "T", "covariant", "invariantly").WithLocation(4, 5)
+                );
+        }
+
+        [Fact, WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")]
+        public static void TupleContraVariance()
+        {
+            var source = @"
+public interface I<in T>
+{
+    void M((bool, T)[] x);
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics(
+                // (4,12): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M((bool, T)[])'. 'T' is contravariant.
+                //     void M((bool, T)[] x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M((bool, T)[])", "T", "contravariant", "invariantly").WithLocation(4, 12)
+                );
         }
     }
 }

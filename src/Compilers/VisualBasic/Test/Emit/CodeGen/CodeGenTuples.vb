@@ -7308,7 +7308,64 @@ End Module
 
         End Sub
 
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleCoVariance()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of Out T)
+    Function M() As System.ValueTuple(Of Integer, T)
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'Out' type parameter.
+    Function M() As System.ValueTuple(Of Integer, T)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleCoVariance2()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of Out T)
+    Function M() As (Integer, T)
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'Out' type parameter.
+    Function M() As (Integer, T)
+                    ~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
+        Public Sub TupleContraVariance()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb"><![CDATA[
+Interface I(Of In T)
+    Sub M(x As (Boolean, T))
+End Interface
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36727: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' in this context because 'T' is an 'In' type parameter.
+    Sub M(x As (Boolean, T))
+               ~~~~~~~~~~~~
+</errors>)
+        End Sub
     End Class
-
 End Namespace
-
