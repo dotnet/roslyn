@@ -467,6 +467,51 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        public CompilationOptions WithModuleName(string moduleName)
+        {
+            return CommonWithModuleName(moduleName);
+        }
+
+        public CompilationOptions WithMainTypeName(string mainTypeName)
+        {
+            return CommonWithMainTypeName(mainTypeName);
+        }
+
+        public CompilationOptions WithScriptClassName(string scriptClassName)
+        {
+            return CommonWithScriptClassName(scriptClassName);
+        }
+
+        public CompilationOptions WithCryptoKeyContainer(string cryptoKeyContainer)
+        {
+            return CommonWithCryptoKeyContainer(cryptoKeyContainer);
+        }
+
+        public CompilationOptions WithCryptoKeyFile(string cryptoKeyFile)
+        {
+            return CommonWithCryptoKeyFile(cryptoKeyFile);
+        }
+
+        public CompilationOptions WithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey)
+        {
+            return CommonWithCryptoPublicKey(cryptoPublicKey);
+        }
+
+        public CompilationOptions WithDelaySign(bool? delaySign)
+        {
+            return CommonWithDelaySign(delaySign);
+        }
+
+        public CompilationOptions WithCheckOverflow(bool checkOverflow)
+        {
+            return CommonWithCheckOverflow(checkOverflow);
+        }
+
+        public CompilationOptions WithWarningLevel(int warningLevel)
+        {
+            return CommonWithWarningLevel(warningLevel);
+        }
+
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
@@ -482,6 +527,16 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
+        protected abstract CompilationOptions CommonWithModuleName(string moduleName);
+        protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
+        protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
+        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer);
+        protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
+        protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
+        protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
+        protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+        protected abstract CompilationOptions CommonWithWarningLevel(int warningLevel);
+
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
