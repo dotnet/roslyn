@@ -1199,5 +1199,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 referencesSupersedeLowerVersions:=False)
 
         End Sub
+
+        Protected Overrides Function CommonWithModuleName(moduleName As String) As CompilationOptions
+            Return WithModuleName(moduleName)
+        End Function
+
+        Protected Overrides Function CommonWithMainTypeName(mainTypeName As String) As CompilationOptions
+            Return WithMainTypeName(mainTypeName)
+        End Function
+
+        Protected Overrides Function CommonWithScriptClassName(scriptClassName As String) As CompilationOptions
+            Return WithScriptClassName(scriptClassName)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyContainer(cryptoKeyContainer As String) As CompilationOptions
+            Return WithCryptoKeyContainer(cryptoKeyContainer)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoKeyFile(cryptoKeyFile As String) As CompilationOptions
+            Return WithCryptoKeyFile(cryptoKeyFile)
+        End Function
+
+        Protected Overrides Function CommonWithCryptoPublicKey(cryptoPublicKey As ImmutableArray(Of Byte)) As CompilationOptions
+            Return WithCryptoPublicKey(cryptoPublicKey)
+        End Function
+
+        Protected Overrides Function CommonWithDelaySign(delaySign As Boolean?) As CompilationOptions
+            Return WithDelaySign(delaySign)
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different check overflow specified.
+        ''' </summary>
+        ''' <param name="value">The check overflow setting. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the check overflow is different; otherwise current instance.</returns>        
+        Public Shadows Function WithCheckOverflow(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.CheckOverflow Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.CheckOverflow = value}
+        End Function
+
+        Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
+            Return WithCheckOverflow(checkOverflow)
+        End Function
+                
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different warning level specified.
+        ''' </summary>
+        ''' <param name="value">The warning level setting. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the warning level is different; otherwise current instance.</returns>        
+        Public Shadows Function WithWarningLevel(value As Integer) As VisualBasicCompilationOptions
+            If value = Me.WarningLevel Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.WarningLevel = value}
+        End Function
+
+        Protected Overrides Function CommonWithWarningLevel(warningLevel As Integer) As CompilationOptions
+            Return WithWarningLevel(warningLevel)
+        End Function
     End Class
 End Namespace

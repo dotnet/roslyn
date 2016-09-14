@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { OutputKind = kind };
         }
 
-        public CSharpCompilationOptions WithModuleName(string moduleName)
+        public new CSharpCompilationOptions WithModuleName(string moduleName)
         {
             if (moduleName == this.ModuleName)
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ModuleName = moduleName };
         }
 
-        public CSharpCompilationOptions WithScriptClassName(string name)
+        public new CSharpCompilationOptions WithScriptClassName(string name)
         {
             if (name == this.ScriptClassName)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ScriptClassName = name };
         }
 
-        public CSharpCompilationOptions WithMainTypeName(string name)
+        public new CSharpCompilationOptions WithMainTypeName(string name)
         {
             if (name == this.MainTypeName)
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MainTypeName = name };
         }
 
-        public CSharpCompilationOptions WithCryptoKeyContainer(string name)
+        public new CSharpCompilationOptions WithCryptoKeyContainer(string name)
         {
             if (name == this.CryptoKeyContainer)
             {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CryptoKeyContainer = name };
         }
 
-        public CSharpCompilationOptions WithCryptoKeyFile(string path)
+        public new CSharpCompilationOptions WithCryptoKeyFile(string path)
         {
             if (path == this.CryptoKeyFile)
             {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CryptoKeyFile = path };
         }
 
-        public CSharpCompilationOptions WithCryptoPublicKey(ImmutableArray<byte> value)
+        public new CSharpCompilationOptions WithCryptoPublicKey(ImmutableArray<byte> value)
         {
             if (value.IsDefault)
             {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CryptoPublicKey = value };
         }
 
-        public CSharpCompilationOptions WithDelaySign(bool? value)
+        public new CSharpCompilationOptions WithDelaySign(bool? value)
         {
             if (value == this.DelaySign)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ReportSuppressedDiagnostics = reportSuppressedDiagnostics };
         }
 
-        public CSharpCompilationOptions WithWarningLevel(int warningLevel)
+        public new CSharpCompilationOptions WithWarningLevel(int warningLevel)
         {
             if (warningLevel == this.WarningLevel)
             {
@@ -632,6 +632,61 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
         {
             return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+        }
+
+        protected override CompilationOptions CommonWithModuleName(string moduleName)
+        {
+            return WithModuleName(moduleName);
+        }
+
+        protected override CompilationOptions CommonWithMainTypeName(string mainTypeName)
+        {
+            return WithMainTypeName(mainTypeName);
+        }
+
+        protected override CompilationOptions CommonWithScriptClassName(string scriptClassName)
+        {
+            return WithScriptClassName(scriptClassName);
+        }
+
+        protected override CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer)
+        {
+            return WithCryptoKeyContainer(cryptoKeyContainer);
+        }
+
+        protected override CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile)
+        {
+            return WithCryptoKeyFile(cryptoKeyFile);
+        }
+
+        protected override CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey)
+        {
+            return WithCryptoPublicKey(cryptoPublicKey);
+        }
+
+        protected override CompilationOptions CommonWithDelaySign(bool? delaySign)
+        {
+            return WithDelaySign(delaySign);
+        }
+
+        public new CompilationOptions WithCheckOverflow(bool checkOverflow)
+        {
+            if (checkOverflow == CheckOverflow)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { CheckOverflow = checkOverflow};
+        }
+
+        protected override CompilationOptions CommonWithCheckOverflow(bool checkOverflow)
+        {
+            return WithCheckOverflow(checkOverflow);
+        }
+
+        protected override CompilationOptions CommonWithWarningLevel(int warningLevel)
+        {
+            return WithWarningLevel(warningLevel);
         }
 
         // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
