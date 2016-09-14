@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 
         /// <summary>
         /// Computes the set of edits that would transform <paramref name="oldBody"/> into
-        /// <paramref name="newody"/>.  These roots should correspond to the executable code
+        /// <paramref name="newBody"/>.  These roots should correspond to the executable code
         /// bodies of their respective declarations.  For example, a body would often be the
         /// Expression or Block body of a MethodDeclarationSyntax.  However, it could also be
         /// Expression or Block body of a LambdaSyntax.
