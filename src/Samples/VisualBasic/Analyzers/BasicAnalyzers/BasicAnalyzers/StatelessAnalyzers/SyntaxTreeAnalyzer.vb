@@ -17,7 +17,9 @@ Namespace BasicAnalyzers
         Friend Shared ReadOnly MessageFormat As LocalizableString = New LocalizableResourceString(NameOf(Resources.SyntaxTreeAnalyzerMessageFormat), Resources.ResourceManager, GetType(Resources))
         Friend Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(NameOf(Resources.SyntaxTreeAnalyzerDescription), Resources.ResourceManager, GetType(Resources))
 
-        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.SyntaxTreeAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.SyntaxTreeAnalyzerRuleId, Title, MessageFormat,
+                                                       DiagnosticCategories.Stateless, DiagnosticSeverity.Warning,
+                                                       True, Description, Nothing, Array.Empty(Of String))
 #End Region
 
         Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)

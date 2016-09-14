@@ -19,7 +19,9 @@ Namespace BasicAnalyzers
         Friend Shared ReadOnly MessageFormat As LocalizableString = New LocalizableResourceString(NameOf(Resources.CodeBlockAnalyzerMessageFormat), Resources.ResourceManager, GetType(Resources))
         Friend Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(NameOf(Resources.CodeBlockAnalyzerDescription), Resources.ResourceManager, GetType(Resources))
 
-        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CodeBlockAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CodeBlockAnalyzerRuleId, Title, MessageFormat,
+                                                       DiagnosticCategories.Stateless, DiagnosticSeverity.Warning,
+                                                       True, Description, Nothing, Array.Empty(Of String))
 #End Region
 
         Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
