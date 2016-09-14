@@ -81,5 +81,23 @@ namespace Microsoft.CodeAnalysis.CodeLens
             AfterReferenceText1 = afterReferenceText1;
             AfterReferenceText2 = afterReferenceText2;
         }
+
+        public ReferenceLocationDescriptor(string longDescription, string language, Glyph? glyph, int lineNumber, int columnNumber, DocumentId documentId, string referenceLineText, int referenceStart, int referenceLength, string beforeReferenceText1, string beforeReferenceText2, string afterReferenceText1, string afterReferenceText2)
+        {
+            LongDescription = longDescription;
+            Language = language;
+            Glyph = glyph;
+            LineNumber = lineNumber;
+            ColumnNumber = columnNumber;
+            // We want to keep track of the location's document if it comes from a file in your solution.
+            DocumentId = documentId;
+            ReferenceLineText = referenceLineText;
+            ReferenceStart = referenceStart;
+            ReferenceLength = referenceLength;
+            BeforeReferenceText1 = beforeReferenceText1;
+            BeforeReferenceText2 = beforeReferenceText2;
+            AfterReferenceText1 = afterReferenceText1;
+            AfterReferenceText2 = afterReferenceText2;
+        }
     }
 }

@@ -5,9 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Roslyn.Utilities;
@@ -311,9 +314,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trees = new ChecksumTreeCollection();
             var assetBuilder = new AssetBuilder(trees.CreateRootTreeNode(workspace.CurrentSolution.State));
 
-            var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
-            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+            var assetFromFile = assetBuilder.Build(reference, CancellationToken.None);
+            var assetFromStorage = await CloneMetadataReferenceAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneMetadataReferenceAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -387,6 +390,55 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         // verify snapshots created from original solution and round trip solution are same.
                         SnapshotEqual(snapshotService, snapshot1.SolutionChecksum, snapshot3.SolutionChecksum);
                     }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task OptionSet_Serialization()
+        {
+            var workspace = new AdhocWorkspace();
+
+            await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
+            await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task OptionSet_Serialization_CustomValue()
+        {
+            var workspace = new AdhocWorkspace();
+
+            workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, new CodeStyleOption<bool>(false, NotificationOption.Error))
+                                                 .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Warning))
+                                                 .WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
+                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.None));
+
+            await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
+            await VerifyOptionSetsAsync(workspace, LanguageNames.VisualBasic).ConfigureAwait(false);
+        }
+
+        private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
+        {
+            var assetBuilder = new AssetBuilder(workspace.CurrentSolution);
+            var serializer = new Serializer(workspace.Services);
+
+            var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                stream.Position = 0;
+                using (var reader = new ObjectReader(stream))
+                {
+                    var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
+                    var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
+
+                    Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
+
+                    // option should be exactly same
+                    Assert.Equal(0, recovered.GetChangedOptions(workspace.Options).Count());
                 }
             }
         }
@@ -471,7 +523,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
-        private static async Task<Asset> CloneAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)
+        private static async Task<Asset> CloneMetadataReferenceAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -481,8 +533,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 stream.Position = 0;
                 using (var reader = new ObjectReader(stream))
                 {
-                    var recovered = serializer.Deserialize<MetadataReference>(WellKnownChecksumObjects.MetadataReference, reader, CancellationToken.None);
-                    var assetFromStorage = await assetBuilder.BuildAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+                    var recovered = serializer.Deserialize<MetadataReference>(asset.Kind, reader, CancellationToken.None);
+                    var assetFromStorage = assetBuilder.Build(recovered, CancellationToken.None);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
 

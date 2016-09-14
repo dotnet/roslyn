@@ -383,6 +383,7 @@
     <Compile Include="Execution\Serializer.cs" />
     <Compile Include="Execution\Serializer_Asset.cs" />
     <Compile Include="Execution\Serializer_ChecksumObjectWithChildren.cs" />
+    <Compile Include="Execution\Serializer_OptionSet.cs" />
     <Compile Include="Execution\SolutionChecksumObjects.cs" />
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />

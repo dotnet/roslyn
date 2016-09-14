@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -29,6 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
+        // TODO: this should be removed once we move options down to compiler layer
+        private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, Asset>> _lastOptionSetPerLanguage;
+
         [ImportingConstructor]
         public OutOfProcDiagnosticAnalyzerExecutor(
             IDiagnosticAnalyzerService analyzerService,
@@ -36,6 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
         {
             _analyzerService = analyzerService;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+
+            // currently option is a bit wierd since it is not part of snapshot and 
+            // we can't load all options without loading all language specific dlls.
+            // we have tracking issue for this.
+            // https://github.com/dotnet/roslyn/issues/13643
+            _lastOptionSetPerLanguage = new ConcurrentDictionary<string, ValueTuple<OptionSet, Asset>>();
         }
 
         public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
@@ -44,53 +55,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             if (remoteHostClient == null)
             {
                 // remote host is not running. this can happen if remote host is disabled.
-                return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+                return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 
-            // TODO: later, make sure we can run all analyzer on remote host. 
-            //       for now, we will check whether built in analyzer can run on remote host and only those run on remote host.
-            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.MustRunInProcess()), project, cancellationToken);
-            var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
-
-            // run them concurrently in vs and remote host
-            await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+            var outOfProcResult = await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken).ConfigureAwait(false);
 
             // make sure things are not cancelled
             cancellationToken.ThrowIfCancellationRequested();
 
-            // merge 2 results
-            return DiagnosticAnalysisResultMap.Create(
-                inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
-        }
-
-        private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
-        {
-            return await InProcCodeAnalysisDiagnosticAnalyzerExecutor.Instance.AnalyzeAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+            return DiagnosticAnalysisResultMap.Create(outOfProcResult.AnalysisResult, outOfProcResult.TelemetryInfo);
         }
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
             RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-
             var snapshotService = solution.Workspace.Services.GetService<ISolutionChecksumService>();
 
             // TODO: this should be moved out
-            var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
-            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.MustRunInProcess()));
+            var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
             if (analyzerMap.Count == 0)
             {
                 return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
             }
 
+            var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
+            var hostChecksums = GetHostAnalyzerReferences(snapshotService, _analyzerService.GetHostAnalyzerReferences(), cancellationToken);
+
+            var argument = new DiagnosticArguments(
+                analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
+                analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
+                project.Id, optionAsset.Checksum.ToArray(), hostChecksums, analyzerMap.Keys.ToArray());
+
             // TODO: send telemetry on session
             using (var session = await client.CreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
             {
-                var argument = new DiagnosticArguments(
-                    analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics,
-                    analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    project.Id, hostChecksums, analyzerMap.Keys.ToArray());
+                session.AddAdditionalAssets(optionAsset);
 
                 var result = await session.InvokeAsync(
                     WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
@@ -103,9 +103,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Diagnostics
             }
         }
 
+        private Asset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
+        {
+            // TODO: we need better way to deal with options. optionSet itself is green node but
+            //       it is not part of snapshot and can't save option to solution since we can't use language
+            //       specific option without loading related language specific dlls
+            var options = solution.Options;
+
+            // we have cached options
+            ValueTuple<OptionSet, Asset> value;
+            if (_lastOptionSetPerLanguage.TryGetValue(language, out value) && value.Item1 == options)
+            {
+                return value.Item2;
+            }
+
+            // otherwise, we need to build one.
+            var assetBuilder = new AssetBuilder(solution);
+            var asset = assetBuilder.Build(options, language, cancellationToken);
+
+            _lastOptionSetPerLanguage[language] = ValueTuple.Create(options, asset);
+            return asset;
+        }
+
         private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
         {
             var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+            if (analyzers.Length == 0)
+            {
+                // we can't create analyzer driver with 0 analyzers
+                return null;
+            }
+
             return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
         }
 
