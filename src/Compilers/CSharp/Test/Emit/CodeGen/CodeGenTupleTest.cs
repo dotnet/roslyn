@@ -18024,30 +18024,6 @@ public interface I<in T>
 
         [Fact]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
-        public void ValueTupleInConstant()
-        {
-            var source = @"
-class C<T> { }
-class C
-{
-    static void M()
-    {
-        const C<System.ValueTuple<int, int>> c = null;
-    }
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
-            comp.VerifyEmitDiagnostics(
-                // (7,46): warning CS0219: The variable 'c' is assigned but its value is never used
-                //         const C<System.ValueTuple<int, int>> c = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(7, 46)
-                );
-            // no assertion
-        }
-
-        [Fact]
-        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void TupleInConstant()
         {
             var source = @"
@@ -18059,56 +18035,11 @@ class C
         const C<(int, int)> c = null;
         System.Console.Write(c);
     }
-}
-";
+}";
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
-            comp.VerifyEmitDiagnostics(
-                );
-            // no assertion
-        }
-
-        [Fact]
-        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
-        public void TupleInLocal()
-        {
-            var source = @"
-class C<T> { }
-class C
-{
-    static void M()
-    {
-        C<(int, int)> c = default(C<(int, int)>);
-        N(ref c);
-    }
-    static void N(ref C<(int, int)> x) { }
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
-            comp.VerifyEmitDiagnostics(
-                // (7,29): warning CS0219: The variable 'c' is assigned but its value is never used
-                //         const C<(int, int)> c = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(7, 29)
-                );
-            // no assertion
-        }
-
-        [Fact]
-        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
-        public void DeriveFromGenericWithTuple()
-        {
-            var source = @"
-class C<T> { }
-class C : C<(int, int)>
-{
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
-            comp.VerifyEmitDiagnostics(
-                );
-            // no assertion
+            comp.VerifyEmitDiagnostics();
+            // no assertion in MetadataWriter
         }
 
         [Fact]
@@ -18123,6 +18054,7 @@ class C
     static void M()
     {
         const ReferencedType c = null;
+        System.Console.Write(c);
     }
 }";
 
@@ -18131,6 +18063,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics();
+            // no assertion in MetadataWriter
         }
     }
 }
