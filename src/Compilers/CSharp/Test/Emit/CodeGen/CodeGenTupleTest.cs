@@ -18021,5 +18021,116 @@ public interface I<in T>
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "(bool, T)[]").WithArguments("I<T>.M((bool, T)[])", "T", "contravariant", "invariantly").WithLocation(4, 12)
                 );
         }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void ValueTupleInConstant()
+        {
+            var source = @"
+class C<T> { }
+class C
+{
+    static void M()
+    {
+        const C<System.ValueTuple<int, int>> c = null;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
+            comp.VerifyEmitDiagnostics(
+                // (7,46): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         const C<System.ValueTuple<int, int>> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(7, 46)
+                );
+            // no assertion
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void TupleInConstant()
+        {
+            var source = @"
+class C<T> { }
+class C
+{
+    static void M()
+    {
+        const C<(int, int)> c = null;
+        System.Console.Write(c);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
+            comp.VerifyEmitDiagnostics(
+                );
+            // no assertion
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void TupleInLocal()
+        {
+            var source = @"
+class C<T> { }
+class C
+{
+    static void M()
+    {
+        C<(int, int)> c = default(C<(int, int)>);
+        N(ref c);
+    }
+    static void N(ref C<(int, int)> x) { }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
+            comp.VerifyEmitDiagnostics(
+                // (7,29): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         const C<(int, int)> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(7, 29)
+                );
+            // no assertion
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void DeriveFromGenericWithTuple()
+        {
+            var source = @"
+class C<T> { }
+class C : C<(int, int)>
+{
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
+            comp.VerifyEmitDiagnostics(
+                );
+            // no assertion
+        }
+
+        [Fact]
+        [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
+        public void GenericConstantFromReferencedAssembly()
+        {
+            var libSource = @" public class ReferencedType { } ";
+
+            var source = @"
+class C
+{
+    static void M()
+    {
+        const ReferencedType c = null;
+    }
+}";
+
+            var libComp = CreateCompilationWithMscorlib(libSource, assemblyName: "lib");
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
