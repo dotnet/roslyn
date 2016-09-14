@@ -8,11 +8,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal static class RemoteHostOptions
     {
         [ExportOption]
+        public static readonly Option<bool> RemoteHostTest = new Option<bool>(OptionName, nameof(RemoteHostTest), defaultValue: false);
+
+        [ExportOption]
         public static readonly Option<bool> RemoteHost = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHost), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RemoteHost)));
 
         [ExportOption]
         public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 10000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
+
+        [ExportOption]
+        public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 }

@@ -29,6 +29,10 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -37,6 +41,10 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
@@ -44,6 +52,10 @@
     <ProjectReference Include="..\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
+      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
+      <Name>TextEditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +78,11 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
+    <Compile Include="MinimalTestExportProvider.cs" />
+    <Compile Include="TestExportProvider.cs" />
+    <Compile Include="TestExtensionErrorHandler.cs" />
+    <Compile Include="TestOptionsServiceFactory.cs" />
+    <Compile Include="TestWaitIndicator.cs" />
     <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
     <Compile Include="Threading\StaTaskScheduler.cs" />
     <Compile Include="Threading\WpfFactAttribute.cs" />
