@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
-using Microsoft.CodeAnalysis.SyntaxDifferencing;
+using Microsoft.CodeAnalysis.TreeDifferencing;
 using Roslyn.Test.Utilities;
 using Xunit;
 

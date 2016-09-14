@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
     {
         public override string Language => LanguageNames.CSharp;
 
-        public override SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody)
+        internal override SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody)
         {
-            return StatementSyntaxComparer.Instance.ComputeMatch(oldBody, newBody);
+            return new SyntaxMatch(StatementSyntaxComparer.Instance.ComputeMatch(oldBody, newBody));
         }
 
         public override SyntaxMatch ComputeTopLevelMatch(SyntaxNode oldRoot, SyntaxNode newRoot)
         {
-            return TopSyntaxComparer.Instance.ComputeMatch(oldRoot, newRoot);
+            return new SyntaxMatch(TopSyntaxComparer.Instance.ComputeMatch(oldRoot, newRoot));
         }
     }
 }

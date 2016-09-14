@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.TreeDifferencing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SyntaxDifferencing
@@ -10,33 +11,16 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
     /// Represents an edit operation on a tree or a sequence of nodes.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct SyntaxEdit : IEquatable<SyntaxEdit>
+    public struct SyntaxEdit : IEquatable<SyntaxEdit>
     {
-        private readonly TreeComparer _comparer;
-        private readonly SyntaxEditKind _kind;
-        private readonly SyntaxNode _oldNode;
-        private readonly SyntaxNode _newNode;
+        private readonly Edit<SyntaxNode> _edit;
 
-        internal SyntaxEdit(
-            SyntaxEditKind kind,
-            TreeComparer comparer,
-            SyntaxNode oldNode,
-            SyntaxNode newNode)
+        internal SyntaxEdit(Edit<SyntaxNode> edit)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default(SyntaxNode))) == (kind == SyntaxEditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default(SyntaxNode))) == (kind == SyntaxEditKind.Delete));
-
-            Debug.Assert((oldNode == null || oldNode.Equals(default(SyntaxNode))) ||
-                         (newNode == null || newNode.Equals(default(SyntaxNode))) ||
-                         !comparer.TreesEqual(oldNode, newNode));
-
-            _comparer = comparer;
-            _kind = kind;
-            _oldNode = oldNode;
-            _newNode = newNode;
+            _edit = edit;
         }
 
-        public SyntaxEditKind Kind => _kind;
+        public SyntaxEditKind Kind => (SyntaxEditKind)_edit.Kind;
 
         /// <summary>
         /// Insert: 
@@ -48,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public SyntaxNode OldNode => _oldNode;
+        public SyntaxNode OldNode => _edit.OldNode;
 
         /// <summary>
         /// Insert: 
@@ -60,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public SyntaxNode NewNode => _newNode;
+        public SyntaxNode NewNode => _edit.NewNode;
 
         public override bool Equals(object obj)
         {
@@ -69,53 +53,18 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 
         public bool Equals(SyntaxEdit other)
         {
-            return _kind == other._kind
-                && (_oldNode == null) ? other._oldNode == null : _oldNode.Equals(other._oldNode)
-                && (_newNode == null) ? other._newNode == null : _newNode.Equals(other._newNode);
+            return _edit.Equals(other._edit);
         }
 
         public override int GetHashCode()
         {
-            int hash = (int)_kind;
-            if (_oldNode != null)
-            {
-                hash = Hash.Combine(_oldNode.GetHashCode(), hash);
-            }
-
-            if (_newNode != null)
-            {
-                hash = Hash.Combine(_newNode.GetHashCode(), hash);
-            }
-
-            return hash;
+            return _edit.GetHashCode();
         }
 
         // Has to be 'internal' for now as it's used by EnC test tool
         internal string GetDebuggerDisplay()
         {
-            string result = Kind.ToString();
-            switch (Kind)
-            {
-                case SyntaxEditKind.Delete:
-                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode);
-
-                case SyntaxEditKind.Insert:
-                    return result + " [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
-
-                case SyntaxEditKind.Update:
-                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
-
-                case SyntaxEditKind.Move:
-                case SyntaxEditKind.Reorder:
-                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> " + DisplayPosition(_newNode);
-            }
-
-            return result;
-        }
-
-        private string DisplayPosition(SyntaxNode node)
-        {
-            return "@" + _comparer.GetSpan(node).Start;
+            return _edit.GetDebuggerDisplay();
         }
     }
 }

@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.SyntaxDifferencing
+namespace Microsoft.CodeAnalysis.TreeDifferencing
 {
     /// <summary>
     /// Calculates Longest Common Subsequence for immutable arrays.

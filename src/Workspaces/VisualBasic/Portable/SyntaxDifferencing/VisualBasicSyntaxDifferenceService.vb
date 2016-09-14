@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
             End Get
         End Property
 
-        Public Overrides Function ComputeBodyLevelMatch(oldBody As SyntaxNode, newBody As SyntaxNode) As SyntaxMatch
-            Return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody)
+        Friend Overrides Function ComputeBodyLevelMatch(oldBody As SyntaxNode, newBody As SyntaxNode) As SyntaxMatch
+            Return New SyntaxMatch(StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody))
         End Function
 
         Public Overrides Function ComputeTopLevelMatch(oldRoot As SyntaxNode, newRoot As SyntaxNode) As SyntaxMatch
-            Return TopSyntaxComparer.Instance.ComputeMatch(oldRoot, newRoot)
+            Return New SyntaxMatch(TopSyntaxComparer.Instance.ComputeMatch(oldRoot, newRoot))
         End Function
     End Class
 End Namespace

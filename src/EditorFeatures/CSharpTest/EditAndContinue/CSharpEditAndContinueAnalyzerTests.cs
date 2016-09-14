@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TreeDifferencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     node = node.Parent;
                 }
 
-                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind(), node, SyntaxEditKind.Update);
+                var actual = CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind(), node, EditKind.Update);
                 var actualText = source.Substring(actual.Start, actual.Length);
 
                 Assert.True(expected == actual, "\r\n" +
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 try
                 {
-                    CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(kind, null, SyntaxEditKind.Update);
+                    CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl(kind, null, EditKind.Update);
                 }
                 catch (NullReferenceException)
                 {

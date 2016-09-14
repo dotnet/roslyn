@@ -3,12 +3,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.SyntaxDifferencing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TreeDifferencing;
 
 namespace Microsoft.CodeAnalysis.CSharp.SyntaxDifferencing
 {
-    internal abstract class SyntaxComparer : TreeComparer
+    internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
     {
         internal const int IgnoredNode = -1;
 

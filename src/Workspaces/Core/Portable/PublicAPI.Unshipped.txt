@@ -1,4 +1,3 @@
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>
 *REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Equals(Microsoft.CodeAnalysis.Differencing.Edit<TNode> other) -> bool
 *REMOVED*Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Kind.get -> Microsoft.CodeAnalysis.Differencing.EditKind
@@ -38,6 +37,7 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TreesEqual(TNode oldNode, TNode newNode) -> bool
 *REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.TryGetParent(TNode node, out TNode parent) -> bool
 *REMOVED*abstract Microsoft.CodeAnalysis.Differencing.TreeComparer<TNode>.ValuesEqual(TNode oldNode, TNode newNode) -> bool
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*override Microsoft.CodeAnalysis.Differencing.Edit<TNode>.Equals(object obj) -> bool
 *REMOVED*override Microsoft.CodeAnalysis.Differencing.Edit<TNode>.GetHashCode() -> int
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
@@ -67,15 +67,36 @@ Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
 Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.Equals(Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit other) -> bool
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.Kind.get -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.NewNode.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.OldNode.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.Delete = 3 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.Insert = 2 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.Move = 4 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.None = 0 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.Reorder = 5 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind.Update = 1 -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEditKind
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch.GetEdits() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit>
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch.NewNode.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch.OldNode.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged -> System.EventHandler<Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs>
 Microsoft.CodeAnalysis.Workspace.RaiseDocumentActiveContextChangedEventAsync(Microsoft.CodeAnalysis.Text.SourceTextContainer sourceTextContainer, Microsoft.CodeAnalysis.DocumentId oldActiveContextDocumentId, Microsoft.CodeAnalysis.DocumentId newActiveContextDocumentId) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.ComputeTopLevelMatch(Microsoft.CodeAnalysis.SyntaxNode oldRoot, Microsoft.CodeAnalysis.SyntaxNode newRoot) -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxMatch
+abstract Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.Language.get -> string
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
+override Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxEdit.GetHashCode() -> int
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
@@ -84,6 +105,8 @@ static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldA
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMethodAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyPropertyAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.SolutionId.CreateFromSerialized(System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.SolutionId
+static Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.GetService(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService
+static Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService.GetService(Microsoft.CodeAnalysis.Workspace workspace, string language) -> Microsoft.CodeAnalysis.SyntaxDifferencing.SyntaxDifferenceService
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
 static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>

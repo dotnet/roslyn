@@ -1,39 +1,37 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.TreeDifferencing;
-
-namespace Microsoft.CodeAnalysis.SyntaxDifferencing
+namespace Microsoft.CodeAnalysis.TreeDifferencing
 {
-    public enum SyntaxEditKind
+    internal enum EditKind
     {
         /// <summary>
         /// No change.
         /// </summary>
-        None = EditKind.None,
+        None = 0,
 
         /// <summary>
         /// Node value was updated.
         /// </summary>
-        Update = EditKind.Update,
+        Update = 1,
 
         /// <summary>
         /// Node was inserted.
         /// </summary>
-        Insert = EditKind.Insert,
+        Insert = 2,
 
         /// <summary>
         /// Node was deleted.
         /// </summary>
-        Delete = EditKind.Delete,
+        Delete = 3,
 
         /// <summary>
         /// Node changed parent.
         /// </summary>
-        Move = EditKind.Move,
+        Move = 4,
 
         /// <summary>
         /// Node changed position within its parent. The parent nodes of the old node and the new node are matching.
         /// </summary>
-        Reorder = EditKind.Reorder,
+        Reorder = 5,
     }
 }

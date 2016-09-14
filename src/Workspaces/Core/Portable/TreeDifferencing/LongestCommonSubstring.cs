@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.SyntaxDifferencing
+namespace Microsoft.CodeAnalysis.TreeDifferencing
 {
     /// <summary>
     /// Calculates longest common substring using Wagner algorithm.

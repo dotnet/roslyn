@@ -6,8 +6,8 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.SyntaxDifferencing
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.TreeDifferencing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
 
@@ -564,11 +564,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
-        Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As SyntaxMatch
+        Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)
             Return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
-        Protected Overrides Function ComputeBodyMatch(oldBody As SyntaxNode, newBody As SyntaxNode, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As SyntaxMatch
+        Protected Overrides Function ComputeBodyMatch(oldBody As SyntaxNode, newBody As SyntaxNode, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda:=True)
             SyntaxUtilities.AssertIsBody(newBody, allowLambda:=True)
 
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(syntaxRefs.Single().GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
         End Function
 
-        Protected Overrides Function GetSymbolForEdit(model As SemanticModel, node As SyntaxNode, editKind As SyntaxEditKind, editMap As Dictionary(Of SyntaxNode, SyntaxEditKind), cancellationToken As CancellationToken) As ISymbol
+        Protected Overrides Function GetSymbolForEdit(model As SemanticModel, node As SyntaxNode, editKind As EditKind, editMap As Dictionary(Of SyntaxNode, EditKind), cancellationToken As CancellationToken) As ISymbol
             ' Avoid duplicate semantic edits - don't return symbols for statements within blocks.
             Select Case node.Kind()
                 Case SyntaxKind.OperatorStatement,
@@ -1025,7 +1025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' 1) variable declarator update (an initializer is changes)
                     ' 2) modified identifier update (an array bound changes)
                     ' Handle the first one here. 
-                    If editKind = SyntaxEditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If editKind = EditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         ' If multiple fields are defined by this declaration pick the first one.
                         ' We want to analyze the associated initializer just once. Any of the fields is good.
                         node = DirectCast(node, VariableDeclaratorSyntax).Names.First()
@@ -1128,16 +1128,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As SyntaxEditKind) As TextSpan
+        Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return GetDiagnosticSpanImpl(node, editKind)
         End Function
 
-        Private Shared Function GetDiagnosticSpanImpl(node As SyntaxNode, editKind As SyntaxEditKind) As TextSpan
+        Private Shared Function GetDiagnosticSpanImpl(node As SyntaxNode, editKind As EditKind) As TextSpan
             Return GetDiagnosticSpanImpl(node.Kind, node, editKind)
         End Function
 
         ' internal for testing; kind is passed explicitly for testing as well
-        Friend Shared Function GetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As SyntaxEditKind) As TextSpan
+        Friend Shared Function GetDiagnosticSpanImpl(kind As SyntaxKind, node As SyntaxNode, editKind As EditKind) As TextSpan
             Select Case kind
                 Case SyntaxKind.CompilationUnit
                     Return Nothing
@@ -1227,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.ParameterList,
                      SyntaxKind.AttributeList,
                      SyntaxKind.SimpleAsClause
-                    If editKind = SyntaxEditKind.Delete Then
+                    If editKind = EditKind.Delete Then
                         Return GetDiagnosticSpanImpl(node.Parent, editKind)
                     Else
                         Return node.Span
@@ -1470,16 +1470,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As SyntaxEditKind) As String
+        Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As EditKind) As String
             Return GetTopLevelDisplayNameImpl(node)
         End Function
 
-        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As SyntaxEditKind) As String
+        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind) As String
             Return GetStatementDisplayNameImpl(node, editKind)
         End Function
 
         Protected Overrides Function GetLambdaDisplayName(lambda As SyntaxNode) As String
-            Return GetStatementDisplayNameImpl(lambda, SyntaxEditKind.Update)
+            Return GetStatementDisplayNameImpl(lambda, EditKind.Update)
         End Function
 
         ' internal for testing
@@ -1610,7 +1610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         ' internal for testing
-        Friend Shared Function GetStatementDisplayNameImpl(node As SyntaxNode, kind As SyntaxEditKind) As String
+        Friend Shared Function GetStatementDisplayNameImpl(node As SyntaxNode, kind As EditKind) As String
             Select Case node.Kind
                 Case SyntaxKind.TryBlock
                     Return VBFeaturesResources.Try_block
@@ -1622,16 +1622,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return VBFeaturesResources.Finally_clause
 
                 Case SyntaxKind.UsingBlock
-                    Return If(kind = SyntaxEditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
+                    Return If(kind = EditKind.Update, VBFeaturesResources.Using_statement, VBFeaturesResources.Using_block)
 
                 Case SyntaxKind.WithBlock
-                    Return If(kind = SyntaxEditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
+                    Return If(kind = EditKind.Update, VBFeaturesResources.With_statement, VBFeaturesResources.With_block)
 
                 Case SyntaxKind.SyncLockBlock
-                    Return If(kind = SyntaxEditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
+                    Return If(kind = EditKind.Update, VBFeaturesResources.SyncLock_statement, VBFeaturesResources.SyncLock_block)
 
                 Case SyntaxKind.ForEachBlock
-                    Return If(kind = SyntaxEditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
+                    Return If(kind = EditKind.Update, VBFeaturesResources.For_Each_statement, VBFeaturesResources.For_Each_block)
 
                 Case SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToZeroStatement,
@@ -1712,18 +1712,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
             Private ReadOnly _diagnostics As List(Of RudeEditDiagnostic)
-            Private ReadOnly _match As SyntaxMatch
+            Private ReadOnly _match As Match(Of SyntaxNode)
             Private ReadOnly _oldNode As SyntaxNode
             Private ReadOnly _newNode As SyntaxNode
-            Private ReadOnly _kind As SyntaxEditKind
+            Private ReadOnly _kind As EditKind
             Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
                            diagnostics As List(Of RudeEditDiagnostic),
                            oldNode As SyntaxNode,
                            newNode As SyntaxNode,
-                           kind As SyntaxEditKind,
-                           Optional match As SyntaxMatch = Nothing,
+                           kind As EditKind,
+                           Optional match As Match(Of SyntaxNode) = Nothing,
                            Optional span As TextSpan? = Nothing)
 
                 Me._analyzer = analyzer
@@ -1765,23 +1765,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Public Sub ClassifyEdit()
                 Select Case _kind
-                    Case SyntaxEditKind.Delete
+                    Case EditKind.Delete
                         ClassifyDelete(_oldNode)
                         Return
 
-                    Case SyntaxEditKind.Update
+                    Case EditKind.Update
                         ClassifyUpdate(_oldNode, _newNode)
                         Return
 
-                    Case SyntaxEditKind.Move
+                    Case EditKind.Move
                         ClassifyMove(_oldNode, _newNode)
                         Return
 
-                    Case SyntaxEditKind.Insert
+                    Case EditKind.Insert
                         ClassifyInsert(_newNode)
                         Return
 
-                    Case SyntaxEditKind.Reorder
+                    Case EditKind.Reorder
                         ClassifyReorder(_oldNode, _newNode)
                         Return
 
@@ -2806,28 +2806,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Structure
 
         Friend Overrides Sub ReportSyntacticRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
-                                                      match As SyntaxMatch,
-                                                      edit As SyntaxEdit,
-                                                      editMap As Dictionary(Of SyntaxNode, SyntaxEditKind))
+                                                      match As Match(Of SyntaxNode),
+                                                      edit As Edit(Of SyntaxNode),
+                                                      editMap As Dictionary(Of SyntaxNode, EditKind))
 
             ' For most nodes we ignore Insert and Delete edits if their parent was also inserted or deleted, respectively.
             ' For ModifiedIdentifiers though we check the grandparent instead because variables can move across 
             ' VariableDeclarators. Moving a variable from a VariableDeclarator that only has a single variable results in
             ' deletion of that declarator. We don't want to report that delete. Similarly for moving to a new VariableDeclarator.
 
-            If edit.Kind = SyntaxEditKind.Delete AndAlso
+            If edit.Kind = EditKind.Delete AndAlso
                edit.OldNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
                edit.OldNode.Parent.IsKind(SyntaxKind.VariableDeclarator) Then
 
-                If HasEdit(editMap, edit.OldNode.Parent.Parent, SyntaxEditKind.Delete) Then
+                If HasEdit(editMap, edit.OldNode.Parent.Parent, EditKind.Delete) Then
                     Return
                 End If
 
-            ElseIf edit.Kind = SyntaxEditKind.Insert AndAlso
+            ElseIf edit.Kind = EditKind.Insert AndAlso
                    edit.NewNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
                    edit.NewNode.Parent.IsKind(SyntaxKind.VariableDeclarator) Then
 
-                If HasEdit(editMap, edit.NewNode.Parent.Parent, SyntaxEditKind.Insert) Then
+                If HasEdit(editMap, edit.NewNode.Parent.Parent, EditKind.Insert) Then
                     Return
                 End If
 
@@ -2840,7 +2840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Sub
 
         Friend Overrides Sub ReportMemberUpdateRudeEdits(diagnostics As List(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
-            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newMember, SyntaxEditKind.Update, span:=span)
+            Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newMember, EditKind.Update, span:=span)
 
             classifier.ClassifyMemberBodyRudeUpdate(
                 TryCast(newMember, MethodBlockSyntax),
@@ -2915,13 +2915,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
-                                                                       exceptionHandlingEdits As IEnumerable(Of SyntaxEdit),
+                                                                       exceptionHandlingEdits As IEnumerable(Of Edit(Of SyntaxNode)),
                                                                        oldStatement As SyntaxNode,
                                                                        newStatementSpan As TextSpan)
             For Each edit In exceptionHandlingEdits
-                Debug.Assert(edit.Kind <> SyntaxEditKind.Update OrElse edit.OldNode.RawKind = edit.NewNode.RawKind)
+                Debug.Assert(edit.Kind <> EditKind.Update OrElse edit.OldNode.RawKind = edit.NewNode.RawKind)
 
-                If edit.Kind <> SyntaxEditKind.Update OrElse Not AreExceptionHandlingPartsEquivalent(edit.OldNode, edit.NewNode) Then
+                If edit.Kind <> EditKind.Update OrElse Not AreExceptionHandlingPartsEquivalent(edit.OldNode, edit.NewNode) Then
                     AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
                 End If
             Next
@@ -3110,7 +3110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Rude Edits around Active Statement"
 
         Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As List(Of RudeEditDiagnostic),
-                                                                       match As SyntaxMatch,
+                                                                       match As Match(Of SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        newActiveStatement As SyntaxNode,
                                                                        isLeaf As Boolean)
@@ -3141,7 +3141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As List(Of RudeEditDiagnostic),
-                                                                            match As SyntaxMatch,
+                                                                            match As Match(Of SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             newActiveStatement As SyntaxNode,
                                                                             isLeaf As Boolean)

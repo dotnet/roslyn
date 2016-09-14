@@ -4,38 +4,38 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.SyntaxDifferencing
+namespace Microsoft.CodeAnalysis.TreeDifferencing
 {
     /// <summary>
     /// Represents a sequence of tree edits.
     /// </summary>
-    internal sealed partial class SyntaxEditScript
+    internal sealed partial class EditScript<TNode>
     {
-        private readonly SyntaxMatch _match;
-        private readonly ImmutableArray<SyntaxEdit> _edits;
+        private readonly Match<TNode> _match;
+        private readonly ImmutableArray<Edit<TNode>> _edits;
 
-        internal SyntaxEditScript(SyntaxMatch match)
+        internal EditScript(Match<TNode> match)
         {
             _match = match;
 
-            var edits = new List<SyntaxEdit>();
+            var edits = new List<Edit<TNode>>();
             AddUpdatesInsertsMoves(edits);
             AddDeletes(edits);
 
             _edits = edits.AsImmutable();
         }
 
-        public ImmutableArray<SyntaxEdit> Edits => _edits;
+        public ImmutableArray<Edit<TNode>> Edits => _edits;
 
-        public SyntaxMatch Match => _match;
+        public Match<TNode> Match => _match;
 
-        private TreeComparer Comparer => _match.Comparer;
+        private TreeComparer<TNode> Comparer => _match.Comparer;
 
-        private SyntaxNode Root1 => _match.OldRoot;
+        private TNode Root1 => _match.OldRoot;
 
-        private SyntaxNode Root2 => _match.NewRoot;
+        private TNode Root2 => _match.NewRoot;
 
-        private void AddUpdatesInsertsMoves(List<SyntaxEdit> edits)
+        private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
         {
             // Breadth-first traversal.
             ProcessNode(edits, Root2);
@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
                 return;
             }
 
-            var queue = new Queue<IEnumerable<SyntaxNode>>();
+            var queue = new Queue<IEnumerable<TNode>>();
             queue.Enqueue(rootChildren);
 
             do
             {
-                IEnumerable<SyntaxNode> children = queue.Dequeue();
-                foreach (SyntaxNode child in children)
+                IEnumerable<TNode> children = queue.Dequeue();
+                foreach (TNode child in children)
                 {
                     ProcessNode(edits, child);
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             while (queue.Count > 0);
         }
 
-        private void ProcessNode(List<SyntaxEdit> edits, SyntaxNode x)
+        private void ProcessNode(List<Edit<TNode>> edits, TNode x)
         {
             Debug.Assert(Comparer.TreesEqual(x, Root2));
 
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             // NOTE:
             // If we needed z then we would need to be updating M' as we encounter insertions.
 
-            SyntaxNode w;
+            TNode w;
             bool hasPartner = _match.TryGetPartnerInTree1(x, out w);
 
-            SyntaxNode y;
+            TNode y;
             bool hasParent = Comparer.TryGetParent(x, out y);
 
             if (!hasPartner)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
                 //   i. k := FindPos(x)
                 //  ii. Append INS((w, a, value(x)), z, k) to E for a new identifier w.
                 // iii. Add (w, x) to M' and apply INS((w, a, value(x)), z, k) to T1.          
-                edits.Add(new SyntaxEdit(SyntaxEditKind.Insert, Comparer, oldNode: default(SyntaxNode), newNode: x));
+                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default(TNode), newNode: x));
 
                 // NOTE:
                 // We don't update M' here.
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             {
                 // c) else if x is not a root
                 // i. Let w be the partner of x in M', and let v = parent(w) in T1.
-                SyntaxNode v = Comparer.GetParent(w);
+                TNode v = Comparer.GetParent(w);
 
                 // ii. if value(w) != value(x)
                 // A. Append UPD(w, value(x)) to E
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
                 // The Comparer defines what changes in node values it cares about.
                 if (!Comparer.ValuesEqual(w, x))
                 {
-                    edits.Add(new SyntaxEdit(SyntaxEditKind.Update, Comparer, oldNode: w, newNode: x));
+                    edits.Add(new Edit<TNode>(EditKind.Update, Comparer, oldNode: w, newNode: x));
                 }
 
                 // If parents of w and x don't match, it's a move.
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
                     // B. k := FindPos(x)
                     // C. Append MOV(w, z, k)
                     // D. Apply MOV(w, z, k) to T1
-                    edits.Add(new SyntaxEdit(SyntaxEditKind.Move, Comparer, oldNode: w, newNode: x));
+                    edits.Add(new Edit<TNode>(EditKind.Move, Comparer, oldNode: w, newNode: x));
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             }
         }
 
-        private void AddDeletes(List<SyntaxEdit> edits)
+        private void AddDeletes(List<Edit<TNode>> edits)
         {
             // 3. Do a post-order traversal of T1.
             //    a) Let w be the current node in the post-order traversal of T1.
@@ -158,17 +158,17 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             {
                 if (!_match.HasPartnerInTree2(w))
                 {
-                    edits.Add(new SyntaxEdit(SyntaxEditKind.Delete, Comparer, oldNode: w, newNode: default(SyntaxNode)));
+                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
                 }
             }
         }
 
-        private void AlignChildren(List<SyntaxEdit> edits, SyntaxNode w, SyntaxNode x)
+        private void AlignChildren(List<Edit<TNode>> edits, TNode w, TNode x)
         {
             Debug.Assert(Comparer.TreesEqual(w, Root1));
             Debug.Assert(Comparer.TreesEqual(x, Root2));
 
-            IEnumerable<SyntaxNode> wChildren, xChildren;
+            IEnumerable<TNode> wChildren, xChildren;
             if ((wChildren = Comparer.GetChildren(w)) == null || (xChildren = Comparer.GetChildren(x)) == null)
             {
                 return;
@@ -182,30 +182,30 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             //  Let S1 be the sequence of children of w whose partner are children
             //  of x and let S2 be the sequence of children of x whose partner are
             //  children of w.
-            List<SyntaxNode> s1 = null;
+            List<TNode> s1 = null;
             foreach (var e in wChildren)
             {
-                SyntaxNode pw;
+                TNode pw;
                 if (_match.TryGetPartnerInTree2(e, out pw) && Comparer.GetParent(pw).Equals(x))
                 {
                     if (s1 == null)
                     {
-                        s1 = new List<SyntaxNode>();
+                        s1 = new List<TNode>();
                     }
 
                     s1.Add(e);
                 }
             }
 
-            List<SyntaxNode> s2 = null;
+            List<TNode> s2 = null;
             foreach (var e in xChildren)
             {
-                SyntaxNode px;
+                TNode px;
                 if (_match.TryGetPartnerInTree1(e, out px) && Comparer.GetParent(px).Equals(w))
                 {
                     if (s2 == null)
                     {
-                        s2 = new List<SyntaxNode>();
+                        s2 = new List<TNode>();
                     }
 
                     s2.Add(e);
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             // Step 3, 4
             //  Define the function Equal(a,b) to be true if and only if  (a,c) in M'
             //  Let S <- LCS(S1, S2, Equal)
-            var lcs = new SyntaxMatch.LongestCommonSubsequence(_match);
+            var lcs = new Match<TNode>.LongestCommonSubsequence(_match);
             var s = lcs.GetMatchingNodes(s1, s2);
 
             // Step 5
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             //       NOTE: We don't mark nodes "in order".
             foreach (var a in s1)
             {
-                SyntaxNode b;
+                TNode b;
 
                 // (a,b) in M
                 // => b in S2 since S2 == { b | parent(b) == x && parent(partner(b)) == w }
@@ -247,14 +247,14 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
                     Debug.Assert(Comparer.TreesEqual(a, Root1));
                     Debug.Assert(Comparer.TreesEqual(b, Root2));
 
-                    edits.Add(new SyntaxEdit(SyntaxEditKind.Reorder, Comparer, oldNode: a, newNode: b));
+                    edits.Add(new Edit<TNode>(EditKind.Reorder, Comparer, oldNode: a, newNode: b));
                 }
             }
         }
 
-        private static bool ContainsPair(Dictionary<SyntaxNode, SyntaxNode> dict, SyntaxNode a, SyntaxNode b)
+        private static bool ContainsPair(Dictionary<TNode, TNode> dict, TNode a, TNode b)
         {
-            SyntaxNode value;
+            TNode value;
             return dict.TryGetValue(a, out value) && value.Equals(b);
         }
     }

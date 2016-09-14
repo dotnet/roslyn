@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
-using Microsoft.CodeAnalysis.SyntaxDifferencing;
+using Microsoft.CodeAnalysis.TreeDifferencing;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void VerifyRudeDiagnostics(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifyRudeDiagnostics(editScript, ActiveStatementsDescription.Empty, expectedDiagnostics);
         }
 
         internal static void VerifyRudeDiagnostics(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription description,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void VerifyLineEdits(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             IEnumerable<LineChange> expectedLineEdits,
             IEnumerable<string> expectedNodeUpdates,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void VerifySemanticDiagnostics(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemantics(editScript, ActiveStatementsDescription.Empty, null, expectedDiagnostics);
         }
 
         internal static void VerifySemantics(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
             SemanticEditDescription[] expectedSemanticEdits,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void VerifySemantics(
-            this SyntaxEditScript editScript,
+            this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
             IEnumerable<string> additionalOldSources,
             IEnumerable<string> additionalNewSources,

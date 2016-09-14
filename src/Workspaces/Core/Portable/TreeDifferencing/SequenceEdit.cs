@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SyntaxDifferencing
+namespace Microsoft.CodeAnalysis.TreeDifferencing
 {
     /// <summary>
     /// Represents an edit operation on a sequence of values.
@@ -26,23 +26,23 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
         }
 
         /// <summary>
-        /// The kind of edit: <see cref="SyntaxEditKind.Delete"/>, <see cref="SyntaxEditKind.Insert"/>, or <see cref="SyntaxEditKind.Update"/>.
+        /// The kind of edit: <see cref="EditKind.Delete"/>, <see cref="EditKind.Insert"/>, or <see cref="EditKind.Update"/>.
         /// </summary>
-        public SyntaxEditKind Kind
+        public EditKind Kind
         {
             get
             {
                 if (_oldIndex == -1)
                 {
-                    return SyntaxEditKind.Insert;
+                    return EditKind.Insert;
                 }
 
                 if (_newIndex == -1)
                 {
-                    return SyntaxEditKind.Delete;
+                    return EditKind.Delete;
                 }
 
-                return SyntaxEditKind.Update;
+                return EditKind.Update;
             }
         }
 
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             string result = Kind.ToString();
             switch (Kind)
             {
-                case SyntaxEditKind.Delete:
+                case EditKind.Delete:
                     return result + " (" + _oldIndex + ")";
 
-                case SyntaxEditKind.Insert:
+                case EditKind.Insert:
                     return result + " (" + _newIndex + ")";
 
-                case SyntaxEditKind.Update:
+                case EditKind.Update:
                     return result + " (" + _oldIndex + " -> " + _newIndex + ")";
             }
 

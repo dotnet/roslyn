@@ -3,8 +3,8 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SyntaxDifferencing
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.TreeDifferencing
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxDifferencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     node = node.Parent
                 End While
 
-                Dim actualSpan = VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind, node, SyntaxEditKind.Update)
+                Dim actualSpan = VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(node.Kind, node, EditKind.Update)
                 Dim actualText = source.Substring(actualSpan.Start, actualSpan.Length)
 
                 Assert.True(expectedSpan = actualSpan, vbCrLf &
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             For Each k In [Enum].GetValues(GetType(SyntaxKind)).Cast(Of SyntaxKind)().Where(hasLabel)
                 Try
-                    VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(k, Nothing, SyntaxEditKind.Update)
+                    VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl(k, Nothing, EditKind.Update)
                 Catch e1 As NullReferenceException
                     ' expected, we passed null node
                 Catch e2 As Exception

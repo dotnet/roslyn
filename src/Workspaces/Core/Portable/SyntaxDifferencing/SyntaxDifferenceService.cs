@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SyntaxDifferencing
 {
-    internal abstract class SyntaxDifferenceService : ILanguageService
+    public abstract class SyntaxDifferenceService : ILanguageService
     {
         public abstract string Language { get; }
+
+        internal SyntaxDifferenceService()
+        {
+        }
 
         public static SyntaxDifferenceService GetService(Document document)
         {
@@ -23,8 +22,13 @@ namespace Microsoft.CodeAnalysis.SyntaxDifferencing
             return workspace.Services.GetLanguageServices(language).GetService<SyntaxDifferenceService>();
         }
 
+        /// <summary>
+        /// Computes the set of edits that would transform <paramref name="oldRoot"/> into
+        /// <paramref name="newRoot"/>.  These roots should be the top level nodes of their
+        /// respective documents.
+        /// </summary>
         public abstract SyntaxMatch ComputeTopLevelMatch(SyntaxNode oldRoot, SyntaxNode newRoot);
 
-        public abstract SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody);
+        internal abstract SyntaxMatch ComputeBodyLevelMatch(SyntaxNode oldBody, SyntaxNode newBody);
     }
 }
