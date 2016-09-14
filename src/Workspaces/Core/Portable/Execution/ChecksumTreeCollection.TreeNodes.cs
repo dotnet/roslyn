@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 // root tree node has extra data that we need to search as well
                 if (_additionalAssets == null)
                 {
-                    // this can't be reached
-                    throw ExceptionUtilities.Unreachable;
+                    // checksum looks like belong to global asset
+                    return;
                 }
 
                 AppendChecksumObjectsFromAdditionalAssets(map, searchingChecksumsLeft, cancellationToken);
@@ -252,13 +252,21 @@ namespace Microsoft.CodeAnalysis.Execution
                 return await GetOrCreateChecksumObjectAsync(key, value, kind, (v, k, c) => valueGetterAsync(key, v, k, c), cancellationToken).ConfigureAwait(false);
             }
 
-            public Task<TAsset> GetOrCreateAssetAsync<TKey, TValue, TAsset>(
+            public TChecksumObject GetOrCreateChecksumObjectWithChildren<TKey, TValue, TChecksumObject>(
                 TKey key, TValue value, string kind,
-                Func<TValue, string, CancellationToken, Task<TAsset>> valueGetterAsync, CancellationToken cancellationToken)
+                Func<TKey, TValue, string, CancellationToken, TChecksumObject> valueGetter, CancellationToken cancellationToken)
                 where TKey : class
-                where TAsset : Asset
+                where TChecksumObject : ChecksumObjectWithChildren
             {
-                return GetOrCreateChecksumObjectAsync(key, value, kind, valueGetterAsync, cancellationToken);
+                return GetOrCreateChecksumObject(key, value, kind, (v, k, c) => valueGetter(key, v, k, c), cancellationToken);
+            }
+
+            public Asset GetOrCreateAsset<TKey, TValue>(
+                TKey key, TValue value, string kind,
+                Func<TValue, string, CancellationToken, Asset> valueGetter, CancellationToken cancellationToken)
+                where TKey : class
+            {
+                return GetOrCreateChecksumObject(key, value, kind, valueGetter, cancellationToken);
             }
 
             protected static void AppendChecksumObjects(
@@ -266,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 HashSet<Checksum> searchingChecksumsLeft,
                 int currentNodeChecksumCount,
                 IEnumerable<Checksum> currentNodeChecksums,
-                Func<Checksum, ChecksumObject> checksumGetterForCurrentNode, 
+                Func<Checksum, ChecksumObject> checksumGetterForCurrentNode,
                 CancellationToken cancellationToken)
             {
                 // this will iterate through candidate checksums to see whether that checksum exists in both
@@ -353,6 +361,43 @@ namespace Microsoft.CodeAnalysis.Execution
                     {
                         // owner doesn't have this particular kind, create one.
                         checksumObject = await valueGetterAsync(value, kind, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // record local copy (reference) and return it.
+                    // REVIEW: we can go ref count route rather than this (local copy). but then we need to make sure there is no leak.
+                    //         for now, we go local copy route since overhead is small (just duplicated reference pointer), but reduce complexity a lot.
+                    return (TChecksumObject)SaveAndReturn(key, checksumObject, entry);
+                }
+            }
+
+            private TChecksumObject GetOrCreateChecksumObject<TKey, TValue, TChecksumObject>(
+                TKey key, TValue value, string kind,
+                Func<TValue, string, CancellationToken, TChecksumObject> valueGetter, CancellationToken cancellationToken)
+                where TKey : class where TChecksumObject : ChecksumObject
+            {
+                using (Logger.LogBlock(FunctionId.ChecksumTreeNode_GetOrCreateChecksumObject, CreateLogMessage, key, kind, cancellationToken))
+                {
+                    Contract.ThrowIfNull(key);
+
+                    // ask myself
+                    ChecksumObject checksumObject;
+                    var entry = TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                    if (entry != null && entry.TryGetValue(kind, out checksumObject))
+                    {
+                        return (TChecksumObject)SaveAndReturn(key, checksumObject, entry);
+                    }
+
+                    // ask owner
+                    entry = _owner.TryGetChecksumObjectEntry(key, kind, cancellationToken);
+                    if (entry == null)
+                    {
+                        // owner doesn't have it, create one.
+                        checksumObject = valueGetter(value, kind, cancellationToken);
+                    }
+                    else if (!entry.TryGetValue(kind, out checksumObject))
+                    {
+                        // owner doesn't have this particular kind, create one.
+                        checksumObject = valueGetter(value, kind, cancellationToken);
                     }
 
                     // record local copy (reference) and return it.

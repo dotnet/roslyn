@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal partial class CSharpTypeStyleDiagnosticAnalyzerBase
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase
     {
         internal class State
         {

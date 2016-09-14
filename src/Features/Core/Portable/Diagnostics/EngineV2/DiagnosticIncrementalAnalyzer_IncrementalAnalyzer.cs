@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            // most of analyzers, number of descriptor is quite small, so this should be cheap.
-            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
+            return Owner.ShouldRunForFullProject(analyzer, project);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

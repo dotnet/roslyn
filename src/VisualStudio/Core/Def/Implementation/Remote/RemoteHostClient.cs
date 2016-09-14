@@ -95,6 +95,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
 
+            public void AddAdditionalAssets(Asset asset)
+            {
+                ChecksumScope.AddAdditionalAsset(asset, CancellationToken);
+            }
+
             protected virtual void OnDisposed()
             {
                 // do nothing
