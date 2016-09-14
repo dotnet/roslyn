@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operand for pattern match..
+        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadIsPatternExpression {
             get {
@@ -7406,15 +7406,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
-        /// </summary>
-        internal static string ERR_PatternValueExpected {
-            get {
-                return ResourceManager.GetString("ERR_PatternValueExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
         /// </summary>
         internal static string ERR_PatternWrongType {
@@ -8626,6 +8617,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SubexpressionNotInNameof {
             get {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        /// </summary>
+        internal static string ERR_SwitchExpressionValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_SwitchExpressionValueExpected", resourceCulture);
             }
         }
         

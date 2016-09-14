@@ -18,12 +18,12 @@ class C {
     async ValueTask f() { await (Task)null; }
     async ValueTask<int> g() { await (Task)null; return 1; }
 }
-[AsyncBuilder(typeof(string))]
+[AsyncMethodBuilder(typeof(string))]
 struct ValueTask { }
-[AsyncBuilder(typeof(Task<>))]
+[AsyncMethodBuilder(typeof(Task<>))]
 struct ValueTask<T> { }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
@@ -69,7 +69,7 @@ class Unawaitable
     public Func<TaskAwaiter> GetAwaiter = () => (Task.FromResult(1) as Task).GetAwaiter();
 }
 
-[AsyncBuilder(typeof(TasklikeMethodBuilder))]
+[AsyncMethodBuilder(typeof(TasklikeMethodBuilder))]
 public class Tasklike { }
 
 public class TasklikeMethodBuilder
@@ -85,7 +85,7 @@ public class TasklikeMethodBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
@@ -111,7 +111,7 @@ class Program
     <<betterOverload>>
     <<worseOverload>>
 }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
 struct ValueTask
 {
     <<implicitConversionToTask>>
@@ -123,7 +123,7 @@ struct ValueTask
         internal void GetResult() { }
     }
 }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder<>))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
 struct ValueTask<T>
 {
     internal T _result;
@@ -170,7 +170,7 @@ sealed class ValueTaskMethodBuilder<T>
     public ValueTask<T> Task => _task;
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             source = source.Replace("<<arg>>", arg);
             source = source.Replace("<<betterOverload>>", (betterOverload != null) ? "static string " + betterOverload + " => \"better\";" : "");
@@ -292,14 +292,14 @@ class C {
     async ValueTask f() { await Task.Delay(0); }
     async ValueTask<int> g() { await Task.Delay(0); return 1; }
 }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
 struct ValueTask { }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder<>))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
 struct ValueTask<T> { }
 class ValueTaskMethodBuilder {}
 class ValueTaskMethodBuilder<T> {}
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
             var methodf = compilation.GetMember<MethodSymbol>("C.f");
@@ -355,14 +355,14 @@ class C
     static void Main() { }
     async MyTask f() { await (Task)null; }
 }
-[AsyncBuilder(typeof(MyTaskBuilder))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
 public class MyTask { }
 public class MyTaskBuilder
 {
     public static MyTaskBuilder Create() => null;
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source3).VerifyDiagnostics();
         }
@@ -387,7 +387,7 @@ class C {
     static void h(Func<Task> lambda) { }
 }
 
-[AsyncBuilder(typeof(MyTaskBuilder<>))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
 public class MyTask<T> { }
 public class MyTaskBuilder<T> {
     public static MyTaskBuilder<T> Create() => null;
@@ -400,7 +400,7 @@ public class MyTaskBuilder<T> {
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-[AsyncBuilder(typeof(MyTaskBuilder))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
 public class MyTask { }
 public class MyTaskBuilder
 {
@@ -414,7 +414,7 @@ public class MyTaskBuilder
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
@@ -432,11 +432,11 @@ using System.Threading.Tasks;
 class C {
     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
 }
-[AsyncBuilder(typeof(Mismatch2MethodBuilder<>))]
+[AsyncMethodBuilder(typeof(Mismatch2MethodBuilder<>))]
 struct Mismatch2<T,U> { }
 class Mismatch2MethodBuilder<T> {}
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
@@ -469,13 +469,13 @@ class Program
     }
 }
 
-[AsyncBuilder(typeof(ValueTaskBuilder<>))]
+[AsyncMethodBuilder(typeof(ValueTaskBuilder<>))]
 class ValueTask<T>
 {
     public static implicit operator ValueTask<T>(Task<T> task) => null;
 }
 
-[AsyncBuilder(typeof(MyTaskBuilder<>))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder<>))]
 class MyTask<T>
 {
     public static implicit operator MyTask<T>(Task<T> task) => null;
@@ -506,7 +506,7 @@ class MyTaskBuilder<T>
     public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM : IAsyncStateMachine { }
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
         }
@@ -542,7 +542,7 @@ class Program
     }
 }
 
-[AsyncBuilder(typeof(ValueTaskBuilder<>))]
+[AsyncMethodBuilder(typeof(ValueTaskBuilder<>))]
 public class ValueTask<T> { }
 
 public class ValueTaskBuilder<T>
@@ -557,7 +557,7 @@ public class ValueTaskBuilder<T>
     public ValueTask<T> Task => null;
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
         }
