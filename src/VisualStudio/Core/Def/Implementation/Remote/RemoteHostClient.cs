@@ -74,10 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // TODO: make this to not exposed to caller. abstract all of these under Request and Response mechanism
         public abstract class Session : IDisposable
         {
-            protected readonly ChecksumScope ChecksumScope;
             protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
+
+            public ChecksumScope ChecksumScope { get; }
 
             protected Session(ChecksumScope scope, CancellationToken cancellationToken)
             {
