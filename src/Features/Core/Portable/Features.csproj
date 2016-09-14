@@ -45,6 +45,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.Orchestrator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -91,6 +92,7 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
     <Compile Include="Structure\Syntax\AbstractBlockStructureProvider.cs" />
     <Compile Include="Structure\BlockSpan.cs" />
@@ -161,7 +163,7 @@
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeLens\CodeLensReferenceService.cs" />
+    <Compile Include="CodeLens\CodeLensReferencesService.cs" />
     <Compile Include="CodeLens\CodeLensFindReferenceProgress.cs" />
     <Compile Include="CodeLens\ICodeLensReferencesService.cs" />
     <Compile Include="CodeLens\ICodeLensDisplayInfoService.cs" />
