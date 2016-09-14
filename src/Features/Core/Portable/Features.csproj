@@ -91,6 +91,8 @@
     </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="QuickInfo\QuickInfoTextBlock.cs" />
+    <Compile Include="QuickInfo\QuickInfoTextKinds.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
     <Compile Include="Structure\Syntax\AbstractBlockStructureProvider.cs" />
     <Compile Include="Structure\BlockSpan.cs" />

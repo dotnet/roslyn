@@ -160,20 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return null;
         }
 
-        protected void WaitForDocumentationComment(object content)
-        {
-/*
-            if (content is QuickInfoDisplayDeferredContent)
-            {
-                var docCommentDeferredContent = ((QuickInfoDisplayDeferredContent)content).Documentation as DocumentationCommentDeferredContent;
-                if (docCommentDeferredContent != null)
-                {
-                    docCommentDeferredContent.WaitForDocumentationCommentTask_ForTestingPurposesOnly();
-                }
-            }
-*/
-        }
-
         internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
             return (qi) =>
@@ -185,6 +171,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         internal Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
         {
             return SymbolGlyph(expectedGlyph);
+        }
+
+        internal void AssertTextBlock(
+            string expectedText,
+            ImmutableArray<QuickInfoTextBlock> textBlocks,
+            string textBlockKind,
+            Tuple<string, string>[] expectedClassifications = null)
+        {
+            var textBlock = textBlocks.FirstOrDefault(tb => tb.Kind == textBlockKind);
+            var text = textBlock != null ? textBlock.Text : ImmutableArray<TaggedText>.Empty;
+            AssertTaggedText(expectedText, text, expectedClassifications);
         }
 
         internal void AssertTaggedText(
@@ -200,35 +197,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTaggedText(expectedText, item.Description, expectedClassifications);
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Description, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTaggedText(expectedText, item.DocumentationComments, expectedClassifications);
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.DocumentationComments, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTaggedText(expectedText, item.TypeParameters, expectedClassifications);
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.TypeParameters, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return item => AssertTaggedText(expectedText, item.AnonymousTypes, expectedClassifications);
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.AnonymousTypes, expectedClassifications);
         }
 
         internal Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
-                return item => AssertTaggedText(string.Empty, item.TypeParameters);
+                return item => AssertTextBlock(string.Empty, item.TextBlocks, QuickInfoTextKinds.TypeParameters);
             }
         }
 
@@ -236,7 +233,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         {
             return item => 
             {
-                AssertTaggedText(expectedText, item.Usage);
+                AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Usage);
+
                 if (expectsWarningGlyph)
                 {
                     WarningGlyph(Glyph.CompletionWarning)(item);
@@ -250,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         internal Action<QuickInfoItem> Exceptions(string expectedText)
         {
-            return item => AssertTaggedText(expectedText, item.Exception);
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Exception);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)

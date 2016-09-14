@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             End If
 
             If types.Count > 1 Then
-                Return QuickInfoItem.Create(token.Span, description:=ImmutableArray.Create(New TaggedText(TextTags.Text, "multiple types")))
+                Return QuickInfoItem.Create(token.Span, textBlocks:=ImmutableArray.Create(QuickInfoTextBlock.Create(QuickInfoTextKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
             Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, types, supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
@@ -165,8 +165,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return QuickInfoItem.Create(
                 token.Span,
                 tags:=GlyphTags.GetTags(glyph),
-                description:=builder.ToTaggedText(),
-                documentationComments:=ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText)))
+                textBlocks:=ImmutableArray.Create(
+                    QuickInfoTextBlock.Create(QuickInfoTextKinds.Description, builder.ToTaggedText()),
+                    QuickInfoTextBlock.Create(QuickInfoTextKinds.DocumentationComments, ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText)))))
         End Function
     End Class
 End Namespace

@@ -4,15 +4,16 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.CodeAnalysis.QuickInfo;
-using System.Windows;
 using Microsoft.VisualStudio.Imaging;
-using System.Windows.Data;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Projection;
 
@@ -130,29 +131,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             private FrameworkElement CreateContent(QuickInfoItem quickInfo, ITextSnapshot snapshot)
             {
-                if (quickInfo.RelatedSpans.Length > 0)
-                {
-                    return CreateDocumentSpanPresentation(quickInfo, snapshot);
-                }
-                else
-                {
-                    var glyphs = quickInfo.Tags.GetGlyphs();
-                    var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
-                    var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+                var glyphs = quickInfo.Tags.GetGlyphs();
+                var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+                var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+                var documentSpan = quickInfo.RelatedSpans.Length > 0 ? CreateDocumentSpanPresentation(quickInfo, snapshot) : null;
 
-                    return new QuickInfoDisplayPanel(
-                        symbolGlyph: symbolGlyph != default(Glyph) ? CreateSymbolPresentation(symbolGlyph) : null,
-                        warningGlyph: warningGlyph != default(Glyph) ? CreateSymbolPresentation(warningGlyph) : null,
-                        mainDescription: quickInfo.Description.Length > 0 ? CreateTextPresentation(quickInfo.Description) : null,
-                        documentation: quickInfo.DocumentationComments.Length > 0 ? CreateDocumentationCommentPresentation(quickInfo.DocumentationComments) : null,
-                        typeParameterMap: quickInfo.TypeParameters.Length > 0 ? CreateTextPresentation(quickInfo.TypeParameters) : null,
-                        anonymousTypes: quickInfo.AnonymousTypes.Length > 0 ? CreateTextPresentation(quickInfo.AnonymousTypes) : null,
-                        usageText: quickInfo.Usage.Length > 0 ? CreateTextPresentation(quickInfo.Usage) : null,
-                        exceptionText: quickInfo.Exception.Length > 0 ? CreateTextPresentation(quickInfo.Exception) : null);
-                }
+                return new QuickInfoDisplayPanel(
+                    symbolGlyph: symbolGlyph != default(Glyph) ? CreateSymbolPresentation(symbolGlyph) : null,
+                    warningGlyph: warningGlyph != default(Glyph) ? CreateSymbolPresentation(warningGlyph) : null,
+                    textBlocks: quickInfo.TextBlocks.Select(tb => new TextBlockElement(tb.Kind, CreateTextPresentation(tb))).ToImmutableArray(),
+                    documentSpan: documentSpan);
             }
 
-            public FrameworkElement CreateSymbolPresentation(Glyph glyph)
+            private FrameworkElement CreateSymbolPresentation(Glyph glyph)
             {
                 var image = new CrispImage
                 {
@@ -170,7 +161,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 return image;
             }
 
-            public FrameworkElement CreateTextPresentation(ImmutableArray<TaggedText> text)
+            private TextBlock CreateTextPresentation(QuickInfoTextBlock block)
+            {
+                if (block.Kind == QuickInfoTextKinds.DocumentationComments)
+                {
+                    return CreateDocumentationCommentPresentation(block.Text);
+                }
+                else
+                {
+                    return CreateTextPresentation(block.Text);
+                }
+            }
+
+            private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
             {
                 var classifiedTextBlock = text.ToTextBlock(_classificationTypeMap);
 
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 return classifiedTextBlock;
             }
 
-            public FrameworkElement CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
+            private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
             {
                 var documentationTextBlock = text.ToTextBlock(_classificationTypeMap);
                 documentationTextBlock.TextWrapping = TextWrapping.Wrap;
@@ -199,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 return documentationTextBlock;
             }
 
-            public FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
+            private FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
             {
                 return ElisionBufferContent.Create(
                     info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),

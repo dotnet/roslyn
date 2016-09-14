@@ -588,7 +588,7 @@ End class
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInFieldDeclaration() As Task
-            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -610,7 +610,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInLocalDeclaration() As Task
-            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

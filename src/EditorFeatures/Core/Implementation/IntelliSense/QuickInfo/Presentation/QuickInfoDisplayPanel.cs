@@ -2,43 +2,72 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
+    internal class TextBlockElement
+    {
+        public string Kind { get; }
+        public TextBlock Block { get; }
+
+        public TextBlockElement(string kind, TextBlock block)
+        {
+            this.Kind = kind;
+            this.Block = block;
+        }
+    }
+
     internal class QuickInfoDisplayPanel : StackPanel
     {
-        internal TextBlock MainDescription { get; }
-        internal TextBlock Documentation { get; }
-        internal TextBlock TypeParameterMap { get; }
-        internal TextBlock AnonymousTypes { get; }
-        internal TextBlock UsageText { get; }
-        internal TextBlock ExceptionText { get; }
+        private ImmutableArray<TextBlockElement> _textBlocks;
+
+        internal TextBlock MainDescription => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Description)?.Block;
+        internal TextBlock Documentation => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.DocumentationComments)?.Block;
+        internal TextBlock TypeParameterMap => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.TypeParameters)?.Block;
+        internal TextBlock AnonymousTypes => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.AnonymousTypes)?.Block;
+        internal TextBlock UsageText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Usage)?.Block;
+        internal TextBlock ExceptionText => _textBlocks.FirstOrDefault(tb => tb.Kind == QuickInfoTextKinds.Exception)?.Block;
 
         public QuickInfoDisplayPanel(
             FrameworkElement symbolGlyph,
             FrameworkElement warningGlyph,
-            FrameworkElement mainDescription,
-            FrameworkElement documentation,
-            FrameworkElement typeParameterMap,
-            FrameworkElement anonymousTypes,
-            FrameworkElement usageText,
-            FrameworkElement exceptionText)
+            ImmutableArray<TextBlockElement> textBlocks,
+            FrameworkElement documentSpan)
         {
-            this.MainDescription = (TextBlock)mainDescription;
-            this.Documentation = (TextBlock)documentation;
-            this.TypeParameterMap = (TextBlock)typeParameterMap;
-            this.AnonymousTypes = (TextBlock)anonymousTypes;
-            this.UsageText = (TextBlock)usageText;
-            this.ExceptionText = (TextBlock)exceptionText;
+            _textBlocks = textBlocks;
 
             this.Orientation = Orientation.Vertical;
 
-            var symbolGlyphAndMainDescriptionDock = new DockPanel()
+            for (int i = 0; i < _textBlocks.Length; i++)
+            {
+                var tb = _textBlocks[i];
+                if (i == 0)
+                {
+                    this.Children.Add(AddGlyphs(tb.Block, symbolGlyph, warningGlyph));
+                }
+                else
+                {
+                    this.Children.Add(tb.Block);
+                }
+            }
+
+            if (documentSpan != null)
+            {
+                this.Children.Add(documentSpan);
+            }
+        }
+
+        private static FrameworkElement AddGlyphs(TextBlock tb, FrameworkElement symbolGlyph, FrameworkElement warningGlyph)
+        {
+            var panel = new DockPanel()
             {
                 LastChildFill = true,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -56,22 +85,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     Child = symbolGlyph
                 };
 
-                symbolGlyphAndMainDescriptionDock.Children.Add(symbolGlyphBorder);
+                panel.Children.Add(symbolGlyphBorder);
             }
 
-            if (mainDescription != null)
+            tb.Margin = new Thickness(1);
+            var mainDescriptionBorder = new Border()
             {
-                mainDescription.Margin = new Thickness(1);
-                var mainDescriptionBorder = new Border()
-                {
-                    BorderThickness = new Thickness(0),
-                    BorderBrush = Brushes.Transparent,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Child = mainDescription
-                };
+                BorderThickness = new Thickness(0),
+                BorderBrush = Brushes.Transparent,
+                VerticalAlignment = VerticalAlignment.Center,
+                Child = tb
+            };
 
-                symbolGlyphAndMainDescriptionDock.Children.Add(mainDescriptionBorder);
-            }
+            panel.Children.Add(mainDescriptionBorder);
 
             if (warningGlyph != null)
             {
@@ -85,77 +111,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     Child = warningGlyph
                 };
 
-                symbolGlyphAndMainDescriptionDock.Children.Add(warningGlyphBorder);
+                panel.Children.Add(warningGlyphBorder);
             }
 
-            if (symbolGlyph != null || mainDescription != null || warningGlyph != null)
-            {
-                this.Children.Add(symbolGlyphAndMainDescriptionDock);
-            }
-
-            if (documentation != null)
-            {
-                this.Children.Add(documentation);
-            }
-
-            if (usageText != null)
-            {
-                this.Children.Add(usageText);
-            }
-
-            if (typeParameterMap != null)
-            {
-                this.Children.Add(typeParameterMap);
-            }
-
-            if (anonymousTypes != null)
-            {
-                this.Children.Add(anonymousTypes);
-            }
-
-            if (exceptionText != null)
-            {
-                this.Children.Add(exceptionText);
-            }
+            return panel;
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            if (this.MainDescription != null)
+            foreach (var tb in _textBlocks)
             {
-                BuildStringFromInlineCollection(this.MainDescription.Inlines, sb);
-            }
+                if (sb.Length > 0)
+                {
+                    sb.AppendLine();
+                }
 
-            if (this.Documentation != null && this.Documentation.Inlines.Count > 0)
-            {
-                sb.AppendLine();
-                BuildStringFromInlineCollection(this.Documentation.Inlines, sb);
-            }
-
-            if (this.TypeParameterMap != null && this.TypeParameterMap.Inlines.Count > 0)
-            {
-                sb.AppendLine();
-                BuildStringFromInlineCollection(this.TypeParameterMap.Inlines, sb);
-            }
-
-            if (this.AnonymousTypes != null && this.AnonymousTypes.Inlines.Count > 0)
-            {
-                sb.AppendLine();
-                BuildStringFromInlineCollection(this.AnonymousTypes.Inlines, sb);
-            }
-
-            if (this.UsageText != null && this.UsageText.Inlines.Count > 0)
-            {
-                sb.AppendLine();
-                BuildStringFromInlineCollection(this.UsageText.Inlines, sb);
-            }
-
-            if (this.ExceptionText != null && this.ExceptionText.Inlines.Count > 0)
-            {
-                sb.AppendLine();
-                BuildStringFromInlineCollection(this.ExceptionText.Inlines, sb);
+                BuildStringFromInlineCollection(tb.Block.Inlines, sb);
             }
 
             return sb.ToString();
