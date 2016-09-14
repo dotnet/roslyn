@@ -13,11 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class WrappingViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpFormattingOptions.WrappingFeatureName;
-        }
-
         private static readonly string s_blockPreview = @"
 class C
 {

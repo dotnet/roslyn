@@ -2,19 +2,18 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [ExportOptionSerializer(TodoCommentOptions.OptionName), Shared]
-    internal class CommentTaskTokenSerializer : IOptionSerializer
+    [Export(typeof(IOptionPersister))]
+    internal class CommentTaskTokenSerializer : IOptionPersister
     {
         private readonly ITaskList _taskList;
         private readonly IOptionService _optionService;

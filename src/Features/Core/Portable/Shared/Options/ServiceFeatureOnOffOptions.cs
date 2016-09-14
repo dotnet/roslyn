@@ -6,8 +6,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
 {
     internal static class ServiceFeatureOnOffOptions
     {
-        public const string OptionName = "ServiceFeaturesOnOff";
-
         private const bool CSharpClosedFileDiagnosticsEnabledByDefault = false;
         private const bool DefaultClosedFileDiagnosticsEnabledByDefault = true;
 
@@ -16,7 +14,9 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// this option doesn't mean we will show all diagnostics that belong to opened files when turned off,
         /// rather it means we will only show diagnostics that are cheap to calculate for small scope such as opened files.
         /// </summary>
-        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(OptionName, "Closed File Diagnostic", defaultValue: null);
+        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
+            "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
 
         public static bool IsClosedFileDiagnosticsEnabled(Project project)
         {

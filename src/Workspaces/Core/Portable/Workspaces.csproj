@@ -384,6 +384,7 @@
     <Compile Include="Execution\Serializer.cs" />
     <Compile Include="Execution\Serializer_Asset.cs" />
     <Compile Include="Execution\Serializer_ChecksumObjectWithChildren.cs" />
+    <Compile Include="Execution\Serializer_OptionSet.cs" />
     <Compile Include="Execution\SolutionChecksumObjects.cs" />
     <Compile Include="Execution\SolutionChecksumObjectInfo.cs" />
     <Compile Include="Execution\ChecksumTreeCollection.cs" />
@@ -391,11 +392,14 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
-    <Compile Include="Options\OptionService.cs" />
+    <Compile Include="Options\GlobalOptionService.cs" />
     <Compile Include="Options\IGlobalOptionService.cs" />
     <Compile Include="Options\IWorkspaceOptionService.cs" />
     <Compile Include="Shared\RuntimeOptions.cs" />
     <Compile Include="Shared\RuntimeOptionsProvider.cs" />
+    <Compile Include="Options\OptionStorageLocation.cs" />
+    <Compile Include="Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
@@ -756,8 +760,7 @@
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
     <Compile Include="Options\Providers\IOptionProvider.cs" />
-    <Compile Include="Options\Providers\IOptionSerializer.cs" />
-    <Compile Include="Options\Providers\OptionSerializerMetadata.cs" />
+    <Compile Include="Options\IOptionPersister.cs" />
     <Compile Include="OrderableMetadata.cs" />
     <Compile Include="Recommendations\AbstractRecommendationService.cs" />
     <Compile Include="Recommendations\IRecommendationService.cs" />

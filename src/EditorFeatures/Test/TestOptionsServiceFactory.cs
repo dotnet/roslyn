@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             // give out new option service per workspace
             return new OptionServiceFactory.OptionService(
-                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionSerializer, OptionSerializerMetadata>>()),
+                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>()),
                 workspaceServices);
         }
     }
