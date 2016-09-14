@@ -74,7 +74,7 @@ In the case where the expression on the right is a tuple expression, it is first
 We noted already that tuples (which are syntactic sugar for the `System.ValueTuple` underlying type) don't need to invoke Deconstruct.
 The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the `Deconstruct` pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
 
-TODO: return values
+A deconstruction-assignment returns a tuple value which is shaped and typed like the left-hand-side and holds the (converted) parts resulting from deconstruction.
 
 #### Evaluation order
 
@@ -143,7 +143,8 @@ Also, the `Deconstruct` method must be an instance method or an extension (but n
 Deconstruction-declarations can be thought of as two steps: (1) declaring new locals, and (2) applying a deconstruction-assignment into those locals.
 The syntax for deconstruction is more involved and multiple forms are allowed. The simplest case is `(int x, string y)`. Variants include nested declarations like `(int x, (string y, long z))` (which declares 3 locals) and implicitly typed declarations like `(var x, var y)`. The latter can also be written using the shorthand `var (x, y)`.
 
-TODO: infering types in tuple literals
+As in the case of deconstruction-declarations, tuple literals on the right-hand-side have their type inferred from the left-hand-side. With deconstruction-declaration, this is also the case, except that any type is `var` in the left-hand-side, then the natural type of the element in the right-hand-side is used.
+For example, in `(string x, byte y, var z) = (null, 1, 2);`, `null` has type `string`, the literal `1` has type `byte` (inferred from `y`) and the literal `2` has type `int` (its natural type).
 
 ###Grammar changes
 
