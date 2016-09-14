@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Friend Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
-            Dim service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of QuickInfoService)
+            Dim service = QuickInfoService.GetService(workspace, LanguageNames.VisualBasic)
 
             Await TestSharedAsync(workspace, service, position, expectedResults)
 

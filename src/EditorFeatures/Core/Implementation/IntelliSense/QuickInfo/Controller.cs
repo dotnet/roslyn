@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    _service = document.Project.LanguageServices.GetService<QuickInfoService>();
+                    _service = QuickInfoService.GetService(document);
                 }
             }
 

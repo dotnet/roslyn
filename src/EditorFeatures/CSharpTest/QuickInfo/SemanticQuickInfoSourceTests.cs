@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             var documentId = workspace.GetDocumentId(testDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var service = workspace.Services.GetLanguageServices(document.Project.Language).GetService<QuickInfoService>();
+            var service = QuickInfoService.GetService(document);
 
             await TestWithOptionsAsync(document, service, position, expectedResults);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var service = workspace.Services.GetLanguageServices(document.Project.Language).GetService<QuickInfoService>();
+                var service = QuickInfoService.GetService(document);
 
                 var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
@@ -237,7 +237,7 @@ using System.Linq;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var service = workspace.Services.GetLanguageServices(document.Project.Language).GetService<QuickInfoService>();
+                var service = QuickInfoService.GetService(document);
 
                 var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
