@@ -8,14 +8,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
-    [ExportWorkspaceService(typeof(IRemoteCodeLensReferencesService)), Shared]
-    internal sealed class RemoteCodeLensReferencesService : IRemoteCodeLensReferencesService
+    [ExportWorkspaceService(typeof(ICodeLensReferencesService), layer: ServiceLayer.Host), Shared]
+    internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
         public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)

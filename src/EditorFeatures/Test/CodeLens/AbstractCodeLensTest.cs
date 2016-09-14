@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         {
             using (var workspace = await TestWorkspace.CreateAsync(input))
             {
-                var service = workspace.GetService<ICodeLensReferencesService>();
-                Assert.NotNull(service);
-
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
                     var document = workspace.CurrentSolution.GetDocument(annotatedDocument.Id);
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await service.GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id, 
+                            var result = await new CodeLensReferencesService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id, 
                                 declarationSyntaxNode, cap, CancellationToken.None);
                             Assert.NotNull(result);
                             Assert.Equal(expected, result.Count);
@@ -51,9 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         {
             using (var workspace = await TestWorkspace.CreateAsync(input))
             {
-                var service = workspace.GetService<ICodeLensReferencesService>();
-                Assert.NotNull(service);
-
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
                     var document = workspace.CurrentSolution.GetDocument(annotatedDocument.Id);
@@ -65,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await service.FindReferenceLocationsAsync(workspace.CurrentSolution, 
+                            var result = await new CodeLensReferencesService().FindReferenceLocationsAsync(workspace.CurrentSolution, 
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             var count = result.Count();
                             Assert.Equal(expected, count);
@@ -84,9 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         {
             using (var workspace = await TestWorkspace.CreateAsync(input))
             {
-                var service = workspace.GetService<ICodeLensReferencesService>();
-                Assert.NotNull(service);
-
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
                     var document = workspace.CurrentSolution.GetDocument(annotatedDocument.Id);
@@ -98,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var result = await service.FindReferenceMethodsAsync(workspace.CurrentSolution,
+                            var result = await new CodeLensReferencesService().FindReferenceMethodsAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             var count = result.Count();
                             Assert.Equal(expected, count);
