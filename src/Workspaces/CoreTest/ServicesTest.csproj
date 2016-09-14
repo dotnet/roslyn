@@ -57,6 +57,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DependentTypeFinderTests.cs" />
+    <Compile Include="Differencing\MatchTest.cs" />
+    <Compile Include="Differencing\TestNode.cs" />
+    <Compile Include="Differencing\TestTreeComparer.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="Execution\Extensions.cs" />
     <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
