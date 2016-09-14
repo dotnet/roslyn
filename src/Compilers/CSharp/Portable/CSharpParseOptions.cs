@@ -222,7 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool IsFeatureEnabled(MessageID feature)
-        {
+        {                    // in "demo" mode enable proposed new C# 7 language features.
+            if (PreprocessorSymbols.Contains("__DEMO__"))
+            {
+                return true;
+            }
+
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {
