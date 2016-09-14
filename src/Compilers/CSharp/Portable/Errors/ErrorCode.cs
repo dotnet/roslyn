@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantHaveWin32ResAndIcon = 1565,
         ERR_CantReadResource = 1566,
         //ERR_AutoResGen = 1567,
-        //ERR_DocFileGen = 1569,
+        ERR_DocFileGen = 1569,
         WRN_XMLParseError = 1570,
         WRN_DuplicateParamTag = 1571,
         WRN_UnmatchedParamTag = 1572,
