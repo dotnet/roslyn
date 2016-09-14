@@ -7598,6 +7598,94 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub DefiniteAssignment008long()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String,
+                    I11 as string, 
+                    I12  As String, 
+                    I13  As String, 
+                    I14  As String, 
+                    I15  As String, 
+                    I16  As String, 
+                    I17  As String, 
+                    I18  As String, 
+                    I19  As String,
+                    I20 As String,
+                    I21 as string, 
+                    I22  As String, 
+                    I23  As String, 
+                    I24  As String, 
+                    I25  As String, 
+                    I26  As String, 
+                    I27  As String, 
+                    I28  As String, 
+                    I29  As String,
+                    I30  As String,
+                    I31  As String)
+
+        'warn 
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        'warn 
+        System.Console.WriteLine(ss.I31)
+
+        ss.I29 = "q"
+        ss.Item30 = "q"
+        ss.I31 = "q"
+
+        System.Console.WriteLine(ss.I29)
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        System.Console.WriteLine(ss.I31)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss)
+
+        ' warn
+        System.Console.WriteLine(ss.I2)
+
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+(, , , , , , , , , )
+
+q
+(, , , , , , , q, q, q)
+q
+(, , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , , , , , , , , q, q, q)]]>)
+
+            verifier.VerifyDiagnostics(
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest.Rest").WithArguments("Rest").WithLocation(36, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I31").WithArguments("I31").WithLocation(38, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest").WithArguments("Rest").WithLocation(49, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest").WithArguments("Rest").WithLocation(52, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(55, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I2").WithArguments("I2").WithLocation(58, 34))
+
+        End Sub
+
+        <Fact>
         Public Sub DefiniteAssignment009()
 
             Dim verifier = CompileAndVerify(
