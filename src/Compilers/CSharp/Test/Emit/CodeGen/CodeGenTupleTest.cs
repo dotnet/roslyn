@@ -18030,15 +18030,22 @@ public interface I<in T>
 class C<T> { }
 class C
 {
-    static void M()
+    static void Main()
     {
         const C<(int, int)> c = null;
         System.Console.Write(c);
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: s_valueTupleRefs, options: TestOptions.DebugExe);
+
+            // emit without pdb
+            var stream = new System.IO.MemoryStream();
+            Assert.True(comp.Emit(stream, options: new CodeAnalysis.Emit.EmitOptions()).Success);
+
+            // emit with pdb
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "");
             // no assertion in MetadataWriter
         }
 
@@ -18051,7 +18058,7 @@ class C
             var source = @"
 class C
 {
-    static void M()
+    static void Main()
     {
         const ReferencedType c = null;
         System.Console.Write(c);
@@ -18061,9 +18068,15 @@ class C
             var libComp = CreateCompilationWithMscorlib(libSource, assemblyName: "lib");
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() });
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             // no assertion in MetadataWriter
+
+            CompileAndVerify(comp, expectedOutput: "", validator: (assembly) =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
+                });
         }
     }
 }

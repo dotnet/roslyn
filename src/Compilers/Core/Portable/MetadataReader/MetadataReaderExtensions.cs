@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 
@@ -195,6 +197,12 @@ namespace Microsoft.CodeAnalysis
             return (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
                 reader.StringComparer.Equals(typeDef.Name, typeName) &&
                 reader.StringComparer.Equals(typeDef.Namespace, namespaceName);
+        }
+
+        internal static IEnumerable<string> DumpAssemblyReferences(this MetadataReader reader)
+        {
+            return reader.AssemblyReferences.Select(r => reader.GetAssemblyReference(r))
+                .Select(row => $"{reader.GetString(row.Name)} {row.Version.Major}.{row.Version.Minor}");
         }
     }
 }
