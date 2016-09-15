@@ -11,6 +11,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// It should always be the case that if you have the original solution
     /// that this symbol came from, that you'll be able to find this symbol
     /// in the compilation for the specified project.
+    /// 
+    /// Note that the 'Same' symbol could be acquired from many different projects
+    /// (after all, each project sees, at least, all the public symbols for all the 
+    /// projects it references).  As such, a single ISymbol could be found in many
+    /// places.  The ProjectId at least gives us a single place to look for it again.
+    /// 
+    /// The purpose of this type is to support serializing/deserializing symbols
+    /// and allowing features to work out-of-process (OOP).  In OOP scenarios, 
+    /// we will need to marshal <see cref="ISymbol"/>s to and from the host and 
+    /// the external process.  That means being able to recover the <see cref="ISymbol"/> 
+    /// on either side.  With the <see cref="ProjectId"/> this becomes possible.
+    /// 
+    /// Accordingly, it is ok to have a <see cref="SymbolAndProjectId"/> that does
+    /// not have a <see cref="ProjectId"/>.  It just means that that data cannot
+    /// be marshalled in an OOP scenario.  Existing features, and third party clients
+    /// will then have code that still works (albeit just in-process).  However,
+    /// code that updates to use this can then opt-into working OOP.
+    /// 
+    /// Note: for purposes of Equality/Hashing, all that we use is the underlying
+    /// Symbol.  That's because nearly all IDE features only care if they're looking
+    /// at the same symbol, they don't care if hte symbol came from a different 
+    /// project or not.  i.e. a feature like FAR doesn't want to cascade into the 
+    /// "same" symbol even if it hits it in another project.  As such, we do not
+    /// include the ProjectId when computing the result.
     /// </summary>
     internal struct SymbolAndProjectId
     {
@@ -27,11 +51,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool Equals(SymbolAndProjectId other)
         {
+            // See class comment on why we only use Symbol and ignore ProjectId.
             return Equals(this.Symbol, other.Symbol);
         }
 
         public override int GetHashCode()
         {
+            // See class comment on why we only use Symbol and ignore ProjectId.
             return this.Symbol.GetHashCode();
         }
 

@@ -273,6 +273,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Case LiteralBase.Octal
                         Dim val1 As ULong = ConvertToULong(value)
                         Return "&O" + ConvertToOctalString(val1)
+                    Case LiteralBase.Binary
+                        Dim asLong = CType(ConvertToULong(value), Long)
+                        Return "&B" + Convert.ToString(asLong, 2)
                     Case Else
                         Throw ExceptionUtilities.Unreachable
                 End Select
