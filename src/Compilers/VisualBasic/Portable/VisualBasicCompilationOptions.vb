@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonWithCheckOverflow(checkOverflow As Boolean) As CompilationOptions
             Return WithCheckOverflow(checkOverflow)
         End Function
-                
+
         ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different warning level specified.
         ''' </summary>

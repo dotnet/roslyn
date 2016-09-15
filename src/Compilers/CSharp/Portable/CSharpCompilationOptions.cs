@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { CheckOverflow = checkOverflow};
+            return new CSharpCompilationOptions(this) { CheckOverflow = checkOverflow };
         }
 
         protected override CompilationOptions CommonWithCheckOverflow(bool checkOverflow)
