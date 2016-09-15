@@ -39,7 +39,7 @@ public class Deconstructable
 
 Design
 ------
-This design doc will cover two kinds of deconstruction: deconstruction into existing variables (deconstruction-assignment) and deconstruction into new variables (deconstruction-declaration).
+This design doc will cover two kinds of deconstruction: deconstruction into existing variables (*deconstruction-assignment*) and deconstruction into new variables (*deconstruction-declaration*).
 
 Here is an example of deconstruction-assignment:
 ```C#
@@ -64,21 +64,21 @@ class C
 
 ###Deconstruction-assignment (deconstruction into existing variables):
 
-This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-expression`.
+This doesn't introduce any changes to the language grammar. We have an *assignment-expression* (also simply called *assignment* in the C# grammar) where the *unary-expression* (the left-hand-side) is a *tuple-expression*.
 In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple expression or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
 
 If the left-hand-side is nested the process will be repeated. For instance, in `(x, (y, z)) = deconstructable;`, `deconstructable` will be deconstructed into two parts and its second part will be further deconstructed. 
 
 In the case where the expression on the right is a tuple expression, it is first given a type. So in `long x; string y; (x, y) = (1, null);` the literals on the right-hand-side are typed as `long` and `string` before the deconstruction even starts, which means that no conversions will be needed during the deconstruction steps.
 
-We noted already that tuples (which are syntactic sugar for the `System.ValueTuple` underlying type) don't need to invoke Deconstruct.
-The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the `Deconstruct` pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
+We noted already that tuples (which are syntactic sugar for the `System.ValueTuple` underlying type) don't need to invoke `Deconstruct`.
+The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the *Deconstruct* pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
 
-A deconstruction-assignment returns a tuple value which is shaped and typed like the left-hand-side and holds the (converted) parts resulting from deconstruction.
+A *deconstruction-assignment* returns a tuple value which is shaped and typed like the left-hand-side and holds the (converted) parts resulting from deconstruction.
 
 #### Evaluation order
 
-The evaluation order can be summarized as: (1) all the side-effects on the left-hand-side, (2) all the Deconstruct invocations (if not tuple), (3) conversions (if needed), and (4) assignments.
+The evaluation order can be summarized as: (1) all the side-effects on the left-hand-side, (2) all the `Deconstruct` invocations (if not tuple), (3) conversions (if needed), and (4) assignments.
 
 In the general case, the lowering for deconstruction-assignment would translate: `(expressionX, expressionY, expressionZ) = expressionRight` into:
 
@@ -140,10 +140,11 @@ Also, the `Deconstruct` method must be an instance method or an extension (but n
 
 ###Deconstruction-declaration (deconstruction into new variables):
 
-Deconstruction-declarations can be thought of as two steps: (1) declaring new locals, and (2) applying a deconstruction-assignment into those locals.
+*Deconstruction-declarations* can be thought of as two steps: (1) declaring new locals, and (2) applying a *deconstruction-assignment* into those locals.
 The syntax for deconstruction is more involved and multiple forms are allowed. The simplest case is `(int x, string y)`. Variants include nested declarations like `(int x, (string y, long z))` (which declares 3 locals) and implicitly typed declarations like `(var x, var y)`. The latter can also be written using the shorthand `var (x, y)`.
+`var` is the only case where such shorthand is allowed (you `int (x, y)` is not legal).
 
-As in the case of deconstruction-declarations, tuple expressions on the right-hand-side have their type inferred from the left-hand-side. With deconstruction-declaration, this is also the case, except that any type is `var` in the left-hand-side, then the natural type of the element in the right-hand-side is used.
+As in the case of *deconstruction-declarations*, tuple expressions on the right-hand-side have their type inferred from the left-hand-side. With *deconstruction-declaration*, this is also the case, except that any type is `var` in the left-hand-side, then the natural type of the element in the right-hand-side is used.
 For example, in `(string x, byte y, var z) = (null, 1, 2);`, `null` has type `string`, the literal `1` has type `byte` (inferred from `y`) and the literal `2` has type `int` (its natural type).
 
 ###Grammar changes
@@ -184,7 +185,8 @@ for_initializer
     ;
 ```
 
-Note that deconstruction-assignment doesn't introduce any new syntax. It is represented with an assignment into a tuple expression.
+The *deconstruction-assignment* doesn't introduce any new syntax. It is represented with an *assignment* into a tuple expression.
+
 
 **References**
 
