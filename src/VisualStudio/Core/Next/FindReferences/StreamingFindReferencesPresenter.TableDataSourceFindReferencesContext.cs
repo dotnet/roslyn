@@ -432,6 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     }
 
                     result.Add(span);
+                    startPosition = span.TextSpan.End;
                 }
 
                 return result;
