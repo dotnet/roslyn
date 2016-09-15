@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
  
         internal static List<SymbolDisplayPart> ConvertClassificationsToParts(
-            SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, bool insertSourceTextInGaps = false)
+            SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
         {
             var parts = new List<SymbolDisplayPart>();
  
@@ -85,16 +85,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // If there is space between this span and the last one, then add a space.
                 if (startPosition != span.TextSpan.Start)
                 {
-                    if (insertSourceTextInGaps)
-                    {
-                        parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null,
-                            sourceText.ToString(TextSpan.FromBounds(
-                                startPosition, span.TextSpan.Start))));
-                    }
-                    else
-                    {
-                        parts.AddRange(Space());
-                    }
+                    parts.AddRange(Space());
                 }
  
                 var kind = GetClassificationKind(span.ClassificationType);
