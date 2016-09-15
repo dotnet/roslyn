@@ -3285,5 +3285,156 @@ class C
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IntTupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new int[] { 1, 2 };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (3, 4);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicMember()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = System.ValueTuple.Create(1, 2);
+        (x.Item1, x.Item2) = new C();
+        System.Console.WriteLine($""{x.Item1} {x.Item2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 3;
+        b = 4;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
     }
 }

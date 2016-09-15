@@ -948,6 +948,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags &= ~ExpansionFlags.IncludeBaseMembers;
             }
 
+            int cardinality;
+            if (runtimeType.IsTupleCompatible(out cardinality))
+            {
+                return TupleExpansion.CreateExpansion(value, declaredTypeAndInfo, cardinality);
+            }
+
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this);
         }
 

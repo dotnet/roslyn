@@ -1,11 +1,11 @@
 ﻿{
-  "dependencies": {
-    "System.Diagnostics.Process": "4.1.0"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": {}
-  }
+    "dependencies": {
+        "System.Diagnostics.Process": "4.1.0"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

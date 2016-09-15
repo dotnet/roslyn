@@ -11,11 +11,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class StyleViewModel
         Inherits AbstractOptionPreviewViewModel
 
-        Friend Overrides Function ShouldPersistOption(key As OptionKey) As Boolean
-            Return key.Option.Feature = SimplificationOptions.PerLanguageFeatureName OrElse
-                   key.Option.Feature = CodeStyleOptions.PerLanguageCodeStyleOption
-        End Function
-
 #Region "Preview Text"
 
         Private Shared s_fieldDeclarationPreviewTrue As String = "

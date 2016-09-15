@@ -202,10 +202,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal void VerifySemantics(
             EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
-            IEnumerable<string> additionalOldSources,
-            IEnumerable<string> additionalNewSources,
-            SemanticEditDescription[] expectedSemanticEdits,
-            RudeEditDiagnosticDescription[] expectedDiagnostics)
+            IEnumerable<string> additionalOldSources = null,
+            IEnumerable<string> additionalNewSources = null,
+            SemanticEditDescription[] expectedSemanticEdits = null,
+            RudeEditDiagnosticDescription[] expectedDiagnostics = null)
         {
             var editMap = Analyzer.BuildEditMap(editScript);
 

@@ -5,8 +5,11 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
+using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
@@ -244,7 +247,7 @@ class C
                         "o._17",
                         DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[0], inspectionContext);
-                Assert.Equal(8, children.Length); // Should be 18. https://github.com/dotnet/roslyn/issues/13421
+                Assert.Equal(18, children.Length);
                 var child = children[children.Length - 1];
                 Verify(child,
                     EvalResult(
@@ -254,7 +257,7 @@ class C
                         "o._17.Rest",
                         DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(child, inspectionContext);
-                Assert.Equal(8, children.Length); // Should be 11. https://github.com/dotnet/roslyn/issues/13421
+                Assert.Equal(11, children.Length);
                 child = children[children.Length - 1];
                 Verify(child,
                     EvalResult(
@@ -263,6 +266,104 @@ class C
                         "(short, short, short)",
                         "o._17.Rest.Rest",
                         DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        /// <summary>
+        /// If tuple fields are missing, fall back to the default
+        /// display for Value (that is, display the type), and
+        /// drop missing fields from the expansion.
+        /// </summary>
+        [Fact]
+        public void MissingFields()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        // No Item2.
+        public ValueTuple(T1 _1, T2 _2)
+        {
+            Item1 = _1;
+        }
+    }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        // No Item*.
+        public ValueTuple(T1 _1, T2 _2, T3 _3)
+        {
+        }
+    }
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        // No Rest.
+        public ValueTuple(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6, T7 _7, T8 _8)
+        {
+            Item1 = _1;
+            Item2 = _2;
+            Item3 = _3;
+            Item4 = _4;
+            Item5 = _5;
+            Item6 = _6;
+            Item7 = _7;
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] names)
+        {
+        }
+    }
+}
+class C
+{
+    (int A, int B) F = (1, 2);
+    (int, int, int C) G = (1, 2, 3);
+    (int, int B, int, int D, int, int F, int, int H, int) H = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "{(int, int)}", "(int A, int B)", "o.F", DkmEvaluationResultFlags.Expandable),
+                    EvalResult("G", "{(int, int, int)}", "(int, int, int C)", "o.G", DkmEvaluationResultFlags.Expandable), // expandable, but with no children
+                    EvalResult("H", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H", DkmEvaluationResultFlags.Expandable));
+                var moreChildren = GetChildren(children[0]);
+                Verify(moreChildren,
+                    EvalResult("A", "1", "int", "o.F.Item1"),
+                    EvalResult("Item1", "1", "int", "o.F.Item1"));
+                moreChildren = GetChildren(children[1]);
+                Verify(moreChildren);
+                moreChildren = GetChildren(children[2]);
+                Verify(moreChildren,
+                    EvalResult("Item1", "1", "int", "o.H.Item1"),
+                    EvalResult("B", "2", "int", "o.H.Item2"),
+                    EvalResult("Item2", "2", "int", "o.H.Item2"),
+                    EvalResult("Item3", "3", "int", "o.H.Item3"),
+                    EvalResult("D", "4", "int", "o.H.Item4"),
+                    EvalResult("Item4", "4", "int", "o.H.Item4"),
+                    EvalResult("Item5", "5", "int", "o.H.Item5"),
+                    EvalResult("F", "6", "int", "o.H.Item6"),
+                    EvalResult("Item6", "6", "int", "o.H.Item6"),
+                    EvalResult("Item7", "7", "int", "o.H.Item7"));
             }
         }
 
@@ -575,8 +676,16 @@ class C
                     EvalResult("F", "(null, (null, {B<(object, object)>.S}))", "(dynamic X, (object E, B<(object F, dynamic G)>.S H) Y) {(object, (object, B<(object, object)>.S))}", "o.G.F", DkmEvaluationResultFlags.Expandable));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
+                    EvalResult("X", "null", "dynamic {object}", "o.G.F.Item1"),
                     EvalResult("Item1", "null", "dynamic {object}", "o.G.F.Item1"),
+                    EvalResult("Y", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable),
                     EvalResult("Item2", "(null, {B<(object, object)>.S})", "(object E, B<(object F, dynamic G)>.S H) {(object, B<(object, object)>.S)}", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable));
+                moreChildren = GetChildren(moreChildren[3]);
+                Verify(moreChildren,
+                    EvalResult("E", "null", "object", "o.G.F.Item2.Item1"),
+                    EvalResult("Item1", "null", "object", "o.G.F.Item2.Item1"),
+                    EvalResult("H", "{B<(object, object)>.S}", "B<(object F, dynamic G)>.S {B<(object, object)>.S}", "o.G.F.Item2.Item2"),
+                    EvalResult("Item2", "{B<(object, object)>.S}", "B<(object F, dynamic G)>.S {B<(object, object)>.S}", "o.G.F.Item2.Item2"));
             }
         }
 
@@ -644,6 +753,160 @@ class B
         }
 
         [Fact]
+        public void TupleElementNames_IncorrectCount()
+        {
+            var source =
+@".assembly extern Tuples { }
+.class public C
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .field private valuetype [Tuples]System.ValueTuple`8<int32,int32,int32,int32,int32,int32,int32,valuetype [Tuples]System.ValueTuple`8<int32,int32,int32,int32,int32,int32,int32,valuetype [Tuples]System.ValueTuple`1<int32>>> F
+  .custom instance void [Tuples]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[6]('A' 'B' 'C' 'D' 'E' 'F')}
+  .field private valuetype [Tuples]System.ValueTuple`8<int32,int32,int32,int32,int32,int32,int32,valuetype [Tuples]System.ValueTuple`2<int32,int32>> G
+  .custom instance void [Tuples]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[12]('A' 'B' 'C' 'D' 'E' 'F' 'G' 'H' 'I' 'J' 'K' 'L')}
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            ImmutableArray<byte> assembly1;
+            ImmutableArray<byte> pdb1;
+            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assembly1, pdbBytes: out pdb1);
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)",
+                        "(int A, int B, int C, int D, int E, int F, int, int, int, int, int, int, int, int, int)",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable),
+                    EvalResult(
+                        "G",
+                        "(0, 0, 0, 0, 0, 0, 0, 0, 0)",
+                        "(int A, int B, int C, int D, int E, int F, int G, int H, int I)",
+                        "o.G",
+                        DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
+        [Fact]
+        public void InvalidElementName()
+        {
+            var source =
+@".assembly extern Tuples { }
+.class public C
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .field private valuetype [Tuples]System.ValueTuple`2<object, object> F
+  .custom instance void [Tuples]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[2]('Item2' 'struct { }')}
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            ImmutableArray<byte> assembly1;
+            ImmutableArray<byte> pdb1;
+            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assembly1, pdbBytes: out pdb1);
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "(null, null)", "(object Item2, object struct { })", "o.F", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0]);
+                Verify(children,
+                    EvalResult("Item2", "null", "object", "o.F.Item1"),
+                    EvalResult("Item1", "null", "object", "o.F.Item1"),
+                    EvalResult("struct { }", "null", "object", "o.F.Item2"),
+                    EvalResult("Item2", "null", "object", "o.F.Item2"));
+            }
+        }
+
+        [Fact]
+        public void LongTuple_Expansion()
+        {
+            // Define in IL to include tuple element names
+            // for the Rest elements.
+            var source =
+@".assembly extern Tuples { }
+.class public C
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .field private valuetype [Tuples]System.ValueTuple`8<int32,int32,int32,int32,int32,int32,int32,valuetype [Tuples]System.ValueTuple`8<int32,int32,int32,int32,int32,int32,int32,valuetype [Tuples]System.ValueTuple`1<int32>>> F
+  .custom instance void [Tuples]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[]) = {string[26]('One' 'Two' '' '' 'Five' 'Six' '' '' 'Nine' 'Ten' '' '' 'Thirteen' 'Fourteen' '' '' 'Seventeen' 'Eighteen' '' '' 'TwentyOne' 'TwentyTwo' '' '' 'TwentyFive' 'TwentySix')}
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            ImmutableArray<byte> assembly1;
+            ImmutableArray<byte> pdb1;
+            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assembly1, pdbBytes: out pdb1);
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)",
+                        "(int One, int Two, int, int, int Five, int Six, int, int, int Nine, int Ten, int, int, int Thirteen, int Fourteen, int)",
+                        "o.F",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0]);
+                Verify(children,
+                    EvalResult("One", "0", "int", "o.F.Item1"),
+                    EvalResult("Item1", "0", "int", "o.F.Item1"),
+                    EvalResult("Two", "0", "int", "o.F.Item2"),
+                    EvalResult("Item2", "0", "int", "o.F.Item2"),
+                    EvalResult("Item3", "0", "int", "o.F.Item3"),
+                    EvalResult("Item4", "0", "int", "o.F.Item4"),
+                    EvalResult("Five", "0", "int", "o.F.Item5"),
+                    EvalResult("Item5", "0", "int", "o.F.Item5"),
+                    EvalResult("Six", "0", "int", "o.F.Item6"),
+                    EvalResult("Item6", "0", "int", "o.F.Item6"),
+                    EvalResult("Item7", "0", "int", "o.F.Item7"),
+                    EvalResult("Item8", "0", "int", "o.F.Rest.Item1"),
+                    EvalResult("Nine", "0", "int", "o.F.Rest.Item2"),
+                    EvalResult("Item9", "0", "int", "o.F.Rest.Item2"),
+                    EvalResult("Ten", "0", "int", "o.F.Rest.Item3"),
+                    EvalResult("Item10", "0", "int", "o.F.Rest.Item3"),
+                    EvalResult("Item11", "0", "int", "o.F.Rest.Item4"),
+                    EvalResult("Item12", "0", "int", "o.F.Rest.Item5"),
+                    EvalResult("Thirteen", "0", "int", "o.F.Rest.Item6"),
+                    EvalResult("Item13", "0", "int", "o.F.Rest.Item6"),
+                    EvalResult("Fourteen", "0", "int", "o.F.Rest.Item7"),
+                    EvalResult("Item14", "0", "int", "o.F.Rest.Item7"),
+                    EvalResult("Item15", "0", "int", "o.F.Rest.Rest.Item1"),
+                    EvalResult("Rest", "(0, 0, 0, 0, 0, 0, 0, 0)", "(int, int Seventeen, int Eighteen, int, int, int TwentyOne, int TwentyTwo, int)", "o.F.Rest", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[children.Length - 1]);
+                Verify(children,
+                    EvalResult("Item1", "0", "int", "o.F.Rest.Item1"),
+                    EvalResult("Seventeen", "0", "int", "o.F.Rest.Item2"),
+                    EvalResult("Item2", "0", "int", "o.F.Rest.Item2"),
+                    EvalResult("Eighteen", "0", "int", "o.F.Rest.Item3"),
+                    EvalResult("Item3", "0", "int", "o.F.Rest.Item3"),
+                    EvalResult("Item4", "0", "int", "o.F.Rest.Item4"),
+                    EvalResult("Item5", "0", "int", "o.F.Rest.Item5"),
+                    EvalResult("TwentyOne", "0", "int", "o.F.Rest.Item6"),
+                    EvalResult("Item6", "0", "int", "o.F.Rest.Item6"),
+                    EvalResult("TwentyTwo", "0", "int", "o.F.Rest.Item7"),
+                    EvalResult("Item7", "0", "int", "o.F.Rest.Item7"),
+                    EvalResult("Item8", "0", "int", "o.F.Rest.Rest.Item1"),
+                    EvalResult("Rest", "{System.ValueTuple<int>}", "System.ValueTuple<int>", "o.F.Rest.Rest", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[children.Length - 1]);
+                Verify(children,
+                    EvalResult("Item1", "0", "int", "o.F.Rest.Rest.Item1"));
+            }
+        }
+
+        [Fact]
         public void Keywords()
         {
             var source =
@@ -677,6 +940,59 @@ class async
                 Verify(children,
                     EvalResult("Item1", "null", "async", "(((@async, @namespace.@struct))o._f).Item1"),
                     EvalResult("Item2", "{namespace.struct}", "namespace.struct", "(((@async, @namespace.@struct))o._f).Item2"));
+            }
+        }
+
+        [WorkItem(13715, "https://github.com/dotnet/roslyn/issues/13715")]
+        [Fact]
+        public void OtherPayload()
+        {
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(GenerateTupleAssembly())));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(int));
+                var value = type.Instantiate(new object[] { 1, 2, });
+
+                // Empty custom type info id.
+                var typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, new ReadOnlyCollection<byte>(new byte[0]));
+                var evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Empty custom type info id, no payload.
+                typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, null);
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Unrecognized custom type info id.
+                var typeInfoId = Guid.Parse("C19D170F-83EE-409D-A61B-6A4501929A5A");
+                typeInfo = DkmClrCustomTypeInfo.Create(typeInfoId, new ReadOnlyCollection<byte>(new byte[] { 0xf0, 0x0f }));
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
+
+                // Unrecognized custom type info id, no payload.
+                typeInfo = DkmClrCustomTypeInfo.Create(typeInfoId, null);
+                evalResult = FormatResult("o", "o", value, declaredType: type, declaredTypeInfo: typeInfo);
+                Verify(evalResult,
+                    EvalResult("o", "(1, 2)", "(int, int)", "o", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", "o.Item1"),
+                    EvalResult("Item2", "2", "int", "o.Item2"));
             }
         }
 
@@ -729,6 +1045,81 @@ class B
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
                     EvalResult("o", "(null, 0) {$3}", "(object, int)", "o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.HasObjectId));
+            }
+        }
+
+        [Fact]
+        public void Exception()
+        {
+            var source =
+@"class C
+{
+    (object A, int, int) F = (1, 2, 3);
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            DkmClrRuntimeInstance runtime = null;
+            runtime = new DkmClrRuntimeInstance(
+                ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)),
+                getMemberValue: (_, m) => (m == "Item2") ? CreateDkmClrValue(new System.InvalidOperationException("Unable to evaluate"), evalFlags: DkmEvaluationResultFlags.ExceptionThrown) : null);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "(1, {System.InvalidOperationException: Unable to evaluate}, 3)", "(object A, int, int)", "o.F", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[0]);
+                Verify(children,
+                    EvalResult("A", "1", "object {int}", "o.F.Item1"),
+                    EvalResult("Item1", "1", "object {int}", "o.F.Item1"),
+                    EvalResult("Item2", "'o.F.Item2' threw an exception of type 'System.InvalidOperationException'", "int {System.InvalidOperationException}", "o.F.Item2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown),
+                    EvalResult("Item3", "3", "int", "o.F.Item3"));
+                children = GetChildren(children[2]);
+                Assert.True(children.Length > 0);
+                Assert.Null(children[0].FullName); // FullName null for members of thrown Exception.
+            }
+        }
+
+        /// <summary>
+        /// Parent FullName null for tuple members of thrown Exception.
+        /// </summary>
+        [Fact]
+        public void ExceptionTupleField()
+        {
+            var source =
+@"class C
+{
+    object P { get { throw new E(); } }
+}
+class E : System.Exception
+{
+    (int, int B) F = (1, 2);
+}";
+            var assembly0 = GenerateTupleAssembly();
+            var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
+            var compilation1 = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { reference0 });
+            var assembly1 = compilation1.EmitToArray();
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("o", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
+                children = GetChildren(children[0]);
+                Verify(children[1],
+                    EvalResult("F", "(1, 2)", "(int, int B)", null, DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children[1]);
+                Verify(children,
+                    EvalResult("Item1", "1", "int", null),
+                    EvalResult("B", "2", "int", null),
+                    EvalResult("Item2", "2", "int", null));
             }
         }
 
@@ -867,7 +1258,7 @@ namespace System.Runtime.CompilerServices
         }
     }
 }";
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib(source);
+            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib(source, assemblyName: "Tuples");
             comp.VerifyDiagnostics();
             return comp.EmitToArray();
         }
