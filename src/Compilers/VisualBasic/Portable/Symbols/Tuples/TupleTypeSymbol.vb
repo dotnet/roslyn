@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Const RestPosition As Integer = 8
 
         Friend Const TupleTypeName As String = "ValueTuple"
+        Friend Const RestFieldName As String = "Rest"
 
         Private Shared ReadOnly tupleTypes As WellKnownType() = New WellKnownType() {WellKnownType.System_ValueTuple_T1, WellKnownType.System_ValueTuple_T2, WellKnownType.System_ValueTuple_T3, WellKnownType.System_ValueTuple_T4, WellKnownType.System_ValueTuple_T5, WellKnownType.System_ValueTuple_T6, WellKnownType.System_ValueTuple_T7, WellKnownType.System_ValueTuple_TRest}
 

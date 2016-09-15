@@ -7308,6 +7308,836 @@ End Module
 
         End Sub
 
+        <Fact>
+        Public Sub DefiniteAssignment001()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, w)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment001Err()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        'ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, )]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(8, 34)
+            )
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment002()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim  ss as (A as string, B as string)
+
+        ss.A = "q"
+        ss.B = "q"
+        ss.Item1 = "w"
+        ss.Item2 = "w"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(w, w)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment003()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (A as string, D as (B as string, C as string ))
+
+        ss.A = "q"
+        ss.D.B = "w"
+        ss.D.C = "e"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, (w, e))]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment004()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as  (I1 as string , 
+            I2  As string, 
+            I3  As string, 
+            I4  As string, 
+            I5  As string, 
+            I6  As string, 
+            I7  As string, 
+            I8  As string, 
+            I9  As string, 
+            I10 As string)
+
+        ss.I1 = "q"
+        ss.I2 = "q"
+        ss.I3 = "q"
+        ss.I4 = "q"
+        ss.I5 = "q"
+        ss.I6 = "q"
+        ss.I7 = "q"
+        ss.I8 = "q"
+        ss.I9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment005()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+            I2  As String, 
+            I3  As String, 
+            I4  As String, 
+            I5  As String, 
+            I6  As String, 
+            I7  As String, 
+            I8  As String, 
+            I9  As String, 
+            I10 As String)
+
+        ss.Item1 = "q"
+        ss.Item2 = "q"
+        ss.Item3 = "q"
+        ss.Item4 = "q"
+        ss.Item5 = "q"
+        ss.Item6 = "q"
+        ss.Item7 = "q"
+        ss.Item8 = "q"
+        ss.Item9 = "q"
+        ss.Item10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment006()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Item1 = "q"
+        ss.I2 = "q"
+        ss.Item3 = "q"
+        ss.I4 = "q"
+        ss.Item5 = "q"
+        ss.I6 = "q"
+        ss.Item7 = "q"
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment007()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Item1 = "q"
+        ss.I2 = "q"
+        ss.Item3 = "q"
+        ss.I4 = "q"
+        ss.Item5 = "q"
+        ss.I6 = "q"
+        ss.Item7 = "q"
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment008()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.I8 = "q"
+        ss.Item9 = "q"
+        ss.I10 = "q"
+
+        System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q)]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment008long()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String,
+                    I11 as string, 
+                    I12  As String, 
+                    I13  As String, 
+                    I14  As String, 
+                    I15  As String, 
+                    I16  As String, 
+                    I17  As String, 
+                    I18  As String, 
+                    I19  As String,
+                    I20 As String,
+                    I21 as string, 
+                    I22  As String, 
+                    I23  As String, 
+                    I24  As String, 
+                    I25  As String, 
+                    I26  As String, 
+                    I27  As String, 
+                    I28  As String, 
+                    I29  As String,
+                    I30  As String,
+                    I31  As String)
+
+        'warn 
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        'warn 
+        System.Console.WriteLine(ss.I31)
+
+        ss.I29 = "q"
+        ss.Item30 = "q"
+        ss.I31 = "q"
+
+        System.Console.WriteLine(ss.I29)
+        System.Console.WriteLine(ss.Rest.Rest.Rest)
+        System.Console.WriteLine(ss.I31)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss.Rest)
+
+        ' warn
+        System.Console.WriteLine(ss)
+
+        ' warn
+        System.Console.WriteLine(ss.I2)
+
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+(, , , , , , , , , )
+
+q
+(, , , , , , , q, q, q)
+q
+(, , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , q, q, q)
+(, , , , , , , , , , , , , , , , , , , , , , , , , , , , q, q, q)]]>)
+
+            verifier.VerifyDiagnostics(
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest.Rest").WithArguments("Rest").WithLocation(36, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I31").WithArguments("I31").WithLocation(38, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest.Rest").WithArguments("Rest").WithLocation(49, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest").WithArguments("Rest").WithLocation(52, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(55, 34),
+    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I2").WithArguments("I2").WithLocation(58, 34))
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment009()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.I1 = "q"
+        ss.I2 = "q"
+        ss.I3 = "q"
+        ss.I4 = "q"
+        ss.I5 = "q"
+        ss.I6 = "q"
+        ss.I7 = "q"
+        ss.Rest = Nothing
+
+        System.Console.WriteLine(ss)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, q, , , )]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment010()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        Dim ss as (I1 as string, 
+                    I2  As String, 
+                    I3  As String, 
+                    I4  As String, 
+                    I5  As String, 
+                    I6  As String, 
+                    I7  As String, 
+                    I8  As String, 
+                    I9  As String, 
+                    I10 As String)
+
+        ss.Rest = ("q", "w", "e")
+
+        System.Console.WriteLine(ss.I9)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[w]]>)
+
+            verifier.VerifyDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment011()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+        if (1.ToString() = 2.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        elseif (1.ToString() = 3.ToString())
+    
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ' ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        else 
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ' ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail
+        end if
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, , q)]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(44, 38),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(65, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment012()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+       if (1.ToString() = 2.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss)
+
+        else if (1.ToString() = 3.ToString())
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+            ' ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail1
+
+        else 
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ' ss.I7 = "q"
+            ss.I8 = "q"
+
+            System.Console.WriteLine(ss) ' should fail2
+        end if
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[(q, q, q, q, q, q, , q)]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(43, 38),
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss").WithArguments("ss").WithLocation(64, 38)
+                )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment013()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.I2 = "q"
+            ss.I3 = "q"
+            ss.I4 = "q"
+            ss.I5 = "q"
+            ss.I6 = "q"
+            ss.I7 = "q"
+
+            ss.Item1 = "q"
+            ss.Item2 = "q"
+            ss.Item3 = "q"
+            ss.Item4 = "q"
+            ss.Item5 = "q"
+            ss.Item6 = "q"
+            ss.Item7 = "q"
+
+            System.Console.WriteLine(ss.Rest)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[()]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "ss.Rest").WithArguments("Rest").WithLocation(28, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment014()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub Main()
+            Dim ss as (I1 as string, 
+                        I2  As String, 
+                        I3  As String, 
+                        I4  As String, 
+                        I5  As String, 
+                        I6  As String, 
+                        I7  As String, 
+                        I8  As String)
+
+            ss.I1 = "q"
+            ss.Item2 = "aa"
+
+            System.Console.WriteLine(ss.Item1)
+            System.Console.WriteLine(ss.I2)
+
+            System.Console.WriteLine(ss.I3)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[q
+aa]]>)
+
+            verifier.VerifyDiagnostics(
+                    Diagnostic(ERRID.WRN_DefAsgUseNullRef, "ss.I3").WithArguments("I3").WithLocation(18, 38)
+            )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefiniteAssignment015()
+
+            Dim verifier = CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+        Sub Main()
+            Dim v = Test().Result
+        end sub
+
+        async Function Test() as Task(of long)
+            Dim v1 as (a as Integer, b as Integer)
+            Dim v2 as (x as Byte, y as Integer)
+
+            v1.a = 5
+
+            v2.x = 5   ' no need to persist across await since it is unused after it.
+            System.Console.WriteLine(v2.Item1)
+
+            await Task.Yield()
+
+            ' this is assigned and persisted across await
+            return v1.Item1            
+        end Function
+End Module
+
+            </file>
+    </compilation>, useLatestFramework:=True, additionalRefs:=s_valueTupleRefs, expectedOutput:="5")
+
+            ' NOTE: !!! There should be NO IL local for  " v1 as (Long, Integer)" , it should be captured instead
+            ' NOTE: !!! There should be an IL local for  " v2 as (Byte, Integer)" , it should not be captured 
+            verifier.VerifyIL("Module1.VB$StateMachine_1_Test.MoveNext()", <![CDATA[
+{
+  // Code size      214 (0xd6)
+  .maxstack  3
+  .locals init (Long V_0,
+                Integer V_1,
+                System.ValueTuple(Of Byte, Integer) V_2, //v2
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_3,
+                System.Runtime.CompilerServices.YieldAwaitable V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0061
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_0010:  ldc.i4.5
+    IL_0011:  stfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+    IL_0016:  ldloca.s   V_2
+    IL_0018:  ldc.i4.5
+    IL_0019:  stfld      "System.ValueTuple(Of Byte, Integer).Item1 As Byte"
+    IL_001e:  ldloc.2
+    IL_001f:  ldfld      "System.ValueTuple(Of Byte, Integer).Item1 As Byte"
+    IL_0024:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0029:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+    IL_002e:  stloc.s    V_4
+    IL_0030:  ldloca.s   V_4
+    IL_0032:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0037:  stloc.3
+    IL_0038:  ldloca.s   V_3
+    IL_003a:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+    IL_003f:  brtrue.s   IL_007d
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.0
+    IL_0043:  dup
+    IL_0044:  stloc.1
+    IL_0045:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_004a:  ldarg.0
+    IL_004b:  ldloc.3
+    IL_004c:  stfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0051:  ldarg.0
+    IL_0052:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+    IL_0057:  ldloca.s   V_3
+    IL_0059:  ldarg.0
+    IL_005a:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Module1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Module1.VB$StateMachine_1_Test)"
+    IL_005f:  leave.s    IL_00d5
+    IL_0061:  ldarg.0
+    IL_0062:  ldc.i4.m1
+    IL_0063:  dup
+    IL_0064:  stloc.1
+    IL_0065:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0070:  stloc.3
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_007d:  ldloca.s   V_3
+    IL_007f:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+    IL_0084:  ldloca.s   V_3
+    IL_0086:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$ResumableLocal_v1$0 As (a As Integer, b As Integer)"
+    IL_0092:  ldfld      "System.ValueTuple(Of Integer, Integer).Item1 As Integer"
+    IL_0097:  conv.i8
+    IL_0098:  stloc.0
+    IL_0099:  leave.s    IL_00bf
+  }
+  catch System.Exception
+  {
+    IL_009b:  dup
+    IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a1:  stloc.s    V_5
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+    IL_00b1:  ldloc.s    V_5
+    IL_00b3:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).SetException(System.Exception)"
+    IL_00b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bd:  leave.s    IL_00d5
+  }
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldc.i4.s   -2
+  IL_00c2:  dup
+  IL_00c3:  stloc.1
+  IL_00c4:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long)"
+  IL_00cf:  ldloc.0
+  IL_00d0:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Long).SetResult(Long)"
+  IL_00d5:  ret
+}
+]]>)
+
+        End Sub
+
     End Class
 
 End Namespace
