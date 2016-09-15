@@ -506,7 +506,8 @@ Microsoft.CodeAnalysis.Options.Option<T>
 Microsoft.CodeAnalysis.Options.Option<T>.DefaultValue.get -> T
 Microsoft.CodeAnalysis.Options.Option<T>.Feature.get -> string
 Microsoft.CodeAnalysis.Options.Option<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue = default(T)) -> void
+Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name) -> void
+Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue) -> void
 Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
 Microsoft.CodeAnalysis.Options.OptionKey
 Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool

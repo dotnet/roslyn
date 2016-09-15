@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -17,15 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
-                new[]
-                {
-                    new Lazy<IOptionSerializer, OptionSerializerMetadata>(
-                    () =>
-                    {
-                        return new TestOptionSerializer();
-                    },
-                    new OptionSerializerMetadata(features))
-                }), workspaceServices: null);
+                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: null);
         }
 
         internal class TestOptionsProvider : IOptionProvider
@@ -33,20 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public IEnumerable<IOption> GetOptions()
             {
                 yield return new Option<bool>("Test Feature", "Test Name", false);
-            }
-        }
-
-        internal class TestOptionSerializer : IOptionSerializer
-        {
-            public bool TryFetch(OptionKey optionKey, out object value)
-            {
-                value = null;
-                return false;
-            }
-
-            public bool TryPersist(OptionKey optionKey, object value)
-            {
-                return false;
             }
         }
     }
