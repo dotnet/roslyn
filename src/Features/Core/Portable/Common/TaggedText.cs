@@ -72,59 +72,6 @@ namespace Microsoft.CodeAnalysis
                 : string.Join("", values.Select(t => t.Text));
         }
 
-//        public static string FromClassificationTypeName(this string classificationTypeName)
-//        {
-//            switch (classificationTypeName)
-//            {
-//        case ClassificationTypeNames.Comment: return TextTags.Comment;
-//        case ClassificationTypeNames.ExcludedCode: return TextTags.ExcludedCode;
-//        case ClassificationTypeNames.Identifier: return TextTags.Iden
-//        case ClassificationTypeNames.Keyword:
-//        case ClassificationTypeNames.NumericLiteral:
-//        case ClassificationTypeNames.Operator:
-//        case ClassificationTypeNames.PreprocessorKeyword:
-//        case ClassificationTypeNames.StringLiteral:
-//        case ClassificationTypeNames.WhiteSpace:
-//        case ClassificationTypeNames.Text:
-//        case ClassificationTypeNames.
-//        case ClassificationTypeNames.PreprocessorText:
-//        case ClassificationTypeNames.Punctuation:
-//        case ClassificationTypeNames.VerbatimStringLiteral:
-//        case ClassificationTypeNames.
-//        case ClassificationTypeNames.ClassName:
-//        case ClassificationTypeNames.DelegateName:
-//        case ClassificationTypeNames.EnumName:
-//        case ClassificationTypeNames.InterfaceName:
-//        case ClassificationTypeNames.ModuleName:
-//        case ClassificationTypeNames.StructName:
-//        case ClassificationTypeNames.TypeParameterName:
-//        case ClassificationTypeNames.
-//        case ClassificationTypeNames.XmlDocCommentAttributeName:
-//        case ClassificationTypeNames.XmlDocCommentAttributeQuotes:
-//        case ClassificationTypeNames.XmlDocCommentAttributeValue:
-//        case ClassificationTypeNames.XmlDocCommentCDataSection:
-//        case ClassificationTypeNames.XmlDocCommentComment:
-//        case ClassificationTypeNames.XmlDocCommentDelimiter:
-//        case ClassificationTypeNames.XmlDocCommentEntityReference:
-//        case ClassificationTypeNames.XmlDocCommentName:
-//        case ClassificationTypeNames.XmlDocCommentProcessingInstruction:
-//        case ClassificationTypeNames.XmlDocCommentText:
-
-//        case ClassificationTypeNames.XmlLiteralAttributeName:
-//        case ClassificationTypeNames.XmlLiteralAttributeQuotes:
-//        case ClassificationTypeNames.XmlLiteralAttributeValue:
-//        case ClassificationTypeNames.XmlLiteralCDataSection:
-//        case ClassificationTypeNames.XmlLiteralComment:
-//        case ClassificationTypeNames.XmlLiteralDelimiter:
-//        case ClassificationTypeNames.XmlLiteralEmbeddedExpression:
-//        case ClassificationTypeNames.XmlLiteralEntityReference:
-//        case ClassificationTypeNames.XmlLiteralName:
-//        case ClassificationTypeNames.XmlLiteralProcessingInstruction:
-//        case ClassificationTypeNames.XmlLiteralText:
-
-//    }
-//}
-
         public static string ToClassificationTypeName(this string taggedTextTag)
         {
             switch (taggedTextTag)
