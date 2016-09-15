@@ -39,16 +39,4 @@ namespace Microsoft.CodeAnalysis.Classification
             return this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
         }
     }
-
-    internal struct ClassifiedText
-    {
-        public string ClassificationType { get; }
-        public string Text { get; }
-
-        public ClassifiedText(string classificationType, string text)
-        {
-            ClassificationType = classificationType;
-            Text = text;
-        }
-    }
 }
